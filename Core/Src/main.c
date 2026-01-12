@@ -18,12 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <application.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,8 +90,28 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART1_UART_Init();
+  MX_I2C1_Init();
+  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
+  OLED_Init();
+  OLED_WriteString("Hello World!");
+  OLED_SetCursor(0, 2);
+  OLED_WriteString("OLED Ready :)");
 
+  if (checkExist()){ // cannot detect -> light LED
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, RESET);
+    OLED_SetCursor(0, 3);
+    OLED_WriteString("Cannot find MPU 6050!");
+  } else {
+    OLED_SetCursor(0, 3);
+    OLED_WriteString("MPU 6050 Detected!");
+  }
+  mpu6050Init();
+  int16_t accBuffer[3];
+  char displayAccBuffer[32];
+  
+
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -99,10 +121,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, SET);
-    HAL_Delay(1000);
-    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, RESET);
-    HAL_Delay(1000);
+    readAcc(accBuffer);
+    snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%.3i,Y:%.3i,Z:%.3i", accBuffer[0], accBuffer[1], accBuffer[2]);
+    OLED_SetCursor(0, 4);
+    OLED_WriteString(displayAccBuffer);
   }
   /* USER CODE END 3 */
 }

@@ -1,0 +1,1014 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"oled1315.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.file 1 "./Application/Src/oled1315.c"
+  18              		.section	.text.OLED_WriteCommand,"ax",%progbits
+  19              		.align	1
+  20              		.global	OLED_WriteCommand
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  25              	OLED_WriteCommand:
+  26              	.LVL0:
+  27              	.LFB65:
+   1:./Application/Src/oled1315.c **** #include <oled1315.h>
+   2:./Application/Src/oled1315.c **** 
+   3:./Application/Src/oled1315.c **** // 5x7 ASCII font (characters 32-126)
+   4:./Application/Src/oled1315.c **** const uint8_t OLED_Font5x7[][5] = {
+   5:./Application/Src/oled1315.c ****     {0x00, 0x00, 0x00, 0x00, 0x00}, // Space
+   6:./Application/Src/oled1315.c ****     {0x00, 0x00, 0x5F, 0x00, 0x00}, // !
+   7:./Application/Src/oled1315.c ****     {0x00, 0x07, 0x00, 0x07, 0x00}, // "
+   8:./Application/Src/oled1315.c ****     {0x14, 0x7F, 0x14, 0x7F, 0x14}, // #
+   9:./Application/Src/oled1315.c ****     {0x24, 0x2A, 0x7F, 0x2A, 0x12}, // $
+  10:./Application/Src/oled1315.c ****     {0x23, 0x13, 0x08, 0x64, 0x62}, // %
+  11:./Application/Src/oled1315.c ****     {0x36, 0x49, 0x55, 0x22, 0x50}, // &
+  12:./Application/Src/oled1315.c ****     {0x00, 0x05, 0x03, 0x00, 0x00}, // '
+  13:./Application/Src/oled1315.c ****     {0x00, 0x1C, 0x22, 0x41, 0x00}, // (
+  14:./Application/Src/oled1315.c ****     {0x00, 0x41, 0x22, 0x1C, 0x00}, // )
+  15:./Application/Src/oled1315.c ****     {0x08, 0x2A, 0x1C, 0x2A, 0x08}, // *
+  16:./Application/Src/oled1315.c ****     {0x08, 0x08, 0x3E, 0x08, 0x08}, // +
+  17:./Application/Src/oled1315.c ****     {0x00, 0x50, 0x30, 0x00, 0x00}, // ,
+  18:./Application/Src/oled1315.c ****     {0x08, 0x08, 0x08, 0x08, 0x08}, // -
+  19:./Application/Src/oled1315.c ****     {0x00, 0x60, 0x60, 0x00, 0x00}, // .
+  20:./Application/Src/oled1315.c ****     {0x20, 0x10, 0x08, 0x04, 0x02}, // /
+  21:./Application/Src/oled1315.c ****     {0x3E, 0x51, 0x49, 0x45, 0x3E}, // 0
+  22:./Application/Src/oled1315.c ****     {0x00, 0x42, 0x7F, 0x40, 0x00}, // 1
+  23:./Application/Src/oled1315.c ****     {0x42, 0x61, 0x51, 0x49, 0x46}, // 2
+  24:./Application/Src/oled1315.c ****     {0x21, 0x41, 0x45, 0x4B, 0x31}, // 3
+  25:./Application/Src/oled1315.c ****     {0x18, 0x14, 0x12, 0x7F, 0x10}, // 4
+  26:./Application/Src/oled1315.c ****     {0x27, 0x45, 0x45, 0x45, 0x39}, // 5
+  27:./Application/Src/oled1315.c ****     {0x3C, 0x4A, 0x49, 0x49, 0x30}, // 6
+  28:./Application/Src/oled1315.c ****     {0x01, 0x71, 0x09, 0x05, 0x03}, // 7
+  29:./Application/Src/oled1315.c ****     {0x36, 0x49, 0x49, 0x49, 0x36}, // 8
+  30:./Application/Src/oled1315.c ****     {0x06, 0x49, 0x49, 0x29, 0x1E}, // 9
+  31:./Application/Src/oled1315.c ****     {0x00, 0x36, 0x36, 0x00, 0x00}, // :
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 2
+
+
+  32:./Application/Src/oled1315.c ****     {0x00, 0x56, 0x36, 0x00, 0x00}, // ;
+  33:./Application/Src/oled1315.c ****     {0x00, 0x08, 0x14, 0x22, 0x41}, // <
+  34:./Application/Src/oled1315.c ****     {0x14, 0x14, 0x14, 0x14, 0x14}, // =
+  35:./Application/Src/oled1315.c ****     {0x41, 0x22, 0x14, 0x08, 0x00}, // >
+  36:./Application/Src/oled1315.c ****     {0x02, 0x01, 0x51, 0x09, 0x06}, // ?
+  37:./Application/Src/oled1315.c ****     {0x32, 0x49, 0x79, 0x41, 0x3E}, // @
+  38:./Application/Src/oled1315.c ****     {0x7E, 0x11, 0x11, 0x11, 0x7E}, // A
+  39:./Application/Src/oled1315.c ****     {0x7F, 0x49, 0x49, 0x49, 0x36}, // B
+  40:./Application/Src/oled1315.c ****     {0x3E, 0x41, 0x41, 0x41, 0x22}, // C
+  41:./Application/Src/oled1315.c ****     {0x7F, 0x41, 0x41, 0x22, 0x1C}, // D
+  42:./Application/Src/oled1315.c ****     {0x7F, 0x49, 0x49, 0x49, 0x41}, // E
+  43:./Application/Src/oled1315.c ****     {0x7F, 0x09, 0x09, 0x01, 0x01}, // F
+  44:./Application/Src/oled1315.c ****     {0x3E, 0x41, 0x41, 0x51, 0x32}, // G
+  45:./Application/Src/oled1315.c ****     {0x7F, 0x08, 0x08, 0x08, 0x7F}, // H
+  46:./Application/Src/oled1315.c ****     {0x00, 0x41, 0x7F, 0x41, 0x00}, // I
+  47:./Application/Src/oled1315.c ****     {0x20, 0x40, 0x41, 0x3F, 0x01}, // J
+  48:./Application/Src/oled1315.c ****     {0x7F, 0x08, 0x14, 0x22, 0x41}, // K
+  49:./Application/Src/oled1315.c ****     {0x7F, 0x40, 0x40, 0x40, 0x40}, // L
+  50:./Application/Src/oled1315.c ****     {0x7F, 0x02, 0x04, 0x02, 0x7F}, // M
+  51:./Application/Src/oled1315.c ****     {0x7F, 0x04, 0x08, 0x10, 0x7F}, // N
+  52:./Application/Src/oled1315.c ****     {0x3E, 0x41, 0x41, 0x41, 0x3E}, // O
+  53:./Application/Src/oled1315.c ****     {0x7F, 0x09, 0x09, 0x09, 0x06}, // P
+  54:./Application/Src/oled1315.c ****     {0x3E, 0x41, 0x51, 0x21, 0x5E}, // Q
+  55:./Application/Src/oled1315.c ****     {0x7F, 0x09, 0x19, 0x29, 0x46}, // R
+  56:./Application/Src/oled1315.c ****     {0x46, 0x49, 0x49, 0x49, 0x31}, // S
+  57:./Application/Src/oled1315.c ****     {0x01, 0x01, 0x7F, 0x01, 0x01}, // T
+  58:./Application/Src/oled1315.c ****     {0x3F, 0x40, 0x40, 0x40, 0x3F}, // U
+  59:./Application/Src/oled1315.c ****     {0x1F, 0x20, 0x40, 0x20, 0x1F}, // V
+  60:./Application/Src/oled1315.c ****     {0x7F, 0x20, 0x18, 0x20, 0x7F}, // W
+  61:./Application/Src/oled1315.c ****     {0x63, 0x14, 0x08, 0x14, 0x63}, // X
+  62:./Application/Src/oled1315.c ****     {0x03, 0x04, 0x78, 0x04, 0x03}, // Y
+  63:./Application/Src/oled1315.c ****     {0x61, 0x51, 0x49, 0x45, 0x43}, // Z
+  64:./Application/Src/oled1315.c ****     {0x00, 0x00, 0x7F, 0x41, 0x41}, // [
+  65:./Application/Src/oled1315.c ****     {0x02, 0x04, 0x08, 0x10, 0x20}, // backslash
+  66:./Application/Src/oled1315.c ****     {0x41, 0x41, 0x7F, 0x00, 0x00}, // ]
+  67:./Application/Src/oled1315.c ****     {0x04, 0x02, 0x01, 0x02, 0x04}, // ^
+  68:./Application/Src/oled1315.c ****     {0x40, 0x40, 0x40, 0x40, 0x40}, // _
+  69:./Application/Src/oled1315.c ****     {0x00, 0x01, 0x02, 0x04, 0x00}, // `
+  70:./Application/Src/oled1315.c ****     {0x20, 0x54, 0x54, 0x54, 0x78}, // a
+  71:./Application/Src/oled1315.c ****     {0x7F, 0x48, 0x44, 0x44, 0x38}, // b
+  72:./Application/Src/oled1315.c ****     {0x38, 0x44, 0x44, 0x44, 0x20}, // c
+  73:./Application/Src/oled1315.c ****     {0x38, 0x44, 0x44, 0x48, 0x7F}, // d
+  74:./Application/Src/oled1315.c ****     {0x38, 0x54, 0x54, 0x54, 0x18}, // e
+  75:./Application/Src/oled1315.c ****     {0x08, 0x7E, 0x09, 0x01, 0x02}, // f
+  76:./Application/Src/oled1315.c ****     {0x08, 0x14, 0x54, 0x54, 0x3C}, // g
+  77:./Application/Src/oled1315.c ****     {0x7F, 0x08, 0x04, 0x04, 0x78}, // h
+  78:./Application/Src/oled1315.c ****     {0x00, 0x44, 0x7D, 0x40, 0x00}, // i
+  79:./Application/Src/oled1315.c ****     {0x20, 0x40, 0x44, 0x3D, 0x00}, // j
+  80:./Application/Src/oled1315.c ****     {0x00, 0x7F, 0x10, 0x28, 0x44}, // k
+  81:./Application/Src/oled1315.c ****     {0x00, 0x41, 0x7F, 0x40, 0x00}, // l
+  82:./Application/Src/oled1315.c ****     {0x7C, 0x04, 0x18, 0x04, 0x78}, // m
+  83:./Application/Src/oled1315.c ****     {0x7C, 0x08, 0x04, 0x04, 0x78}, // n
+  84:./Application/Src/oled1315.c ****     {0x38, 0x44, 0x44, 0x44, 0x38}, // o
+  85:./Application/Src/oled1315.c ****     {0x7C, 0x14, 0x14, 0x14, 0x08}, // p
+  86:./Application/Src/oled1315.c ****     {0x08, 0x14, 0x14, 0x18, 0x7C}, // q
+  87:./Application/Src/oled1315.c ****     {0x7C, 0x08, 0x04, 0x04, 0x08}, // r
+  88:./Application/Src/oled1315.c ****     {0x48, 0x54, 0x54, 0x54, 0x20}, // s
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 3
+
+
+  89:./Application/Src/oled1315.c ****     {0x04, 0x3F, 0x44, 0x40, 0x20}, // t
+  90:./Application/Src/oled1315.c ****     {0x3C, 0x40, 0x40, 0x20, 0x7C}, // u
+  91:./Application/Src/oled1315.c ****     {0x1C, 0x20, 0x40, 0x20, 0x1C}, // v
+  92:./Application/Src/oled1315.c ****     {0x3C, 0x40, 0x30, 0x40, 0x3C}, // w
+  93:./Application/Src/oled1315.c ****     {0x44, 0x28, 0x10, 0x28, 0x44}, // x
+  94:./Application/Src/oled1315.c ****     {0x0C, 0x50, 0x50, 0x50, 0x3C}, // y
+  95:./Application/Src/oled1315.c ****     {0x44, 0x64, 0x54, 0x4C, 0x44}, // z
+  96:./Application/Src/oled1315.c ****     {0x00, 0x08, 0x36, 0x41, 0x00}, // {
+  97:./Application/Src/oled1315.c ****     {0x00, 0x00, 0x7F, 0x00, 0x00}, // |
+  98:./Application/Src/oled1315.c ****     {0x00, 0x41, 0x36, 0x08, 0x00}, // }
+  99:./Application/Src/oled1315.c ****     {0x08, 0x08, 0x2A, 0x1C, 0x08}, // ~
+ 100:./Application/Src/oled1315.c **** };
+ 101:./Application/Src/oled1315.c **** 
+ 102:./Application/Src/oled1315.c **** void OLED_WriteCommand(uint8_t cmd) {
+  28              		.loc 1 102 37 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 8
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 102 37 is_stmt 0 view .LVU1
+  33 0000 00B5     		push	{lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 4
+  36              		.cfi_offset 14, -4
+  37 0002 85B0     		sub	sp, sp, #20
+  38              	.LCFI1:
+  39              		.cfi_def_cfa_offset 24
+ 103:./Application/Src/oled1315.c ****     // set a command buffer used to send data
+ 104:./Application/Src/oled1315.c ****     uint8_t command[2] = {0x00, cmd}; 
+  40              		.loc 1 104 5 is_stmt 1 view .LVU2
+  41              		.loc 1 104 13 is_stmt 0 view .LVU3
+  42 0004 0023     		movs	r3, #0
+  43 0006 8DF80C30 		strb	r3, [sp, #12]
+  44 000a 8DF80D00 		strb	r0, [sp, #13]
+ 105:./Application/Src/oled1315.c ****     HAL_I2C_Master_Transmit(&hi2c1, SSD1315_ADDR, command, 2, 10);
+  45              		.loc 1 105 5 is_stmt 1 view .LVU4
+  46 000e 0A23     		movs	r3, #10
+  47 0010 0093     		str	r3, [sp]
+  48 0012 0223     		movs	r3, #2
+  49 0014 03AA     		add	r2, sp, #12
+  50 0016 7821     		movs	r1, #120
+  51 0018 0248     		ldr	r0, .L3
+  52              	.LVL1:
+  53              		.loc 1 105 5 is_stmt 0 view .LVU5
+  54 001a FFF7FEFF 		bl	HAL_I2C_Master_Transmit
+  55              	.LVL2:
+ 106:./Application/Src/oled1315.c **** }
+  56              		.loc 1 106 1 view .LVU6
+  57 001e 05B0     		add	sp, sp, #20
+  58              	.LCFI2:
+  59              		.cfi_def_cfa_offset 4
+  60              		@ sp needed
+  61 0020 5DF804FB 		ldr	pc, [sp], #4
+  62              	.L4:
+  63              		.align	2
+  64              	.L3:
+  65 0024 00000000 		.word	hi2c1
+  66              		.cfi_endproc
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 4
+
+
+  67              	.LFE65:
+  69              		.section	.text.OLED_WriteData,"ax",%progbits
+  70              		.align	1
+  71              		.global	OLED_WriteData
+  72              		.syntax unified
+  73              		.thumb
+  74              		.thumb_func
+  76              	OLED_WriteData:
+  77              	.LVL3:
+  78              	.LFB66:
+ 107:./Application/Src/oled1315.c **** 
+ 108:./Application/Src/oled1315.c **** void OLED_WriteData(uint8_t data) {
+  79              		.loc 1 108 35 is_stmt 1 view -0
+  80              		.cfi_startproc
+  81              		@ args = 0, pretend = 0, frame = 8
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              		.loc 1 108 35 is_stmt 0 view .LVU8
+  84 0000 00B5     		push	{lr}
+  85              	.LCFI3:
+  86              		.cfi_def_cfa_offset 4
+  87              		.cfi_offset 14, -4
+  88 0002 85B0     		sub	sp, sp, #20
+  89              	.LCFI4:
+  90              		.cfi_def_cfa_offset 24
+ 109:./Application/Src/oled1315.c ****     // same as command:
+ 110:./Application/Src/oled1315.c ****     uint8_t writeData[2] = {0x40, data}; // the control have to be 0x40
+  91              		.loc 1 110 5 is_stmt 1 view .LVU9
+  92              		.loc 1 110 13 is_stmt 0 view .LVU10
+  93 0004 4023     		movs	r3, #64
+  94 0006 8DF80C30 		strb	r3, [sp, #12]
+  95 000a 8DF80D00 		strb	r0, [sp, #13]
+ 111:./Application/Src/oled1315.c ****     HAL_I2C_Master_Transmit(&hi2c1, SSD1315_ADDR, writeData, 2, 10);
+  96              		.loc 1 111 5 is_stmt 1 view .LVU11
+  97 000e 0A23     		movs	r3, #10
+  98 0010 0093     		str	r3, [sp]
+  99 0012 0223     		movs	r3, #2
+ 100 0014 03AA     		add	r2, sp, #12
+ 101 0016 7821     		movs	r1, #120
+ 102 0018 0248     		ldr	r0, .L7
+ 103              	.LVL4:
+ 104              		.loc 1 111 5 is_stmt 0 view .LVU12
+ 105 001a FFF7FEFF 		bl	HAL_I2C_Master_Transmit
+ 106              	.LVL5:
+ 112:./Application/Src/oled1315.c **** }
+ 107              		.loc 1 112 1 view .LVU13
+ 108 001e 05B0     		add	sp, sp, #20
+ 109              	.LCFI5:
+ 110              		.cfi_def_cfa_offset 4
+ 111              		@ sp needed
+ 112 0020 5DF804FB 		ldr	pc, [sp], #4
+ 113              	.L8:
+ 114              		.align	2
+ 115              	.L7:
+ 116 0024 00000000 		.word	hi2c1
+ 117              		.cfi_endproc
+ 118              	.LFE66:
+ 120              		.section	.text.OLED_SetCursor,"ax",%progbits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 5
+
+
+ 121              		.align	1
+ 122              		.global	OLED_SetCursor
+ 123              		.syntax unified
+ 124              		.thumb
+ 125              		.thumb_func
+ 127              	OLED_SetCursor:
+ 128              	.LVL6:
+ 129              	.LFB68:
+ 113:./Application/Src/oled1315.c **** 
+ 114:./Application/Src/oled1315.c **** void OLED_Init(void) {
+ 115:./Application/Src/oled1315.c ****     // wait for OLED to powerup
+ 116:./Application/Src/oled1315.c ****     HAL_Delay(100);
+ 117:./Application/Src/oled1315.c ****     // Do not display on set up time
+ 118:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xAE);
+ 119:./Application/Src/oled1315.c ****     // display geometry setup
+ 120:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xA8);
+ 121:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x3F);
+ 122:./Application/Src/oled1315.c ****     // display offset
+ 123:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xD3);
+ 124:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x00);
+ 125:./Application/Src/oled1315.c ****     // start line = 0
+ 126:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x40);
+ 127:./Application/Src/oled1315.c ****     // enable dc-dc pump 
+ 128:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x8D);
+ 129:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x14);
+ 130:./Application/Src/oled1315.c ****     // write horizontally 
+ 131:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x20);
+ 132:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x00);
+ 133:./Application/Src/oled1315.c ****     // orientation -> depend on the direction of OLED
+ 134:./Application/Src/oled1315.c ****     // here rotate 180 deg
+ 135:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xA1);
+ 136:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xC8);
+ 137:./Application/Src/oled1315.c ****     // 128 * 64 display mode
+ 138:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xDA);
+ 139:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x12);
+ 140:./Application/Src/oled1315.c ****     // display with brighter pixels
+ 141:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x81);
+ 142:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xCF);
+ 143:./Application/Src/oled1315.c ****     // display depend on RAM, normal display
+ 144:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xA4);
+ 145:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xA6);
+ 146:./Application/Src/oled1315.c ****     // clear content avoid random stuff
+ 147:./Application/Src/oled1315.c ****     OLED_Clear();
+ 148:./Application/Src/oled1315.c ****     // enable the final display
+ 149:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xAF);
+ 150:./Application/Src/oled1315.c **** 
+ 151:./Application/Src/oled1315.c **** }
+ 152:./Application/Src/oled1315.c **** 
+ 153:./Application/Src/oled1315.c **** // a page is 8 verticle pixel (a letter size)
+ 154:./Application/Src/oled1315.c **** void OLED_SetCursor(uint8_t x, uint8_t page) {
+ 130              		.loc 1 154 46 is_stmt 1 view -0
+ 131              		.cfi_startproc
+ 132              		@ args = 0, pretend = 0, frame = 0
+ 133              		@ frame_needed = 0, uses_anonymous_args = 0
+ 134              		.loc 1 154 46 is_stmt 0 view .LVU15
+ 135 0000 10B5     		push	{r4, lr}
+ 136              	.LCFI6:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 6
+
+
+ 137              		.cfi_def_cfa_offset 8
+ 138              		.cfi_offset 4, -8
+ 139              		.cfi_offset 14, -4
+ 140 0002 0446     		mov	r4, r0
+ 155:./Application/Src/oled1315.c ****     // set page location 
+ 156:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xB0 + page);
+ 141              		.loc 1 156 5 is_stmt 1 view .LVU16
+ 142 0004 A1F15000 		sub	r0, r1, #80
+ 143              	.LVL7:
+ 144              		.loc 1 156 5 is_stmt 0 view .LVU17
+ 145 0008 C0B2     		uxtb	r0, r0
+ 146 000a FFF7FEFF 		bl	OLED_WriteCommand
+ 147              	.LVL8:
+ 157:./Application/Src/oled1315.c ****     // column location, into lower address and high address
+ 158:./Application/Src/oled1315.c ****     // low address
+ 159:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x00 + (x & 0x0F));
+ 148              		.loc 1 159 5 is_stmt 1 view .LVU18
+ 149 000e 04F00F00 		and	r0, r4, #15
+ 150 0012 FFF7FEFF 		bl	OLED_WriteCommand
+ 151              	.LVL9:
+ 160:./Application/Src/oled1315.c ****     // high address
+ 161:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x10 + (x >> 4));
+ 152              		.loc 1 161 5 view .LVU19
+ 153 0016 2009     		lsrs	r0, r4, #4
+ 154 0018 1030     		adds	r0, r0, #16
+ 155 001a FFF7FEFF 		bl	OLED_WriteCommand
+ 156              	.LVL10:
+ 162:./Application/Src/oled1315.c **** }
+ 157              		.loc 1 162 1 is_stmt 0 view .LVU20
+ 158 001e 10BD     		pop	{r4, pc}
+ 159              		.loc 1 162 1 view .LVU21
+ 160              		.cfi_endproc
+ 161              	.LFE68:
+ 163              		.section	.text.OLED_Clear,"ax",%progbits
+ 164              		.align	1
+ 165              		.global	OLED_Clear
+ 166              		.syntax unified
+ 167              		.thumb
+ 168              		.thumb_func
+ 170              	OLED_Clear:
+ 171              	.LFB69:
+ 163:./Application/Src/oled1315.c **** 
+ 164:./Application/Src/oled1315.c **** void OLED_Clear(void) {
+ 172              		.loc 1 164 23 is_stmt 1 view -0
+ 173              		.cfi_startproc
+ 174              		@ args = 0, pretend = 0, frame = 0
+ 175              		@ frame_needed = 0, uses_anonymous_args = 0
+ 176 0000 38B5     		push	{r3, r4, r5, lr}
+ 177              	.LCFI7:
+ 178              		.cfi_def_cfa_offset 16
+ 179              		.cfi_offset 3, -16
+ 180              		.cfi_offset 4, -12
+ 181              		.cfi_offset 5, -8
+ 182              		.cfi_offset 14, -4
+ 165:./Application/Src/oled1315.c ****     for (uint8_t page = 0; page < OLED_PAGES; page++) {
+ 183              		.loc 1 165 5 view .LVU23
+ 184              	.LBB2:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 7
+
+
+ 185              		.loc 1 165 10 view .LVU24
+ 186              	.LVL11:
+ 187              		.loc 1 165 18 is_stmt 0 view .LVU25
+ 188 0002 0025     		movs	r5, #0
+ 189              		.loc 1 165 5 view .LVU26
+ 190 0004 09E0     		b	.L12
+ 191              	.LVL12:
+ 192              	.L14:
+ 193              	.LBB3:
+ 166:./Application/Src/oled1315.c ****         OLED_SetCursor(0, page);
+ 167:./Application/Src/oled1315.c ****         for (uint8_t x = 0; x < OLED_WIDTH; x++) {
+ 168:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 194              		.loc 1 168 13 is_stmt 1 view .LVU27
+ 195 0006 0020     		movs	r0, #0
+ 196 0008 FFF7FEFF 		bl	OLED_WriteData
+ 197              	.LVL13:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 198              		.loc 1 167 46 discriminator 3 view .LVU28
+ 199 000c 0134     		adds	r4, r4, #1
+ 200              	.LVL14:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 201              		.loc 1 167 46 is_stmt 0 discriminator 3 view .LVU29
+ 202 000e E4B2     		uxtb	r4, r4
+ 203              	.LVL15:
+ 204              	.L13:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 205              		.loc 1 167 31 is_stmt 1 discriminator 1 view .LVU30
+ 206 0010 14F0800F 		tst	r4, #128
+ 207 0014 F7D0     		beq	.L14
+ 208              	.LBE3:
+ 165:./Application/Src/oled1315.c ****     for (uint8_t page = 0; page < OLED_PAGES; page++) {
+ 209              		.loc 1 165 51 discriminator 2 view .LVU31
+ 210 0016 0135     		adds	r5, r5, #1
+ 211              	.LVL16:
+ 165:./Application/Src/oled1315.c ****     for (uint8_t page = 0; page < OLED_PAGES; page++) {
+ 212              		.loc 1 165 51 is_stmt 0 discriminator 2 view .LVU32
+ 213 0018 EDB2     		uxtb	r5, r5
+ 214              	.LVL17:
+ 215              	.L12:
+ 165:./Application/Src/oled1315.c ****     for (uint8_t page = 0; page < OLED_PAGES; page++) {
+ 216              		.loc 1 165 33 is_stmt 1 discriminator 1 view .LVU33
+ 217 001a 072D     		cmp	r5, #7
+ 218 001c 05D8     		bhi	.L17
+ 166:./Application/Src/oled1315.c ****         OLED_SetCursor(0, page);
+ 219              		.loc 1 166 9 view .LVU34
+ 220 001e 2946     		mov	r1, r5
+ 221 0020 0020     		movs	r0, #0
+ 222 0022 FFF7FEFF 		bl	OLED_SetCursor
+ 223              	.LVL18:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 224              		.loc 1 167 9 view .LVU35
+ 225              	.LBB4:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 226              		.loc 1 167 14 view .LVU36
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 227              		.loc 1 167 22 is_stmt 0 view .LVU37
+ 228 0026 0024     		movs	r4, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 8
+
+
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 229              		.loc 1 167 9 view .LVU38
+ 230 0028 F2E7     		b	.L13
+ 231              	.LVL19:
+ 232              	.L17:
+ 167:./Application/Src/oled1315.c ****             OLED_WriteData(0x00);
+ 233              		.loc 1 167 9 view .LVU39
+ 234              	.LBE4:
+ 235              	.LBE2:
+ 169:./Application/Src/oled1315.c ****         }
+ 170:./Application/Src/oled1315.c ****     }
+ 171:./Application/Src/oled1315.c ****     OLED_SetCursor(0, 0);
+ 236              		.loc 1 171 5 is_stmt 1 view .LVU40
+ 237 002a 0021     		movs	r1, #0
+ 238 002c 0846     		mov	r0, r1
+ 239 002e FFF7FEFF 		bl	OLED_SetCursor
+ 240              	.LVL20:
+ 172:./Application/Src/oled1315.c **** }
+ 241              		.loc 1 172 1 is_stmt 0 view .LVU41
+ 242 0032 38BD     		pop	{r3, r4, r5, pc}
+ 243              		.loc 1 172 1 view .LVU42
+ 244              		.cfi_endproc
+ 245              	.LFE69:
+ 247              		.section	.text.OLED_Init,"ax",%progbits
+ 248              		.align	1
+ 249              		.global	OLED_Init
+ 250              		.syntax unified
+ 251              		.thumb
+ 252              		.thumb_func
+ 254              	OLED_Init:
+ 255              	.LFB67:
+ 114:./Application/Src/oled1315.c ****     // wait for OLED to powerup
+ 256              		.loc 1 114 22 is_stmt 1 view -0
+ 257              		.cfi_startproc
+ 258              		@ args = 0, pretend = 0, frame = 0
+ 259              		@ frame_needed = 0, uses_anonymous_args = 0
+ 260 0000 08B5     		push	{r3, lr}
+ 261              	.LCFI8:
+ 262              		.cfi_def_cfa_offset 8
+ 263              		.cfi_offset 3, -8
+ 264              		.cfi_offset 14, -4
+ 116:./Application/Src/oled1315.c ****     // Do not display on set up time
+ 265              		.loc 1 116 5 view .LVU44
+ 266 0002 6420     		movs	r0, #100
+ 267 0004 FFF7FEFF 		bl	HAL_Delay
+ 268              	.LVL21:
+ 118:./Application/Src/oled1315.c ****     // display geometry setup
+ 269              		.loc 1 118 5 view .LVU45
+ 270 0008 AE20     		movs	r0, #174
+ 271 000a FFF7FEFF 		bl	OLED_WriteCommand
+ 272              	.LVL22:
+ 120:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x3F);
+ 273              		.loc 1 120 5 view .LVU46
+ 274 000e A820     		movs	r0, #168
+ 275 0010 FFF7FEFF 		bl	OLED_WriteCommand
+ 276              	.LVL23:
+ 121:./Application/Src/oled1315.c ****     // display offset
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 9
+
+
+ 277              		.loc 1 121 5 view .LVU47
+ 278 0014 3F20     		movs	r0, #63
+ 279 0016 FFF7FEFF 		bl	OLED_WriteCommand
+ 280              	.LVL24:
+ 123:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x00);
+ 281              		.loc 1 123 5 view .LVU48
+ 282 001a D320     		movs	r0, #211
+ 283 001c FFF7FEFF 		bl	OLED_WriteCommand
+ 284              	.LVL25:
+ 124:./Application/Src/oled1315.c ****     // start line = 0
+ 285              		.loc 1 124 5 view .LVU49
+ 286 0020 0020     		movs	r0, #0
+ 287 0022 FFF7FEFF 		bl	OLED_WriteCommand
+ 288              	.LVL26:
+ 126:./Application/Src/oled1315.c ****     // enable dc-dc pump 
+ 289              		.loc 1 126 5 view .LVU50
+ 290 0026 4020     		movs	r0, #64
+ 291 0028 FFF7FEFF 		bl	OLED_WriteCommand
+ 292              	.LVL27:
+ 128:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x14);
+ 293              		.loc 1 128 5 view .LVU51
+ 294 002c 8D20     		movs	r0, #141
+ 295 002e FFF7FEFF 		bl	OLED_WriteCommand
+ 296              	.LVL28:
+ 129:./Application/Src/oled1315.c ****     // write horizontally 
+ 297              		.loc 1 129 5 view .LVU52
+ 298 0032 1420     		movs	r0, #20
+ 299 0034 FFF7FEFF 		bl	OLED_WriteCommand
+ 300              	.LVL29:
+ 131:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x00);
+ 301              		.loc 1 131 5 view .LVU53
+ 302 0038 2020     		movs	r0, #32
+ 303 003a FFF7FEFF 		bl	OLED_WriteCommand
+ 304              	.LVL30:
+ 132:./Application/Src/oled1315.c ****     // orientation -> depend on the direction of OLED
+ 305              		.loc 1 132 5 view .LVU54
+ 306 003e 0020     		movs	r0, #0
+ 307 0040 FFF7FEFF 		bl	OLED_WriteCommand
+ 308              	.LVL31:
+ 135:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xC8);
+ 309              		.loc 1 135 5 view .LVU55
+ 310 0044 A120     		movs	r0, #161
+ 311 0046 FFF7FEFF 		bl	OLED_WriteCommand
+ 312              	.LVL32:
+ 136:./Application/Src/oled1315.c ****     // 128 * 64 display mode
+ 313              		.loc 1 136 5 view .LVU56
+ 314 004a C820     		movs	r0, #200
+ 315 004c FFF7FEFF 		bl	OLED_WriteCommand
+ 316              	.LVL33:
+ 138:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x12);
+ 317              		.loc 1 138 5 view .LVU57
+ 318 0050 DA20     		movs	r0, #218
+ 319 0052 FFF7FEFF 		bl	OLED_WriteCommand
+ 320              	.LVL34:
+ 139:./Application/Src/oled1315.c ****     // display with brighter pixels
+ 321              		.loc 1 139 5 view .LVU58
+ 322 0056 1220     		movs	r0, #18
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 10
+
+
+ 323 0058 FFF7FEFF 		bl	OLED_WriteCommand
+ 324              	.LVL35:
+ 141:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xCF);
+ 325              		.loc 1 141 5 view .LVU59
+ 326 005c 8120     		movs	r0, #129
+ 327 005e FFF7FEFF 		bl	OLED_WriteCommand
+ 328              	.LVL36:
+ 142:./Application/Src/oled1315.c ****     // display depend on RAM, normal display
+ 329              		.loc 1 142 5 view .LVU60
+ 330 0062 CF20     		movs	r0, #207
+ 331 0064 FFF7FEFF 		bl	OLED_WriteCommand
+ 332              	.LVL37:
+ 144:./Application/Src/oled1315.c ****     OLED_WriteCommand(0xA6);
+ 333              		.loc 1 144 5 view .LVU61
+ 334 0068 A420     		movs	r0, #164
+ 335 006a FFF7FEFF 		bl	OLED_WriteCommand
+ 336              	.LVL38:
+ 145:./Application/Src/oled1315.c ****     // clear content avoid random stuff
+ 337              		.loc 1 145 5 view .LVU62
+ 338 006e A620     		movs	r0, #166
+ 339 0070 FFF7FEFF 		bl	OLED_WriteCommand
+ 340              	.LVL39:
+ 147:./Application/Src/oled1315.c ****     // enable the final display
+ 341              		.loc 1 147 5 view .LVU63
+ 342 0074 FFF7FEFF 		bl	OLED_Clear
+ 343              	.LVL40:
+ 149:./Application/Src/oled1315.c **** 
+ 344              		.loc 1 149 5 view .LVU64
+ 345 0078 AF20     		movs	r0, #175
+ 346 007a FFF7FEFF 		bl	OLED_WriteCommand
+ 347              	.LVL41:
+ 151:./Application/Src/oled1315.c **** 
+ 348              		.loc 1 151 1 is_stmt 0 view .LVU65
+ 349 007e 08BD     		pop	{r3, pc}
+ 350              		.cfi_endproc
+ 351              	.LFE67:
+ 353              		.section	.text.OLED_WriteChar,"ax",%progbits
+ 354              		.align	1
+ 355              		.global	OLED_WriteChar
+ 356              		.syntax unified
+ 357              		.thumb
+ 358              		.thumb_func
+ 360              	OLED_WriteChar:
+ 361              	.LVL42:
+ 362              	.LFB70:
+ 173:./Application/Src/oled1315.c **** 
+ 174:./Application/Src/oled1315.c **** void OLED_WriteChar(char c) {
+ 363              		.loc 1 174 29 is_stmt 1 view -0
+ 364              		.cfi_startproc
+ 365              		@ args = 0, pretend = 0, frame = 0
+ 366              		@ frame_needed = 0, uses_anonymous_args = 0
+ 367              		.loc 1 174 29 is_stmt 0 view .LVU67
+ 368 0000 38B5     		push	{r3, r4, r5, lr}
+ 369              	.LCFI9:
+ 370              		.cfi_def_cfa_offset 16
+ 371              		.cfi_offset 3, -16
+ 372              		.cfi_offset 4, -12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 11
+
+
+ 373              		.cfi_offset 5, -8
+ 374              		.cfi_offset 14, -4
+ 375 0002 0546     		mov	r5, r0
+ 175:./Application/Src/oled1315.c ****     if (c < 32 || c > 126) c = ' '; // check with ASCII if not in range just replace with empty
+ 376              		.loc 1 175 5 is_stmt 1 view .LVU68
+ 377              		.loc 1 175 16 is_stmt 0 view .LVU69
+ 378 0004 A0F12003 		sub	r3, r0, #32
+ 379 0008 DBB2     		uxtb	r3, r3
+ 380              		.loc 1 175 8 view .LVU70
+ 381 000a 5E2B     		cmp	r3, #94
+ 382 000c 00D9     		bls	.L21
+ 383              		.loc 1 175 30 discriminator 1 view .LVU71
+ 384 000e 2025     		movs	r5, #32
+ 385              	.L21:
+ 386              	.LVL43:
+ 176:./Application/Src/oled1315.c ****     for (uint8_t i = 0; i < 5; i++) {
+ 387              		.loc 1 176 5 is_stmt 1 view .LVU72
+ 388              	.LBB5:
+ 389              		.loc 1 176 10 view .LVU73
+ 390              		.loc 1 176 18 is_stmt 0 view .LVU74
+ 391 0010 0024     		movs	r4, #0
+ 392              		.loc 1 176 5 view .LVU75
+ 393 0012 0AE0     		b	.L22
+ 394              	.LVL44:
+ 395              	.L23:
+ 177:./Application/Src/oled1315.c ****         OLED_WriteData(OLED_Font5x7[c - 32][i]); // map ASCII to given font table
+ 396              		.loc 1 177 9 is_stmt 1 view .LVU76
+ 397              		.loc 1 177 39 is_stmt 0 view .LVU77
+ 398 0014 A5F12003 		sub	r3, r5, #32
+ 399              		.loc 1 177 44 view .LVU78
+ 400 0018 03EB8303 		add	r3, r3, r3, lsl #2
+ 401 001c 064A     		ldr	r2, .L26
+ 402 001e 1344     		add	r3, r3, r2
+ 403              		.loc 1 177 9 view .LVU79
+ 404 0020 185D     		ldrb	r0, [r3, r4]	@ zero_extendqisi2
+ 405 0022 FFF7FEFF 		bl	OLED_WriteData
+ 406              	.LVL45:
+ 176:./Application/Src/oled1315.c ****     for (uint8_t i = 0; i < 5; i++) {
+ 407              		.loc 1 176 33 is_stmt 1 discriminator 3 view .LVU80
+ 408 0026 0134     		adds	r4, r4, #1
+ 409              	.LVL46:
+ 176:./Application/Src/oled1315.c ****     for (uint8_t i = 0; i < 5; i++) {
+ 410              		.loc 1 176 33 is_stmt 0 discriminator 3 view .LVU81
+ 411 0028 E4B2     		uxtb	r4, r4
+ 412              	.LVL47:
+ 413              	.L22:
+ 176:./Application/Src/oled1315.c ****     for (uint8_t i = 0; i < 5; i++) {
+ 414              		.loc 1 176 27 is_stmt 1 discriminator 1 view .LVU82
+ 415 002a 042C     		cmp	r4, #4
+ 416 002c F2D9     		bls	.L23
+ 417              	.LBE5:
+ 178:./Application/Src/oled1315.c ****     }
+ 179:./Application/Src/oled1315.c ****     OLED_WriteData(0x00); // 1 pixel spacing between chars
+ 418              		.loc 1 179 5 view .LVU83
+ 419 002e 0020     		movs	r0, #0
+ 420 0030 FFF7FEFF 		bl	OLED_WriteData
+ 421              	.LVL48:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 12
+
+
+ 180:./Application/Src/oled1315.c **** }
+ 422              		.loc 1 180 1 is_stmt 0 view .LVU84
+ 423 0034 38BD     		pop	{r3, r4, r5, pc}
+ 424              	.LVL49:
+ 425              	.L27:
+ 426              		.loc 1 180 1 view .LVU85
+ 427 0036 00BF     		.align	2
+ 428              	.L26:
+ 429 0038 00000000 		.word	OLED_Font5x7
+ 430              		.cfi_endproc
+ 431              	.LFE70:
+ 433              		.section	.text.OLED_WriteString,"ax",%progbits
+ 434              		.align	1
+ 435              		.global	OLED_WriteString
+ 436              		.syntax unified
+ 437              		.thumb
+ 438              		.thumb_func
+ 440              	OLED_WriteString:
+ 441              	.LVL50:
+ 442              	.LFB71:
+ 181:./Application/Src/oled1315.c **** 
+ 182:./Application/Src/oled1315.c **** void OLED_WriteString(const char *str) {
+ 443              		.loc 1 182 40 is_stmt 1 view -0
+ 444              		.cfi_startproc
+ 445              		@ args = 0, pretend = 0, frame = 0
+ 446              		@ frame_needed = 0, uses_anonymous_args = 0
+ 447              		.loc 1 182 40 is_stmt 0 view .LVU87
+ 448 0000 10B5     		push	{r4, lr}
+ 449              	.LCFI10:
+ 450              		.cfi_def_cfa_offset 8
+ 451              		.cfi_offset 4, -8
+ 452              		.cfi_offset 14, -4
+ 453 0002 0446     		mov	r4, r0
+ 183:./Application/Src/oled1315.c ****     while (*str) {
+ 454              		.loc 1 183 5 is_stmt 1 view .LVU88
+ 455              		.loc 1 183 11 is_stmt 0 view .LVU89
+ 456 0004 02E0     		b	.L29
+ 457              	.LVL51:
+ 458              	.L30:
+ 184:./Application/Src/oled1315.c ****         OLED_WriteChar(*str++);
+ 459              		.loc 1 184 9 is_stmt 1 view .LVU90
+ 460              		.loc 1 184 28 is_stmt 0 view .LVU91
+ 461 0006 0134     		adds	r4, r4, #1
+ 462              	.LVL52:
+ 463              		.loc 1 184 9 view .LVU92
+ 464 0008 FFF7FEFF 		bl	OLED_WriteChar
+ 465              	.LVL53:
+ 466              	.L29:
+ 183:./Application/Src/oled1315.c ****     while (*str) {
+ 467              		.loc 1 183 12 is_stmt 1 view .LVU93
+ 468 000c 2078     		ldrb	r0, [r4]	@ zero_extendqisi2
+ 469 000e 0028     		cmp	r0, #0
+ 470 0010 F9D1     		bne	.L30
+ 185:./Application/Src/oled1315.c ****     }
+ 186:./Application/Src/oled1315.c **** }
+ 471              		.loc 1 186 1 is_stmt 0 view .LVU94
+ 472 0012 10BD     		pop	{r4, pc}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 13
+
+
+ 473              		.loc 1 186 1 view .LVU95
+ 474              		.cfi_endproc
+ 475              	.LFE71:
+ 477              		.section	.text.OLED_SetContrast,"ax",%progbits
+ 478              		.align	1
+ 479              		.global	OLED_SetContrast
+ 480              		.syntax unified
+ 481              		.thumb
+ 482              		.thumb_func
+ 484              	OLED_SetContrast:
+ 485              	.LVL54:
+ 486              	.LFB72:
+ 187:./Application/Src/oled1315.c **** 
+ 188:./Application/Src/oled1315.c **** void OLED_SetContrast(uint8_t contrast) {
+ 487              		.loc 1 188 41 is_stmt 1 view -0
+ 488              		.cfi_startproc
+ 489              		@ args = 0, pretend = 0, frame = 0
+ 490              		@ frame_needed = 0, uses_anonymous_args = 0
+ 491              		.loc 1 188 41 is_stmt 0 view .LVU97
+ 492 0000 10B5     		push	{r4, lr}
+ 493              	.LCFI11:
+ 494              		.cfi_def_cfa_offset 8
+ 495              		.cfi_offset 4, -8
+ 496              		.cfi_offset 14, -4
+ 497 0002 0446     		mov	r4, r0
+ 189:./Application/Src/oled1315.c ****     OLED_WriteCommand(0x81);
+ 498              		.loc 1 189 5 is_stmt 1 view .LVU98
+ 499 0004 8120     		movs	r0, #129
+ 500              	.LVL55:
+ 501              		.loc 1 189 5 is_stmt 0 view .LVU99
+ 502 0006 FFF7FEFF 		bl	OLED_WriteCommand
+ 503              	.LVL56:
+ 190:./Application/Src/oled1315.c ****     OLED_WriteCommand(contrast);
+ 504              		.loc 1 190 5 is_stmt 1 view .LVU100
+ 505 000a 2046     		mov	r0, r4
+ 506 000c FFF7FEFF 		bl	OLED_WriteCommand
+ 507              	.LVL57:
+ 191:./Application/Src/oled1315.c **** }
+ 508              		.loc 1 191 1 is_stmt 0 view .LVU101
+ 509 0010 10BD     		pop	{r4, pc}
+ 510              		.loc 1 191 1 view .LVU102
+ 511              		.cfi_endproc
+ 512              	.LFE72:
+ 514              		.global	OLED_Font5x7
+ 515              		.section	.rodata.OLED_Font5x7,"a"
+ 516              		.align	2
+ 519              	OLED_Font5x7:
+ 520 0000 00000000 		.ascii	"\000\000\000\000\000"
+ 520      00
+ 521 0005 00005F00 		.ascii	"\000\000_\000\000"
+ 521      00
+ 522 000a 00070007 		.ascii	"\000\007\000\007\000"
+ 522      00
+ 523 000f 147F147F 		.ascii	"\024\177\024\177\024"
+ 523      14
+ 524 0014 242A7F2A 		.ascii	"$*\177*\022"
+ 524      12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 14
+
+
+ 525 0019 23130864 		.ascii	"#\023\010db"
+ 525      62
+ 526 001e 36495522 		.ascii	"6IU\"P"
+ 526      50
+ 527 0023 00050300 		.ascii	"\000\005\003\000\000"
+ 527      00
+ 528 0028 001C2241 		.ascii	"\000\034\"A\000"
+ 528      00
+ 529 002d 0041221C 		.ascii	"\000A\"\034\000"
+ 529      00
+ 530 0032 082A1C2A 		.ascii	"\010*\034*\010"
+ 530      08
+ 531 0037 08083E08 		.ascii	"\010\010>\010\010"
+ 531      08
+ 532 003c 00503000 		.ascii	"\000P0\000\000"
+ 532      00
+ 533 0041 08080808 		.ascii	"\010\010\010\010\010"
+ 533      08
+ 534 0046 00606000 		.ascii	"\000``\000\000"
+ 534      00
+ 535 004b 20100804 		.ascii	" \020\010\004\002"
+ 535      02
+ 536 0050 3E514945 		.ascii	">QIE>"
+ 536      3E
+ 537 0055 00427F40 		.ascii	"\000B\177@\000"
+ 537      00
+ 538 005a 42615149 		.ascii	"BaQIF"
+ 538      46
+ 539 005f 2141454B 		.ascii	"!AEK1"
+ 539      31
+ 540 0064 1814127F 		.ascii	"\030\024\022\177\020"
+ 540      10
+ 541 0069 27454545 		.ascii	"'EEE9"
+ 541      39
+ 542 006e 3C4A4949 		.ascii	"<JII0"
+ 542      30
+ 543 0073 01710905 		.ascii	"\001q\011\005\003"
+ 543      03
+ 544 0078 36494949 		.ascii	"6III6"
+ 544      36
+ 545 007d 06494929 		.ascii	"\006II)\036"
+ 545      1E
+ 546 0082 00363600 		.ascii	"\00066\000\000"
+ 546      00
+ 547 0087 00563600 		.ascii	"\000V6\000\000"
+ 547      00
+ 548 008c 00081422 		.ascii	"\000\010\024\"A"
+ 548      41
+ 549 0091 14141414 		.ascii	"\024\024\024\024\024"
+ 549      14
+ 550 0096 41221408 		.ascii	"A\"\024\010\000"
+ 550      00
+ 551 009b 02015109 		.ascii	"\002\001Q\011\006"
+ 551      06
+ 552 00a0 32497941 		.ascii	"2IyA>"
+ 552      3E
+ 553 00a5 7E111111 		.ascii	"~\021\021\021~"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 15
+
+
+ 553      7E
+ 554 00aa 7F494949 		.ascii	"\177III6"
+ 554      36
+ 555 00af 3E414141 		.ascii	">AAA\""
+ 555      22
+ 556 00b4 7F414122 		.ascii	"\177AA\"\034"
+ 556      1C
+ 557 00b9 7F494949 		.ascii	"\177IIIA"
+ 557      41
+ 558 00be 7F090901 		.ascii	"\177\011\011\001\001"
+ 558      01
+ 559 00c3 3E414151 		.ascii	">AAQ2"
+ 559      32
+ 560 00c8 7F080808 		.ascii	"\177\010\010\010\177"
+ 560      7F
+ 561 00cd 00417F41 		.ascii	"\000A\177A\000"
+ 561      00
+ 562 00d2 2040413F 		.ascii	" @A?\001"
+ 562      01
+ 563 00d7 7F081422 		.ascii	"\177\010\024\"A"
+ 563      41
+ 564 00dc 7F404040 		.ascii	"\177@@@@"
+ 564      40
+ 565 00e1 7F020402 		.ascii	"\177\002\004\002\177"
+ 565      7F
+ 566 00e6 7F040810 		.ascii	"\177\004\010\020\177"
+ 566      7F
+ 567 00eb 3E414141 		.ascii	">AAA>"
+ 567      3E
+ 568 00f0 7F090909 		.ascii	"\177\011\011\011\006"
+ 568      06
+ 569 00f5 3E415121 		.ascii	">AQ!^"
+ 569      5E
+ 570 00fa 7F091929 		.ascii	"\177\011\031)F"
+ 570      46
+ 571 00ff 46494949 		.ascii	"FIII1"
+ 571      31
+ 572 0104 01017F01 		.ascii	"\001\001\177\001\001"
+ 572      01
+ 573 0109 3F404040 		.ascii	"?@@@?"
+ 573      3F
+ 574 010e 1F204020 		.ascii	"\037 @ \037"
+ 574      1F
+ 575 0113 7F201820 		.ascii	"\177 \030 \177"
+ 575      7F
+ 576 0118 63140814 		.ascii	"c\024\010\024c"
+ 576      63
+ 577 011d 03047804 		.ascii	"\003\004x\004\003"
+ 577      03
+ 578 0122 61514945 		.ascii	"aQIEC"
+ 578      43
+ 579 0127 00007F41 		.ascii	"\000\000\177AA"
+ 579      41
+ 580 012c 02040810 		.ascii	"\002\004\010\020 "
+ 580      20
+ 581 0131 41417F00 		.ascii	"AA\177\000\000"
+ 581      00
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 16
+
+
+ 582 0136 04020102 		.ascii	"\004\002\001\002\004"
+ 582      04
+ 583 013b 40404040 		.ascii	"@@@@@"
+ 583      40
+ 584 0140 00010204 		.ascii	"\000\001\002\004\000"
+ 584      00
+ 585 0145 20545454 		.ascii	" TTTx"
+ 585      78
+ 586 014a 7F484444 		.ascii	"\177HDD8"
+ 586      38
+ 587 014f 38444444 		.ascii	"8DDD "
+ 587      20
+ 588 0154 38444448 		.ascii	"8DDH\177"
+ 588      7F
+ 589 0159 38545454 		.ascii	"8TTT\030"
+ 589      18
+ 590 015e 087E0901 		.ascii	"\010~\011\001\002"
+ 590      02
+ 591 0163 08145454 		.ascii	"\010\024TT<"
+ 591      3C
+ 592 0168 7F080404 		.ascii	"\177\010\004\004x"
+ 592      78
+ 593 016d 00447D40 		.ascii	"\000D}@\000"
+ 593      00
+ 594 0172 2040443D 		.ascii	" @D=\000"
+ 594      00
+ 595 0177 007F1028 		.ascii	"\000\177\020(D"
+ 595      44
+ 596 017c 00417F40 		.ascii	"\000A\177@\000"
+ 596      00
+ 597 0181 7C041804 		.ascii	"|\004\030\004x"
+ 597      78
+ 598 0186 7C080404 		.ascii	"|\010\004\004x"
+ 598      78
+ 599 018b 38444444 		.ascii	"8DDD8"
+ 599      38
+ 600 0190 7C141414 		.ascii	"|\024\024\024\010"
+ 600      08
+ 601 0195 08141418 		.ascii	"\010\024\024\030|"
+ 601      7C
+ 602 019a 7C080404 		.ascii	"|\010\004\004\010"
+ 602      08
+ 603 019f 48545454 		.ascii	"HTTT "
+ 603      20
+ 604 01a4 043F4440 		.ascii	"\004?D@ "
+ 604      20
+ 605 01a9 3C404020 		.ascii	"<@@ |"
+ 605      7C
+ 606 01ae 1C204020 		.ascii	"\034 @ \034"
+ 606      1C
+ 607 01b3 3C403040 		.ascii	"<@0@<"
+ 607      3C
+ 608 01b8 44281028 		.ascii	"D(\020(D"
+ 608      44
+ 609 01bd 0C505050 		.ascii	"\014PPP<"
+ 609      3C
+ 610 01c2 4464544C 		.ascii	"DdTLD"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 17
+
+
+ 610      44
+ 611 01c7 00083641 		.ascii	"\000\0106A\000"
+ 611      00
+ 612 01cc 00007F00 		.ascii	"\000\000\177\000\000"
+ 612      00
+ 613 01d1 00413608 		.ascii	"\000A6\010\000"
+ 613      00
+ 614 01d6 08082A1C 		.ascii	"\010\010*\034\010"
+ 614      08
+ 615              		.text
+ 616              	.Letext0:
+ 617              		.file 2 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 618              		.file 3 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 619              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 620              		.file 5 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 621              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 622              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_i2c.h"
+ 623              		.file 8 "Core/Inc/i2c.h"
+ 624              		.file 9 "Application/Inc/oled1315.h"
+ 625              		.file 10 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s 			page 18
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 oled1315.c
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:19     .text.OLED_WriteCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:25     .text.OLED_WriteCommand:00000000 OLED_WriteCommand
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:65     .text.OLED_WriteCommand:00000024 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:70     .text.OLED_WriteData:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:76     .text.OLED_WriteData:00000000 OLED_WriteData
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:116    .text.OLED_WriteData:00000024 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:121    .text.OLED_SetCursor:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:127    .text.OLED_SetCursor:00000000 OLED_SetCursor
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:164    .text.OLED_Clear:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:170    .text.OLED_Clear:00000000 OLED_Clear
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:248    .text.OLED_Init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:254    .text.OLED_Init:00000000 OLED_Init
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:354    .text.OLED_WriteChar:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:360    .text.OLED_WriteChar:00000000 OLED_WriteChar
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:429    .text.OLED_WriteChar:00000038 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:519    .rodata.OLED_Font5x7:00000000 OLED_Font5x7
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:434    .text.OLED_WriteString:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:440    .text.OLED_WriteString:00000000 OLED_WriteString
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:478    .text.OLED_SetContrast:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:484    .text.OLED_SetContrast:00000000 OLED_SetContrast
+C:\Users\Xuleo\AppData\Local\Temp\ccgEpWNY.s:516    .rodata.OLED_Font5x7:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_I2C_Master_Transmit
+hi2c1
+HAL_Delay
