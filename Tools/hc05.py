@@ -132,9 +132,9 @@ class HC05SerialGUI:
         baud_frame.pack(fill=tk.X, pady=5)
         
         ttk.Label(baud_frame, text="Baud Rate:").pack(side=tk.LEFT, padx=5)
-        self.baudrate_var = tk.StringVar(value="9600")
+        self.baudrate_var = tk.StringVar(value="115200")
         baudrate_combo = ttk.Combobox(baud_frame, textvariable=self.baudrate_var, 
-                                     values=["9600", "38400", "57600", "115200"], width=10)
+                                     values=["115200", "38400", "57600", "9600"], width=10)
         baudrate_combo.pack(side=tk.LEFT, padx=5)
         
         # Line Endings

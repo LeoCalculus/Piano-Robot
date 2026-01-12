@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "i2c.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -46,7 +47,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+int pwmNum = 200;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,6 +93,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   OLED_WriteString("Hello World!");
@@ -120,6 +122,13 @@ int main(void)
 #endif
 
   HC05_ReceiveInfo(rx_data);
+  // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
+  // set duty cycle
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
+  OLED_SetCursor(0, 6);
+  OLED_WriteString("PWM ready!");
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -142,6 +151,14 @@ int main(void)
       HC05_SendInfo((uint8_t*)"Got it!\r\n");
     }
     HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
+
+    // dynamic pwm from 40%->100%, 40% -> 200, 100% -> 500
+    if (pwmNum < 500) {
+      pwmNum++;
+    } else {
+      pwmNum = 200;
+    }
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwmNum);
   }
   /* USER CODE END 3 */
 }
