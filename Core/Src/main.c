@@ -109,9 +109,17 @@ int main(void)
   mpu6050Init();
   int16_t accBuffer[3];
   char displayAccBuffer[32];
-  
+#ifdef HC05SETUP 
+  if (setupBT()){
+    OLED_SetCursor(0, 5);
+    OLED_WriteString("HC-05 is configured!");
+  } else {
+    OLED_SetCursor(0, 5);
+    OLED_WriteString("Unable to config HC-05!");
+  }
+#endif
 
-  
+  HC05_ReceiveInfo(rx_data);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,9 +130,18 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     readAcc(accBuffer);
-    snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%.3i,Y:%.3i,Z:%.3i", accBuffer[0], accBuffer[1], accBuffer[2]);
+    snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%4.i,Y:%.3i,Z:%4.i", accBuffer[0], accBuffer[1], accBuffer[2]);
     OLED_SetCursor(0, 4);
     OLED_WriteString(displayAccBuffer);
+    // only process when complete message received
+    if(rx_complete){
+      OLED_SetCursor(0, 5);
+      OLED_WriteString((char*)rx_data);  // cast to char*
+      rx_complete = 0;  // clear flag
+      // echo back with \r\n for terminal
+      HC05_SendInfo((uint8_t*)"Got it!\r\n");
+    }
+    HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
   }
   /* USER CODE END 3 */
 }
@@ -169,7 +186,23 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+// auto call on receive uart is used, move everything in buffer
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+  static int rx_index = 0;
 
+  if(huart->Instance == USART1)
+  {
+    rx_data[rx_index++] = rx_byte;
+    if(rx_byte == '\n' || rx_index >= 99)
+    {
+      rx_data[rx_index] = '\0';
+      rx_index = 0;
+      rx_complete = 1;  // signal that message is ready
+    }
+    // must need re-enable since this function will be closed on done
+    HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+  }
+}
 /* USER CODE END 4 */
 
 /**

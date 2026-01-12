@@ -16,24 +16,19 @@ int checkExist(){
 void mpu6050Init(){
     HAL_Delay(100); // wait for power
     uint8_t data;
-
-    // Wake up (disable sleep mode)
+    // wake up 
     data = 0x00;
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x6B, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
-
-    // Sample rate divider
+    // sample rate divider
     data = 0x07;
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x19, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
-
     // DLPF config
     data = 0x06;
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x1A, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
-
-    // Gyro config (±500°/s)
+    // gyro config
     data = 0x08;
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x1B, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
-
-    // Accel config (±16g)
+    // cccel config
     data = 0x18;
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x1C, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
 }

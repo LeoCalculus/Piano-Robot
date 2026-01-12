@@ -4,5 +4,7 @@
 #include <utils.h>
 #include <oled1315.h>
 #include <mpu6050sensor.h>
+#include <hc05bt.h>
+#include <config.h>
 
 #endif
