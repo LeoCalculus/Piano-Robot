@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "i2c.h"
 
+float accData[3];  // Define the variable declared as extern in the header
+
 int checkExist(){
     uint8_t readResult = 0;
     // read device's who am i register
@@ -43,4 +45,7 @@ void readAcc(int16_t* inputBuffer){
     inputBuffer[0] = accelX;
     inputBuffer[1] = accelY;
     inputBuffer[2] = accelZ;
+    accData[0] = accelX;
+    accData[1] = accelY;
+    accData[2] = accelZ; 
 }

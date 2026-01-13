@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -18,79 +18,212 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s 			page 1
   15              	.Ltext0:
   16              		.cfi_sections	.debug_frame
   17              		.file 1 "./Application/Src/application.c"
-  18              		.section	.text.controllerUpdate,"ax",%progbits
+  18              		.section	.text.init,"ax",%progbits
   19              		.align	1
-  20              		.global	controllerUpdate
+  20              		.global	init
   21              		.syntax unified
   22              		.thumb
   23              		.thumb_func
-  25              	controllerUpdate:
-  26              	.LVL0:
-  27              	.LFB65:
+  25              	init:
+  26              	.LFB65:
    1:./Application/Src/application.c **** #include <application.h>
    2:./Application/Src/application.c **** 
-   3:./Application/Src/application.c **** PID_t leftHandMotor={
-   4:./Application/Src/application.c ****     .P=0.005f,
-   5:./Application/Src/application.c ****     .I=0.0f,
-   6:./Application/Src/application.c ****     .D=0.0f,
-   7:./Application/Src/application.c ****     .integral_max=0.01f
-   8:./Application/Src/application.c **** };
-   9:./Application/Src/application.c **** 
-  10:./Application/Src/application.c **** PID_t rightHandMotor={
-  11:./Application/Src/application.c ****     .P=0.005f,
-  12:./Application/Src/application.c ****     .I=0.0f,
-  13:./Application/Src/application.c ****     .D=0.0f,
-  14:./Application/Src/application.c ****     .integral_max=0.01f
-  15:./Application/Src/application.c **** };
-  16:./Application/Src/application.c **** 
-  17:./Application/Src/application.c **** void controllerUpdate(const float dt){
-  28              		.loc 1 17 38 view -0
-  29              		.cfi_startproc
-  30              		@ args = 0, pretend = 0, frame = 0
-  31              		@ frame_needed = 0, uses_anonymous_args = 0
-  32              		@ link register save eliminated.
-  18:./Application/Src/application.c ****     // controller code with pid
-  19:./Application/Src/application.c **** }...
-  33              		.loc 1 19 1 view .LVU1
-  34 0000 7047     		bx	lr
-  35              		.cfi_endproc
-  36              	.LFE65:
-  38              		.global	rightHandMotor
-  39              		.section	.data.rightHandMotor,"aw"
-  40              		.align	2
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s 			page 2
+   3:./Application/Src/application.c **** VOFA_REPORT vofa;
+   4:./Application/Src/application.c **** 
+   5:./Application/Src/application.c **** PID_t leftHandMotor={
+   6:./Application/Src/application.c ****     .P=0.005f,
+   7:./Application/Src/application.c ****     .I=0.0f,
+   8:./Application/Src/application.c ****     .D=0.0f,
+   9:./Application/Src/application.c ****     .integral_max=0.01f
+  10:./Application/Src/application.c **** };
+  11:./Application/Src/application.c **** 
+  12:./Application/Src/application.c **** PID_t rightHandMotor={
+  13:./Application/Src/application.c ****     .P=0.005f,
+  14:./Application/Src/application.c ****     .I=0.0f,
+  15:./Application/Src/application.c ****     .D=0.0f,
+  16:./Application/Src/application.c ****     .integral_max=0.01f
+  17:./Application/Src/application.c **** };
+  18:./Application/Src/application.c **** 
+  19:./Application/Src/application.c **** void init(){
+  27              		.loc 1 19 12 view -0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  20:./Application/Src/application.c ****     memset(&vofa,0,sizeof(vofa));
+  36              		.loc 1 20 5 view .LVU1
+  37 0002 064C     		ldr	r4, .L3
+  38 0004 2C22     		movs	r2, #44
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s 			page 2
 
 
-  43              	rightHandMotor:
-  44 0000 0AD7A33B 		.word	1000593162
-  45 0004 00000000 		.word	0
-  46 0008 00000000 		.word	0
-  47 000c 0AD7233C 		.word	1008981770
-  48 0010 00000000 		.space	8
-  48      00000000 
-  49              		.global	leftHandMotor
-  50              		.section	.data.leftHandMotor,"aw"
-  51              		.align	2
-  54              	leftHandMotor:
-  55 0000 0AD7A33B 		.word	1000593162
-  56 0004 00000000 		.word	0
-  57 0008 00000000 		.word	0
-  58 000c 0AD7233C 		.word	1008981770
-  59 0010 00000000 		.space	8
-  59      00000000 
-  60              		.text
-  61              	.Letext0:
-  62              		.file 2 "Application/Inc/utils.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s 			page 3
+  39 0006 0021     		movs	r1, #0
+  40 0008 2046     		mov	r0, r4
+  41 000a FFF7FEFF 		bl	memset
+  42              	.LVL0:
+  21:./Application/Src/application.c ****     vofa.vofaTail[0] = 0x00;
+  43              		.loc 1 21 5 view .LVU2
+  22:./Application/Src/application.c ****     vofa.vofaTail[1] = 0x00;
+  44              		.loc 1 22 5 view .LVU3
+  23:./Application/Src/application.c ****     vofa.vofaTail[2] = 0x80;
+  45              		.loc 1 23 5 view .LVU4
+  46              		.loc 1 23 22 is_stmt 0 view .LVU5
+  47 000e 8023     		movs	r3, #128
+  48 0010 84F82A30 		strb	r3, [r4, #42]
+  24:./Application/Src/application.c ****     vofa.vofaTail[3] = 0x7f;
+  49              		.loc 1 24 5 is_stmt 1 view .LVU6
+  50              		.loc 1 24 22 is_stmt 0 view .LVU7
+  51 0014 7F23     		movs	r3, #127
+  52 0016 84F82B30 		strb	r3, [r4, #43]
+  25:./Application/Src/application.c **** 
+  26:./Application/Src/application.c **** }
+  53              		.loc 1 26 1 view .LVU8
+  54 001a 10BD     		pop	{r4, pc}
+  55              	.L4:
+  56              		.align	2
+  57              	.L3:
+  58 001c 00000000 		.word	vofa
+  59              		.cfi_endproc
+  60              	.LFE65:
+  62              		.section	.text.controllerUpdate,"ax",%progbits
+  63              		.align	1
+  64              		.global	controllerUpdate
+  65              		.syntax unified
+  66              		.thumb
+  67              		.thumb_func
+  69              	controllerUpdate:
+  70              	.LVL1:
+  71              	.LFB66:
+  27:./Application/Src/application.c **** 
+  28:./Application/Src/application.c **** void controllerUpdate(const float dt){
+  72              		.loc 1 28 38 is_stmt 1 view -0
+  73              		.cfi_startproc
+  74              		@ args = 0, pretend = 0, frame = 0
+  75              		@ frame_needed = 0, uses_anonymous_args = 0
+  76              		.loc 1 28 38 is_stmt 0 view .LVU10
+  77 0000 08B5     		push	{r3, lr}
+  78              	.LCFI1:
+  79              		.cfi_def_cfa_offset 8
+  80              		.cfi_offset 3, -8
+  81              		.cfi_offset 14, -4
+  29:./Application/Src/application.c **** 
+  30:./Application/Src/application.c ****     // controller code with pid
+  31:./Application/Src/application.c ****     vofa.val[0] = accData[0];
+  82              		.loc 1 31 5 is_stmt 1 view .LVU11
+  83              		.loc 1 31 26 is_stmt 0 view .LVU12
+  84 0002 064B     		ldr	r3, .L7
+  85 0004 1A68     		ldr	r2, [r3]	@ float
+  86              		.loc 1 31 17 view .LVU13
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s 			page 3
+
+
+  87 0006 0649     		ldr	r1, .L7+4
+  88 0008 0A60     		str	r2, [r1]	@ float
+  32:./Application/Src/application.c ****     vofa.val[1] = accData[1];
+  89              		.loc 1 32 5 is_stmt 1 view .LVU14
+  90              		.loc 1 32 26 is_stmt 0 view .LVU15
+  91 000a 5A68     		ldr	r2, [r3, #4]	@ float
+  92              		.loc 1 32 17 view .LVU16
+  93 000c 4A60     		str	r2, [r1, #4]	@ float
+  33:./Application/Src/application.c ****     vofa.val[2] = accData[2];
+  94              		.loc 1 33 5 is_stmt 1 view .LVU17
+  95              		.loc 1 33 26 is_stmt 0 view .LVU18
+  96 000e 9B68     		ldr	r3, [r3, #8]	@ float
+  97              		.loc 1 33 17 view .LVU19
+  98 0010 8B60     		str	r3, [r1, #8]	@ float
+  34:./Application/Src/application.c **** 
+  35:./Application/Src/application.c ****     // Abort any stuck transfer and restart
+  36:./Application/Src/application.c ****     // HAL_UART_AbortTransmit(&huart2);
+  37:./Application/Src/application.c ****     HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
+  99              		.loc 1 37 5 is_stmt 1 view .LVU20
+ 100 0012 2C22     		movs	r2, #44
+ 101 0014 0348     		ldr	r0, .L7+8
+ 102              	.LVL2:
+ 103              		.loc 1 37 5 is_stmt 0 view .LVU21
+ 104 0016 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+ 105              	.LVL3:
+  38:./Application/Src/application.c **** }...
+ 106              		.loc 1 38 1 view .LVU22
+ 107 001a 08BD     		pop	{r3, pc}
+ 108              	.L8:
+ 109              		.align	2
+ 110              	.L7:
+ 111 001c 00000000 		.word	accData
+ 112 0020 00000000 		.word	vofa
+ 113 0024 00000000 		.word	huart2
+ 114              		.cfi_endproc
+ 115              	.LFE66:
+ 117              		.global	rightHandMotor
+ 118              		.section	.data.rightHandMotor,"aw"
+ 119              		.align	2
+ 122              	rightHandMotor:
+ 123 0000 0AD7A33B 		.word	1000593162
+ 124 0004 00000000 		.word	0
+ 125 0008 00000000 		.word	0
+ 126 000c 0AD7233C 		.word	1008981770
+ 127 0010 00000000 		.space	8
+ 127      00000000 
+ 128              		.global	leftHandMotor
+ 129              		.section	.data.leftHandMotor,"aw"
+ 130              		.align	2
+ 133              	leftHandMotor:
+ 134 0000 0AD7A33B 		.word	1000593162
+ 135 0004 00000000 		.word	0
+ 136 0008 00000000 		.word	0
+ 137 000c 0AD7233C 		.word	1008981770
+ 138 0010 00000000 		.space	8
+ 138      00000000 
+ 139              		.global	vofa
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s 			page 4
+
+
+ 140              		.section	.bss.vofa,"aw",%nobits
+ 141              		.align	2
+ 144              	vofa:
+ 145 0000 00000000 		.space	44
+ 145      00000000 
+ 145      00000000 
+ 145      00000000 
+ 145      00000000 
+ 146              		.text
+ 147              	.Letext0:
+ 148              		.file 2 "Application/Inc/utils.h"
+ 149              		.file 3 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 150              		.file 4 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 151              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 152              		.file 6 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/inc
+ 153              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 154              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 155              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
+ 156              		.file 10 "Application/Inc/mpu6050sensor.h"
+ 157              		.file 11 "Core/Inc/usart.h"
+ 158              		.file 12 "Application/Inc/application.h"
+ 159              		.file 13 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/..
+ 160              		.file 14 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s 			page 5
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 application.c
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:19     .text.controllerUpdate:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:25     .text.controllerUpdate:00000000 controllerUpdate
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:43     .data.rightHandMotor:00000000 rightHandMotor
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:40     .data.rightHandMotor:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:54     .data.leftHandMotor:00000000 leftHandMotor
-C:\Users\Xuleo\AppData\Local\Temp\ccr8lWWR.s:51     .data.leftHandMotor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:19     .text.init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:25     .text.init:00000000 init
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:58     .text.init:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:144    .bss.vofa:00000000 vofa
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:63     .text.controllerUpdate:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:69     .text.controllerUpdate:00000000 controllerUpdate
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:111    .text.controllerUpdate:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:122    .data.rightHandMotor:00000000 rightHandMotor
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:119    .data.rightHandMotor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:133    .data.leftHandMotor:00000000 leftHandMotor
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:130    .data.leftHandMotor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsuqYb3.s:141    .bss.vofa:00000000 $d
 
-NO UNDEFINED SYMBOLS
+UNDEFINED SYMBOLS
+memset
+HAL_UART_Transmit_DMA
+accData
+huart2

@@ -114,6 +114,7 @@ int main(void)
     OLED_WriteString("MPU 6050 Detected!");
   }
   mpu6050Init();
+  init();  // Initialize VOFA struct
   int16_t accBuffer[3];
   char displayAccBuffer[32];
 #ifdef HC05SETUP 
@@ -131,6 +132,9 @@ int main(void)
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
   // set duty cycle
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
+
+  readAcc(accBuffer);  // Initialize accData before starting interrupt
+  HAL_TIM_Base_Start_IT(&htim2);  // Start TIM2 interrupt for controllerUpdate
   OLED_SetCursor(0, 6);
   OLED_WriteString("PWM ready!");
 
@@ -224,6 +228,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
     }
     // must need re-enable since this function will be closed on done
     HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
+  }
+}
+
+// DMA TX complete callback - required for continuous DMA transmission
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+  if(huart->Instance == USART2){
+    // DMA transfer complete - state automatically reset to READY by HAL
+    // This callback confirms DMA is working
   }
 }
 /* USER CODE END 4 */

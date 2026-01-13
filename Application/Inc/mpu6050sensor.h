@@ -14,5 +14,6 @@
 int checkExist();
 void mpu6050Init();
 void readAcc(int16_t* inputBuffer);
+extern float accData[3];
 
 #endif
