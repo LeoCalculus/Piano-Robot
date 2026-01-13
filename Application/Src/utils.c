@@ -1,5 +1,11 @@
 #include <utils.h>
 
+float clamp_f(float val, float min, float max) {
+    if (val < min) return min;
+    if (val > max) return max;
+    return val;
+}
+
 inline float pid_cycle(PID_t *sys, float err, const float delta_t){
     sys->integral += err*delta_t;
     if(sys->integral > sys->integral_max){

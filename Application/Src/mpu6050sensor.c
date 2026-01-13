@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include "i2c.h"
 
-float accData[3];  // Define the variable declared as extern in the header
+float accData[3];
+float gyroData[3];
 
 int checkExist(){
     uint8_t readResult = 0;
@@ -35,17 +36,18 @@ void mpu6050Init(){
     HAL_I2C_Mem_Write(&hi2c2, MPU6050_SLAVE_ADDRESS, 0x1C, I2C_MEMADD_SIZE_8BIT, &data, 1, 100);
 }
 
-void readAcc(int16_t* inputBuffer){
+void readAcc(){ // store data in global variable
     uint8_t buffer[6]; // buffer to store the acceleration data
     HAL_I2C_Mem_Read(&hi2c2, MPU6050_SLAVE_ADDRESS, MPU6050_ACC_OUT, I2C_MEMADD_SIZE_8BIT, buffer, 6, 100);
-    
-    int16_t accelX = (buffer[0] << 8) | buffer[1];
-    int16_t accelY = (buffer[2] << 8) | buffer[3];
-    int16_t accelZ = (buffer[4] << 8) | buffer[5];
-    inputBuffer[0] = accelX;
-    inputBuffer[1] = accelY;
-    inputBuffer[2] = accelZ;
-    accData[0] = accelX;
-    accData[1] = accelY;
-    accData[2] = accelZ; 
+    // divide 2048 in terms of g, expected: accelZ should show appro 1g
+    // must cast here
+    accData[0] = (int16_t)((buffer[0] << 8) | buffer[1]) / 2048.0f;
+    accData[1] = (int16_t)((buffer[2] << 8) | buffer[3]) / 2048.0f;
+    accData[2] = (int16_t)((buffer[4] << 8) | buffer[5]) / 2048.0f;
+
+    HAL_I2C_Mem_Read(&hi2c2, MPU6050_SLAVE_ADDRESS, MPU6050_GYRO_OUT, I2C_MEMADD_SIZE_8BIT, buffer, 6, 100);
+    gyroData[0] = (int16_t)((buffer[0] << 8) | buffer[1]) / 65.5f * 0.0174533f;
+    gyroData[1] = (int16_t)((buffer[2] << 8) | buffer[3]) / 65.5f * 0.0174533f;
+    gyroData[2] = (int16_t)((buffer[4] << 8) | buffer[5]) / 65.5f * 0.0174533f;
+
 }

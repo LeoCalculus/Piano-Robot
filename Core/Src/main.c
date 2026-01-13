@@ -116,7 +116,7 @@ int main(void)
   mpu6050Init();
   init();  // Initialize VOFA struct
   int16_t accBuffer[3];
-  char displayAccBuffer[32];
+  //char displayAccBuffer[32];
 #ifdef HC05SETUP 
   if (setupBT()){
     OLED_SetCursor(0, 5);
@@ -147,10 +147,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    readAcc(accBuffer);
-    snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%4.i,Y:%.3i,Z:%4.i", accBuffer[0], accBuffer[1], accBuffer[2]);
-    OLED_SetCursor(0, 4);
-    OLED_WriteString(displayAccBuffer);
+
+    //readAcc(accBuffer);
+    //snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%4.i,Y:%.3i,Z:%4.i", accBuffer[0], accBuffer[1], accBuffer[2]);
+    //OLED_SetCursor(0, 4);
+    //OLED_WriteString(displayAccBuffer);
     // only process when complete message received
     if(rx_complete){
       // OLED_SetCursor(0, 5);

@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -18,182 +18,248 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 1
   15              	.Ltext0:
   16              		.cfi_sections	.debug_frame
   17              		.file 1 "./Application/Src/utils.c"
-  18              		.global	__aeabi_fmul
-  19              		.global	__aeabi_fadd
-  20              		.global	__aeabi_fcmpgt
-  21              		.global	__aeabi_fcmplt
-  22              		.global	__aeabi_fsub
-  23              		.global	__aeabi_fdiv
-  24              		.section	.text.pid_cycle,"ax",%progbits
-  25              		.align	1
-  26              		.global	pid_cycle
-  27              		.syntax unified
-  28              		.thumb
-  29              		.thumb_func
-  31              	pid_cycle:
-  32              	.LVL0:
-  33              	.LFB0:
+  18              		.global	__aeabi_fcmplt
+  19              		.global	__aeabi_fcmpgt
+  20              		.section	.text.clamp_f,"ax",%progbits
+  21              		.align	1
+  22              		.global	clamp_f
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	clamp_f:
+  28              	.LVL0:
+  29              	.LFB0:
    1:./Application/Src/utils.c **** #include <utils.h>
    2:./Application/Src/utils.c **** 
-   3:./Application/Src/utils.c **** inline float pid_cycle(PID_t *sys, float err, const float delta_t){
-  34              		.loc 1 3 67 view -0
-  35              		.cfi_startproc
-  36              		@ args = 0, pretend = 0, frame = 0
-  37              		@ frame_needed = 0, uses_anonymous_args = 0
-  38              		.loc 1 3 67 is_stmt 0 view .LVU1
-  39 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
-  40              	.LCFI0:
-  41              		.cfi_def_cfa_offset 24
-  42              		.cfi_offset 4, -24
-  43              		.cfi_offset 5, -20
-  44              		.cfi_offset 6, -16
-  45              		.cfi_offset 7, -12
-  46              		.cfi_offset 8, -8
-  47              		.cfi_offset 14, -4
-  48 0004 0446     		mov	r4, r0
-  49 0006 0D46     		mov	r5, r1
-  50 0008 1646     		mov	r6, r2
-   4:./Application/Src/utils.c ****     sys->integral += err*delta_t;
-  51              		.loc 1 4 5 is_stmt 1 view .LVU2
-  52              		.loc 1 4 8 is_stmt 0 view .LVU3
-  53 000a 0769     		ldr	r7, [r0, #16]	@ float
-  54              		.loc 1 4 25 view .LVU4
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 2
+   3:./Application/Src/utils.c **** float clamp_f(float val, float min, float max) {
+  30              		.loc 1 3 48 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		.loc 1 3 48 is_stmt 0 view .LVU1
+  35 0000 70B5     		push	{r4, r5, r6, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 16
+  38              		.cfi_offset 4, -16
+  39              		.cfi_offset 5, -12
+  40              		.cfi_offset 6, -8
+  41              		.cfi_offset 14, -4
+  42 0002 0446     		mov	r4, r0
+  43 0004 0E46     		mov	r6, r1
+  44 0006 1546     		mov	r5, r2
+   4:./Application/Src/utils.c ****     if (val < min) return min;
+  45              		.loc 1 4 5 is_stmt 1 view .LVU2
+  46              		.loc 1 4 8 is_stmt 0 view .LVU3
+  47 0008 FFF7FEFF 		bl	__aeabi_fcmplt
+  48              	.LVL1:
+  49              		.loc 1 4 8 view .LVU4
+  50 000c 30B9     		cbnz	r0, .L3
+   5:./Application/Src/utils.c ****     if (val > max) return max;
+  51              		.loc 1 5 5 is_stmt 1 view .LVU5
+  52              		.loc 1 5 8 is_stmt 0 view .LVU6
+  53 000e 2946     		mov	r1, r5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 2
 
 
-  55 000c 1146     		mov	r1, r2
-  56              	.LVL1:
-  57              		.loc 1 4 25 view .LVU5
-  58 000e 2846     		mov	r0, r5
-  59              	.LVL2:
-  60              		.loc 1 4 25 view .LVU6
-  61 0010 FFF7FEFF 		bl	__aeabi_fmul
-  62              	.LVL3:
-  63              		.loc 1 4 25 view .LVU7
-  64 0014 0146     		mov	r1, r0
-  65              		.loc 1 4 19 view .LVU8
-  66 0016 3846     		mov	r0, r7
-  67 0018 FFF7FEFF 		bl	__aeabi_fadd
-  68              	.LVL4:
-  69 001c 0746     		mov	r7, r0
-  70 001e 2061     		str	r0, [r4, #16]	@ float
-   5:./Application/Src/utils.c ****     if(sys->integral > sys->integral_max){
-  71              		.loc 1 5 5 is_stmt 1 view .LVU9
-  72              		.loc 1 5 27 is_stmt 0 view .LVU10
-  73 0020 D4F80C80 		ldr	r8, [r4, #12]	@ float
-  74              		.loc 1 5 7 view .LVU11
-  75 0024 4146     		mov	r1, r8
-  76 0026 FFF7FEFF 		bl	__aeabi_fcmpgt
-  77              	.LVL5:
-  78 002a 10B3     		cbz	r0, .L8
-   6:./Application/Src/utils.c ****         sys->integral = sys->integral_max;
-  79              		.loc 1 6 9 is_stmt 1 view .LVU12
-  80              		.loc 1 6 23 is_stmt 0 view .LVU13
-  81 002c C4F81080 		str	r8, [r4, #16]	@ float
-  82              	.L4:
-   7:./Application/Src/utils.c ****     }else if(sys->integral < -sys->integral_max){
-   8:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
-   9:./Application/Src/utils.c ****     }
-  10:./Application/Src/utils.c ****     
-  11:./Application/Src/utils.c ****     float derivative = (err - sys->err_m1)/delta_t;
-  83              		.loc 1 11 5 is_stmt 1 view .LVU14
-  84              		.loc 1 11 29 is_stmt 0 view .LVU15
-  85 0030 6169     		ldr	r1, [r4, #20]	@ float
-  86 0032 2846     		mov	r0, r5
-  87 0034 FFF7FEFF 		bl	__aeabi_fsub
-  88              	.LVL6:
-  89              		.loc 1 11 11 view .LVU16
-  90 0038 3146     		mov	r1, r6
-  91 003a FFF7FEFF 		bl	__aeabi_fdiv
-  92              	.LVL7:
-  93 003e 0746     		mov	r7, r0
-  94              	.LVL8:
-  12:./Application/Src/utils.c ****     float output = sys->P * err + sys->I * sys->integral + sys->D * derivative;
-  95              		.loc 1 12 5 is_stmt 1 view .LVU17
-  96              		.loc 1 12 27 is_stmt 0 view .LVU18
-  97 0040 2946     		mov	r1, r5
-  98 0042 2068     		ldr	r0, [r4]	@ float
-  99              	.LVL9:
- 100              		.loc 1 12 27 view .LVU19
- 101 0044 FFF7FEFF 		bl	__aeabi_fmul
- 102              	.LVL10:
- 103 0048 0646     		mov	r6, r0
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 3
+  54 0010 2046     		mov	r0, r4
+  55 0012 FFF7FEFF 		bl	__aeabi_fcmpgt
+  56              	.LVL2:
+  57 0016 18B9     		cbnz	r0, .L4
+   6:./Application/Src/utils.c ****     return val;
+  58              		.loc 1 6 12 view .LVU7
+  59 0018 2046     		mov	r0, r4
+  60              	.L1:
+   7:./Application/Src/utils.c **** }
+  61              		.loc 1 7 1 view .LVU8
+  62 001a 70BD     		pop	{r4, r5, r6, pc}
+  63              	.LVL3:
+  64              	.L3:
+   4:./Application/Src/utils.c ****     if (val > max) return max;
+  65              		.loc 1 4 27 discriminator 1 view .LVU9
+  66 001c 3046     		mov	r0, r6
+  67 001e FCE7     		b	.L1
+  68              	.L4:
+   5:./Application/Src/utils.c ****     return val;
+  69              		.loc 1 5 27 discriminator 1 view .LVU10
+  70 0020 2846     		mov	r0, r5
+  71 0022 FAE7     		b	.L1
+  72              		.cfi_endproc
+  73              	.LFE0:
+  75              		.global	__aeabi_fmul
+  76              		.global	__aeabi_fadd
+  77              		.global	__aeabi_fsub
+  78              		.global	__aeabi_fdiv
+  79              		.section	.text.pid_cycle,"ax",%progbits
+  80              		.align	1
+  81              		.global	pid_cycle
+  82              		.syntax unified
+  83              		.thumb
+  84              		.thumb_func
+  86              	pid_cycle:
+  87              	.LVL4:
+  88              	.LFB1:
+   8:./Application/Src/utils.c **** 
+   9:./Application/Src/utils.c **** inline float pid_cycle(PID_t *sys, float err, const float delta_t){
+  89              		.loc 1 9 67 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 0, pretend = 0, frame = 0
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  93              		.loc 1 9 67 is_stmt 0 view .LVU12
+  94 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+  95              	.LCFI1:
+  96              		.cfi_def_cfa_offset 24
+  97              		.cfi_offset 4, -24
+  98              		.cfi_offset 5, -20
+  99              		.cfi_offset 6, -16
+ 100              		.cfi_offset 7, -12
+ 101              		.cfi_offset 8, -8
+ 102              		.cfi_offset 14, -4
+ 103 0004 0446     		mov	r4, r0
+ 104 0006 0D46     		mov	r5, r1
+ 105 0008 1646     		mov	r6, r2
+  10:./Application/Src/utils.c ****     sys->integral += err*delta_t;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 3
 
 
- 104              	.LVL11:
- 105              		.loc 1 12 42 view .LVU20
- 106 004a 2169     		ldr	r1, [r4, #16]	@ float
- 107 004c 6068     		ldr	r0, [r4, #4]	@ float
- 108 004e FFF7FEFF 		bl	__aeabi_fmul
- 109              	.LVL12:
- 110 0052 0146     		mov	r1, r0
- 111              		.loc 1 12 33 view .LVU21
- 112 0054 3046     		mov	r0, r6
- 113 0056 FFF7FEFF 		bl	__aeabi_fadd
- 114              	.LVL13:
- 115 005a 0646     		mov	r6, r0
- 116              		.loc 1 12 67 view .LVU22
- 117 005c 3946     		mov	r1, r7
- 118 005e A068     		ldr	r0, [r4, #8]	@ float
- 119 0060 FFF7FEFF 		bl	__aeabi_fmul
- 120              	.LVL14:
- 121 0064 0146     		mov	r1, r0
- 122              		.loc 1 12 11 view .LVU23
- 123 0066 3046     		mov	r0, r6
- 124 0068 FFF7FEFF 		bl	__aeabi_fadd
- 125              	.LVL15:
-  13:./Application/Src/utils.c **** 
-  14:./Application/Src/utils.c ****     sys->err_m1 = err;
- 126              		.loc 1 14 5 is_stmt 1 view .LVU24
- 127              		.loc 1 14 17 is_stmt 0 view .LVU25
- 128 006c 6561     		str	r5, [r4, #20]	@ float
-  15:./Application/Src/utils.c ****     return output;
- 129              		.loc 1 15 5 is_stmt 1 view .LVU26
-  16:./Application/Src/utils.c **** }
- 130              		.loc 1 16 1 is_stmt 0 view .LVU27
- 131 006e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
- 132              	.LVL16:
- 133              	.L8:
-   7:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
- 134              		.loc 1 7 11 is_stmt 1 view .LVU28
-   7:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
- 135              		.loc 1 7 30 is_stmt 0 view .LVU29
- 136 0072 08F10048 		add	r8, r8, #-2147483648
-   7:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
- 137              		.loc 1 7 13 view .LVU30
- 138 0076 4146     		mov	r1, r8
- 139 0078 3846     		mov	r0, r7
- 140 007a FFF7FEFF 		bl	__aeabi_fcmplt
- 141              	.LVL17:
- 142 007e 0028     		cmp	r0, #0
- 143 0080 D6D0     		beq	.L4
-   8:./Application/Src/utils.c ****     }
- 144              		.loc 1 8 9 is_stmt 1 view .LVU31
-   8:./Application/Src/utils.c ****     }
- 145              		.loc 1 8 23 is_stmt 0 view .LVU32
- 146 0082 C4F81080 		str	r8, [r4, #16]	@ float
- 147 0086 D3E7     		b	.L4
- 148              		.cfi_endproc
- 149              	.LFE0:
- 151              		.text
- 152              	.Letext0:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 4
+ 106              		.loc 1 10 5 is_stmt 1 view .LVU13
+ 107              		.loc 1 10 8 is_stmt 0 view .LVU14
+ 108 000a 0769     		ldr	r7, [r0, #16]	@ float
+ 109              		.loc 1 10 25 view .LVU15
+ 110 000c 1146     		mov	r1, r2
+ 111              	.LVL5:
+ 112              		.loc 1 10 25 view .LVU16
+ 113 000e 2846     		mov	r0, r5
+ 114              	.LVL6:
+ 115              		.loc 1 10 25 view .LVU17
+ 116 0010 FFF7FEFF 		bl	__aeabi_fmul
+ 117              	.LVL7:
+ 118              		.loc 1 10 25 view .LVU18
+ 119 0014 0146     		mov	r1, r0
+ 120              		.loc 1 10 19 view .LVU19
+ 121 0016 3846     		mov	r0, r7
+ 122 0018 FFF7FEFF 		bl	__aeabi_fadd
+ 123              	.LVL8:
+ 124 001c 0746     		mov	r7, r0
+ 125 001e 2061     		str	r0, [r4, #16]	@ float
+  11:./Application/Src/utils.c ****     if(sys->integral > sys->integral_max){
+ 126              		.loc 1 11 5 is_stmt 1 view .LVU20
+ 127              		.loc 1 11 27 is_stmt 0 view .LVU21
+ 128 0020 D4F80C80 		ldr	r8, [r4, #12]	@ float
+ 129              		.loc 1 11 7 view .LVU22
+ 130 0024 4146     		mov	r1, r8
+ 131 0026 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 132              	.LVL9:
+ 133 002a 10B3     		cbz	r0, .L13
+  12:./Application/Src/utils.c ****         sys->integral = sys->integral_max;
+ 134              		.loc 1 12 9 is_stmt 1 view .LVU23
+ 135              		.loc 1 12 23 is_stmt 0 view .LVU24
+ 136 002c C4F81080 		str	r8, [r4, #16]	@ float
+ 137              	.L9:
+  13:./Application/Src/utils.c ****     }else if(sys->integral < -sys->integral_max){
+  14:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
+  15:./Application/Src/utils.c ****     }
+  16:./Application/Src/utils.c ****     
+  17:./Application/Src/utils.c ****     float derivative = (err - sys->err_m1)/delta_t;
+ 138              		.loc 1 17 5 is_stmt 1 view .LVU25
+ 139              		.loc 1 17 29 is_stmt 0 view .LVU26
+ 140 0030 6169     		ldr	r1, [r4, #20]	@ float
+ 141 0032 2846     		mov	r0, r5
+ 142 0034 FFF7FEFF 		bl	__aeabi_fsub
+ 143              	.LVL10:
+ 144              		.loc 1 17 11 view .LVU27
+ 145 0038 3146     		mov	r1, r6
+ 146 003a FFF7FEFF 		bl	__aeabi_fdiv
+ 147              	.LVL11:
+ 148 003e 0746     		mov	r7, r0
+ 149              	.LVL12:
+  18:./Application/Src/utils.c ****     float output = sys->P * err + sys->I * sys->integral + sys->D * derivative;
+ 150              		.loc 1 18 5 is_stmt 1 view .LVU28
+ 151              		.loc 1 18 27 is_stmt 0 view .LVU29
+ 152 0040 2946     		mov	r1, r5
+ 153 0042 2068     		ldr	r0, [r4]	@ float
+ 154              	.LVL13:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 4
 
 
- 153              		.file 2 "Application/Inc/utils.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s 			page 5
+ 155              		.loc 1 18 27 view .LVU30
+ 156 0044 FFF7FEFF 		bl	__aeabi_fmul
+ 157              	.LVL14:
+ 158 0048 0646     		mov	r6, r0
+ 159              	.LVL15:
+ 160              		.loc 1 18 42 view .LVU31
+ 161 004a 2169     		ldr	r1, [r4, #16]	@ float
+ 162 004c 6068     		ldr	r0, [r4, #4]	@ float
+ 163 004e FFF7FEFF 		bl	__aeabi_fmul
+ 164              	.LVL16:
+ 165 0052 0146     		mov	r1, r0
+ 166              		.loc 1 18 33 view .LVU32
+ 167 0054 3046     		mov	r0, r6
+ 168 0056 FFF7FEFF 		bl	__aeabi_fadd
+ 169              	.LVL17:
+ 170 005a 0646     		mov	r6, r0
+ 171              		.loc 1 18 67 view .LVU33
+ 172 005c 3946     		mov	r1, r7
+ 173 005e A068     		ldr	r0, [r4, #8]	@ float
+ 174 0060 FFF7FEFF 		bl	__aeabi_fmul
+ 175              	.LVL18:
+ 176 0064 0146     		mov	r1, r0
+ 177              		.loc 1 18 11 view .LVU34
+ 178 0066 3046     		mov	r0, r6
+ 179 0068 FFF7FEFF 		bl	__aeabi_fadd
+ 180              	.LVL19:
+  19:./Application/Src/utils.c **** 
+  20:./Application/Src/utils.c ****     sys->err_m1 = err;
+ 181              		.loc 1 20 5 is_stmt 1 view .LVU35
+ 182              		.loc 1 20 17 is_stmt 0 view .LVU36
+ 183 006c 6561     		str	r5, [r4, #20]	@ float
+  21:./Application/Src/utils.c ****     return output;
+ 184              		.loc 1 21 5 is_stmt 1 view .LVU37
+  22:./Application/Src/utils.c **** }
+ 185              		.loc 1 22 1 is_stmt 0 view .LVU38
+ 186 006e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 187              	.LVL20:
+ 188              	.L13:
+  13:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
+ 189              		.loc 1 13 11 is_stmt 1 view .LVU39
+  13:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
+ 190              		.loc 1 13 30 is_stmt 0 view .LVU40
+ 191 0072 08F10048 		add	r8, r8, #-2147483648
+  13:./Application/Src/utils.c ****         sys->integral = -sys->integral_max;
+ 192              		.loc 1 13 13 view .LVU41
+ 193 0076 4146     		mov	r1, r8
+ 194 0078 3846     		mov	r0, r7
+ 195 007a FFF7FEFF 		bl	__aeabi_fcmplt
+ 196              	.LVL21:
+ 197 007e 0028     		cmp	r0, #0
+ 198 0080 D6D0     		beq	.L9
+  14:./Application/Src/utils.c ****     }
+ 199              		.loc 1 14 9 is_stmt 1 view .LVU42
+  14:./Application/Src/utils.c ****     }
+ 200              		.loc 1 14 23 is_stmt 0 view .LVU43
+ 201 0082 C4F81080 		str	r8, [r4, #16]	@ float
+ 202 0086 D3E7     		b	.L9
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 5
+
+
+ 203              		.cfi_endproc
+ 204              	.LFE1:
+ 206              		.text
+ 207              	.Letext0:
+ 208              		.file 2 "Application/Inc/utils.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s 			page 6
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 utils.c
-C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s:25     .text.pid_cycle:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccy6z66m.s:31     .text.pid_cycle:00000000 pid_cycle
+C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s:21     .text.clamp_f:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s:27     .text.clamp_f:00000000 clamp_f
+C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s:80     .text.pid_cycle:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccgGvxCk.s:86     .text.pid_cycle:00000000 pid_cycle
 
 UNDEFINED SYMBOLS
+__aeabi_fcmplt
+__aeabi_fcmpgt
 __aeabi_fmul
 __aeabi_fadd
-__aeabi_fcmpgt
-__aeabi_fcmplt
 __aeabi_fsub
 __aeabi_fdiv

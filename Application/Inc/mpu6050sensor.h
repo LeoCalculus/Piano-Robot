@@ -13,7 +13,8 @@
 
 int checkExist();
 void mpu6050Init();
-void readAcc(int16_t* inputBuffer);
+void readAcc();
 extern float accData[3];
+extern float gyroData[3];
 
 #endif
