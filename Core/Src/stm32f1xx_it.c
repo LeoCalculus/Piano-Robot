@@ -236,7 +236,7 @@ void DMA1_Channel7_IRQHandler(void)
 void TIM2_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM2_IRQn 0 */
-  __HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE); // clear flag
+  // __HAL_TIM_CLEAR_FLAG(&htim2, TIM_FLAG_UPDATE); // clear flag
   controllerUpdate(0.001f);
   /* USER CODE END TIM2_IRQn 0 */
   HAL_TIM_IRQHandler(&htim2);
