@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "i2c.h"
 #include "tim.h"
 #include "usart.h"
@@ -90,10 +91,14 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_I2C2_Init();
   MX_TIM3_Init();
+  MX_TIM2_Init();
+  MX_TIM1_Init();
+  MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   OLED_Init();
   OLED_WriteString("Hello World!");
@@ -144,8 +149,9 @@ int main(void)
     OLED_WriteString(displayAccBuffer);
     // only process when complete message received
     if(rx_complete){
-      OLED_SetCursor(0, 5);
-      OLED_WriteString((char*)rx_data);  // cast to char*
+      // OLED_SetCursor(0, 5);
+      // OLED_WriteString((char*)rx_data);  // cast to char*
+      executeCommand(rx_data);
       rx_complete = 0;  // clear flag
       // echo back with \r\n for terminal
       HC05_SendInfo((uint8_t*)"Got it!\r\n");

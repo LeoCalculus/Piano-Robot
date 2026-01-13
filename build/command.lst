@@ -1,0 +1,405 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"command.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.file 1 "./Application/Src/command.c"
+  18              		.section	.text.setText,"ax",%progbits
+  19              		.align	1
+  20              		.global	setText
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  25              	setText:
+  26              	.LVL0:
+  27              	.LFB67:
+   1:./Application/Src/command.c **** #include <command.h>
+   2:./Application/Src/command.c **** 
+   3:./Application/Src/command.c **** int parseCommand(uint8_t* cmd) {
+   4:./Application/Src/command.c ****     if (cmd[0] != '/') {
+   5:./Application/Src/command.c ****         return 1; // error command
+   6:./Application/Src/command.c ****     }
+   7:./Application/Src/command.c ****     
+   8:./Application/Src/command.c ****     // available commands:
+   9:./Application/Src/command.c ****     char* command = strtok((char*)cmd+1, " ");
+  10:./Application/Src/command.c **** 
+  11:./Application/Src/command.c ****     if (command == NULL) {
+  12:./Application/Src/command.c ****         return 2; // empty command
+  13:./Application/Src/command.c ****     }
+  14:./Application/Src/command.c **** 
+  15:./Application/Src/command.c ****     char* argument1 = strtok(NULL, " ");
+  16:./Application/Src/command.c **** 
+  17:./Application/Src/command.c ****     if (strcmp(command, "setText") == 0) {
+  18:./Application/Src/command.c ****         if (argument1 == NULL) {
+  19:./Application/Src/command.c ****             return 3; // incomplete command
+  20:./Application/Src/command.c ****         } else {
+  21:./Application/Src/command.c ****             setText((uint8_t*)argument1);
+  22:./Application/Src/command.c ****         }
+  23:./Application/Src/command.c ****     }
+  24:./Application/Src/command.c **** 
+  25:./Application/Src/command.c ****     return 0;
+  26:./Application/Src/command.c **** }
+  27:./Application/Src/command.c **** 
+  28:./Application/Src/command.c **** void executeCommand(uint8_t* command){
+  29:./Application/Src/command.c ****     int result = parseCommand(command);
+  30:./Application/Src/command.c ****     OLED_SetCursor(0, 7);
+  31:./Application/Src/command.c ****     if (result == 0) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 2
+
+
+  32:./Application/Src/command.c ****         OLED_WriteString("OK.                ");
+  33:./Application/Src/command.c ****     } else if (result == 1){
+  34:./Application/Src/command.c ****         OLED_WriteString("Cannot parse!      ");
+  35:./Application/Src/command.c ****     } else if (result == 2){
+  36:./Application/Src/command.c ****         OLED_WriteString("Empty Command!     ");
+  37:./Application/Src/command.c ****     } else if (result == 3){
+  38:./Application/Src/command.c ****         OLED_WriteString("Incomplete command!");
+  39:./Application/Src/command.c ****     }
+  40:./Application/Src/command.c **** }
+  41:./Application/Src/command.c **** 
+  42:./Application/Src/command.c **** void setText(uint8_t* displayedText){
+  28              		.loc 1 42 37 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 42 37 is_stmt 0 view .LVU1
+  33 0000 10B5     		push	{r4, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 4, -8
+  37              		.cfi_offset 14, -4
+  38 0002 0446     		mov	r4, r0
+  43:./Application/Src/command.c ****     OLED_SetCursor(0, 5);
+  39              		.loc 1 43 5 is_stmt 1 view .LVU2
+  40 0004 0521     		movs	r1, #5
+  41 0006 0020     		movs	r0, #0
+  42              	.LVL1:
+  43              		.loc 1 43 5 is_stmt 0 view .LVU3
+  44 0008 FFF7FEFF 		bl	OLED_SetCursor
+  45              	.LVL2:
+  44:./Application/Src/command.c ****     OLED_WriteString((char*)displayedText);
+  46              		.loc 1 44 5 is_stmt 1 view .LVU4
+  47 000c 2046     		mov	r0, r4
+  48 000e FFF7FEFF 		bl	OLED_WriteString
+  49              	.LVL3:
+  45:./Application/Src/command.c **** }
+  50              		.loc 1 45 1 is_stmt 0 view .LVU5
+  51 0012 10BD     		pop	{r4, pc}
+  52              		.loc 1 45 1 view .LVU6
+  53              		.cfi_endproc
+  54              	.LFE67:
+  56              		.section	.rodata.parseCommand.str1.4,"aMS",%progbits,1
+  57              		.align	2
+  58              	.LC0:
+  59 0000 2000     		.ascii	" \000"
+  60 0002 0000     		.align	2
+  61              	.LC1:
+  62 0004 73657454 		.ascii	"setText\000"
+  62      65787400 
+  63              		.section	.text.parseCommand,"ax",%progbits
+  64              		.align	1
+  65              		.global	parseCommand
+  66              		.syntax unified
+  67              		.thumb
+  68              		.thumb_func
+  70              	parseCommand:
+  71              	.LVL4:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 3
+
+
+  72              	.LFB65:
+   3:./Application/Src/command.c ****     if (cmd[0] != '/') {
+  73              		.loc 1 3 32 is_stmt 1 view -0
+  74              		.cfi_startproc
+  75              		@ args = 0, pretend = 0, frame = 0
+  76              		@ frame_needed = 0, uses_anonymous_args = 0
+   3:./Application/Src/command.c ****     if (cmd[0] != '/') {
+  77              		.loc 1 3 32 is_stmt 0 view .LVU8
+  78 0000 38B5     		push	{r3, r4, r5, lr}
+  79              	.LCFI1:
+  80              		.cfi_def_cfa_offset 16
+  81              		.cfi_offset 3, -16
+  82              		.cfi_offset 4, -12
+  83              		.cfi_offset 5, -8
+  84              		.cfi_offset 14, -4
+   4:./Application/Src/command.c ****         return 1; // error command
+  85              		.loc 1 4 5 is_stmt 1 view .LVU9
+   4:./Application/Src/command.c ****         return 1; // error command
+  86              		.loc 1 4 12 is_stmt 0 view .LVU10
+  87 0002 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+   4:./Application/Src/command.c ****         return 1; // error command
+  88              		.loc 1 4 8 view .LVU11
+  89 0004 2F2B     		cmp	r3, #47
+  90 0006 02D0     		beq	.L10
+   5:./Application/Src/command.c ****     }
+  91              		.loc 1 5 16 view .LVU12
+  92 0008 0124     		movs	r4, #1
+  93              	.LVL5:
+  94              	.L3:
+  26:./Application/Src/command.c **** 
+  95              		.loc 1 26 1 view .LVU13
+  96 000a 2046     		mov	r0, r4
+  97 000c 38BD     		pop	{r3, r4, r5, pc}
+  98              	.LVL6:
+  99              	.L10:
+   9:./Application/Src/command.c **** 
+ 100              		.loc 1 9 5 is_stmt 1 view .LVU14
+   9:./Application/Src/command.c **** 
+ 101              		.loc 1 9 21 is_stmt 0 view .LVU15
+ 102 000e 0E49     		ldr	r1, .L11
+ 103 0010 0130     		adds	r0, r0, #1
+ 104              	.LVL7:
+   9:./Application/Src/command.c **** 
+ 105              		.loc 1 9 21 view .LVU16
+ 106 0012 FFF7FEFF 		bl	strtok
+ 107              	.LVL8:
+  11:./Application/Src/command.c ****         return 2; // empty command
+ 108              		.loc 1 11 5 is_stmt 1 view .LVU17
+  11:./Application/Src/command.c ****         return 2; // empty command
+ 109              		.loc 1 11 8 is_stmt 0 view .LVU18
+ 110 0016 0446     		mov	r4, r0
+ 111 0018 78B1     		cbz	r0, .L6
+  15:./Application/Src/command.c **** 
+ 112              		.loc 1 15 5 is_stmt 1 view .LVU19
+  15:./Application/Src/command.c **** 
+ 113              		.loc 1 15 23 is_stmt 0 view .LVU20
+ 114 001a 0B49     		ldr	r1, .L11
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 4
+
+
+ 115 001c 0020     		movs	r0, #0
+ 116              	.LVL9:
+  15:./Application/Src/command.c **** 
+ 117              		.loc 1 15 23 view .LVU21
+ 118 001e FFF7FEFF 		bl	strtok
+ 119              	.LVL10:
+ 120 0022 0546     		mov	r5, r0
+ 121              	.LVL11:
+  17:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 122              		.loc 1 17 5 is_stmt 1 view .LVU22
+  17:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 123              		.loc 1 17 9 is_stmt 0 view .LVU23
+ 124 0024 0949     		ldr	r1, .L11+4
+ 125 0026 2046     		mov	r0, r4
+ 126              	.LVL12:
+  17:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 127              		.loc 1 17 9 view .LVU24
+ 128 0028 FFF7FEFF 		bl	strcmp
+ 129              	.LVL13:
+  17:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 130              		.loc 1 17 8 discriminator 1 view .LVU25
+ 131 002c 0446     		mov	r4, r0
+ 132              	.LVL14:
+  17:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 133              		.loc 1 17 8 discriminator 1 view .LVU26
+ 134 002e 30B9     		cbnz	r0, .L7
+  18:./Application/Src/command.c ****             return 3; // incomplete command
+ 135              		.loc 1 18 9 is_stmt 1 view .LVU27
+  18:./Application/Src/command.c ****             return 3; // incomplete command
+ 136              		.loc 1 18 12 is_stmt 0 view .LVU28
+ 137 0030 3DB1     		cbz	r5, .L8
+  21:./Application/Src/command.c ****         }
+ 138              		.loc 1 21 13 is_stmt 1 view .LVU29
+ 139 0032 2846     		mov	r0, r5
+ 140 0034 FFF7FEFF 		bl	setText
+ 141              	.LVL15:
+ 142 0038 E7E7     		b	.L3
+ 143              	.LVL16:
+ 144              	.L6:
+  12:./Application/Src/command.c ****     }
+ 145              		.loc 1 12 16 is_stmt 0 view .LVU30
+ 146 003a 0224     		movs	r4, #2
+ 147 003c E5E7     		b	.L3
+ 148              	.LVL17:
+ 149              	.L7:
+  25:./Application/Src/command.c **** }
+ 150              		.loc 1 25 12 view .LVU31
+ 151 003e 0024     		movs	r4, #0
+ 152 0040 E3E7     		b	.L3
+ 153              	.L8:
+  19:./Application/Src/command.c ****         } else {
+ 154              		.loc 1 19 20 view .LVU32
+ 155 0042 0324     		movs	r4, #3
+ 156 0044 E1E7     		b	.L3
+ 157              	.L12:
+ 158 0046 00BF     		.align	2
+ 159              	.L11:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 5
+
+
+ 160 0048 00000000 		.word	.LC0
+ 161 004c 04000000 		.word	.LC1
+ 162              		.cfi_endproc
+ 163              	.LFE65:
+ 165              		.section	.rodata.executeCommand.str1.4,"aMS",%progbits,1
+ 166              		.align	2
+ 167              	.LC2:
+ 168 0000 4F4B2E20 		.ascii	"OK.                \000"
+ 168      20202020 
+ 168      20202020 
+ 168      20202020 
+ 168      20202000 
+ 169              		.align	2
+ 170              	.LC3:
+ 171 0014 43616E6E 		.ascii	"Cannot parse!      \000"
+ 171      6F742070 
+ 171      61727365 
+ 171      21202020 
+ 171      20202000 
+ 172              		.align	2
+ 173              	.LC4:
+ 174 0028 456D7074 		.ascii	"Empty Command!     \000"
+ 174      7920436F 
+ 174      6D6D616E 
+ 174      64212020 
+ 174      20202000 
+ 175              		.align	2
+ 176              	.LC5:
+ 177 003c 496E636F 		.ascii	"Incomplete command!\000"
+ 177      6D706C65 
+ 177      74652063 
+ 177      6F6D6D61 
+ 177      6E642100 
+ 178              		.section	.text.executeCommand,"ax",%progbits
+ 179              		.align	1
+ 180              		.global	executeCommand
+ 181              		.syntax unified
+ 182              		.thumb
+ 183              		.thumb_func
+ 185              	executeCommand:
+ 186              	.LVL18:
+ 187              	.LFB66:
+  28:./Application/Src/command.c ****     int result = parseCommand(command);
+ 188              		.loc 1 28 38 is_stmt 1 view -0
+ 189              		.cfi_startproc
+ 190              		@ args = 0, pretend = 0, frame = 0
+ 191              		@ frame_needed = 0, uses_anonymous_args = 0
+  28:./Application/Src/command.c ****     int result = parseCommand(command);
+ 192              		.loc 1 28 38 is_stmt 0 view .LVU34
+ 193 0000 10B5     		push	{r4, lr}
+ 194              	.LCFI2:
+ 195              		.cfi_def_cfa_offset 8
+ 196              		.cfi_offset 4, -8
+ 197              		.cfi_offset 14, -4
+  29:./Application/Src/command.c ****     OLED_SetCursor(0, 7);
+ 198              		.loc 1 29 5 is_stmt 1 view .LVU35
+  29:./Application/Src/command.c ****     OLED_SetCursor(0, 7);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 6
+
+
+ 199              		.loc 1 29 18 is_stmt 0 view .LVU36
+ 200 0002 FFF7FEFF 		bl	parseCommand
+ 201              	.LVL19:
+  29:./Application/Src/command.c ****     OLED_SetCursor(0, 7);
+ 202              		.loc 1 29 18 view .LVU37
+ 203 0006 0446     		mov	r4, r0
+ 204              	.LVL20:
+  30:./Application/Src/command.c ****     if (result == 0) {
+ 205              		.loc 1 30 5 is_stmt 1 view .LVU38
+ 206 0008 0721     		movs	r1, #7
+ 207 000a 0020     		movs	r0, #0
+ 208              	.LVL21:
+  30:./Application/Src/command.c ****     if (result == 0) {
+ 209              		.loc 1 30 5 is_stmt 0 view .LVU39
+ 210 000c FFF7FEFF 		bl	OLED_SetCursor
+ 211              	.LVL22:
+  31:./Application/Src/command.c ****         OLED_WriteString("OK.                ");
+ 212              		.loc 1 31 5 is_stmt 1 view .LVU40
+ 213 0010 032C     		cmp	r4, #3
+ 214 0012 06D8     		bhi	.L13
+ 215 0014 DFE804F0 		tbb	[pc, r4]
+ 216              	.L16:
+ 217 0018 02       		.byte	(.L19-.L16)/2
+ 218 0019 06       		.byte	(.L18-.L16)/2
+ 219 001a 0A       		.byte	(.L17-.L16)/2
+ 220 001b 0E       		.byte	(.L15-.L16)/2
+ 221              		.p2align 1
+ 222              	.L19:
+  32:./Application/Src/command.c ****     } else if (result == 1){
+ 223              		.loc 1 32 9 view .LVU41
+ 224 001c 0748     		ldr	r0, .L22
+ 225 001e FFF7FEFF 		bl	OLED_WriteString
+ 226              	.LVL23:
+ 227              	.L13:
+  40:./Application/Src/command.c **** 
+ 228              		.loc 1 40 1 is_stmt 0 view .LVU42
+ 229 0022 10BD     		pop	{r4, pc}
+ 230              	.LVL24:
+ 231              	.L18:
+  34:./Application/Src/command.c ****     } else if (result == 2){
+ 232              		.loc 1 34 9 is_stmt 1 view .LVU43
+ 233 0024 0648     		ldr	r0, .L22+4
+ 234 0026 FFF7FEFF 		bl	OLED_WriteString
+ 235              	.LVL25:
+ 236 002a FAE7     		b	.L13
+ 237              	.L17:
+  36:./Application/Src/command.c ****     } else if (result == 3){
+ 238              		.loc 1 36 9 view .LVU44
+ 239 002c 0548     		ldr	r0, .L22+8
+ 240 002e FFF7FEFF 		bl	OLED_WriteString
+ 241              	.LVL26:
+ 242 0032 F6E7     		b	.L13
+ 243              	.L15:
+  38:./Application/Src/command.c ****     }
+ 244              		.loc 1 38 9 view .LVU45
+ 245 0034 0448     		ldr	r0, .L22+12
+ 246 0036 FFF7FEFF 		bl	OLED_WriteString
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 7
+
+
+ 247              	.LVL27:
+  40:./Application/Src/command.c **** 
+ 248              		.loc 1 40 1 is_stmt 0 view .LVU46
+ 249 003a F2E7     		b	.L13
+ 250              	.L23:
+ 251              		.align	2
+ 252              	.L22:
+ 253 003c 00000000 		.word	.LC2
+ 254 0040 14000000 		.word	.LC3
+ 255 0044 28000000 		.word	.LC4
+ 256 0048 3C000000 		.word	.LC5
+ 257              		.cfi_endproc
+ 258              	.LFE66:
+ 260              		.text
+ 261              	.Letext0:
+ 262              		.file 2 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 263              		.file 3 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ 264              		.file 4 "Application/Inc/oled1315.h"
+ 265              		.file 5 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 command.c
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:19     .text.setText:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:25     .text.setText:00000000 setText
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:57     .rodata.parseCommand.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:64     .text.parseCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:70     .text.parseCommand:00000000 parseCommand
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:160    .text.parseCommand:00000048 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:166    .rodata.executeCommand.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:179    .text.executeCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:185    .text.executeCommand:00000000 executeCommand
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:217    .text.executeCommand:00000018 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:221    .text.executeCommand:0000001c $t
+C:\Users\Xuleo\AppData\Local\Temp\ccS9fpB6.s:253    .text.executeCommand:0000003c $d
+
+UNDEFINED SYMBOLS
+OLED_SetCursor
+OLED_WriteString
+strtok
+strcmp

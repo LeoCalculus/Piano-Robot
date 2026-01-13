@@ -6,5 +6,8 @@
 #include <mpu6050sensor.h>
 #include <hc05bt.h>
 #include <config.h>
+#include <command.h>
+
+void controllerUpdate(const float dt);
 
 #endif
