@@ -2,6 +2,7 @@
 
 VOFA_REPORT vofa;
 MahonyAHRS ahrs;
+controllerProperty cp;
 
 PID_t leftHandMotor={
     .P=0.005f,
@@ -133,6 +134,23 @@ void init(){
 
 }
 
+void smoothVelocity(float currentPostion, float dt){
+    float rawVelocity = (currentPostion - cp.lastPosition) / dt; // find speed
+    cp.velocityLPF = cp.velocityLPF * (1.0f - cp.velocityAlpha) + rawVelocity * cp.velocityAlpha; // lpf operation
+    cp.lastPosition = currentPostion; // update position
+}
+
+void boostKp(float targetPos, float currentPos, float tolerance, PID_t target){
+    float KpBase = target.P;
+    if (abs(targetPos - currentPos) > tolerance) {
+        target.P *= 2;
+    } else {
+        target.P = KpBase; // restore
+    }
+}
+
+
+
 
 void controllerUpdate(const float dt){
     readAcc();
@@ -142,6 +160,12 @@ void controllerUpdate(const float dt){
     vofa.val[0] = ahrs.roll * 57.2958f; // convert to radius
     vofa.val[1] = ahrs.pitch * 57.2958f;
     vofa.val[2] = ahrs.yaw * 57.2958f;
+
+    // 1. update target position
+    // 2. find current position
+    // 3. update error
+    // 4. pid cycle
+
 
     HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
 }

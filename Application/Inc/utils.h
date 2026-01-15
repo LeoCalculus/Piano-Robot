@@ -4,9 +4,9 @@
 #define PI (3.1415926f)
 
 typedef struct PID_t{
-    const float P;
-    const float I;
-    const float D;
+    float P;
+    float I;
+    float D;
     const float integral_max; // avoid the integrate result too big
     float integral;
     float err_m1;

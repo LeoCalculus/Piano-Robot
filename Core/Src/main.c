@@ -100,11 +100,12 @@ int main(void)
   MX_TIM1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
+#ifdef USINGOLED
   OLED_Init();
-  OLED_WriteString("Hello World!");
-  OLED_SetCursor(0, 2);
-  OLED_WriteString("OLED Ready :)");
+  OLED_WriteString("ELEC-391");
+#endif
 
+#ifdef USINGMPU6050
   if (checkExist()){ // cannot detect -> light LED
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, RESET);
     OLED_SetCursor(0, 3);
@@ -114,8 +115,11 @@ int main(void)
     OLED_WriteString("MPU 6050 Detected!");
   }
   mpu6050Init();
-  init();  // Initialize VOFA struct
   int16_t accBuffer[3];
+  readAcc(accBuffer);
+#endif 
+
+  init();  // Initialize VOFA struct
   //char displayAccBuffer[32];
 #ifdef HC05SETUP 
   if (setupBT()){
@@ -125,18 +129,19 @@ int main(void)
     OLED_SetCursor(0, 5);
     OLED_WriteString("Unable to config HC-05!");
   }
+  HC05_ReceiveInfo(rx_data);
 #endif
 
-  HC05_ReceiveInfo(rx_data);
+  
   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
   // set duty cycle
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
 
-  readAcc(accBuffer);  // Initialize accData before starting interrupt
+    // Initialize accData before starting interrupt
   HAL_TIM_Base_Start_IT(&htim2);  // Start TIM2 interrupt for controllerUpdate
-  OLED_SetCursor(0, 6);
-  OLED_WriteString("PWM ready!");
+  // OLED_SetCursor(0, 6);
+  // OLED_WriteString("PWM ready!");
 
   /* USER CODE END 2 */
 
@@ -147,12 +152,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-    //readAcc(accBuffer);
-    //snprintf(displayAccBuffer, sizeof(displayAccBuffer), "X:%4.i,Y:%.3i,Z:%4.i", accBuffer[0], accBuffer[1], accBuffer[2]);
-    //OLED_SetCursor(0, 4);
-    //OLED_WriteString(displayAccBuffer);
     // only process when complete message received
+  #ifdef USINGHC05
     if(rx_complete){
       // OLED_SetCursor(0, 5);
       // OLED_WriteString((char*)rx_data);  // cast to char*
@@ -162,7 +163,7 @@ int main(void)
       HC05_SendInfo((uint8_t*)"Got it!\r\n");
     }
     HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
-
+  #endif
     // dynamic pwm from 40%->100%, 40% -> 200, 100% -> 500
     if (pwmNum < 500) {
       pwmNum++;
