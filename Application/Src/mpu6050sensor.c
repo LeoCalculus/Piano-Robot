@@ -1,3 +1,5 @@
+#if 0
+
 #include <mpu6050sensor.h>
 #include <stdint.h>
 #include "i2c.h"
@@ -51,3 +53,5 @@ void readAcc(){ // store data in global variable
     gyroData[2] = (int16_t)((buffer[4] << 8) | buffer[5]) / 65.5f * 0.0174533f;
 
 }
+
+#endif

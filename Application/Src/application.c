@@ -3,6 +3,7 @@
 VOFA_REPORT vofa;
 MahonyAHRS ahrs;
 controllerProperty cp;
+uint8_t VOFA_SEND_BUFFER[64];
 
 PID_t leftHandMotor={
     .P=0.005f,
@@ -129,8 +130,10 @@ void init(){
     vofa.vofaTail[1] = 0x00;
     vofa.vofaTail[2] = 0x80;
     vofa.vofaTail[3] = 0x7f;
+    // DMA receive to idle toggle on
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, VOFA_SEND_BUFFER, sizeof(VOFA_SEND_BUFFER));
 
-    Mahony_Init(&ahrs, 3.5f, 0.02f); // initialize mahony
+    //Mahony_Init(&ahrs, 3.5f, 0.02f); // initialize mahony
 
 }
 
@@ -153,13 +156,18 @@ void boostKp(float targetPos, float currentPos, float tolerance, PID_t target){
 
 
 void controllerUpdate(const float dt){
-    readAcc();
-    Mahony_Update(&ahrs, accData, gyroData, dt);
+    // readAcc();
+    // Mahony_Update(&ahrs, accData, gyroData, dt);
 
     // controller code with pid
-    vofa.val[0] = ahrs.roll * 57.2958f; // convert to radius
-    vofa.val[1] = ahrs.pitch * 57.2958f;
-    vofa.val[2] = ahrs.yaw * 57.2958f;
+    //vofa.val[0] = ahrs.roll * 57.2958f; // convert to radius
+    //vofa.val[1] = ahrs.pitch * 57.2958f;
+    //vofa.val[2] = ahrs.yaw * 57.2958f;
+    
+    // vofa display those pid stuff
+    vofa.val[0] = leftHandMotor.P;
+    vofa.val[1] = leftHandMotor.I;
+    vofa.val[2] = leftHandMotor.D;
 
     // 1. update target position
     // 2. find current position

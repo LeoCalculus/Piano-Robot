@@ -3,7 +3,9 @@
 
 #include <utils.h>
 #include <oled1315.h>
+#ifdef USINGMPU6050
 #include <mpu6050sensor.h>
+#endif
 #include <hc05bt.h>
 #include <config.h>
 #include <command.h>
@@ -13,12 +15,23 @@
 
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 
+// send from vofa to adjust pid, in this project, rn we only need tune pid for two hand's motor
+#define CMD_SET_LEFT_P    0x01
+#define CMD_SET_LEFT_I    0x02
+#define CMD_SET_LEFT_D    0x03
+#define CMD_SET_RIGHT_P   0x11
+#define CMD_SET_RIGHT_I   0x12
+#define CMD_SET_RIGHT_D   0x13
+
 typedef struct __attribute__((packed)) VOFA_REPORT{
     float val[10];  // Only 3 channels for accel X/Y/Z
     unsigned char vofaTail[4];
 }VOFA_REPORT;
 
 extern VOFA_REPORT vofa;
+extern uint8_t VOFA_SEND_BUFFER[64];
+extern PID_t leftHandMotor;
+extern PID_t rightHandMotor;
 
 // Mahony for pos
 typedef struct {

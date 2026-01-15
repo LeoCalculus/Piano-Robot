@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+// driver use i2c2, at PB10 and PB11
+
 #define MPU6050_SLAVE_ADDRESS  (0x68<<1)      //MPU6050器件读地址
 
 #define MPU6050_WHO_AM_I        0x75

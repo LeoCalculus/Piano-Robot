@@ -5,6 +5,8 @@
 #include <stdint.h>
 #include <string.h>
 
+// hc05 using uart1 integrated with command system
+
 extern uint8_t rx_data[100];
 extern uint8_t rx_byte;
 extern volatile uint8_t rx_complete;  // 1 when message ready

@@ -3,7 +3,7 @@
 
 // #define HC05SETUP
 // #define USINGMPU6050
-// #define USINGHC05
+#define USINGHC05
 #define USINGOLED
 
 #endif

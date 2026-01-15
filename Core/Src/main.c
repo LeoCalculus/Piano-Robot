@@ -94,11 +94,11 @@ int main(void)
   MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_I2C1_Init();
-  MX_I2C2_Init();
   MX_TIM3_Init();
   MX_TIM2_Init();
-  MX_TIM1_Init();
   MX_USART2_UART_Init();
+  MX_USART3_UART_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 #ifdef USINGOLED
   OLED_Init();
@@ -129,17 +129,16 @@ int main(void)
     OLED_SetCursor(0, 5);
     OLED_WriteString("Unable to config HC-05!");
   }
-  HC05_ReceiveInfo(rx_data);
 #endif
 
-  
+  HC05_ReceiveInfo(rx_data);
   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
   // set duty cycle
   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
 
     // Initialize accData before starting interrupt
-  HAL_TIM_Base_Start_IT(&htim2);  // Start TIM2 interrupt for controllerUpdate
+  HAL_TIM_Base_Start_IT(&htim4);  // Start TIM4 interrupt for controllerUpdate
   // OLED_SetCursor(0, 6);
   // OLED_WriteString("PWM ready!");
 
@@ -238,6 +237,58 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
   if(huart->Instance == USART2){
     // DMA transfer complete - state automatically reset to READY by HAL
     // This callback confirms DMA is working
+  }
+}
+
+// DMA RX callback
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  if (huart->Instance == USART2) {
+    // parse vofa message and save pid data
+    // first only handle if message >= 5 bytes
+    if (Size >= 5) {
+      uint8_t command = VOFA_SEND_BUFFER[0];
+      float value; // the pid will be stored as float
+
+      switch (command)
+      {
+      case CMD_SET_LEFT_P:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
+        leftHandMotor.P=value;
+        break;
+
+      case CMD_SET_LEFT_I:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+        leftHandMotor.I = value;
+        break;
+
+      case CMD_SET_LEFT_D:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+        leftHandMotor.D = value;
+        break;
+
+      case CMD_SET_RIGHT_P:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
+        rightHandMotor.P=value;
+        break;
+
+      case CMD_SET_RIGHT_I:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+        rightHandMotor.I = value;
+        break;
+
+      case CMD_SET_RIGHT_D:
+        memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+        rightHandMotor.D = value;
+        break;
+      
+      default:
+        break;
+      }
+    }
+
+    // restart receive
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart2, VOFA_SEND_BUFFER, sizeof(VOFA_SEND_BUFFER));
   }
 }
 /* USER CODE END 4 */
