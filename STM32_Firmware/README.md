@@ -1,4 +1,4 @@
-# ELEC-391  
+# ELEC 391 STM32 Firmware
 ELEC 391  
 
 # Requirements for using debug:  
