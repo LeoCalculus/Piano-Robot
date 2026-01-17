@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -58,7 +58,7 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
   33              		.loc 1 23 5 view .LVU1
   34              		.loc 1 23 15 view .LVU2
   24:./Application/Src/application.c **** 
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 2
 
 
   25:./Application/Src/application.c ****     mahony->q[0]=1.0f; mahony->q[1]=mahony->q[2]=mahony->q[3]=0.0f;
@@ -118,7 +118,7 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
   35:./Application/Src/application.c **** }
   79              		.loc 1 35 1 view .LVU26
   80 002a 7047     		bx	lr
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 3
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 3
 
 
   81              	.L3:
@@ -130,497 +130,489 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
   87 0038 8FC2F53C 		.word	1022739087
   88              		.cfi_endproc
   89              	.LFE65:
-  91              		.global	__aeabi_fcmpeq
-  92              		.global	__aeabi_fmul
-  93              		.global	__aeabi_fadd
-  94              		.global	__aeabi_f2d
-  95              		.global	__aeabi_ddiv
-  96              		.global	__aeabi_d2f
-  97              		.global	__aeabi_fsub
-  98              		.global	__aeabi_fcmpgt
-  99              		.section	.text.Mahony_Update,"ax",%progbits
- 100              		.align	1
- 101              		.global	Mahony_Update
- 102              		.syntax unified
- 103              		.thumb
- 104              		.thumb_func
- 106              	Mahony_Update:
- 107              	.LVL2:
- 108              	.LFB66:
+  91              		.section	.text.Mahony_Update,"ax",%progbits
+  92              		.align	1
+  93              		.global	Mahony_Update
+  94              		.syntax unified
+  95              		.thumb
+  96              		.thumb_func
+  98              	Mahony_Update:
+  99              	.LVL2:
+ 100              	.LFB66:
   36:./Application/Src/application.c **** 
   37:./Application/Src/application.c **** void Mahony_Update(MahonyAHRS *mahony, const float acc[3], const float gyro[3], float dt){
- 109              		.loc 1 37 90 is_stmt 1 view -0
- 110              		.cfi_startproc
- 111              		@ args = 0, pretend = 0, frame = 64
- 112              		@ frame_needed = 0, uses_anonymous_args = 0
- 113              		.loc 1 37 90 is_stmt 0 view .LVU28
- 114 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
- 115              	.LCFI0:
- 116              		.cfi_def_cfa_offset 36
- 117              		.cfi_offset 4, -36
- 118              		.cfi_offset 5, -32
- 119              		.cfi_offset 6, -28
- 120              		.cfi_offset 7, -24
- 121              		.cfi_offset 8, -20
- 122              		.cfi_offset 9, -16
- 123              		.cfi_offset 10, -12
- 124              		.cfi_offset 11, -8
- 125              		.cfi_offset 14, -4
- 126 0004 91B0     		sub	sp, sp, #68
- 127              	.LCFI1:
- 128              		.cfi_def_cfa_offset 104
- 129 0006 0446     		mov	r4, r0
- 130 0008 0393     		str	r3, [sp, #12]	@ float
+ 101              		.loc 1 37 90 is_stmt 1 view -0
+ 102              		.cfi_startproc
+ 103              		@ args = 0, pretend = 0, frame = 64
+ 104              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105              		.loc 1 37 90 is_stmt 0 view .LVU28
+ 106 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 107              	.LCFI0:
+ 108              		.cfi_def_cfa_offset 36
+ 109              		.cfi_offset 4, -36
+ 110              		.cfi_offset 5, -32
+ 111              		.cfi_offset 6, -28
+ 112              		.cfi_offset 7, -24
+ 113              		.cfi_offset 8, -20
+ 114              		.cfi_offset 9, -16
+ 115              		.cfi_offset 10, -12
+ 116              		.cfi_offset 11, -8
+ 117              		.cfi_offset 14, -4
+ 118 0004 91B0     		sub	sp, sp, #68
+ 119              	.LCFI1:
+ 120              		.cfi_def_cfa_offset 104
+ 121 0006 0446     		mov	r4, r0
+ 122 0008 0393     		str	r3, [sp, #12]	@ float
   38:./Application/Src/application.c ****     float normalizedValue;
- 131              		.loc 1 38 5 is_stmt 1 view .LVU29
+ 123              		.loc 1 38 5 is_stmt 1 view .LVU29
   39:./Application/Src/application.c ****     float copy_acc[3], copy_gyro[3];
- 132              		.loc 1 39 5 view .LVU30
+ 124              		.loc 1 39 5 view .LVU30
   40:./Application/Src/application.c ****     copy_acc[0] = acc[0]; // x
- 133              		.loc 1 40 5 view .LVU31
- 134              		.loc 1 40 22 is_stmt 0 view .LVU32
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 4
-
-
- 135 000a 0E68     		ldr	r6, [r1]	@ float
- 136              		.loc 1 40 17 view .LVU33
- 137 000c 0D96     		str	r6, [sp, #52]	@ float
+ 125              		.loc 1 40 5 view .LVU31
+ 126              		.loc 1 40 22 is_stmt 0 view .LVU32
+ 127 000a 0E68     		ldr	r6, [r1]	@ float
+ 128              		.loc 1 40 17 view .LVU33
+ 129 000c 0D96     		str	r6, [sp, #52]	@ float
   41:./Application/Src/application.c ****     copy_acc[1] = acc[1]; // y
- 138              		.loc 1 41 5 is_stmt 1 view .LVU34
- 139              		.loc 1 41 22 is_stmt 0 view .LVU35
- 140 000e 4F68     		ldr	r7, [r1, #4]	@ float
- 141              		.loc 1 41 17 view .LVU36
- 142 0010 0E97     		str	r7, [sp, #56]	@ float
+ 130              		.loc 1 41 5 is_stmt 1 view .LVU34
+ 131              		.loc 1 41 22 is_stmt 0 view .LVU35
+ 132 000e 4F68     		ldr	r7, [r1, #4]	@ float
+ 133              		.loc 1 41 17 view .LVU36
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 4
+
+
+ 134 0010 0E97     		str	r7, [sp, #56]	@ float
   42:./Application/Src/application.c ****     copy_acc[2] = acc[2]; // z
- 143              		.loc 1 42 5 is_stmt 1 view .LVU37
- 144              		.loc 1 42 22 is_stmt 0 view .LVU38
- 145 0012 D1F80890 		ldr	r9, [r1, #8]	@ float
- 146              		.loc 1 42 17 view .LVU39
- 147 0016 CDF83C90 		str	r9, [sp, #60]	@ float
+ 135              		.loc 1 42 5 is_stmt 1 view .LVU37
+ 136              		.loc 1 42 22 is_stmt 0 view .LVU38
+ 137 0012 D1F80890 		ldr	r9, [r1, #8]	@ float
+ 138              		.loc 1 42 17 view .LVU39
+ 139 0016 CDF83C90 		str	r9, [sp, #60]	@ float
   43:./Application/Src/application.c ****     copy_gyro[0] = gyro[0];
- 148              		.loc 1 43 5 is_stmt 1 view .LVU40
- 149              		.loc 1 43 24 is_stmt 0 view .LVU41
- 150 001a 1368     		ldr	r3, [r2]	@ float
- 151              	.LVL3:
- 152              		.loc 1 43 24 view .LVU42
- 153 001c 0793     		str	r3, [sp, #28]	@ float
- 154              		.loc 1 43 18 view .LVU43
- 155 001e 0A93     		str	r3, [sp, #40]	@ float
+ 140              		.loc 1 43 5 is_stmt 1 view .LVU40
+ 141              		.loc 1 43 24 is_stmt 0 view .LVU41
+ 142 001a 1368     		ldr	r3, [r2]	@ float
+ 143              	.LVL3:
+ 144              		.loc 1 43 24 view .LVU42
+ 145 001c 0793     		str	r3, [sp, #28]	@ float
+ 146              		.loc 1 43 18 view .LVU43
+ 147 001e 0A93     		str	r3, [sp, #40]	@ float
   44:./Application/Src/application.c ****     copy_gyro[1] = gyro[1];
- 156              		.loc 1 44 5 is_stmt 1 view .LVU44
- 157              		.loc 1 44 24 is_stmt 0 view .LVU45
- 158 0020 5368     		ldr	r3, [r2, #4]	@ float
- 159 0022 0893     		str	r3, [sp, #32]	@ float
- 160              		.loc 1 44 18 view .LVU46
- 161 0024 0B93     		str	r3, [sp, #44]	@ float
+ 148              		.loc 1 44 5 is_stmt 1 view .LVU44
+ 149              		.loc 1 44 24 is_stmt 0 view .LVU45
+ 150 0020 5368     		ldr	r3, [r2, #4]	@ float
+ 151 0022 0893     		str	r3, [sp, #32]	@ float
+ 152              		.loc 1 44 18 view .LVU46
+ 153 0024 0B93     		str	r3, [sp, #44]	@ float
   45:./Application/Src/application.c ****     copy_gyro[2] = gyro[2];
- 162              		.loc 1 45 5 is_stmt 1 view .LVU47
- 163              		.loc 1 45 24 is_stmt 0 view .LVU48
- 164 0026 9368     		ldr	r3, [r2, #8]	@ float
- 165 0028 0993     		str	r3, [sp, #36]	@ float
- 166              		.loc 1 45 18 view .LVU49
- 167 002a 0C93     		str	r3, [sp, #48]	@ float
+ 154              		.loc 1 45 5 is_stmt 1 view .LVU47
+ 155              		.loc 1 45 24 is_stmt 0 view .LVU48
+ 156 0026 9368     		ldr	r3, [r2, #8]	@ float
+ 157 0028 0993     		str	r3, [sp, #36]	@ float
+ 158              		.loc 1 45 18 view .LVU49
+ 159 002a 0C93     		str	r3, [sp, #48]	@ float
   46:./Application/Src/application.c ****     float theory_gx, theory_gy, theory_gz;
- 168              		.loc 1 46 5 is_stmt 1 view .LVU50
+ 160              		.loc 1 46 5 is_stmt 1 view .LVU50
   47:./Application/Src/application.c ****     float q0 = mahony->q[0], q1 = mahony->q[1], q2 = mahony->q[2], q3 = mahony->q[3];
- 169              		.loc 1 47 5 view .LVU51
- 170              		.loc 1 47 11 is_stmt 0 view .LVU52
- 171 002c 0368     		ldr	r3, [r0]	@ float
- 172 002e 0193     		str	r3, [sp, #4]	@ float
- 173              	.LVL4:
- 174              		.loc 1 47 30 view .LVU53
- 175 0030 4568     		ldr	r5, [r0, #4]	@ float
- 176              	.LVL5:
- 177              		.loc 1 47 49 view .LVU54
- 178 0032 D0F808B0 		ldr	fp, [r0, #8]	@ float
- 179              	.LVL6:
- 180              		.loc 1 47 68 view .LVU55
- 181 0036 C368     		ldr	r3, [r0, #12]	@ float
- 182              	.LVL7:
- 183              		.loc 1 47 68 view .LVU56
- 184 0038 0293     		str	r3, [sp, #8]	@ float
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 5
-
-
- 185              	.LVL8:
+ 161              		.loc 1 47 5 view .LVU51
+ 162              		.loc 1 47 11 is_stmt 0 view .LVU52
+ 163 002c 0368     		ldr	r3, [r0]	@ float
+ 164 002e 0193     		str	r3, [sp, #4]	@ float
+ 165              	.LVL4:
+ 166              		.loc 1 47 30 view .LVU53
+ 167 0030 4568     		ldr	r5, [r0, #4]	@ float
+ 168              	.LVL5:
+ 169              		.loc 1 47 49 view .LVU54
+ 170 0032 D0F808B0 		ldr	fp, [r0, #8]	@ float
+ 171              	.LVL6:
+ 172              		.loc 1 47 68 view .LVU55
+ 173 0036 C368     		ldr	r3, [r0, #12]	@ float
+ 174              	.LVL7:
+ 175              		.loc 1 47 68 view .LVU56
+ 176 0038 0293     		str	r3, [sp, #8]	@ float
+ 177              	.LVL8:
   48:./Application/Src/application.c ****     float qa, qb, qc;
- 186              		.loc 1 48 5 is_stmt 1 view .LVU57
+ 178              		.loc 1 48 5 is_stmt 1 view .LVU57
   49:./Application/Src/application.c ****     float error_x, error_y, error_z;
- 187              		.loc 1 49 5 view .LVU58
+ 179              		.loc 1 49 5 view .LVU58
   50:./Application/Src/application.c **** 
   51:./Application/Src/application.c ****     // only when the accleration data is valid then do calculation:
   52:./Application/Src/application.c ****     if(!(acc[0]==0.0f && acc[1]==0.0f && acc[2]==0.0f)){
- 188              		.loc 1 52 5 view .LVU59
- 189              		.loc 1 52 7 is_stmt 0 view .LVU60
- 190 003a 0021     		movs	r1, #0
- 191              	.LVL9:
- 192              		.loc 1 52 7 view .LVU61
- 193 003c 3046     		mov	r0, r6
- 194              	.LVL10:
- 195              		.loc 1 52 7 view .LVU62
- 196 003e FFF7FEFF 		bl	__aeabi_fcmpeq
- 197              	.LVL11:
- 198              		.loc 1 52 7 view .LVU63
- 199 0042 58B1     		cbz	r0, .L5
- 200              		.loc 1 52 23 discriminator 1 view .LVU64
- 201 0044 0021     		movs	r1, #0
- 202 0046 3846     		mov	r0, r7
- 203 0048 FFF7FEFF 		bl	__aeabi_fcmpeq
- 204              	.LVL12:
- 205 004c 30B1     		cbz	r0, .L5
- 206              		.loc 1 52 8 discriminator 2 view .LVU65
- 207 004e 0021     		movs	r1, #0
- 208 0050 4846     		mov	r0, r9
- 209 0052 FFF7FEFF 		bl	__aeabi_fcmpeq
- 210              	.LVL13:
- 211 0056 0028     		cmp	r0, #0
- 212 0058 40F0F480 		bne	.L6
- 213              	.L5:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 5
+
+
+ 180              		.loc 1 52 5 view .LVU59
+ 181              		.loc 1 52 7 is_stmt 0 view .LVU60
+ 182 003a 0021     		movs	r1, #0
+ 183              	.LVL9:
+ 184              		.loc 1 52 7 view .LVU61
+ 185 003c 3046     		mov	r0, r6
+ 186              	.LVL10:
+ 187              		.loc 1 52 7 view .LVU62
+ 188 003e FFF7FEFF 		bl	__aeabi_fcmpeq
+ 189              	.LVL11:
+ 190              		.loc 1 52 7 view .LVU63
+ 191 0042 58B1     		cbz	r0, .L5
+ 192              		.loc 1 52 23 discriminator 1 view .LVU64
+ 193 0044 0021     		movs	r1, #0
+ 194 0046 3846     		mov	r0, r7
+ 195 0048 FFF7FEFF 		bl	__aeabi_fcmpeq
+ 196              	.LVL12:
+ 197 004c 30B1     		cbz	r0, .L5
+ 198              		.loc 1 52 8 discriminator 2 view .LVU65
+ 199 004e 0021     		movs	r1, #0
+ 200 0050 4846     		mov	r0, r9
+ 201 0052 FFF7FEFF 		bl	__aeabi_fcmpeq
+ 202              	.LVL13:
+ 203 0056 0028     		cmp	r0, #0
+ 204 0058 40F0F480 		bne	.L6
+ 205              	.L5:
   53:./Application/Src/application.c ****         // normalized the measured acceleration vector
   54:./Application/Src/application.c ****         normalizedValue = 1/sqrt(acc[0]*acc[0] + acc[1]*acc[1] + acc[2]*acc[2]);
- 214              		.loc 1 54 9 is_stmt 1 view .LVU66
- 215              		.loc 1 54 40 is_stmt 0 view .LVU67
- 216 005c 3146     		mov	r1, r6
- 217 005e 3046     		mov	r0, r6
- 218 0060 FFF7FEFF 		bl	__aeabi_fmul
- 219              	.LVL14:
- 220 0064 8046     		mov	r8, r0
- 221              		.loc 1 54 56 view .LVU68
- 222 0066 3946     		mov	r1, r7
- 223 0068 3846     		mov	r0, r7
- 224 006a FFF7FEFF 		bl	__aeabi_fmul
- 225              	.LVL15:
- 226 006e 0146     		mov	r1, r0
- 227              		.loc 1 54 48 view .LVU69
- 228 0070 4046     		mov	r0, r8
- 229 0072 FFF7FEFF 		bl	__aeabi_fadd
- 230              	.LVL16:
- 231 0076 8046     		mov	r8, r0
- 232              		.loc 1 54 72 view .LVU70
- 233 0078 4946     		mov	r1, r9
- 234 007a 4846     		mov	r0, r9
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 6
+ 206              		.loc 1 54 9 is_stmt 1 view .LVU66
+ 207              		.loc 1 54 40 is_stmt 0 view .LVU67
+ 208 005c 3146     		mov	r1, r6
+ 209 005e 3046     		mov	r0, r6
+ 210 0060 FFF7FEFF 		bl	__aeabi_fmul
+ 211              	.LVL14:
+ 212 0064 8046     		mov	r8, r0
+ 213              		.loc 1 54 56 view .LVU68
+ 214 0066 3946     		mov	r1, r7
+ 215 0068 3846     		mov	r0, r7
+ 216 006a FFF7FEFF 		bl	__aeabi_fmul
+ 217              	.LVL15:
+ 218 006e 0146     		mov	r1, r0
+ 219              		.loc 1 54 48 view .LVU69
+ 220 0070 4046     		mov	r0, r8
+ 221 0072 FFF7FEFF 		bl	__aeabi_fadd
+ 222              	.LVL16:
+ 223 0076 8046     		mov	r8, r0
+ 224              		.loc 1 54 72 view .LVU70
+ 225 0078 4946     		mov	r1, r9
+ 226 007a 4846     		mov	r0, r9
+ 227 007c FFF7FEFF 		bl	__aeabi_fmul
+ 228              	.LVL17:
+ 229 0080 0146     		mov	r1, r0
+ 230              		.loc 1 54 64 view .LVU71
+ 231 0082 4046     		mov	r0, r8
+ 232 0084 FFF7FEFF 		bl	__aeabi_fadd
+ 233              	.LVL18:
+ 234              		.loc 1 54 29 view .LVU72
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 6
 
 
- 235 007c FFF7FEFF 		bl	__aeabi_fmul
- 236              	.LVL17:
- 237 0080 0146     		mov	r1, r0
- 238              		.loc 1 54 64 view .LVU71
- 239 0082 4046     		mov	r0, r8
- 240 0084 FFF7FEFF 		bl	__aeabi_fadd
- 241              	.LVL18:
- 242              		.loc 1 54 29 view .LVU72
- 243 0088 FFF7FEFF 		bl	__aeabi_f2d
- 244              	.LVL19:
- 245 008c FFF7FEFF 		bl	sqrt
- 246              	.LVL20:
- 247 0090 0246     		mov	r2, r0
- 248 0092 0B46     		mov	r3, r1
- 249              		.loc 1 54 28 discriminator 1 view .LVU73
- 250 0094 0020     		movs	r0, #0
- 251 0096 6A49     		ldr	r1, .L14
- 252 0098 FFF7FEFF 		bl	__aeabi_ddiv
- 253              	.LVL21:
- 254              		.loc 1 54 25 discriminator 1 view .LVU74
- 255 009c FFF7FEFF 		bl	__aeabi_d2f
- 256              	.LVL22:
- 257 00a0 8046     		mov	r8, r0
- 258              	.LVL23:
+ 235 0088 FFF7FEFF 		bl	__aeabi_f2d
+ 236              	.LVL19:
+ 237 008c FFF7FEFF 		bl	sqrt
+ 238              	.LVL20:
+ 239 0090 0246     		mov	r2, r0
+ 240 0092 0B46     		mov	r3, r1
+ 241              		.loc 1 54 28 discriminator 1 view .LVU73
+ 242 0094 0020     		movs	r0, #0
+ 243 0096 6A49     		ldr	r1, .L14
+ 244 0098 FFF7FEFF 		bl	__aeabi_ddiv
+ 245              	.LVL21:
+ 246              		.loc 1 54 25 discriminator 1 view .LVU74
+ 247 009c FFF7FEFF 		bl	__aeabi_d2f
+ 248              	.LVL22:
+ 249 00a0 8046     		mov	r8, r0
+ 250              	.LVL23:
   55:./Application/Src/application.c ****         copy_acc[0] *= normalizedValue; 
- 259              		.loc 1 55 9 is_stmt 1 view .LVU75
- 260              		.loc 1 55 21 is_stmt 0 view .LVU76
- 261 00a2 0146     		mov	r1, r0
- 262 00a4 3046     		mov	r0, r6
- 263              	.LVL24:
- 264              		.loc 1 55 21 view .LVU77
- 265 00a6 FFF7FEFF 		bl	__aeabi_fmul
- 266              	.LVL25:
- 267              		.loc 1 55 21 view .LVU78
- 268 00aa 8246     		mov	r10, r0
- 269 00ac 0D90     		str	r0, [sp, #52]	@ float
+ 251              		.loc 1 55 9 is_stmt 1 view .LVU75
+ 252              		.loc 1 55 21 is_stmt 0 view .LVU76
+ 253 00a2 0146     		mov	r1, r0
+ 254 00a4 3046     		mov	r0, r6
+ 255              	.LVL24:
+ 256              		.loc 1 55 21 view .LVU77
+ 257 00a6 FFF7FEFF 		bl	__aeabi_fmul
+ 258              	.LVL25:
+ 259              		.loc 1 55 21 view .LVU78
+ 260 00aa 8246     		mov	r10, r0
+ 261 00ac 0D90     		str	r0, [sp, #52]	@ float
   56:./Application/Src/application.c ****         copy_acc[1] *= normalizedValue;
- 270              		.loc 1 56 9 is_stmt 1 view .LVU79
- 271              		.loc 1 56 21 is_stmt 0 view .LVU80
- 272 00ae 4146     		mov	r1, r8
- 273 00b0 3846     		mov	r0, r7
- 274 00b2 FFF7FEFF 		bl	__aeabi_fmul
- 275              	.LVL26:
- 276 00b6 0490     		str	r0, [sp, #16]	@ float
- 277 00b8 0E90     		str	r0, [sp, #56]	@ float
+ 262              		.loc 1 56 9 is_stmt 1 view .LVU79
+ 263              		.loc 1 56 21 is_stmt 0 view .LVU80
+ 264 00ae 4146     		mov	r1, r8
+ 265 00b0 3846     		mov	r0, r7
+ 266 00b2 FFF7FEFF 		bl	__aeabi_fmul
+ 267              	.LVL26:
+ 268 00b6 0490     		str	r0, [sp, #16]	@ float
+ 269 00b8 0E90     		str	r0, [sp, #56]	@ float
   57:./Application/Src/application.c ****         copy_acc[2] *= normalizedValue;
- 278              		.loc 1 57 9 is_stmt 1 view .LVU81
- 279              		.loc 1 57 21 is_stmt 0 view .LVU82
- 280 00ba 4146     		mov	r1, r8
- 281 00bc 4846     		mov	r0, r9
- 282 00be FFF7FEFF 		bl	__aeabi_fmul
- 283              	.LVL27:
- 284 00c2 0646     		mov	r6, r0
- 285 00c4 0F90     		str	r0, [sp, #60]	@ float
+ 270              		.loc 1 57 9 is_stmt 1 view .LVU81
+ 271              		.loc 1 57 21 is_stmt 0 view .LVU82
+ 272 00ba 4146     		mov	r1, r8
+ 273 00bc 4846     		mov	r0, r9
+ 274 00be FFF7FEFF 		bl	__aeabi_fmul
+ 275              	.LVL27:
+ 276 00c2 0646     		mov	r6, r0
+ 277 00c4 0F90     		str	r0, [sp, #60]	@ float
   58:./Application/Src/application.c **** 
   59:./Application/Src/application.c ****         // calculate theory gravity:
   60:./Application/Src/application.c ****         theory_gx = (q1*q3-q0*q2);
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 7
+ 278              		.loc 1 60 9 is_stmt 1 view .LVU83
+ 279              		.loc 1 60 24 is_stmt 0 view .LVU84
+ 280 00c6 DDF80890 		ldr	r9, [sp, #8]	@ float
+ 281 00ca 4946     		mov	r1, r9
+ 282 00cc 2846     		mov	r0, r5
+ 283 00ce FFF7FEFF 		bl	__aeabi_fmul
+ 284              	.LVL28:
+ 285 00d2 0746     		mov	r7, r0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 7
 
 
- 286              		.loc 1 60 9 is_stmt 1 view .LVU83
- 287              		.loc 1 60 24 is_stmt 0 view .LVU84
- 288 00c6 DDF80890 		ldr	r9, [sp, #8]	@ float
- 289 00ca 4946     		mov	r1, r9
- 290 00cc 2846     		mov	r0, r5
- 291 00ce FFF7FEFF 		bl	__aeabi_fmul
- 292              	.LVL28:
- 293 00d2 0746     		mov	r7, r0
- 294              		.loc 1 60 30 view .LVU85
- 295 00d4 5946     		mov	r1, fp
- 296 00d6 DDF80480 		ldr	r8, [sp, #4]	@ float
- 297              	.LVL29:
- 298              		.loc 1 60 30 view .LVU86
- 299 00da 4046     		mov	r0, r8
- 300 00dc FFF7FEFF 		bl	__aeabi_fmul
- 301              	.LVL30:
- 302 00e0 0146     		mov	r1, r0
- 303              		.loc 1 60 19 view .LVU87
- 304 00e2 3846     		mov	r0, r7
- 305 00e4 FFF7FEFF 		bl	__aeabi_fsub
- 306              	.LVL31:
- 307 00e8 0590     		str	r0, [sp, #20]	@ float
- 308              	.LVL32:
+ 286              		.loc 1 60 30 view .LVU85
+ 287 00d4 5946     		mov	r1, fp
+ 288 00d6 DDF80480 		ldr	r8, [sp, #4]	@ float
+ 289              	.LVL29:
+ 290              		.loc 1 60 30 view .LVU86
+ 291 00da 4046     		mov	r0, r8
+ 292 00dc FFF7FEFF 		bl	__aeabi_fmul
+ 293              	.LVL30:
+ 294 00e0 0146     		mov	r1, r0
+ 295              		.loc 1 60 19 view .LVU87
+ 296 00e2 3846     		mov	r0, r7
+ 297 00e4 FFF7FEFF 		bl	__aeabi_fsub
+ 298              	.LVL31:
+ 299 00e8 0590     		str	r0, [sp, #20]	@ float
+ 300              	.LVL32:
   61:./Application/Src/application.c ****         theory_gy = (q2*q3+q0*q1);
- 309              		.loc 1 61 9 is_stmt 1 view .LVU88
- 310              		.loc 1 61 24 is_stmt 0 view .LVU89
- 311 00ea 4946     		mov	r1, r9
- 312 00ec 5846     		mov	r0, fp
- 313              	.LVL33:
- 314              		.loc 1 61 24 view .LVU90
- 315 00ee FFF7FEFF 		bl	__aeabi_fmul
- 316              	.LVL34:
- 317 00f2 0746     		mov	r7, r0
- 318              		.loc 1 61 30 view .LVU91
- 319 00f4 2946     		mov	r1, r5
- 320 00f6 4046     		mov	r0, r8
- 321 00f8 FFF7FEFF 		bl	__aeabi_fmul
- 322              	.LVL35:
- 323 00fc 0146     		mov	r1, r0
- 324              		.loc 1 61 19 view .LVU92
- 325 00fe 3846     		mov	r0, r7
- 326 0100 FFF7FEFF 		bl	__aeabi_fadd
- 327              	.LVL36:
- 328 0104 8146     		mov	r9, r0
- 329              	.LVL37:
+ 301              		.loc 1 61 9 is_stmt 1 view .LVU88
+ 302              		.loc 1 61 24 is_stmt 0 view .LVU89
+ 303 00ea 4946     		mov	r1, r9
+ 304 00ec 5846     		mov	r0, fp
+ 305              	.LVL33:
+ 306              		.loc 1 61 24 view .LVU90
+ 307 00ee FFF7FEFF 		bl	__aeabi_fmul
+ 308              	.LVL34:
+ 309 00f2 0746     		mov	r7, r0
+ 310              		.loc 1 61 30 view .LVU91
+ 311 00f4 2946     		mov	r1, r5
+ 312 00f6 4046     		mov	r0, r8
+ 313 00f8 FFF7FEFF 		bl	__aeabi_fmul
+ 314              	.LVL35:
+ 315 00fc 0146     		mov	r1, r0
+ 316              		.loc 1 61 19 view .LVU92
+ 317 00fe 3846     		mov	r0, r7
+ 318 0100 FFF7FEFF 		bl	__aeabi_fadd
+ 319              	.LVL36:
+ 320 0104 8146     		mov	r9, r0
+ 321              	.LVL37:
   62:./Application/Src/application.c ****         theory_gz = (0.5f-q1*q1-q2*q2); // equvalent half form
- 330              		.loc 1 62 9 is_stmt 1 view .LVU93
- 331              		.loc 1 62 29 is_stmt 0 view .LVU94
- 332 0106 2946     		mov	r1, r5
- 333 0108 2846     		mov	r0, r5
- 334              	.LVL38:
- 335              		.loc 1 62 29 view .LVU95
- 336 010a FFF7FEFF 		bl	__aeabi_fmul
- 337              	.LVL39:
- 338 010e 0146     		mov	r1, r0
- 339              		.loc 1 62 26 view .LVU96
- 340 0110 4FF07C50 		mov	r0, #1056964608
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 8
+ 322              		.loc 1 62 9 is_stmt 1 view .LVU93
+ 323              		.loc 1 62 29 is_stmt 0 view .LVU94
+ 324 0106 2946     		mov	r1, r5
+ 325 0108 2846     		mov	r0, r5
+ 326              	.LVL38:
+ 327              		.loc 1 62 29 view .LVU95
+ 328 010a FFF7FEFF 		bl	__aeabi_fmul
+ 329              	.LVL39:
+ 330 010e 0146     		mov	r1, r0
+ 331              		.loc 1 62 26 view .LVU96
+ 332 0110 4FF07C50 		mov	r0, #1056964608
+ 333 0114 FFF7FEFF 		bl	__aeabi_fsub
+ 334              	.LVL40:
+ 335 0118 0746     		mov	r7, r0
+ 336              		.loc 1 62 35 view .LVU97
+ 337 011a 5946     		mov	r1, fp
+ 338 011c 5846     		mov	r0, fp
+ 339 011e FFF7FEFF 		bl	__aeabi_fmul
+ 340              	.LVL41:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 8
 
 
- 341 0114 FFF7FEFF 		bl	__aeabi_fsub
- 342              	.LVL40:
- 343 0118 0746     		mov	r7, r0
- 344              		.loc 1 62 35 view .LVU97
- 345 011a 5946     		mov	r1, fp
- 346 011c 5846     		mov	r0, fp
- 347 011e FFF7FEFF 		bl	__aeabi_fmul
- 348              	.LVL41:
- 349 0122 0146     		mov	r1, r0
- 350              		.loc 1 62 19 view .LVU98
- 351 0124 3846     		mov	r0, r7
- 352 0126 FFF7FEFF 		bl	__aeabi_fsub
- 353              	.LVL42:
- 354 012a 0746     		mov	r7, r0
- 355              	.LVL43:
+ 341 0122 0146     		mov	r1, r0
+ 342              		.loc 1 62 19 view .LVU98
+ 343 0124 3846     		mov	r0, r7
+ 344 0126 FFF7FEFF 		bl	__aeabi_fsub
+ 345              	.LVL42:
+ 346 012a 0746     		mov	r7, r0
+ 347              	.LVL43:
   63:./Application/Src/application.c **** 
   64:./Application/Src/application.c ****         // find error with actual gravity by cross product and find the angle between them (error i
   65:./Application/Src/application.c ****         error_x = (copy_acc[1]*theory_gz-copy_acc[2]*theory_gy);
- 356              		.loc 1 65 9 is_stmt 1 view .LVU99
- 357              		.loc 1 65 31 is_stmt 0 view .LVU100
- 358 012c 0146     		mov	r1, r0
- 359 012e 0498     		ldr	r0, [sp, #16]	@ float
- 360              	.LVL44:
- 361              		.loc 1 65 31 view .LVU101
- 362 0130 FFF7FEFF 		bl	__aeabi_fmul
- 363              	.LVL45:
- 364              		.loc 1 65 31 view .LVU102
- 365 0134 8046     		mov	r8, r0
- 366              		.loc 1 65 53 view .LVU103
- 367 0136 4946     		mov	r1, r9
- 368 0138 3046     		mov	r0, r6
- 369 013a FFF7FEFF 		bl	__aeabi_fmul
- 370              	.LVL46:
- 371 013e 0146     		mov	r1, r0
- 372              		.loc 1 65 17 view .LVU104
- 373 0140 4046     		mov	r0, r8
- 374 0142 FFF7FEFF 		bl	__aeabi_fsub
- 375              	.LVL47:
- 376 0146 0690     		str	r0, [sp, #24]	@ float
- 377              	.LVL48:
+ 348              		.loc 1 65 9 is_stmt 1 view .LVU99
+ 349              		.loc 1 65 31 is_stmt 0 view .LVU100
+ 350 012c 0146     		mov	r1, r0
+ 351 012e 0498     		ldr	r0, [sp, #16]	@ float
+ 352              	.LVL44:
+ 353              		.loc 1 65 31 view .LVU101
+ 354 0130 FFF7FEFF 		bl	__aeabi_fmul
+ 355              	.LVL45:
+ 356              		.loc 1 65 31 view .LVU102
+ 357 0134 8046     		mov	r8, r0
+ 358              		.loc 1 65 53 view .LVU103
+ 359 0136 4946     		mov	r1, r9
+ 360 0138 3046     		mov	r0, r6
+ 361 013a FFF7FEFF 		bl	__aeabi_fmul
+ 362              	.LVL46:
+ 363 013e 0146     		mov	r1, r0
+ 364              		.loc 1 65 17 view .LVU104
+ 365 0140 4046     		mov	r0, r8
+ 366 0142 FFF7FEFF 		bl	__aeabi_fsub
+ 367              	.LVL47:
+ 368 0146 0690     		str	r0, [sp, #24]	@ float
+ 369              	.LVL48:
   66:./Application/Src/application.c ****         error_y = (copy_acc[2]*theory_gx-copy_acc[0]*theory_gz);
- 378              		.loc 1 66 9 is_stmt 1 view .LVU105
- 379              		.loc 1 66 31 is_stmt 0 view .LVU106
- 380 0148 0599     		ldr	r1, [sp, #20]	@ float
- 381 014a 3046     		mov	r0, r6
- 382              	.LVL49:
- 383              		.loc 1 66 31 view .LVU107
- 384 014c FFF7FEFF 		bl	__aeabi_fmul
- 385              	.LVL50:
- 386 0150 0646     		mov	r6, r0
- 387              		.loc 1 66 53 view .LVU108
- 388 0152 3946     		mov	r1, r7
- 389 0154 5046     		mov	r0, r10
- 390 0156 FFF7FEFF 		bl	__aeabi_fmul
- 391              	.LVL51:
- 392 015a 0146     		mov	r1, r0
- 393              		.loc 1 66 17 view .LVU109
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 9
-
-
- 394 015c 3046     		mov	r0, r6
- 395 015e FFF7FEFF 		bl	__aeabi_fsub
- 396              	.LVL52:
- 397 0162 8046     		mov	r8, r0
- 398              	.LVL53:
+ 370              		.loc 1 66 9 is_stmt 1 view .LVU105
+ 371              		.loc 1 66 31 is_stmt 0 view .LVU106
+ 372 0148 0599     		ldr	r1, [sp, #20]	@ float
+ 373 014a 3046     		mov	r0, r6
+ 374              	.LVL49:
+ 375              		.loc 1 66 31 view .LVU107
+ 376 014c FFF7FEFF 		bl	__aeabi_fmul
+ 377              	.LVL50:
+ 378 0150 0646     		mov	r6, r0
+ 379              		.loc 1 66 53 view .LVU108
+ 380 0152 3946     		mov	r1, r7
+ 381 0154 5046     		mov	r0, r10
+ 382 0156 FFF7FEFF 		bl	__aeabi_fmul
+ 383              	.LVL51:
+ 384 015a 0146     		mov	r1, r0
+ 385              		.loc 1 66 17 view .LVU109
+ 386 015c 3046     		mov	r0, r6
+ 387 015e FFF7FEFF 		bl	__aeabi_fsub
+ 388              	.LVL52:
+ 389 0162 8046     		mov	r8, r0
+ 390              	.LVL53:
   67:./Application/Src/application.c ****         error_z = (copy_acc[0]*theory_gy-copy_acc[1]*theory_gx);
- 399              		.loc 1 67 9 is_stmt 1 view .LVU110
- 400              		.loc 1 67 31 is_stmt 0 view .LVU111
- 401 0164 4946     		mov	r1, r9
- 402 0166 5046     		mov	r0, r10
- 403              	.LVL54:
- 404              		.loc 1 67 31 view .LVU112
- 405 0168 FFF7FEFF 		bl	__aeabi_fmul
- 406              	.LVL55:
- 407 016c 0646     		mov	r6, r0
- 408              		.loc 1 67 53 view .LVU113
- 409 016e 0599     		ldr	r1, [sp, #20]	@ float
- 410 0170 0498     		ldr	r0, [sp, #16]	@ float
- 411 0172 FFF7FEFF 		bl	__aeabi_fmul
- 412              	.LVL56:
- 413 0176 0146     		mov	r1, r0
- 414              		.loc 1 67 17 view .LVU114
- 415 0178 3046     		mov	r0, r6
- 416 017a FFF7FEFF 		bl	__aeabi_fsub
- 417              	.LVL57:
- 418 017e 8246     		mov	r10, r0
- 419              	.LVL58:
+ 391              		.loc 1 67 9 is_stmt 1 view .LVU110
+ 392              		.loc 1 67 31 is_stmt 0 view .LVU111
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 9
+
+
+ 393 0164 4946     		mov	r1, r9
+ 394 0166 5046     		mov	r0, r10
+ 395              	.LVL54:
+ 396              		.loc 1 67 31 view .LVU112
+ 397 0168 FFF7FEFF 		bl	__aeabi_fmul
+ 398              	.LVL55:
+ 399 016c 0646     		mov	r6, r0
+ 400              		.loc 1 67 53 view .LVU113
+ 401 016e 0599     		ldr	r1, [sp, #20]	@ float
+ 402 0170 0498     		ldr	r0, [sp, #16]	@ float
+ 403 0172 FFF7FEFF 		bl	__aeabi_fmul
+ 404              	.LVL56:
+ 405 0176 0146     		mov	r1, r0
+ 406              		.loc 1 67 17 view .LVU114
+ 407 0178 3046     		mov	r0, r6
+ 408 017a FFF7FEFF 		bl	__aeabi_fsub
+ 409              	.LVL57:
+ 410 017e 8246     		mov	r10, r0
+ 411              	.LVL58:
   68:./Application/Src/application.c **** 
   69:./Application/Src/application.c ****         // use PI controller: P and I in mahony struct already
   70:./Application/Src/application.c ****         // here for KI fix
   71:./Application/Src/application.c ****         if (mahony->Ki > 0.0f){
- 420              		.loc 1 71 9 is_stmt 1 view .LVU115
- 421              		.loc 1 71 19 is_stmt 0 view .LVU116
- 422 0180 666A     		ldr	r6, [r4, #36]	@ float
- 423              		.loc 1 71 12 view .LVU117
- 424 0182 0021     		movs	r1, #0
- 425 0184 3046     		mov	r0, r6
- 426              	.LVL59:
- 427              		.loc 1 71 12 view .LVU118
- 428 0186 FFF7FEFF 		bl	__aeabi_fcmpgt
- 429              	.LVL60:
- 430 018a 0028     		cmp	r0, #0
- 431 018c 00F09581 		beq	.L12
+ 412              		.loc 1 71 9 is_stmt 1 view .LVU115
+ 413              		.loc 1 71 19 is_stmt 0 view .LVU116
+ 414 0180 666A     		ldr	r6, [r4, #36]	@ float
+ 415              		.loc 1 71 12 view .LVU117
+ 416 0182 0021     		movs	r1, #0
+ 417 0184 3046     		mov	r0, r6
+ 418              	.LVL59:
+ 419              		.loc 1 71 12 view .LVU118
+ 420 0186 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 421              	.LVL60:
+ 422 018a 0028     		cmp	r0, #0
+ 423 018c 00F09581 		beq	.L12
   72:./Application/Src/application.c ****             mahony->integralFB[0] += mahony->Ki * (error_x) * dt;
- 432              		.loc 1 72 13 is_stmt 1 view .LVU119
- 433              		.loc 1 72 31 is_stmt 0 view .LVU120
- 434 0190 2769     		ldr	r7, [r4, #16]	@ float
- 435              	.LVL61:
- 436              		.loc 1 72 49 view .LVU121
- 437 0192 0699     		ldr	r1, [sp, #24]	@ float
- 438 0194 3046     		mov	r0, r6
- 439 0196 FFF7FEFF 		bl	__aeabi_fmul
- 440              	.LVL62:
- 441              		.loc 1 72 61 view .LVU122
- 442 019a 0399     		ldr	r1, [sp, #12]	@ float
- 443 019c FFF7FEFF 		bl	__aeabi_fmul
- 444              	.LVL63:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 10
+ 424              		.loc 1 72 13 is_stmt 1 view .LVU119
+ 425              		.loc 1 72 31 is_stmt 0 view .LVU120
+ 426 0190 2769     		ldr	r7, [r4, #16]	@ float
+ 427              	.LVL61:
+ 428              		.loc 1 72 49 view .LVU121
+ 429 0192 0699     		ldr	r1, [sp, #24]	@ float
+ 430 0194 3046     		mov	r0, r6
+ 431 0196 FFF7FEFF 		bl	__aeabi_fmul
+ 432              	.LVL62:
+ 433              		.loc 1 72 61 view .LVU122
+ 434 019a 0399     		ldr	r1, [sp, #12]	@ float
+ 435 019c FFF7FEFF 		bl	__aeabi_fmul
+ 436              	.LVL63:
+ 437 01a0 0146     		mov	r1, r0
+ 438              		.loc 1 72 35 view .LVU123
+ 439 01a2 3846     		mov	r0, r7
+ 440 01a4 FFF7FEFF 		bl	__aeabi_fadd
+ 441              	.LVL64:
+ 442 01a8 8146     		mov	r9, r0
+ 443              	.LVL65:
+ 444              		.loc 1 72 35 view .LVU124
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 10
 
 
- 445 01a0 0146     		mov	r1, r0
- 446              		.loc 1 72 35 view .LVU123
- 447 01a2 3846     		mov	r0, r7
- 448 01a4 FFF7FEFF 		bl	__aeabi_fadd
- 449              	.LVL64:
- 450 01a8 8146     		mov	r9, r0
- 451              	.LVL65:
- 452              		.loc 1 72 35 view .LVU124
- 453 01aa 2061     		str	r0, [r4, #16]	@ float
+ 445 01aa 2061     		str	r0, [r4, #16]	@ float
   73:./Application/Src/application.c ****             mahony->integralFB[1] += mahony->Ki * (error_y) * dt;
- 454              		.loc 1 73 13 is_stmt 1 view .LVU125
- 455              		.loc 1 73 31 is_stmt 0 view .LVU126
- 456 01ac 6769     		ldr	r7, [r4, #20]	@ float
- 457              		.loc 1 73 49 view .LVU127
- 458 01ae 4146     		mov	r1, r8
- 459 01b0 3046     		mov	r0, r6
- 460 01b2 FFF7FEFF 		bl	__aeabi_fmul
- 461              	.LVL66:
- 462              		.loc 1 73 61 view .LVU128
- 463 01b6 0399     		ldr	r1, [sp, #12]	@ float
- 464 01b8 FFF7FEFF 		bl	__aeabi_fmul
- 465              	.LVL67:
- 466 01bc 0146     		mov	r1, r0
- 467              		.loc 1 73 35 view .LVU129
- 468 01be 3846     		mov	r0, r7
- 469 01c0 FFF7FEFF 		bl	__aeabi_fadd
- 470              	.LVL68:
- 471 01c4 0746     		mov	r7, r0
- 472 01c6 6061     		str	r0, [r4, #20]	@ float
+ 446              		.loc 1 73 13 is_stmt 1 view .LVU125
+ 447              		.loc 1 73 31 is_stmt 0 view .LVU126
+ 448 01ac 6769     		ldr	r7, [r4, #20]	@ float
+ 449              		.loc 1 73 49 view .LVU127
+ 450 01ae 4146     		mov	r1, r8
+ 451 01b0 3046     		mov	r0, r6
+ 452 01b2 FFF7FEFF 		bl	__aeabi_fmul
+ 453              	.LVL66:
+ 454              		.loc 1 73 61 view .LVU128
+ 455 01b6 0399     		ldr	r1, [sp, #12]	@ float
+ 456 01b8 FFF7FEFF 		bl	__aeabi_fmul
+ 457              	.LVL67:
+ 458 01bc 0146     		mov	r1, r0
+ 459              		.loc 1 73 35 view .LVU129
+ 460 01be 3846     		mov	r0, r7
+ 461 01c0 FFF7FEFF 		bl	__aeabi_fadd
+ 462              	.LVL68:
+ 463 01c4 0746     		mov	r7, r0
+ 464 01c6 6061     		str	r0, [r4, #20]	@ float
   74:./Application/Src/application.c ****             mahony->integralFB[2] += mahony->Ki * (error_z) * dt;
- 473              		.loc 1 74 13 is_stmt 1 view .LVU130
- 474              		.loc 1 74 31 is_stmt 0 view .LVU131
- 475 01c8 A369     		ldr	r3, [r4, #24]	@ float
- 476 01ca 0493     		str	r3, [sp, #16]	@ float
- 477              		.loc 1 74 49 view .LVU132
- 478 01cc 5146     		mov	r1, r10
- 479 01ce 3046     		mov	r0, r6
- 480 01d0 FFF7FEFF 		bl	__aeabi_fmul
- 481              	.LVL69:
- 482              		.loc 1 74 61 view .LVU133
- 483 01d4 0399     		ldr	r1, [sp, #12]	@ float
- 484 01d6 FFF7FEFF 		bl	__aeabi_fmul
- 485              	.LVL70:
- 486 01da 0146     		mov	r1, r0
- 487              		.loc 1 74 35 view .LVU134
- 488 01dc 0498     		ldr	r0, [sp, #16]	@ float
- 489 01de FFF7FEFF 		bl	__aeabi_fadd
- 490              	.LVL71:
- 491 01e2 0646     		mov	r6, r0
- 492 01e4 A061     		str	r0, [r4, #24]	@ float
+ 465              		.loc 1 74 13 is_stmt 1 view .LVU130
+ 466              		.loc 1 74 31 is_stmt 0 view .LVU131
+ 467 01c8 A369     		ldr	r3, [r4, #24]	@ float
+ 468 01ca 0493     		str	r3, [sp, #16]	@ float
+ 469              		.loc 1 74 49 view .LVU132
+ 470 01cc 5146     		mov	r1, r10
+ 471 01ce 3046     		mov	r0, r6
+ 472 01d0 FFF7FEFF 		bl	__aeabi_fmul
+ 473              	.LVL69:
+ 474              		.loc 1 74 61 view .LVU133
+ 475 01d4 0399     		ldr	r1, [sp, #12]	@ float
+ 476 01d6 FFF7FEFF 		bl	__aeabi_fmul
+ 477              	.LVL70:
+ 478 01da 0146     		mov	r1, r0
+ 479              		.loc 1 74 35 view .LVU134
+ 480 01dc 0498     		ldr	r0, [sp, #16]	@ float
+ 481 01de FFF7FEFF 		bl	__aeabi_fadd
+ 482              	.LVL71:
+ 483 01e2 0646     		mov	r6, r0
+ 484 01e4 A061     		str	r0, [r4, #24]	@ float
   75:./Application/Src/application.c ****             
   76:./Application/Src/application.c ****             // apply gyro patch
   77:./Application/Src/application.c ****             copy_gyro[0] += mahony->integralFB[0];
- 493              		.loc 1 77 13 is_stmt 1 view .LVU135
- 494              		.loc 1 77 26 is_stmt 0 view .LVU136
- 495 01e6 4946     		mov	r1, r9
- 496 01e8 0798     		ldr	r0, [sp, #28]	@ float
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 11
-
-
- 497 01ea FFF7FEFF 		bl	__aeabi_fadd
- 498              	.LVL72:
- 499 01ee 0A90     		str	r0, [sp, #40]	@ float
+ 485              		.loc 1 77 13 is_stmt 1 view .LVU135
+ 486              		.loc 1 77 26 is_stmt 0 view .LVU136
+ 487 01e6 4946     		mov	r1, r9
+ 488 01e8 0798     		ldr	r0, [sp, #28]	@ float
+ 489 01ea FFF7FEFF 		bl	__aeabi_fadd
+ 490              	.LVL72:
+ 491 01ee 0A90     		str	r0, [sp, #40]	@ float
   78:./Application/Src/application.c ****             copy_gyro[1] += mahony->integralFB[1];
- 500              		.loc 1 78 13 is_stmt 1 view .LVU137
- 501              		.loc 1 78 26 is_stmt 0 view .LVU138
- 502 01f0 3946     		mov	r1, r7
- 503 01f2 0898     		ldr	r0, [sp, #32]	@ float
- 504 01f4 FFF7FEFF 		bl	__aeabi_fadd
- 505              	.LVL73:
- 506 01f8 0B90     		str	r0, [sp, #44]	@ float
+ 492              		.loc 1 78 13 is_stmt 1 view .LVU137
+ 493              		.loc 1 78 26 is_stmt 0 view .LVU138
+ 494 01f0 3946     		mov	r1, r7
+ 495 01f2 0898     		ldr	r0, [sp, #32]	@ float
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 11
+
+
+ 496 01f4 FFF7FEFF 		bl	__aeabi_fadd
+ 497              	.LVL73:
+ 498 01f8 0B90     		str	r0, [sp, #44]	@ float
   79:./Application/Src/application.c ****             copy_gyro[2] += mahony->integralFB[2];
- 507              		.loc 1 79 13 is_stmt 1 view .LVU139
- 508              		.loc 1 79 26 is_stmt 0 view .LVU140
- 509 01fa 3146     		mov	r1, r6
- 510 01fc 0998     		ldr	r0, [sp, #36]	@ float
- 511 01fe FFF7FEFF 		bl	__aeabi_fadd
- 512              	.LVL74:
- 513 0202 0C90     		str	r0, [sp, #48]	@ float
- 514              	.L10:
+ 499              		.loc 1 79 13 is_stmt 1 view .LVU139
+ 500              		.loc 1 79 26 is_stmt 0 view .LVU140
+ 501 01fa 3146     		mov	r1, r6
+ 502 01fc 0998     		ldr	r0, [sp, #36]	@ float
+ 503 01fe FFF7FEFF 		bl	__aeabi_fadd
+ 504              	.LVL74:
+ 505 0202 0C90     		str	r0, [sp, #48]	@ float
+ 506              	.L10:
   80:./Application/Src/application.c ****         } else {
   81:./Application/Src/application.c ****             mahony->integralFB[0] = 0.0f;
   82:./Application/Src/application.c ****             mahony->integralFB[1] = 0.0f;
@@ -629,859 +621,857 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
   85:./Application/Src/application.c **** 
   86:./Application/Src/application.c ****         // here for KP fix, recall PID is done by P,I and D superpostion:
   87:./Application/Src/application.c ****         copy_gyro[0] += mahony->Kp * error_x;
- 515              		.loc 1 87 9 is_stmt 1 view .LVU141
- 516              		.loc 1 87 31 is_stmt 0 view .LVU142
- 517 0204 E669     		ldr	r6, [r4, #28]	@ float
- 518              		.loc 1 87 36 view .LVU143
- 519 0206 0699     		ldr	r1, [sp, #24]	@ float
- 520 0208 3046     		mov	r0, r6
- 521 020a FFF7FEFF 		bl	__aeabi_fmul
- 522              	.LVL75:
- 523 020e 0146     		mov	r1, r0
- 524              		.loc 1 87 22 view .LVU144
- 525 0210 0A98     		ldr	r0, [sp, #40]	@ float
- 526 0212 FFF7FEFF 		bl	__aeabi_fadd
- 527              	.LVL76:
- 528 0216 0A90     		str	r0, [sp, #40]	@ float
+ 507              		.loc 1 87 9 is_stmt 1 view .LVU141
+ 508              		.loc 1 87 31 is_stmt 0 view .LVU142
+ 509 0204 E669     		ldr	r6, [r4, #28]	@ float
+ 510              		.loc 1 87 36 view .LVU143
+ 511 0206 0699     		ldr	r1, [sp, #24]	@ float
+ 512 0208 3046     		mov	r0, r6
+ 513 020a FFF7FEFF 		bl	__aeabi_fmul
+ 514              	.LVL75:
+ 515 020e 0146     		mov	r1, r0
+ 516              		.loc 1 87 22 view .LVU144
+ 517 0210 0A98     		ldr	r0, [sp, #40]	@ float
+ 518 0212 FFF7FEFF 		bl	__aeabi_fadd
+ 519              	.LVL76:
+ 520 0216 0A90     		str	r0, [sp, #40]	@ float
   88:./Application/Src/application.c ****         copy_gyro[1] += mahony->Kp * error_y;
- 529              		.loc 1 88 9 is_stmt 1 view .LVU145
- 530              		.loc 1 88 36 is_stmt 0 view .LVU146
- 531 0218 4146     		mov	r1, r8
- 532 021a 3046     		mov	r0, r6
- 533 021c FFF7FEFF 		bl	__aeabi_fmul
- 534              	.LVL77:
- 535 0220 0146     		mov	r1, r0
- 536              		.loc 1 88 22 view .LVU147
- 537 0222 0B98     		ldr	r0, [sp, #44]	@ float
- 538 0224 FFF7FEFF 		bl	__aeabi_fadd
- 539              	.LVL78:
- 540 0228 0B90     		str	r0, [sp, #44]	@ float
+ 521              		.loc 1 88 9 is_stmt 1 view .LVU145
+ 522              		.loc 1 88 36 is_stmt 0 view .LVU146
+ 523 0218 4146     		mov	r1, r8
+ 524 021a 3046     		mov	r0, r6
+ 525 021c FFF7FEFF 		bl	__aeabi_fmul
+ 526              	.LVL77:
+ 527 0220 0146     		mov	r1, r0
+ 528              		.loc 1 88 22 view .LVU147
+ 529 0222 0B98     		ldr	r0, [sp, #44]	@ float
+ 530 0224 FFF7FEFF 		bl	__aeabi_fadd
+ 531              	.LVL78:
+ 532 0228 0B90     		str	r0, [sp, #44]	@ float
   89:./Application/Src/application.c ****         copy_gyro[2] += mahony->Kp * error_z;
- 541              		.loc 1 89 9 is_stmt 1 view .LVU148
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 12
+ 533              		.loc 1 89 9 is_stmt 1 view .LVU148
+ 534              		.loc 1 89 36 is_stmt 0 view .LVU149
+ 535 022a 5146     		mov	r1, r10
+ 536 022c 3046     		mov	r0, r6
+ 537 022e FFF7FEFF 		bl	__aeabi_fmul
+ 538              	.LVL79:
+ 539 0232 0146     		mov	r1, r0
+ 540              		.loc 1 89 22 view .LVU150
+ 541 0234 0C98     		ldr	r0, [sp, #48]	@ float
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 12
 
 
- 542              		.loc 1 89 36 is_stmt 0 view .LVU149
- 543 022a 5146     		mov	r1, r10
- 544 022c 3046     		mov	r0, r6
- 545 022e FFF7FEFF 		bl	__aeabi_fmul
- 546              	.LVL79:
- 547 0232 0146     		mov	r1, r0
- 548              		.loc 1 89 22 view .LVU150
- 549 0234 0C98     		ldr	r0, [sp, #48]	@ float
- 550 0236 FFF7FEFF 		bl	__aeabi_fadd
- 551              	.LVL80:
- 552 023a 0C90     		str	r0, [sp, #48]	@ float
- 553 023c 02E0     		b	.L15
- 554              	.L16:
- 555 023e 00BF     		.align	2
- 556              	.L14:
- 557 0240 0000F03F 		.word	1072693248
- 558              	.L15:
- 559              	.LVL81:
- 560              	.L6:
+ 542 0236 FFF7FEFF 		bl	__aeabi_fadd
+ 543              	.LVL80:
+ 544 023a 0C90     		str	r0, [sp, #48]	@ float
+ 545 023c 02E0     		b	.L15
+ 546              	.L16:
+ 547 023e 00BF     		.align	2
+ 548              	.L14:
+ 549 0240 0000F03F 		.word	1072693248
+ 550              	.L15:
+ 551              	.LVL81:
+ 552              	.L6:
   90:./Application/Src/application.c ****     }
   91:./Application/Src/application.c **** 
   92:./Application/Src/application.c ****     // find the new quaternion:
   93:./Application/Src/application.c ****     copy_gyro[0] *= (0.5f * dt);
- 561              		.loc 1 93 5 is_stmt 1 view .LVU151
- 562              		.loc 1 93 27 is_stmt 0 view .LVU152
- 563 0244 4FF07C51 		mov	r1, #1056964608
- 564 0248 0398     		ldr	r0, [sp, #12]	@ float
- 565 024a FFF7FEFF 		bl	__aeabi_fmul
- 566              	.LVL82:
- 567 024e 8046     		mov	r8, r0
- 568              		.loc 1 93 18 view .LVU153
- 569 0250 0146     		mov	r1, r0
- 570 0252 0A98     		ldr	r0, [sp, #40]	@ float
- 571 0254 FFF7FEFF 		bl	__aeabi_fmul
- 572              	.LVL83:
- 573 0258 0646     		mov	r6, r0
- 574 025a 0A90     		str	r0, [sp, #40]	@ float
+ 553              		.loc 1 93 5 is_stmt 1 view .LVU151
+ 554              		.loc 1 93 27 is_stmt 0 view .LVU152
+ 555 0244 4FF07C51 		mov	r1, #1056964608
+ 556 0248 0398     		ldr	r0, [sp, #12]	@ float
+ 557 024a FFF7FEFF 		bl	__aeabi_fmul
+ 558              	.LVL82:
+ 559 024e 8046     		mov	r8, r0
+ 560              		.loc 1 93 18 view .LVU153
+ 561 0250 0146     		mov	r1, r0
+ 562 0252 0A98     		ldr	r0, [sp, #40]	@ float
+ 563 0254 FFF7FEFF 		bl	__aeabi_fmul
+ 564              	.LVL83:
+ 565 0258 0646     		mov	r6, r0
+ 566 025a 0A90     		str	r0, [sp, #40]	@ float
   94:./Application/Src/application.c ****     copy_gyro[1] *= (0.5f * dt);
- 575              		.loc 1 94 5 is_stmt 1 view .LVU154
- 576              		.loc 1 94 18 is_stmt 0 view .LVU155
- 577 025c 0B99     		ldr	r1, [sp, #44]	@ float
- 578 025e 4046     		mov	r0, r8
- 579 0260 FFF7FEFF 		bl	__aeabi_fmul
- 580              	.LVL84:
- 581 0264 0746     		mov	r7, r0
- 582 0266 0B90     		str	r0, [sp, #44]	@ float
+ 567              		.loc 1 94 5 is_stmt 1 view .LVU154
+ 568              		.loc 1 94 18 is_stmt 0 view .LVU155
+ 569 025c 0B99     		ldr	r1, [sp, #44]	@ float
+ 570 025e 4046     		mov	r0, r8
+ 571 0260 FFF7FEFF 		bl	__aeabi_fmul
+ 572              	.LVL84:
+ 573 0264 0746     		mov	r7, r0
+ 574 0266 0B90     		str	r0, [sp, #44]	@ float
   95:./Application/Src/application.c ****     copy_gyro[2] *= (0.5f * dt);
- 583              		.loc 1 95 5 is_stmt 1 view .LVU156
- 584              		.loc 1 95 18 is_stmt 0 view .LVU157
- 585 0268 0C99     		ldr	r1, [sp, #48]	@ float
- 586 026a 4046     		mov	r0, r8
- 587 026c FFF7FEFF 		bl	__aeabi_fmul
- 588              	.LVL85:
- 589 0270 8046     		mov	r8, r0
- 590 0272 0C90     		str	r0, [sp, #48]	@ float
+ 575              		.loc 1 95 5 is_stmt 1 view .LVU156
+ 576              		.loc 1 95 18 is_stmt 0 view .LVU157
+ 577 0268 0C99     		ldr	r1, [sp, #48]	@ float
+ 578 026a 4046     		mov	r0, r8
+ 579 026c FFF7FEFF 		bl	__aeabi_fmul
+ 580              	.LVL85:
+ 581 0270 8046     		mov	r8, r0
+ 582 0272 0C90     		str	r0, [sp, #48]	@ float
   96:./Application/Src/application.c **** 
   97:./Application/Src/application.c ****     qa = q0;
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 13
-
-
- 591              		.loc 1 97 5 is_stmt 1 view .LVU158
- 592              	.LVL86:
+ 583              		.loc 1 97 5 is_stmt 1 view .LVU158
+ 584              	.LVL86:
   98:./Application/Src/application.c ****     qb = q1;
- 593              		.loc 1 98 5 view .LVU159
+ 585              		.loc 1 98 5 view .LVU159
   99:./Application/Src/application.c ****     qc = q2;
- 594              		.loc 1 99 5 view .LVU160
+ 586              		.loc 1 99 5 view .LVU160
  100:./Application/Src/application.c **** 
  101:./Application/Src/application.c ****     q0 += (-qb * copy_gyro[0] - qc * copy_gyro[1] - q3 * copy_gyro[2]); 
- 595              		.loc 1 101 5 view .LVU161
- 596              		.loc 1 101 12 is_stmt 0 view .LVU162
- 597 0274 05F10041 		add	r1, r5, #-2147483648
- 598              		.loc 1 101 16 view .LVU163
- 599 0278 3046     		mov	r0, r6
- 600 027a FFF7FEFF 		bl	__aeabi_fmul
- 601              	.LVL87:
- 602 027e 8146     		mov	r9, r0
- 603              		.loc 1 101 36 view .LVU164
- 604 0280 5946     		mov	r1, fp
- 605 0282 3846     		mov	r0, r7
- 606 0284 FFF7FEFF 		bl	__aeabi_fmul
- 607              	.LVL88:
- 608 0288 0146     		mov	r1, r0
- 609              		.loc 1 101 31 view .LVU165
- 610 028a 4846     		mov	r0, r9
- 611 028c FFF7FEFF 		bl	__aeabi_fsub
- 612              	.LVL89:
- 613 0290 8146     		mov	r9, r0
- 614              		.loc 1 101 56 view .LVU166
- 615 0292 DDF808A0 		ldr	r10, [sp, #8]	@ float
- 616 0296 5146     		mov	r1, r10
- 617 0298 4046     		mov	r0, r8
- 618 029a FFF7FEFF 		bl	__aeabi_fmul
- 619              	.LVL90:
- 620 029e 0146     		mov	r1, r0
- 621              		.loc 1 101 51 view .LVU167
- 622 02a0 4846     		mov	r0, r9
- 623 02a2 FFF7FEFF 		bl	__aeabi_fsub
- 624              	.LVL91:
- 625              		.loc 1 101 8 view .LVU168
- 626 02a6 DDF80490 		ldr	r9, [sp, #4]	@ float
- 627 02aa 4946     		mov	r1, r9
- 628 02ac FFF7FEFF 		bl	__aeabi_fadd
- 629              	.LVL92:
- 630 02b0 0390     		str	r0, [sp, #12]	@ float
- 631              	.LVL93:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 13
+
+
+ 587              		.loc 1 101 5 view .LVU161
+ 588              		.loc 1 101 12 is_stmt 0 view .LVU162
+ 589 0274 05F10041 		add	r1, r5, #-2147483648
+ 590              		.loc 1 101 16 view .LVU163
+ 591 0278 3046     		mov	r0, r6
+ 592 027a FFF7FEFF 		bl	__aeabi_fmul
+ 593              	.LVL87:
+ 594 027e 8146     		mov	r9, r0
+ 595              		.loc 1 101 36 view .LVU164
+ 596 0280 5946     		mov	r1, fp
+ 597 0282 3846     		mov	r0, r7
+ 598 0284 FFF7FEFF 		bl	__aeabi_fmul
+ 599              	.LVL88:
+ 600 0288 0146     		mov	r1, r0
+ 601              		.loc 1 101 31 view .LVU165
+ 602 028a 4846     		mov	r0, r9
+ 603 028c FFF7FEFF 		bl	__aeabi_fsub
+ 604              	.LVL89:
+ 605 0290 8146     		mov	r9, r0
+ 606              		.loc 1 101 56 view .LVU166
+ 607 0292 DDF808A0 		ldr	r10, [sp, #8]	@ float
+ 608 0296 5146     		mov	r1, r10
+ 609 0298 4046     		mov	r0, r8
+ 610 029a FFF7FEFF 		bl	__aeabi_fmul
+ 611              	.LVL90:
+ 612 029e 0146     		mov	r1, r0
+ 613              		.loc 1 101 51 view .LVU167
+ 614 02a0 4846     		mov	r0, r9
+ 615 02a2 FFF7FEFF 		bl	__aeabi_fsub
+ 616              	.LVL91:
+ 617              		.loc 1 101 8 view .LVU168
+ 618 02a6 DDF80490 		ldr	r9, [sp, #4]	@ float
+ 619 02aa 4946     		mov	r1, r9
+ 620 02ac FFF7FEFF 		bl	__aeabi_fadd
+ 621              	.LVL92:
+ 622 02b0 0390     		str	r0, [sp, #12]	@ float
+ 623              	.LVL93:
  102:./Application/Src/application.c **** 	q1 += (qa * copy_gyro[0] + qc * copy_gyro[2] - q3 * copy_gyro[1]);
- 632              		.loc 1 102 2 is_stmt 1 view .LVU169
- 633              		.loc 1 102 12 is_stmt 0 view .LVU170
- 634 02b2 4946     		mov	r1, r9
- 635 02b4 3046     		mov	r0, r6
- 636              	.LVL94:
- 637              		.loc 1 102 12 view .LVU171
- 638 02b6 FFF7FEFF 		bl	__aeabi_fmul
- 639              	.LVL95:
- 640 02ba 8146     		mov	r9, r0
- 641              		.loc 1 102 32 view .LVU172
- 642 02bc 5946     		mov	r1, fp
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 14
+ 624              		.loc 1 102 2 is_stmt 1 view .LVU169
+ 625              		.loc 1 102 12 is_stmt 0 view .LVU170
+ 626 02b2 4946     		mov	r1, r9
+ 627 02b4 3046     		mov	r0, r6
+ 628              	.LVL94:
+ 629              		.loc 1 102 12 view .LVU171
+ 630 02b6 FFF7FEFF 		bl	__aeabi_fmul
+ 631              	.LVL95:
+ 632 02ba 8146     		mov	r9, r0
+ 633              		.loc 1 102 32 view .LVU172
+ 634 02bc 5946     		mov	r1, fp
+ 635 02be 4046     		mov	r0, r8
+ 636 02c0 FFF7FEFF 		bl	__aeabi_fmul
+ 637              	.LVL96:
+ 638 02c4 0146     		mov	r1, r0
+ 639              		.loc 1 102 27 view .LVU173
+ 640 02c6 4846     		mov	r0, r9
+ 641 02c8 FFF7FEFF 		bl	__aeabi_fadd
+ 642              	.LVL97:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 14
 
 
- 643 02be 4046     		mov	r0, r8
- 644 02c0 FFF7FEFF 		bl	__aeabi_fmul
- 645              	.LVL96:
- 646 02c4 0146     		mov	r1, r0
- 647              		.loc 1 102 27 view .LVU173
- 648 02c6 4846     		mov	r0, r9
- 649 02c8 FFF7FEFF 		bl	__aeabi_fadd
- 650              	.LVL97:
- 651 02cc 8146     		mov	r9, r0
- 652              		.loc 1 102 52 view .LVU174
- 653 02ce 5146     		mov	r1, r10
- 654 02d0 3846     		mov	r0, r7
- 655 02d2 FFF7FEFF 		bl	__aeabi_fmul
- 656              	.LVL98:
- 657 02d6 0146     		mov	r1, r0
- 658              		.loc 1 102 47 view .LVU175
- 659 02d8 4846     		mov	r0, r9
- 660 02da FFF7FEFF 		bl	__aeabi_fsub
- 661              	.LVL99:
- 662              		.loc 1 102 5 view .LVU176
- 663 02de 2946     		mov	r1, r5
- 664 02e0 FFF7FEFF 		bl	__aeabi_fadd
- 665              	.LVL100:
- 666 02e4 8246     		mov	r10, r0
- 667              	.LVL101:
+ 643 02cc 8146     		mov	r9, r0
+ 644              		.loc 1 102 52 view .LVU174
+ 645 02ce 5146     		mov	r1, r10
+ 646 02d0 3846     		mov	r0, r7
+ 647 02d2 FFF7FEFF 		bl	__aeabi_fmul
+ 648              	.LVL98:
+ 649 02d6 0146     		mov	r1, r0
+ 650              		.loc 1 102 47 view .LVU175
+ 651 02d8 4846     		mov	r0, r9
+ 652 02da FFF7FEFF 		bl	__aeabi_fsub
+ 653              	.LVL99:
+ 654              		.loc 1 102 5 view .LVU176
+ 655 02de 2946     		mov	r1, r5
+ 656 02e0 FFF7FEFF 		bl	__aeabi_fadd
+ 657              	.LVL100:
+ 658 02e4 8246     		mov	r10, r0
+ 659              	.LVL101:
  103:./Application/Src/application.c **** 	q2 += (qa * copy_gyro[1] - qb * copy_gyro[2] + q3 * copy_gyro[0]);
- 668              		.loc 1 103 2 is_stmt 1 view .LVU177
- 669              		.loc 1 103 12 is_stmt 0 view .LVU178
- 670 02e6 0199     		ldr	r1, [sp, #4]	@ float
- 671 02e8 3846     		mov	r0, r7
- 672              	.LVL102:
- 673              		.loc 1 103 12 view .LVU179
- 674 02ea FFF7FEFF 		bl	__aeabi_fmul
- 675              	.LVL103:
- 676 02ee 8146     		mov	r9, r0
- 677              		.loc 1 103 32 view .LVU180
- 678 02f0 2946     		mov	r1, r5
- 679 02f2 4046     		mov	r0, r8
- 680 02f4 FFF7FEFF 		bl	__aeabi_fmul
- 681              	.LVL104:
- 682 02f8 0146     		mov	r1, r0
- 683              		.loc 1 103 27 view .LVU181
- 684 02fa 4846     		mov	r0, r9
- 685 02fc FFF7FEFF 		bl	__aeabi_fsub
- 686              	.LVL105:
- 687 0300 8146     		mov	r9, r0
- 688              		.loc 1 103 52 view .LVU182
- 689 0302 0299     		ldr	r1, [sp, #8]	@ float
- 690 0304 3046     		mov	r0, r6
- 691 0306 FFF7FEFF 		bl	__aeabi_fmul
- 692              	.LVL106:
- 693 030a 0146     		mov	r1, r0
- 694              		.loc 1 103 47 view .LVU183
- 695 030c 4846     		mov	r0, r9
- 696 030e FFF7FEFF 		bl	__aeabi_fadd
- 697              	.LVL107:
- 698              		.loc 1 103 5 view .LVU184
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 15
-
-
- 699 0312 5946     		mov	r1, fp
- 700 0314 FFF7FEFF 		bl	__aeabi_fadd
- 701              	.LVL108:
- 702 0318 8146     		mov	r9, r0
- 703              	.LVL109:
+ 660              		.loc 1 103 2 is_stmt 1 view .LVU177
+ 661              		.loc 1 103 12 is_stmt 0 view .LVU178
+ 662 02e6 0199     		ldr	r1, [sp, #4]	@ float
+ 663 02e8 3846     		mov	r0, r7
+ 664              	.LVL102:
+ 665              		.loc 1 103 12 view .LVU179
+ 666 02ea FFF7FEFF 		bl	__aeabi_fmul
+ 667              	.LVL103:
+ 668 02ee 8146     		mov	r9, r0
+ 669              		.loc 1 103 32 view .LVU180
+ 670 02f0 2946     		mov	r1, r5
+ 671 02f2 4046     		mov	r0, r8
+ 672 02f4 FFF7FEFF 		bl	__aeabi_fmul
+ 673              	.LVL104:
+ 674 02f8 0146     		mov	r1, r0
+ 675              		.loc 1 103 27 view .LVU181
+ 676 02fa 4846     		mov	r0, r9
+ 677 02fc FFF7FEFF 		bl	__aeabi_fsub
+ 678              	.LVL105:
+ 679 0300 8146     		mov	r9, r0
+ 680              		.loc 1 103 52 view .LVU182
+ 681 0302 0299     		ldr	r1, [sp, #8]	@ float
+ 682 0304 3046     		mov	r0, r6
+ 683 0306 FFF7FEFF 		bl	__aeabi_fmul
+ 684              	.LVL106:
+ 685 030a 0146     		mov	r1, r0
+ 686              		.loc 1 103 47 view .LVU183
+ 687 030c 4846     		mov	r0, r9
+ 688 030e FFF7FEFF 		bl	__aeabi_fadd
+ 689              	.LVL107:
+ 690              		.loc 1 103 5 view .LVU184
+ 691 0312 5946     		mov	r1, fp
+ 692 0314 FFF7FEFF 		bl	__aeabi_fadd
+ 693              	.LVL108:
+ 694 0318 8146     		mov	r9, r0
+ 695              	.LVL109:
  104:./Application/Src/application.c **** 	q3 += (qa * copy_gyro[2] + qb * copy_gyro[1] - qc * copy_gyro[0]); 
- 704              		.loc 1 104 2 is_stmt 1 view .LVU185
- 705              		.loc 1 104 12 is_stmt 0 view .LVU186
- 706 031a 0199     		ldr	r1, [sp, #4]	@ float
- 707 031c 4046     		mov	r0, r8
- 708              	.LVL110:
- 709              		.loc 1 104 12 view .LVU187
- 710 031e FFF7FEFF 		bl	__aeabi_fmul
- 711              	.LVL111:
- 712 0322 8046     		mov	r8, r0
- 713              		.loc 1 104 32 view .LVU188
- 714 0324 2946     		mov	r1, r5
- 715 0326 3846     		mov	r0, r7
- 716 0328 FFF7FEFF 		bl	__aeabi_fmul
- 717              	.LVL112:
- 718 032c 0146     		mov	r1, r0
- 719              		.loc 1 104 27 view .LVU189
- 720 032e 4046     		mov	r0, r8
- 721 0330 FFF7FEFF 		bl	__aeabi_fadd
- 722              	.LVL113:
- 723 0334 0546     		mov	r5, r0
- 724              	.LVL114:
- 725              		.loc 1 104 52 view .LVU190
- 726 0336 5946     		mov	r1, fp
- 727 0338 3046     		mov	r0, r6
- 728 033a FFF7FEFF 		bl	__aeabi_fmul
- 729              	.LVL115:
- 730 033e 0146     		mov	r1, r0
- 731              		.loc 1 104 47 view .LVU191
- 732 0340 2846     		mov	r0, r5
- 733 0342 FFF7FEFF 		bl	__aeabi_fsub
- 734              	.LVL116:
- 735              		.loc 1 104 5 view .LVU192
- 736 0346 0299     		ldr	r1, [sp, #8]	@ float
- 737 0348 FFF7FEFF 		bl	__aeabi_fadd
- 738              	.LVL117:
- 739 034c 8046     		mov	r8, r0
- 740              	.LVL118:
+ 696              		.loc 1 104 2 is_stmt 1 view .LVU185
+ 697              		.loc 1 104 12 is_stmt 0 view .LVU186
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 15
+
+
+ 698 031a 0199     		ldr	r1, [sp, #4]	@ float
+ 699 031c 4046     		mov	r0, r8
+ 700              	.LVL110:
+ 701              		.loc 1 104 12 view .LVU187
+ 702 031e FFF7FEFF 		bl	__aeabi_fmul
+ 703              	.LVL111:
+ 704 0322 8046     		mov	r8, r0
+ 705              		.loc 1 104 32 view .LVU188
+ 706 0324 2946     		mov	r1, r5
+ 707 0326 3846     		mov	r0, r7
+ 708 0328 FFF7FEFF 		bl	__aeabi_fmul
+ 709              	.LVL112:
+ 710 032c 0146     		mov	r1, r0
+ 711              		.loc 1 104 27 view .LVU189
+ 712 032e 4046     		mov	r0, r8
+ 713 0330 FFF7FEFF 		bl	__aeabi_fadd
+ 714              	.LVL113:
+ 715 0334 0546     		mov	r5, r0
+ 716              	.LVL114:
+ 717              		.loc 1 104 52 view .LVU190
+ 718 0336 5946     		mov	r1, fp
+ 719 0338 3046     		mov	r0, r6
+ 720 033a FFF7FEFF 		bl	__aeabi_fmul
+ 721              	.LVL115:
+ 722 033e 0146     		mov	r1, r0
+ 723              		.loc 1 104 47 view .LVU191
+ 724 0340 2846     		mov	r0, r5
+ 725 0342 FFF7FEFF 		bl	__aeabi_fsub
+ 726              	.LVL116:
+ 727              		.loc 1 104 5 view .LVU192
+ 728 0346 0299     		ldr	r1, [sp, #8]	@ float
+ 729 0348 FFF7FEFF 		bl	__aeabi_fadd
+ 730              	.LVL117:
+ 731 034c 8046     		mov	r8, r0
+ 732              	.LVL118:
  105:./Application/Src/application.c **** 
  106:./Application/Src/application.c ****     // normalized the updated quaternion:
  107:./Application/Src/application.c ****     normalizedValue = 1.0f/sqrt(q0*q0 + q1*q1 + q2*q2 + q3*q3);
- 741              		.loc 1 107 5 is_stmt 1 view .LVU193
- 742              		.loc 1 107 35 is_stmt 0 view .LVU194
- 743 034e 039E     		ldr	r6, [sp, #12]	@ float
- 744 0350 3146     		mov	r1, r6
- 745 0352 3046     		mov	r0, r6
- 746              	.LVL119:
- 747              		.loc 1 107 35 view .LVU195
- 748 0354 FFF7FEFF 		bl	__aeabi_fmul
- 749              	.LVL120:
- 750 0358 0546     		mov	r5, r0
- 751              		.loc 1 107 43 view .LVU196
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 16
+ 733              		.loc 1 107 5 is_stmt 1 view .LVU193
+ 734              		.loc 1 107 35 is_stmt 0 view .LVU194
+ 735 034e 039E     		ldr	r6, [sp, #12]	@ float
+ 736 0350 3146     		mov	r1, r6
+ 737 0352 3046     		mov	r0, r6
+ 738              	.LVL119:
+ 739              		.loc 1 107 35 view .LVU195
+ 740 0354 FFF7FEFF 		bl	__aeabi_fmul
+ 741              	.LVL120:
+ 742 0358 0546     		mov	r5, r0
+ 743              		.loc 1 107 43 view .LVU196
+ 744 035a 5146     		mov	r1, r10
+ 745 035c 5046     		mov	r0, r10
+ 746 035e FFF7FEFF 		bl	__aeabi_fmul
+ 747              	.LVL121:
+ 748 0362 0146     		mov	r1, r0
+ 749              		.loc 1 107 39 view .LVU197
+ 750 0364 2846     		mov	r0, r5
+ 751 0366 FFF7FEFF 		bl	__aeabi_fadd
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 16
 
 
- 752 035a 5146     		mov	r1, r10
- 753 035c 5046     		mov	r0, r10
- 754 035e FFF7FEFF 		bl	__aeabi_fmul
- 755              	.LVL121:
- 756 0362 0146     		mov	r1, r0
- 757              		.loc 1 107 39 view .LVU197
- 758 0364 2846     		mov	r0, r5
- 759 0366 FFF7FEFF 		bl	__aeabi_fadd
- 760              	.LVL122:
- 761 036a 0546     		mov	r5, r0
- 762              		.loc 1 107 51 view .LVU198
- 763 036c 4946     		mov	r1, r9
- 764 036e 4846     		mov	r0, r9
- 765 0370 FFF7FEFF 		bl	__aeabi_fmul
- 766              	.LVL123:
- 767 0374 0146     		mov	r1, r0
- 768              		.loc 1 107 47 view .LVU199
- 769 0376 2846     		mov	r0, r5
- 770 0378 FFF7FEFF 		bl	__aeabi_fadd
- 771              	.LVL124:
- 772 037c 0546     		mov	r5, r0
- 773              		.loc 1 107 59 view .LVU200
- 774 037e 4146     		mov	r1, r8
- 775 0380 4046     		mov	r0, r8
- 776 0382 FFF7FEFF 		bl	__aeabi_fmul
- 777              	.LVL125:
- 778 0386 0146     		mov	r1, r0
- 779              		.loc 1 107 55 view .LVU201
- 780 0388 2846     		mov	r0, r5
- 781 038a FFF7FEFF 		bl	__aeabi_fadd
- 782              	.LVL126:
- 783              		.loc 1 107 28 view .LVU202
- 784 038e FFF7FEFF 		bl	__aeabi_f2d
- 785              	.LVL127:
- 786 0392 FFF7FEFF 		bl	sqrt
- 787              	.LVL128:
- 788 0396 0246     		mov	r2, r0
- 789 0398 0B46     		mov	r3, r1
- 790              		.loc 1 107 27 discriminator 1 view .LVU203
- 791 039a 0020     		movs	r0, #0
- 792 039c 4949     		ldr	r1, .L17
- 793 039e FFF7FEFF 		bl	__aeabi_ddiv
- 794              	.LVL129:
- 795              		.loc 1 107 21 discriminator 1 view .LVU204
- 796 03a2 FFF7FEFF 		bl	__aeabi_d2f
- 797              	.LVL130:
- 798 03a6 0546     		mov	r5, r0
- 799              	.LVL131:
+ 752              	.LVL122:
+ 753 036a 0546     		mov	r5, r0
+ 754              		.loc 1 107 51 view .LVU198
+ 755 036c 4946     		mov	r1, r9
+ 756 036e 4846     		mov	r0, r9
+ 757 0370 FFF7FEFF 		bl	__aeabi_fmul
+ 758              	.LVL123:
+ 759 0374 0146     		mov	r1, r0
+ 760              		.loc 1 107 47 view .LVU199
+ 761 0376 2846     		mov	r0, r5
+ 762 0378 FFF7FEFF 		bl	__aeabi_fadd
+ 763              	.LVL124:
+ 764 037c 0546     		mov	r5, r0
+ 765              		.loc 1 107 59 view .LVU200
+ 766 037e 4146     		mov	r1, r8
+ 767 0380 4046     		mov	r0, r8
+ 768 0382 FFF7FEFF 		bl	__aeabi_fmul
+ 769              	.LVL125:
+ 770 0386 0146     		mov	r1, r0
+ 771              		.loc 1 107 55 view .LVU201
+ 772 0388 2846     		mov	r0, r5
+ 773 038a FFF7FEFF 		bl	__aeabi_fadd
+ 774              	.LVL126:
+ 775              		.loc 1 107 28 view .LVU202
+ 776 038e FFF7FEFF 		bl	__aeabi_f2d
+ 777              	.LVL127:
+ 778 0392 FFF7FEFF 		bl	sqrt
+ 779              	.LVL128:
+ 780 0396 0246     		mov	r2, r0
+ 781 0398 0B46     		mov	r3, r1
+ 782              		.loc 1 107 27 discriminator 1 view .LVU203
+ 783 039a 0020     		movs	r0, #0
+ 784 039c 4949     		ldr	r1, .L17
+ 785 039e FFF7FEFF 		bl	__aeabi_ddiv
+ 786              	.LVL129:
+ 787              		.loc 1 107 21 discriminator 1 view .LVU204
+ 788 03a2 FFF7FEFF 		bl	__aeabi_d2f
+ 789              	.LVL130:
+ 790 03a6 0546     		mov	r5, r0
+ 791              	.LVL131:
  108:./Application/Src/application.c ****     q0 *= normalizedValue;
- 800              		.loc 1 108 5 is_stmt 1 view .LVU205
- 801              		.loc 1 108 8 is_stmt 0 view .LVU206
- 802 03a8 0146     		mov	r1, r0
- 803 03aa 3046     		mov	r0, r6
- 804              	.LVL132:
- 805              		.loc 1 108 8 view .LVU207
- 806 03ac FFF7FEFF 		bl	__aeabi_fmul
- 807              	.LVL133:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 17
-
-
- 808              		.loc 1 108 8 view .LVU208
- 809 03b0 0746     		mov	r7, r0
- 810              	.LVL134:
+ 792              		.loc 1 108 5 is_stmt 1 view .LVU205
+ 793              		.loc 1 108 8 is_stmt 0 view .LVU206
+ 794 03a8 0146     		mov	r1, r0
+ 795 03aa 3046     		mov	r0, r6
+ 796              	.LVL132:
+ 797              		.loc 1 108 8 view .LVU207
+ 798 03ac FFF7FEFF 		bl	__aeabi_fmul
+ 799              	.LVL133:
+ 800              		.loc 1 108 8 view .LVU208
+ 801 03b0 0746     		mov	r7, r0
+ 802              	.LVL134:
  109:./Application/Src/application.c ****     q1 *= normalizedValue;
- 811              		.loc 1 109 5 is_stmt 1 view .LVU209
- 812              		.loc 1 109 8 is_stmt 0 view .LVU210
- 813 03b2 2946     		mov	r1, r5
- 814 03b4 5046     		mov	r0, r10
- 815              	.LVL135:
- 816              		.loc 1 109 8 view .LVU211
- 817 03b6 FFF7FEFF 		bl	__aeabi_fmul
- 818              	.LVL136:
- 819 03ba 0646     		mov	r6, r0
- 820              	.LVL137:
+ 803              		.loc 1 109 5 is_stmt 1 view .LVU209
+ 804              		.loc 1 109 8 is_stmt 0 view .LVU210
+ 805 03b2 2946     		mov	r1, r5
+ 806 03b4 5046     		mov	r0, r10
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 17
+
+
+ 807              	.LVL135:
+ 808              		.loc 1 109 8 view .LVU211
+ 809 03b6 FFF7FEFF 		bl	__aeabi_fmul
+ 810              	.LVL136:
+ 811 03ba 0646     		mov	r6, r0
+ 812              	.LVL137:
  110:./Application/Src/application.c ****     q2 *= normalizedValue;
- 821              		.loc 1 110 5 is_stmt 1 view .LVU212
- 822              		.loc 1 110 8 is_stmt 0 view .LVU213
- 823 03bc 2946     		mov	r1, r5
- 824 03be 4846     		mov	r0, r9
- 825              	.LVL138:
- 826              		.loc 1 110 8 view .LVU214
- 827 03c0 FFF7FEFF 		bl	__aeabi_fmul
- 828              	.LVL139:
- 829 03c4 8146     		mov	r9, r0
- 830              	.LVL140:
+ 813              		.loc 1 110 5 is_stmt 1 view .LVU212
+ 814              		.loc 1 110 8 is_stmt 0 view .LVU213
+ 815 03bc 2946     		mov	r1, r5
+ 816 03be 4846     		mov	r0, r9
+ 817              	.LVL138:
+ 818              		.loc 1 110 8 view .LVU214
+ 819 03c0 FFF7FEFF 		bl	__aeabi_fmul
+ 820              	.LVL139:
+ 821 03c4 8146     		mov	r9, r0
+ 822              	.LVL140:
  111:./Application/Src/application.c ****     q3 *= normalizedValue;
- 831              		.loc 1 111 5 is_stmt 1 view .LVU215
- 832              		.loc 1 111 8 is_stmt 0 view .LVU216
- 833 03c6 2946     		mov	r1, r5
- 834 03c8 4046     		mov	r0, r8
- 835              	.LVL141:
- 836              		.loc 1 111 8 view .LVU217
- 837 03ca FFF7FEFF 		bl	__aeabi_fmul
- 838              	.LVL142:
- 839 03ce 0546     		mov	r5, r0
- 840              	.LVL143:
+ 823              		.loc 1 111 5 is_stmt 1 view .LVU215
+ 824              		.loc 1 111 8 is_stmt 0 view .LVU216
+ 825 03c6 2946     		mov	r1, r5
+ 826 03c8 4046     		mov	r0, r8
+ 827              	.LVL141:
+ 828              		.loc 1 111 8 view .LVU217
+ 829 03ca FFF7FEFF 		bl	__aeabi_fmul
+ 830              	.LVL142:
+ 831 03ce 0546     		mov	r5, r0
+ 832              	.LVL143:
  112:./Application/Src/application.c **** 
  113:./Application/Src/application.c ****     // store them back to mahony struct
  114:./Application/Src/application.c ****     mahony->q[0] = q0;
- 841              		.loc 1 114 5 is_stmt 1 view .LVU218
- 842              		.loc 1 114 18 is_stmt 0 view .LVU219
- 843 03d0 2760     		str	r7, [r4]	@ float
+ 833              		.loc 1 114 5 is_stmt 1 view .LVU218
+ 834              		.loc 1 114 18 is_stmt 0 view .LVU219
+ 835 03d0 2760     		str	r7, [r4]	@ float
  115:./Application/Src/application.c ****     mahony->q[1] = q1;
- 844              		.loc 1 115 5 is_stmt 1 view .LVU220
- 845              		.loc 1 115 18 is_stmt 0 view .LVU221
- 846 03d2 6660     		str	r6, [r4, #4]	@ float
+ 836              		.loc 1 115 5 is_stmt 1 view .LVU220
+ 837              		.loc 1 115 18 is_stmt 0 view .LVU221
+ 838 03d2 6660     		str	r6, [r4, #4]	@ float
  116:./Application/Src/application.c ****     mahony->q[2] = q2;
- 847              		.loc 1 116 5 is_stmt 1 view .LVU222
- 848              		.loc 1 116 18 is_stmt 0 view .LVU223
- 849 03d4 C4F80890 		str	r9, [r4, #8]	@ float
+ 839              		.loc 1 116 5 is_stmt 1 view .LVU222
+ 840              		.loc 1 116 18 is_stmt 0 view .LVU223
+ 841 03d4 C4F80890 		str	r9, [r4, #8]	@ float
  117:./Application/Src/application.c ****     mahony->q[3] = q3;
- 850              		.loc 1 117 5 is_stmt 1 view .LVU224
- 851              		.loc 1 117 18 is_stmt 0 view .LVU225
- 852 03d8 E060     		str	r0, [r4, #12]	@ float
+ 842              		.loc 1 117 5 is_stmt 1 view .LVU224
+ 843              		.loc 1 117 18 is_stmt 0 view .LVU225
+ 844 03d8 E060     		str	r0, [r4, #12]	@ float
  118:./Application/Src/application.c **** 
  119:./Application/Src/application.c ****     // find the angle: math function out radius
  120:./Application/Src/application.c ****     mahony->roll  = atan2f(2.0f*(q0*q1 + q2*q3), 1.0f - 2.0f*(q1*q1 + q2*q2));
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 18
+ 845              		.loc 1 120 5 is_stmt 1 view .LVU226
+ 846              		.loc 1 120 36 is_stmt 0 view .LVU227
+ 847 03da 3146     		mov	r1, r6
+ 848 03dc 3846     		mov	r0, r7
+ 849              	.LVL144:
+ 850              		.loc 1 120 36 view .LVU228
+ 851 03de FFF7FEFF 		bl	__aeabi_fmul
+ 852              	.LVL145:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 18
 
 
- 853              		.loc 1 120 5 is_stmt 1 view .LVU226
- 854              		.loc 1 120 36 is_stmt 0 view .LVU227
- 855 03da 3146     		mov	r1, r6
- 856 03dc 3846     		mov	r0, r7
- 857              	.LVL144:
- 858              		.loc 1 120 36 view .LVU228
- 859 03de FFF7FEFF 		bl	__aeabi_fmul
- 860              	.LVL145:
- 861 03e2 8046     		mov	r8, r0
- 862              		.loc 1 120 44 view .LVU229
- 863 03e4 2946     		mov	r1, r5
- 864 03e6 4846     		mov	r0, r9
- 865 03e8 FFF7FEFF 		bl	__aeabi_fmul
- 866              	.LVL146:
- 867 03ec 0146     		mov	r1, r0
- 868              		.loc 1 120 40 view .LVU230
- 869 03ee 4046     		mov	r0, r8
- 870 03f0 FFF7FEFF 		bl	__aeabi_fadd
- 871              	.LVL147:
- 872 03f4 8246     		mov	r10, r0
- 873              		.loc 1 120 65 view .LVU231
- 874 03f6 3146     		mov	r1, r6
- 875 03f8 3046     		mov	r0, r6
- 876 03fa FFF7FEFF 		bl	__aeabi_fmul
- 877              	.LVL148:
- 878 03fe 8346     		mov	fp, r0
- 879              	.LVL149:
- 880              		.loc 1 120 73 view .LVU232
- 881 0400 4946     		mov	r1, r9
- 882 0402 4846     		mov	r0, r9
- 883 0404 FFF7FEFF 		bl	__aeabi_fmul
- 884              	.LVL150:
- 885 0408 8046     		mov	r8, r0
- 886              		.loc 1 120 69 view .LVU233
- 887 040a 0146     		mov	r1, r0
- 888 040c 5846     		mov	r0, fp
- 889 040e FFF7FEFF 		bl	__aeabi_fadd
- 890              	.LVL151:
- 891 0412 0146     		mov	r1, r0
- 892              		.loc 1 120 61 view .LVU234
- 893 0414 FFF7FEFF 		bl	__aeabi_fadd
- 894              	.LVL152:
- 895 0418 0146     		mov	r1, r0
- 896              		.loc 1 120 21 view .LVU235
- 897 041a 4FF07E50 		mov	r0, #1065353216
- 898 041e FFF7FEFF 		bl	__aeabi_fsub
- 899              	.LVL153:
- 900 0422 8346     		mov	fp, r0
- 901 0424 5146     		mov	r1, r10
- 902 0426 5046     		mov	r0, r10
- 903 0428 FFF7FEFF 		bl	__aeabi_fadd
- 904              	.LVL154:
- 905 042c 5946     		mov	r1, fp
- 906 042e FFF7FEFF 		bl	atan2f
- 907              	.LVL155:
- 908              		.loc 1 120 19 discriminator 1 view .LVU236
- 909 0432 E062     		str	r0, [r4, #44]	@ float
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 19
-
-
+ 853 03e2 8046     		mov	r8, r0
+ 854              		.loc 1 120 44 view .LVU229
+ 855 03e4 2946     		mov	r1, r5
+ 856 03e6 4846     		mov	r0, r9
+ 857 03e8 FFF7FEFF 		bl	__aeabi_fmul
+ 858              	.LVL146:
+ 859 03ec 0146     		mov	r1, r0
+ 860              		.loc 1 120 40 view .LVU230
+ 861 03ee 4046     		mov	r0, r8
+ 862 03f0 FFF7FEFF 		bl	__aeabi_fadd
+ 863              	.LVL147:
+ 864 03f4 8246     		mov	r10, r0
+ 865              		.loc 1 120 65 view .LVU231
+ 866 03f6 3146     		mov	r1, r6
+ 867 03f8 3046     		mov	r0, r6
+ 868 03fa FFF7FEFF 		bl	__aeabi_fmul
+ 869              	.LVL148:
+ 870 03fe 8346     		mov	fp, r0
+ 871              	.LVL149:
+ 872              		.loc 1 120 73 view .LVU232
+ 873 0400 4946     		mov	r1, r9
+ 874 0402 4846     		mov	r0, r9
+ 875 0404 FFF7FEFF 		bl	__aeabi_fmul
+ 876              	.LVL150:
+ 877 0408 8046     		mov	r8, r0
+ 878              		.loc 1 120 69 view .LVU233
+ 879 040a 0146     		mov	r1, r0
+ 880 040c 5846     		mov	r0, fp
+ 881 040e FFF7FEFF 		bl	__aeabi_fadd
+ 882              	.LVL151:
+ 883 0412 0146     		mov	r1, r0
+ 884              		.loc 1 120 61 view .LVU234
+ 885 0414 FFF7FEFF 		bl	__aeabi_fadd
+ 886              	.LVL152:
+ 887 0418 0146     		mov	r1, r0
+ 888              		.loc 1 120 21 view .LVU235
+ 889 041a 4FF07E50 		mov	r0, #1065353216
+ 890 041e FFF7FEFF 		bl	__aeabi_fsub
+ 891              	.LVL153:
+ 892 0422 8346     		mov	fp, r0
+ 893 0424 5146     		mov	r1, r10
+ 894 0426 5046     		mov	r0, r10
+ 895 0428 FFF7FEFF 		bl	__aeabi_fadd
+ 896              	.LVL154:
+ 897 042c 5946     		mov	r1, fp
+ 898 042e FFF7FEFF 		bl	atan2f
+ 899              	.LVL155:
+ 900              		.loc 1 120 19 discriminator 1 view .LVU236
+ 901 0432 E062     		str	r0, [r4, #44]	@ float
  121:./Application/Src/application.c ****     mahony->pitch = asinf(clamp_f(-2.0f*(q1*q3 - q0*q2), -1.0f, 1.0f));
- 910              		.loc 1 121 5 is_stmt 1 view .LVU237
- 911              		.loc 1 121 44 is_stmt 0 view .LVU238
- 912 0434 2946     		mov	r1, r5
- 913 0436 3046     		mov	r0, r6
- 914 0438 FFF7FEFF 		bl	__aeabi_fmul
- 915              	.LVL156:
- 916 043c 8246     		mov	r10, r0
- 917              		.loc 1 121 52 view .LVU239
- 918 043e 4946     		mov	r1, r9
- 919 0440 3846     		mov	r0, r7
- 920 0442 FFF7FEFF 		bl	__aeabi_fmul
- 921              	.LVL157:
- 922 0446 0146     		mov	r1, r0
- 923              		.loc 1 121 48 view .LVU240
- 924 0448 5046     		mov	r0, r10
- 925 044a FFF7FEFF 		bl	__aeabi_fsub
- 926              	.LVL158:
- 927              		.loc 1 121 21 view .LVU241
- 928 044e 4FF07E5A 		mov	r10, #1065353216
- 929 0452 4FF04041 		mov	r1, #-1073741824
- 930 0456 FFF7FEFF 		bl	__aeabi_fmul
- 931              	.LVL159:
- 932 045a 5246     		mov	r2, r10
- 933 045c 1A49     		ldr	r1, .L17+4
- 934 045e FFF7FEFF 		bl	clamp_f
- 935              	.LVL160:
- 936              		.loc 1 121 21 discriminator 1 view .LVU242
- 937 0462 FFF7FEFF 		bl	asinf
- 938              	.LVL161:
- 939              		.loc 1 121 19 discriminator 2 view .LVU243
- 940 0466 2063     		str	r0, [r4, #48]	@ float
+ 902              		.loc 1 121 5 is_stmt 1 view .LVU237
+ 903              		.loc 1 121 44 is_stmt 0 view .LVU238
+ 904 0434 2946     		mov	r1, r5
+ 905 0436 3046     		mov	r0, r6
+ 906 0438 FFF7FEFF 		bl	__aeabi_fmul
+ 907              	.LVL156:
+ 908 043c 8246     		mov	r10, r0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 19
+
+
+ 909              		.loc 1 121 52 view .LVU239
+ 910 043e 4946     		mov	r1, r9
+ 911 0440 3846     		mov	r0, r7
+ 912 0442 FFF7FEFF 		bl	__aeabi_fmul
+ 913              	.LVL157:
+ 914 0446 0146     		mov	r1, r0
+ 915              		.loc 1 121 48 view .LVU240
+ 916 0448 5046     		mov	r0, r10
+ 917 044a FFF7FEFF 		bl	__aeabi_fsub
+ 918              	.LVL158:
+ 919              		.loc 1 121 21 view .LVU241
+ 920 044e 4FF07E5A 		mov	r10, #1065353216
+ 921 0452 4FF04041 		mov	r1, #-1073741824
+ 922 0456 FFF7FEFF 		bl	__aeabi_fmul
+ 923              	.LVL159:
+ 924 045a 5246     		mov	r2, r10
+ 925 045c 1A49     		ldr	r1, .L17+4
+ 926 045e FFF7FEFF 		bl	clamp_f
+ 927              	.LVL160:
+ 928              		.loc 1 121 21 discriminator 1 view .LVU242
+ 929 0462 FFF7FEFF 		bl	asinf
+ 930              	.LVL161:
+ 931              		.loc 1 121 19 discriminator 2 view .LVU243
+ 932 0466 2063     		str	r0, [r4, #48]	@ float
  122:./Application/Src/application.c ****     mahony->yaw   = atan2f(2.0f*(q0*q3 + q1*q2), 1.0f - 2.0f*(q2*q2 + q3*q3));
- 941              		.loc 1 122 5 is_stmt 1 view .LVU244
- 942              		.loc 1 122 36 is_stmt 0 view .LVU245
- 943 0468 2946     		mov	r1, r5
- 944 046a 3846     		mov	r0, r7
- 945 046c FFF7FEFF 		bl	__aeabi_fmul
- 946              	.LVL162:
- 947 0470 0746     		mov	r7, r0
- 948              	.LVL163:
- 949              		.loc 1 122 44 view .LVU246
- 950 0472 4946     		mov	r1, r9
- 951 0474 3046     		mov	r0, r6
- 952 0476 FFF7FEFF 		bl	__aeabi_fmul
- 953              	.LVL164:
- 954 047a 0146     		mov	r1, r0
- 955              		.loc 1 122 40 view .LVU247
- 956 047c 3846     		mov	r0, r7
- 957 047e FFF7FEFF 		bl	__aeabi_fadd
- 958              	.LVL165:
- 959 0482 0646     		mov	r6, r0
- 960              	.LVL166:
- 961              		.loc 1 122 73 view .LVU248
- 962 0484 2946     		mov	r1, r5
- 963 0486 2846     		mov	r0, r5
- 964 0488 FFF7FEFF 		bl	__aeabi_fmul
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 20
+ 933              		.loc 1 122 5 is_stmt 1 view .LVU244
+ 934              		.loc 1 122 36 is_stmt 0 view .LVU245
+ 935 0468 2946     		mov	r1, r5
+ 936 046a 3846     		mov	r0, r7
+ 937 046c FFF7FEFF 		bl	__aeabi_fmul
+ 938              	.LVL162:
+ 939 0470 0746     		mov	r7, r0
+ 940              	.LVL163:
+ 941              		.loc 1 122 44 view .LVU246
+ 942 0472 4946     		mov	r1, r9
+ 943 0474 3046     		mov	r0, r6
+ 944 0476 FFF7FEFF 		bl	__aeabi_fmul
+ 945              	.LVL164:
+ 946 047a 0146     		mov	r1, r0
+ 947              		.loc 1 122 40 view .LVU247
+ 948 047c 3846     		mov	r0, r7
+ 949 047e FFF7FEFF 		bl	__aeabi_fadd
+ 950              	.LVL165:
+ 951 0482 0646     		mov	r6, r0
+ 952              	.LVL166:
+ 953              		.loc 1 122 73 view .LVU248
+ 954 0484 2946     		mov	r1, r5
+ 955 0486 2846     		mov	r0, r5
+ 956 0488 FFF7FEFF 		bl	__aeabi_fmul
+ 957              	.LVL167:
+ 958 048c 0146     		mov	r1, r0
+ 959              		.loc 1 122 69 view .LVU249
+ 960 048e 4046     		mov	r0, r8
+ 961 0490 FFF7FEFF 		bl	__aeabi_fadd
+ 962              	.LVL168:
+ 963 0494 0146     		mov	r1, r0
+ 964              		.loc 1 122 61 view .LVU250
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 20
 
 
- 965              	.LVL167:
- 966 048c 0146     		mov	r1, r0
- 967              		.loc 1 122 69 view .LVU249
- 968 048e 4046     		mov	r0, r8
- 969 0490 FFF7FEFF 		bl	__aeabi_fadd
- 970              	.LVL168:
- 971 0494 0146     		mov	r1, r0
- 972              		.loc 1 122 61 view .LVU250
- 973 0496 FFF7FEFF 		bl	__aeabi_fadd
- 974              	.LVL169:
- 975 049a 0146     		mov	r1, r0
- 976              		.loc 1 122 21 view .LVU251
- 977 049c 5046     		mov	r0, r10
- 978 049e FFF7FEFF 		bl	__aeabi_fsub
- 979              	.LVL170:
- 980 04a2 0546     		mov	r5, r0
- 981              	.LVL171:
- 982              		.loc 1 122 21 view .LVU252
- 983 04a4 3146     		mov	r1, r6
- 984 04a6 3046     		mov	r0, r6
- 985 04a8 FFF7FEFF 		bl	__aeabi_fadd
- 986              	.LVL172:
- 987 04ac 2946     		mov	r1, r5
- 988 04ae FFF7FEFF 		bl	atan2f
- 989              	.LVL173:
- 990              		.loc 1 122 19 discriminator 1 view .LVU253
- 991 04b2 6063     		str	r0, [r4, #52]	@ float
+ 965 0496 FFF7FEFF 		bl	__aeabi_fadd
+ 966              	.LVL169:
+ 967 049a 0146     		mov	r1, r0
+ 968              		.loc 1 122 21 view .LVU251
+ 969 049c 5046     		mov	r0, r10
+ 970 049e FFF7FEFF 		bl	__aeabi_fsub
+ 971              	.LVL170:
+ 972 04a2 0546     		mov	r5, r0
+ 973              	.LVL171:
+ 974              		.loc 1 122 21 view .LVU252
+ 975 04a4 3146     		mov	r1, r6
+ 976 04a6 3046     		mov	r0, r6
+ 977 04a8 FFF7FEFF 		bl	__aeabi_fadd
+ 978              	.LVL172:
+ 979 04ac 2946     		mov	r1, r5
+ 980 04ae FFF7FEFF 		bl	atan2f
+ 981              	.LVL173:
+ 982              		.loc 1 122 19 discriminator 1 view .LVU253
+ 983 04b2 6063     		str	r0, [r4, #52]	@ float
  123:./Application/Src/application.c **** 
  124:./Application/Src/application.c **** }
- 992              		.loc 1 124 1 view .LVU254
- 993 04b4 11B0     		add	sp, sp, #68
- 994              	.LCFI2:
- 995              		.cfi_remember_state
- 996              		.cfi_def_cfa_offset 36
- 997              		@ sp needed
- 998 04b6 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
- 999              	.LVL174:
- 1000              	.L12:
- 1001              	.LCFI3:
- 1002              		.cfi_restore_state
+ 984              		.loc 1 124 1 view .LVU254
+ 985 04b4 11B0     		add	sp, sp, #68
+ 986              	.LCFI2:
+ 987              		.cfi_remember_state
+ 988              		.cfi_def_cfa_offset 36
+ 989              		@ sp needed
+ 990 04b6 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 991              	.LVL174:
+ 992              	.L12:
+ 993              	.LCFI3:
+ 994              		.cfi_restore_state
   81:./Application/Src/application.c ****             mahony->integralFB[1] = 0.0f;
- 1003              		.loc 1 81 13 is_stmt 1 view .LVU255
+ 995              		.loc 1 81 13 is_stmt 1 view .LVU255
   81:./Application/Src/application.c ****             mahony->integralFB[1] = 0.0f;
- 1004              		.loc 1 81 35 is_stmt 0 view .LVU256
- 1005 04ba 0023     		movs	r3, #0
- 1006 04bc 2361     		str	r3, [r4, #16]	@ float
+ 996              		.loc 1 81 35 is_stmt 0 view .LVU256
+ 997 04ba 0023     		movs	r3, #0
+ 998 04bc 2361     		str	r3, [r4, #16]	@ float
   82:./Application/Src/application.c ****             mahony->integralFB[2] = 0.0f;
- 1007              		.loc 1 82 13 is_stmt 1 view .LVU257
+ 999              		.loc 1 82 13 is_stmt 1 view .LVU257
   82:./Application/Src/application.c ****             mahony->integralFB[2] = 0.0f;
- 1008              		.loc 1 82 35 is_stmt 0 view .LVU258
- 1009 04be 6361     		str	r3, [r4, #20]	@ float
+ 1000              		.loc 1 82 35 is_stmt 0 view .LVU258
+ 1001 04be 6361     		str	r3, [r4, #20]	@ float
   83:./Application/Src/application.c ****         }
- 1010              		.loc 1 83 13 is_stmt 1 view .LVU259
+ 1002              		.loc 1 83 13 is_stmt 1 view .LVU259
   83:./Application/Src/application.c ****         }
- 1011              		.loc 1 83 35 is_stmt 0 view .LVU260
- 1012 04c0 A361     		str	r3, [r4, #24]	@ float
- 1013 04c2 9FE6     		b	.L10
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 21
+ 1003              		.loc 1 83 35 is_stmt 0 view .LVU260
+ 1004 04c0 A361     		str	r3, [r4, #24]	@ float
+ 1005 04c2 9FE6     		b	.L10
+ 1006              	.L18:
+ 1007              		.align	2
+ 1008              	.L17:
+ 1009 04c4 0000F03F 		.word	1072693248
+ 1010 04c8 000080BF 		.word	-1082130432
+ 1011              		.cfi_endproc
+ 1012              	.LFE66:
+ 1014              		.section	.text.init,"ax",%progbits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 21
 
 
- 1014              	.L18:
- 1015              		.align	2
- 1016              	.L17:
- 1017 04c4 0000F03F 		.word	1072693248
- 1018 04c8 000080BF 		.word	-1082130432
- 1019              		.cfi_endproc
- 1020              	.LFE66:
- 1022              		.section	.text.init,"ax",%progbits
- 1023              		.align	1
- 1024              		.global	init
- 1025              		.syntax unified
- 1026              		.thumb
- 1027              		.thumb_func
- 1029              	init:
- 1030              	.LFB67:
+ 1015              		.align	1
+ 1016              		.global	init
+ 1017              		.syntax unified
+ 1018              		.thumb
+ 1019              		.thumb_func
+ 1021              	init:
+ 1022              	.LFB67:
  125:./Application/Src/application.c **** 
  126:./Application/Src/application.c **** 
  127:./Application/Src/application.c **** void init(){
- 1031              		.loc 1 127 12 is_stmt 1 view -0
- 1032              		.cfi_startproc
- 1033              		@ args = 0, pretend = 0, frame = 0
- 1034              		@ frame_needed = 0, uses_anonymous_args = 0
- 1035 0000 10B5     		push	{r4, lr}
- 1036              	.LCFI4:
- 1037              		.cfi_def_cfa_offset 8
- 1038              		.cfi_offset 4, -8
- 1039              		.cfi_offset 14, -4
+ 1023              		.loc 1 127 12 is_stmt 1 view -0
+ 1024              		.cfi_startproc
+ 1025              		@ args = 0, pretend = 0, frame = 0
+ 1026              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1027 0000 10B5     		push	{r4, lr}
+ 1028              	.LCFI4:
+ 1029              		.cfi_def_cfa_offset 8
+ 1030              		.cfi_offset 4, -8
+ 1031              		.cfi_offset 14, -4
  128:./Application/Src/application.c ****     memset(&vofa,0,sizeof(vofa));
- 1040              		.loc 1 128 5 view .LVU262
- 1041 0002 094C     		ldr	r4, .L21
- 1042 0004 2C22     		movs	r2, #44
- 1043 0006 0021     		movs	r1, #0
- 1044 0008 2046     		mov	r0, r4
- 1045 000a FFF7FEFF 		bl	memset
- 1046              	.LVL175:
+ 1032              		.loc 1 128 5 view .LVU262
+ 1033 0002 094C     		ldr	r4, .L21
+ 1034 0004 2C22     		movs	r2, #44
+ 1035 0006 0021     		movs	r1, #0
+ 1036 0008 2046     		mov	r0, r4
+ 1037 000a FFF7FEFF 		bl	memset
+ 1038              	.LVL175:
  129:./Application/Src/application.c ****     vofa.vofaTail[0] = 0x00;
- 1047              		.loc 1 129 5 view .LVU263
+ 1039              		.loc 1 129 5 view .LVU263
  130:./Application/Src/application.c ****     vofa.vofaTail[1] = 0x00;
- 1048              		.loc 1 130 5 view .LVU264
+ 1040              		.loc 1 130 5 view .LVU264
  131:./Application/Src/application.c ****     vofa.vofaTail[2] = 0x80;
- 1049              		.loc 1 131 5 view .LVU265
- 1050              		.loc 1 131 22 is_stmt 0 view .LVU266
- 1051 000e 8023     		movs	r3, #128
- 1052 0010 84F82A30 		strb	r3, [r4, #42]
+ 1041              		.loc 1 131 5 view .LVU265
+ 1042              		.loc 1 131 22 is_stmt 0 view .LVU266
+ 1043 000e 8023     		movs	r3, #128
+ 1044 0010 84F82A30 		strb	r3, [r4, #42]
  132:./Application/Src/application.c ****     vofa.vofaTail[3] = 0x7f;
- 1053              		.loc 1 132 5 is_stmt 1 view .LVU267
- 1054              		.loc 1 132 22 is_stmt 0 view .LVU268
- 1055 0014 7F23     		movs	r3, #127
- 1056 0016 84F82B30 		strb	r3, [r4, #43]
+ 1045              		.loc 1 132 5 is_stmt 1 view .LVU267
+ 1046              		.loc 1 132 22 is_stmt 0 view .LVU268
+ 1047 0014 7F23     		movs	r3, #127
+ 1048 0016 84F82B30 		strb	r3, [r4, #43]
  133:./Application/Src/application.c ****     // DMA receive to idle toggle on
  134:./Application/Src/application.c ****     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, VOFA_SEND_BUFFER, sizeof(VOFA_SEND_BUFFER));
- 1057              		.loc 1 134 5 is_stmt 1 view .LVU269
- 1058 001a 4022     		movs	r2, #64
- 1059 001c 0349     		ldr	r1, .L21+4
- 1060 001e 0448     		ldr	r0, .L21+8
- 1061 0020 FFF7FEFF 		bl	HAL_UARTEx_ReceiveToIdle_DMA
- 1062              	.LVL176:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 22
-
-
+ 1049              		.loc 1 134 5 is_stmt 1 view .LVU269
+ 1050 001a 4022     		movs	r2, #64
+ 1051 001c 0349     		ldr	r1, .L21+4
+ 1052 001e 0448     		ldr	r0, .L21+8
+ 1053 0020 FFF7FEFF 		bl	HAL_UARTEx_ReceiveToIdle_DMA
+ 1054              	.LVL176:
  135:./Application/Src/application.c **** 
  136:./Application/Src/application.c ****     //Mahony_Init(&ahrs, 3.5f, 0.02f); // initialize mahony
  137:./Application/Src/application.c **** 
  138:./Application/Src/application.c **** }
- 1063              		.loc 1 138 1 is_stmt 0 view .LVU270
- 1064 0024 10BD     		pop	{r4, pc}
- 1065              	.L22:
- 1066 0026 00BF     		.align	2
- 1067              	.L21:
- 1068 0028 00000000 		.word	vofa
- 1069 002c 00000000 		.word	VOFA_SEND_BUFFER
- 1070 0030 00000000 		.word	huart2
- 1071              		.cfi_endproc
- 1072              	.LFE67:
- 1074              		.global	__aeabi_fdiv
- 1075              		.section	.text.smoothVelocity,"ax",%progbits
- 1076              		.align	1
- 1077              		.global	smoothVelocity
- 1078              		.syntax unified
- 1079              		.thumb
- 1080              		.thumb_func
- 1082              	smoothVelocity:
- 1083              	.LVL177:
- 1084              	.LFB68:
+ 1055              		.loc 1 138 1 is_stmt 0 view .LVU270
+ 1056 0024 10BD     		pop	{r4, pc}
+ 1057              	.L22:
+ 1058 0026 00BF     		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 22
+
+
+ 1059              	.L21:
+ 1060 0028 00000000 		.word	vofa
+ 1061 002c 00000000 		.word	VOFA_SEND_BUFFER
+ 1062 0030 00000000 		.word	huart2
+ 1063              		.cfi_endproc
+ 1064              	.LFE67:
+ 1066              		.section	.text.smoothVelocity,"ax",%progbits
+ 1067              		.align	1
+ 1068              		.global	smoothVelocity
+ 1069              		.syntax unified
+ 1070              		.thumb
+ 1071              		.thumb_func
+ 1073              	smoothVelocity:
+ 1074              	.LVL177:
+ 1075              	.LFB68:
  139:./Application/Src/application.c **** 
  140:./Application/Src/application.c **** void smoothVelocity(float currentPostion, float dt){
- 1085              		.loc 1 140 52 is_stmt 1 view -0
- 1086              		.cfi_startproc
- 1087              		@ args = 0, pretend = 0, frame = 0
- 1088              		@ frame_needed = 0, uses_anonymous_args = 0
- 1089              		.loc 1 140 52 is_stmt 0 view .LVU272
- 1090 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
- 1091              	.LCFI5:
- 1092              		.cfi_def_cfa_offset 24
- 1093              		.cfi_offset 4, -24
- 1094              		.cfi_offset 5, -20
- 1095              		.cfi_offset 6, -16
- 1096              		.cfi_offset 7, -12
- 1097              		.cfi_offset 8, -8
- 1098              		.cfi_offset 14, -4
- 1099 0004 0546     		mov	r5, r0
- 1100 0006 0E46     		mov	r6, r1
+ 1076              		.loc 1 140 52 is_stmt 1 view -0
+ 1077              		.cfi_startproc
+ 1078              		@ args = 0, pretend = 0, frame = 0
+ 1079              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1080              		.loc 1 140 52 is_stmt 0 view .LVU272
+ 1081 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1082              	.LCFI5:
+ 1083              		.cfi_def_cfa_offset 24
+ 1084              		.cfi_offset 4, -24
+ 1085              		.cfi_offset 5, -20
+ 1086              		.cfi_offset 6, -16
+ 1087              		.cfi_offset 7, -12
+ 1088              		.cfi_offset 8, -8
+ 1089              		.cfi_offset 14, -4
+ 1090 0004 0746     		mov	r7, r0
+ 1091 0006 0D46     		mov	r5, r1
  141:./Application/Src/application.c ****     float rawVelocity = (currentPostion - cp.lastPosition) / dt; // find speed
- 1101              		.loc 1 141 5 is_stmt 1 view .LVU273
- 1102              		.loc 1 141 45 is_stmt 0 view .LVU274
- 1103 0008 104C     		ldr	r4, .L25
- 1104              		.loc 1 141 41 view .LVU275
- 1105 000a 2168     		ldr	r1, [r4]	@ float
- 1106              	.LVL178:
- 1107              		.loc 1 141 41 view .LVU276
- 1108 000c FFF7FEFF 		bl	__aeabi_fsub
- 1109              	.LVL179:
- 1110              		.loc 1 141 11 view .LVU277
- 1111 0010 3146     		mov	r1, r6
- 1112 0012 FFF7FEFF 		bl	__aeabi_fdiv
- 1113              	.LVL180:
- 1114 0016 0746     		mov	r7, r0
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 23
-
-
- 1115              	.LVL181:
+ 1092              		.loc 1 141 5 is_stmt 1 view .LVU273
+ 1093              		.loc 1 141 45 is_stmt 0 view .LVU274
+ 1094 0008 104C     		ldr	r4, .L25
+ 1095              		.loc 1 141 41 view .LVU275
+ 1096 000a 2168     		ldr	r1, [r4]	@ float
+ 1097              	.LVL178:
+ 1098              		.loc 1 141 41 view .LVU276
+ 1099 000c FFF7FEFF 		bl	__aeabi_fsub
+ 1100              	.LVL179:
+ 1101              		.loc 1 141 11 view .LVU277
+ 1102 0010 2946     		mov	r1, r5
+ 1103 0012 FFF7FEFF 		bl	__aeabi_fdiv
+ 1104              	.LVL180:
+ 1105 0016 8046     		mov	r8, r0
+ 1106              	.LVL181:
  142:./Application/Src/application.c ****     cp.velocityLPF = cp.velocityLPF * (1.0f - cp.velocityAlpha) + rawVelocity * cp.velocityAlpha; /
- 1116              		.loc 1 142 5 is_stmt 1 view .LVU278
- 1117              		.loc 1 142 24 is_stmt 0 view .LVU279
- 1118 0018 6668     		ldr	r6, [r4, #4]	@ float
- 1119              	.LVL182:
- 1120              		.loc 1 142 49 view .LVU280
- 1121 001a D4F80880 		ldr	r8, [r4, #8]	@ float
- 1122              		.loc 1 142 45 view .LVU281
- 1123 001e 4146     		mov	r1, r8
- 1124 0020 4FF07E50 		mov	r0, #1065353216
- 1125              	.LVL183:
- 1126              		.loc 1 142 45 view .LVU282
- 1127 0024 FFF7FEFF 		bl	__aeabi_fsub
- 1128              	.LVL184:
- 1129 0028 0146     		mov	r1, r0
- 1130              		.loc 1 142 37 view .LVU283
- 1131 002a 3046     		mov	r0, r6
- 1132 002c FFF7FEFF 		bl	__aeabi_fmul
- 1133              	.LVL185:
- 1134 0030 0646     		mov	r6, r0
- 1135              		.loc 1 142 79 view .LVU284
- 1136 0032 3946     		mov	r1, r7
- 1137 0034 4046     		mov	r0, r8
- 1138 0036 FFF7FEFF 		bl	__aeabi_fmul
- 1139              	.LVL186:
- 1140 003a 0146     		mov	r1, r0
- 1141              		.loc 1 142 65 view .LVU285
- 1142 003c 3046     		mov	r0, r6
- 1143 003e FFF7FEFF 		bl	__aeabi_fadd
- 1144              	.LVL187:
- 1145              		.loc 1 142 20 view .LVU286
- 1146 0042 6060     		str	r0, [r4, #4]	@ float
+ 1107              		.loc 1 142 5 is_stmt 1 view .LVU278
+ 1108              		.loc 1 142 24 is_stmt 0 view .LVU279
+ 1109 0018 6368     		ldr	r3, [r4, #4]	@ float
+ 1110 001a 1E46     		mov	r6, r3
+ 1111              		.loc 1 142 49 view .LVU280
+ 1112 001c A568     		ldr	r5, [r4, #8]	@ float
+ 1113              	.LVL182:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 23
+
+
+ 1114              		.loc 1 142 45 view .LVU281
+ 1115 001e 2946     		mov	r1, r5
+ 1116 0020 4FF07E50 		mov	r0, #1065353216
+ 1117              	.LVL183:
+ 1118              		.loc 1 142 45 view .LVU282
+ 1119 0024 FFF7FEFF 		bl	__aeabi_fsub
+ 1120              	.LVL184:
+ 1121 0028 0146     		mov	r1, r0
+ 1122              		.loc 1 142 37 view .LVU283
+ 1123 002a 3046     		mov	r0, r6
+ 1124 002c FFF7FEFF 		bl	__aeabi_fmul
+ 1125              	.LVL185:
+ 1126 0030 0646     		mov	r6, r0
+ 1127              		.loc 1 142 79 view .LVU284
+ 1128 0032 4146     		mov	r1, r8
+ 1129 0034 2846     		mov	r0, r5
+ 1130 0036 FFF7FEFF 		bl	__aeabi_fmul
+ 1131              	.LVL186:
+ 1132 003a 0146     		mov	r1, r0
+ 1133              		.loc 1 142 65 view .LVU285
+ 1134 003c 3046     		mov	r0, r6
+ 1135 003e FFF7FEFF 		bl	__aeabi_fadd
+ 1136              	.LVL187:
+ 1137              		.loc 1 142 20 view .LVU286
+ 1138 0042 6060     		str	r0, [r4, #4]	@ float
  143:./Application/Src/application.c ****     cp.lastPosition = currentPostion; // update position
- 1147              		.loc 1 143 5 is_stmt 1 view .LVU287
- 1148              		.loc 1 143 21 is_stmt 0 view .LVU288
- 1149 0044 2560     		str	r5, [r4]	@ float
+ 1139              		.loc 1 143 5 is_stmt 1 view .LVU287
+ 1140              		.loc 1 143 21 is_stmt 0 view .LVU288
+ 1141 0044 2760     		str	r7, [r4]	@ float
  144:./Application/Src/application.c **** }
- 1150              		.loc 1 144 1 view .LVU289
- 1151 0046 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
- 1152              	.LVL188:
- 1153              	.L26:
- 1154              		.loc 1 144 1 view .LVU290
- 1155 004a 00BF     		.align	2
- 1156              	.L25:
- 1157 004c 00000000 		.word	cp
- 1158              		.cfi_endproc
- 1159              	.LFE68:
- 1161              		.global	__aeabi_f2iz
- 1162              		.global	__aeabi_i2f
- 1163              		.section	.text.boostKp,"ax",%progbits
- 1164              		.align	1
- 1165              		.global	boostKp
- 1166              		.syntax unified
- 1167              		.thumb
- 1168              		.thumb_func
- 1170              	boostKp:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 24
-
-
- 1171              	.LVL189:
- 1172              	.LFB69:
+ 1142              		.loc 1 144 1 view .LVU289
+ 1143 0046 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1144              	.LVL188:
+ 1145              	.L26:
+ 1146              		.loc 1 144 1 view .LVU290
+ 1147 004a 00BF     		.align	2
+ 1148              	.L25:
+ 1149 004c 00000000 		.word	cp
+ 1150              		.cfi_endproc
+ 1151              	.LFE68:
+ 1153              		.section	.text.boostKp,"ax",%progbits
+ 1154              		.align	1
+ 1155              		.global	boostKp
+ 1156              		.syntax unified
+ 1157              		.thumb
+ 1158              		.thumb_func
+ 1160              	boostKp:
+ 1161              	.LVL189:
+ 1162              	.LFB69:
  145:./Application/Src/application.c **** 
  146:./Application/Src/application.c **** void boostKp(float targetPos, float currentPos, float tolerance, PID_t target){
- 1173              		.loc 1 146 79 is_stmt 1 view -0
- 1174              		.cfi_startproc
- 1175              		@ args = 28, pretend = 8, frame = 0
- 1176              		@ frame_needed = 0, uses_anonymous_args = 0
- 1177              		.loc 1 146 79 is_stmt 0 view .LVU292
- 1178 0000 82B0     		sub	sp, sp, #8
- 1179              	.LCFI6:
- 1180              		.cfi_def_cfa_offset 8
- 1181 0002 38B5     		push	{r3, r4, r5, lr}
- 1182              	.LCFI7:
- 1183              		.cfi_def_cfa_offset 24
- 1184              		.cfi_offset 3, -24
- 1185              		.cfi_offset 4, -20
- 1186              		.cfi_offset 5, -16
- 1187              		.cfi_offset 14, -12
- 1188 0004 1446     		mov	r4, r2
- 1189 0006 0593     		str	r3, [sp, #20]
+ 1163              		.loc 1 146 79 is_stmt 1 view -0
+ 1164              		.cfi_startproc
+ 1165              		@ args = 28, pretend = 8, frame = 0
+ 1166              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1167              		.loc 1 146 79 is_stmt 0 view .LVU292
+ 1168 0000 82B0     		sub	sp, sp, #8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 24
+
+
+ 1169              	.LCFI6:
+ 1170              		.cfi_def_cfa_offset 8
+ 1171 0002 38B5     		push	{r3, r4, r5, lr}
+ 1172              	.LCFI7:
+ 1173              		.cfi_def_cfa_offset 24
+ 1174              		.cfi_offset 3, -24
+ 1175              		.cfi_offset 4, -20
+ 1176              		.cfi_offset 5, -16
+ 1177              		.cfi_offset 14, -12
+ 1178 0004 1546     		mov	r5, r2
+ 1179 0006 0593     		str	r3, [sp, #20]
  147:./Application/Src/application.c ****     float KpBase = target.P;
- 1190              		.loc 1 147 5 is_stmt 1 view .LVU293
- 1191              		.loc 1 147 11 is_stmt 0 view .LVU294
- 1192 0008 059D     		ldr	r5, [sp, #20]	@ float
- 1193              	.LVL190:
+ 1180              		.loc 1 147 5 is_stmt 1 view .LVU293
+ 1181              		.loc 1 147 11 is_stmt 0 view .LVU294
+ 1182 0008 059C     		ldr	r4, [sp, #20]	@ float
+ 1183              	.LVL190:
  148:./Application/Src/application.c ****     if (abs(targetPos - currentPos) > tolerance) {
- 1194              		.loc 1 148 5 is_stmt 1 view .LVU295
- 1195              		.loc 1 148 23 is_stmt 0 view .LVU296
- 1196 000a FFF7FEFF 		bl	__aeabi_fsub
- 1197              	.LVL191:
- 1198              		.loc 1 148 9 view .LVU297
- 1199 000e FFF7FEFF 		bl	__aeabi_f2iz
- 1200              	.LVL192:
- 1201              		.loc 1 148 37 view .LVU298
- 1202 0012 0028     		cmp	r0, #0
- 1203 0014 B8BF     		it	lt
- 1204 0016 4042     		rsblt	r0, r0, #0
- 1205 0018 FFF7FEFF 		bl	__aeabi_i2f
- 1206              	.LVL193:
- 1207              		.loc 1 148 8 view .LVU299
- 1208 001c 2146     		mov	r1, r4
- 1209 001e FFF7FEFF 		bl	__aeabi_fcmpgt
- 1210              	.LVL194:
- 1211 0022 20B1     		cbz	r0, .L27
+ 1184              		.loc 1 148 5 is_stmt 1 view .LVU295
+ 1185              		.loc 1 148 23 is_stmt 0 view .LVU296
+ 1186 000a FFF7FEFF 		bl	__aeabi_fsub
+ 1187              	.LVL191:
+ 1188              		.loc 1 148 9 view .LVU297
+ 1189 000e FFF7FEFF 		bl	__aeabi_f2iz
+ 1190              	.LVL192:
+ 1191              		.loc 1 148 37 view .LVU298
+ 1192 0012 0028     		cmp	r0, #0
+ 1193 0014 B8BF     		it	lt
+ 1194 0016 4042     		rsblt	r0, r0, #0
+ 1195 0018 FFF7FEFF 		bl	__aeabi_i2f
+ 1196              	.LVL193:
+ 1197              		.loc 1 148 8 view .LVU299
+ 1198 001c 2946     		mov	r1, r5
+ 1199 001e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1200              	.LVL194:
+ 1201 0022 20B1     		cbz	r0, .L27
  149:./Application/Src/application.c ****         target.P *= 2;
- 1212              		.loc 1 149 9 is_stmt 1 view .LVU300
- 1213              		.loc 1 149 18 is_stmt 0 view .LVU301
- 1214 0024 2946     		mov	r1, r5
- 1215 0026 2846     		mov	r0, r5
- 1216 0028 FFF7FEFF 		bl	__aeabi_fadd
- 1217              	.LVL195:
- 1218 002c 0590     		str	r0, [sp, #20]	@ float
- 1219              	.L27:
+ 1202              		.loc 1 149 9 is_stmt 1 view .LVU300
+ 1203              		.loc 1 149 18 is_stmt 0 view .LVU301
+ 1204 0024 2146     		mov	r1, r4
+ 1205 0026 2046     		mov	r0, r4
+ 1206 0028 FFF7FEFF 		bl	__aeabi_fadd
+ 1207              	.LVL195:
+ 1208 002c 0590     		str	r0, [sp, #20]	@ float
+ 1209              	.L27:
  150:./Application/Src/application.c ****     } else {
  151:./Application/Src/application.c ****         target.P = KpBase; // restore
  152:./Application/Src/application.c ****     }
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 25
-
-
  153:./Application/Src/application.c **** }
- 1220              		.loc 1 153 1 view .LVU302
- 1221 002e BDE83840 		pop	{r3, r4, r5, lr}
- 1222              	.LCFI8:
- 1223              		.cfi_restore 14
- 1224              		.cfi_restore 5
- 1225              		.cfi_restore 4
- 1226              		.cfi_restore 3
- 1227              		.cfi_def_cfa_offset 8
- 1228              	.LVL196:
- 1229              		.loc 1 153 1 view .LVU303
- 1230 0032 02B0     		add	sp, sp, #8
- 1231              	.LCFI9:
- 1232              		.cfi_def_cfa_offset 0
- 1233 0034 7047     		bx	lr
- 1234              		.cfi_endproc
- 1235              	.LFE69:
- 1237              		.section	.text.controllerUpdate,"ax",%progbits
- 1238              		.align	1
- 1239              		.global	controllerUpdate
- 1240              		.syntax unified
- 1241              		.thumb
- 1242              		.thumb_func
- 1244              	controllerUpdate:
- 1245              	.LVL197:
- 1246              	.LFB70:
+ 1210              		.loc 1 153 1 view .LVU302
+ 1211 002e BDE83840 		pop	{r3, r4, r5, lr}
+ 1212              	.LCFI8:
+ 1213              		.cfi_restore 14
+ 1214              		.cfi_restore 5
+ 1215              		.cfi_restore 4
+ 1216              		.cfi_restore 3
+ 1217              		.cfi_def_cfa_offset 8
+ 1218              	.LVL196:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 25
+
+
+ 1219              		.loc 1 153 1 view .LVU303
+ 1220 0032 02B0     		add	sp, sp, #8
+ 1221              	.LCFI9:
+ 1222              		.cfi_def_cfa_offset 0
+ 1223 0034 7047     		bx	lr
+ 1224              		.cfi_endproc
+ 1225              	.LFE69:
+ 1227              		.section	.text.controllerUpdate,"ax",%progbits
+ 1228              		.align	1
+ 1229              		.global	controllerUpdate
+ 1230              		.syntax unified
+ 1231              		.thumb
+ 1232              		.thumb_func
+ 1234              	controllerUpdate:
+ 1235              	.LVL197:
+ 1236              	.LFB70:
  154:./Application/Src/application.c **** 
  155:./Application/Src/application.c **** 
  156:./Application/Src/application.c **** 
  157:./Application/Src/application.c **** 
  158:./Application/Src/application.c **** void controllerUpdate(const float dt){
- 1247              		.loc 1 158 38 is_stmt 1 view -0
- 1248              		.cfi_startproc
- 1249              		@ args = 0, pretend = 0, frame = 0
- 1250              		@ frame_needed = 0, uses_anonymous_args = 0
- 1251              		.loc 1 158 38 is_stmt 0 view .LVU305
- 1252 0000 08B5     		push	{r3, lr}
- 1253              	.LCFI10:
- 1254              		.cfi_def_cfa_offset 8
- 1255              		.cfi_offset 3, -8
- 1256              		.cfi_offset 14, -4
+ 1237              		.loc 1 158 38 is_stmt 1 view -0
+ 1238              		.cfi_startproc
+ 1239              		@ args = 0, pretend = 0, frame = 0
+ 1240              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1241              		.loc 1 158 38 is_stmt 0 view .LVU305
+ 1242 0000 08B5     		push	{r3, lr}
+ 1243              	.LCFI10:
+ 1244              		.cfi_def_cfa_offset 8
+ 1245              		.cfi_offset 3, -8
+ 1246              		.cfi_offset 14, -4
  159:./Application/Src/application.c ****     // readAcc();
  160:./Application/Src/application.c ****     // Mahony_Update(&ahrs, accData, gyroData, dt);
  161:./Application/Src/application.c **** 
@@ -1492,28 +1482,28 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
  166:./Application/Src/application.c ****     
  167:./Application/Src/application.c ****     // vofa display those pid stuff
  168:./Application/Src/application.c ****     vofa.val[0] = leftHandMotor.P;
- 1257              		.loc 1 168 5 is_stmt 1 view .LVU306
- 1258              		.loc 1 168 32 is_stmt 0 view .LVU307
- 1259 0002 064B     		ldr	r3, .L34
- 1260 0004 1A68     		ldr	r2, [r3]	@ float
- 1261              		.loc 1 168 17 view .LVU308
- 1262 0006 0649     		ldr	r1, .L34+4
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 26
-
-
- 1263 0008 0A60     		str	r2, [r1]	@ float
+ 1247              		.loc 1 168 5 is_stmt 1 view .LVU306
+ 1248              		.loc 1 168 32 is_stmt 0 view .LVU307
+ 1249 0002 064B     		ldr	r3, .L34
+ 1250 0004 1A68     		ldr	r2, [r3]	@ float
+ 1251              		.loc 1 168 17 view .LVU308
+ 1252 0006 0649     		ldr	r1, .L34+4
+ 1253 0008 0A60     		str	r2, [r1]	@ float
  169:./Application/Src/application.c ****     vofa.val[1] = leftHandMotor.I;
- 1264              		.loc 1 169 5 is_stmt 1 view .LVU309
- 1265              		.loc 1 169 32 is_stmt 0 view .LVU310
- 1266 000a 5A68     		ldr	r2, [r3, #4]	@ float
- 1267              		.loc 1 169 17 view .LVU311
- 1268 000c 4A60     		str	r2, [r1, #4]	@ float
+ 1254              		.loc 1 169 5 is_stmt 1 view .LVU309
+ 1255              		.loc 1 169 32 is_stmt 0 view .LVU310
+ 1256 000a 5A68     		ldr	r2, [r3, #4]	@ float
+ 1257              		.loc 1 169 17 view .LVU311
+ 1258 000c 4A60     		str	r2, [r1, #4]	@ float
  170:./Application/Src/application.c ****     vofa.val[2] = leftHandMotor.D;
- 1269              		.loc 1 170 5 is_stmt 1 view .LVU312
- 1270              		.loc 1 170 32 is_stmt 0 view .LVU313
- 1271 000e 9B68     		ldr	r3, [r3, #8]	@ float
- 1272              		.loc 1 170 17 view .LVU314
- 1273 0010 8B60     		str	r3, [r1, #8]	@ float
+ 1259              		.loc 1 170 5 is_stmt 1 view .LVU312
+ 1260              		.loc 1 170 32 is_stmt 0 view .LVU313
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 26
+
+
+ 1261 000e 9B68     		ldr	r3, [r3, #8]	@ float
+ 1262              		.loc 1 170 17 view .LVU314
+ 1263 0010 8B60     		str	r3, [r1, #8]	@ float
  171:./Application/Src/application.c **** 
  172:./Application/Src/application.c ****     // 1. update target position
  173:./Application/Src/application.c ****     // 2. find current position
@@ -1522,143 +1512,142 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 1
  176:./Application/Src/application.c **** 
  177:./Application/Src/application.c **** 
  178:./Application/Src/application.c ****     HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
- 1274              		.loc 1 178 5 is_stmt 1 view .LVU315
- 1275 0012 2C22     		movs	r2, #44
- 1276 0014 0348     		ldr	r0, .L34+8
- 1277              	.LVL198:
- 1278              		.loc 1 178 5 is_stmt 0 view .LVU316
- 1279 0016 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
- 1280              	.LVL199:
+ 1264              		.loc 1 178 5 is_stmt 1 view .LVU315
+ 1265 0012 2C22     		movs	r2, #44
+ 1266 0014 0348     		ldr	r0, .L34+8
+ 1267              	.LVL198:
+ 1268              		.loc 1 178 5 is_stmt 0 view .LVU316
+ 1269 0016 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+ 1270              	.LVL199:
  179:./Application/Src/application.c **** }...
- 1281              		.loc 1 179 1 view .LVU317
- 1282 001a 08BD     		pop	{r3, pc}
- 1283              	.L35:
+ 1271              		.loc 1 179 1 view .LVU317
+ 1272 001a 08BD     		pop	{r3, pc}
+ 1273              	.L35:
+ 1274              		.align	2
+ 1275              	.L34:
+ 1276 001c 00000000 		.word	leftHandMotor
+ 1277 0020 00000000 		.word	vofa
+ 1278 0024 00000000 		.word	huart2
+ 1279              		.cfi_endproc
+ 1280              	.LFE70:
+ 1282              		.global	rightHandMotor
+ 1283              		.section	.data.rightHandMotor,"aw"
  1284              		.align	2
- 1285              	.L34:
- 1286 001c 00000000 		.word	leftHandMotor
- 1287 0020 00000000 		.word	vofa
- 1288 0024 00000000 		.word	huart2
- 1289              		.cfi_endproc
- 1290              	.LFE70:
- 1292              		.global	rightHandMotor
- 1293              		.section	.data.rightHandMotor,"aw"
- 1294              		.align	2
- 1297              	rightHandMotor:
- 1298 0000 0AD7A33B 		.word	1000593162
- 1299 0004 00000000 		.word	0
- 1300 0008 00000000 		.word	0
- 1301 000c 0AD7233C 		.word	1008981770
- 1302 0010 00000000 		.space	8
- 1302      00000000 
- 1303              		.global	leftHandMotor
- 1304              		.section	.data.leftHandMotor,"aw"
- 1305              		.align	2
- 1308              	leftHandMotor:
- 1309 0000 0AD7A33B 		.word	1000593162
- 1310 0004 00000000 		.word	0
- 1311 0008 00000000 		.word	0
- 1312 000c 0AD7233C 		.word	1008981770
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 27
+ 1287              	rightHandMotor:
+ 1288 0000 0AD7A33B 		.word	1000593162
+ 1289 0004 00000000 		.word	0
+ 1290 0008 00000000 		.word	0
+ 1291 000c 0AD7233C 		.word	1008981770
+ 1292 0010 00000000 		.space	8
+ 1292      00000000 
+ 1293              		.global	leftHandMotor
+ 1294              		.section	.data.leftHandMotor,"aw"
+ 1295              		.align	2
+ 1298              	leftHandMotor:
+ 1299 0000 0AD7A33B 		.word	1000593162
+ 1300 0004 00000000 		.word	0
+ 1301 0008 00000000 		.word	0
+ 1302 000c 0AD7233C 		.word	1008981770
+ 1303 0010 00000000 		.space	8
+ 1303      00000000 
+ 1304              		.global	VOFA_SEND_BUFFER
+ 1305              		.section	.bss.VOFA_SEND_BUFFER,"aw",%nobits
+ 1306              		.align	2
+ 1309              	VOFA_SEND_BUFFER:
+ 1310 0000 00000000 		.space	64
+ 1310      00000000 
+ 1310      00000000 
+ 1310      00000000 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 27
 
 
- 1313 0010 00000000 		.space	8
- 1313      00000000 
- 1314              		.global	VOFA_SEND_BUFFER
- 1315              		.section	.bss.VOFA_SEND_BUFFER,"aw",%nobits
- 1316              		.align	2
- 1319              	VOFA_SEND_BUFFER:
- 1320 0000 00000000 		.space	64
- 1320      00000000 
- 1320      00000000 
- 1320      00000000 
- 1320      00000000 
- 1321              		.global	cp
- 1322              		.section	.bss.cp,"aw",%nobits
- 1323              		.align	2
- 1326              	cp:
- 1327 0000 00000000 		.space	12
- 1327      00000000 
- 1327      00000000 
- 1328              		.global	ahrs
- 1329              		.section	.bss.ahrs,"aw",%nobits
- 1330              		.align	2
- 1333              	ahrs:
- 1334 0000 00000000 		.space	56
- 1334      00000000 
- 1334      00000000 
- 1334      00000000 
- 1334      00000000 
- 1335              		.global	vofa
- 1336              		.section	.bss.vofa,"aw",%nobits
- 1337              		.align	2
- 1340              	vofa:
- 1341 0000 00000000 		.space	44
- 1341      00000000 
- 1341      00000000 
- 1341      00000000 
- 1341      00000000 
- 1342              		.text
- 1343              	.Letext0:
- 1344              		.file 2 "Application/Inc/utils.h"
- 1345              		.file 3 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
- 1346              		.file 4 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
- 1347              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
- 1348              		.file 6 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/inc
- 1349              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
- 1350              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
- 1351              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
- 1352              		.file 10 "Application/Inc/application.h"
- 1353              		.file 11 "Core/Inc/usart.h"
- 1354              		.file 12 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/..
- 1355              		.file 13 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/..
- 1356              		.file 14 "<built-in>"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s 			page 28
+ 1310      00000000 
+ 1311              		.global	cp
+ 1312              		.section	.bss.cp,"aw",%nobits
+ 1313              		.align	2
+ 1316              	cp:
+ 1317 0000 00000000 		.space	12
+ 1317      00000000 
+ 1317      00000000 
+ 1318              		.global	ahrs
+ 1319              		.section	.bss.ahrs,"aw",%nobits
+ 1320              		.align	2
+ 1323              	ahrs:
+ 1324 0000 00000000 		.space	56
+ 1324      00000000 
+ 1324      00000000 
+ 1324      00000000 
+ 1324      00000000 
+ 1325              		.global	vofa
+ 1326              		.section	.bss.vofa,"aw",%nobits
+ 1327              		.align	2
+ 1330              	vofa:
+ 1331 0000 00000000 		.space	44
+ 1331      00000000 
+ 1331      00000000 
+ 1331      00000000 
+ 1331      00000000 
+ 1332              		.text
+ 1333              	.Letext0:
+ 1334              		.file 2 "Application/Inc/utils.h"
+ 1335              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 1336              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 1337              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 1338              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 1339              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 1340              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
+ 1341              		.file 9 "Application/Inc/application.h"
+ 1342              		.file 10 "Core/Inc/usart.h"
+ 1343              		.file 11 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 1344              		.file 12 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/math.h"
+ 1345              		.file 13 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s 			page 28
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 application.c
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:19     .text.Mahony_Init:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:25     .text.Mahony_Init:00000000 Mahony_Init
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:84     .text.Mahony_Init:0000002c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:100    .text.Mahony_Update:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:106    .text.Mahony_Update:00000000 Mahony_Update
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:557    .text.Mahony_Update:00000240 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:563    .text.Mahony_Update:00000244 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1017   .text.Mahony_Update:000004c4 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1023   .text.init:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1029   .text.init:00000000 init
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1068   .text.init:00000028 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1340   .bss.vofa:00000000 vofa
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1319   .bss.VOFA_SEND_BUFFER:00000000 VOFA_SEND_BUFFER
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1076   .text.smoothVelocity:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1082   .text.smoothVelocity:00000000 smoothVelocity
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1157   .text.smoothVelocity:0000004c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1326   .bss.cp:00000000 cp
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1164   .text.boostKp:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1170   .text.boostKp:00000000 boostKp
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1238   .text.controllerUpdate:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1244   .text.controllerUpdate:00000000 controllerUpdate
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1286   .text.controllerUpdate:0000001c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1308   .data.leftHandMotor:00000000 leftHandMotor
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1297   .data.rightHandMotor:00000000 rightHandMotor
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1294   .data.rightHandMotor:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1305   .data.leftHandMotor:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1316   .bss.VOFA_SEND_BUFFER:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1323   .bss.cp:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1333   .bss.ahrs:00000000 ahrs
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1330   .bss.ahrs:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccyLAdZ8.s:1337   .bss.vofa:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:19     .text.Mahony_Init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:25     .text.Mahony_Init:00000000 Mahony_Init
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:84     .text.Mahony_Init:0000002c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:92     .text.Mahony_Update:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:98     .text.Mahony_Update:00000000 Mahony_Update
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:549    .text.Mahony_Update:00000240 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:555    .text.Mahony_Update:00000244 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1009   .text.Mahony_Update:000004c4 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1015   .text.init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1021   .text.init:00000000 init
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1060   .text.init:00000028 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1330   .bss.vofa:00000000 vofa
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1309   .bss.VOFA_SEND_BUFFER:00000000 VOFA_SEND_BUFFER
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1067   .text.smoothVelocity:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1073   .text.smoothVelocity:00000000 smoothVelocity
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1149   .text.smoothVelocity:0000004c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1316   .bss.cp:00000000 cp
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1154   .text.boostKp:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1160   .text.boostKp:00000000 boostKp
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1228   .text.controllerUpdate:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1234   .text.controllerUpdate:00000000 controllerUpdate
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1276   .text.controllerUpdate:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1298   .data.leftHandMotor:00000000 leftHandMotor
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1287   .data.rightHandMotor:00000000 rightHandMotor
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1284   .data.rightHandMotor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1295   .data.leftHandMotor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1306   .bss.VOFA_SEND_BUFFER:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1313   .bss.cp:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1323   .bss.ahrs:00000000 ahrs
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1320   .bss.ahrs:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc0Flh7a.s:1327   .bss.vofa:00000000 $d
 
 UNDEFINED SYMBOLS
 __aeabi_fcmpeq
 __aeabi_fmul
 __aeabi_fadd
 __aeabi_f2d
+sqrt
 __aeabi_ddiv
 __aeabi_d2f
 __aeabi_fsub
 __aeabi_fcmpgt
-sqrt
 atan2f
 clamp_f
 asinf

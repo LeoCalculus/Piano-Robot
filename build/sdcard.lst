@@ -1,0 +1,1066 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 1
+
+
+   1              		.cpu cortex-m3
+   2              		.arch armv7-m
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 1
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.file	"sdcard.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.file 1 "./Application/Src/sdcard.c"
+  18              		.section	.text.SD_SendCommand,"ax",%progbits
+  19              		.align	1
+  20              		.global	SD_SendCommand
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  25              	SD_SendCommand:
+  26              	.LVL0:
+  27              	.LFB65:
+   1:./Application/Src/sdcard.c **** #include <sdcard.h>
+   2:./Application/Src/sdcard.c **** #include <string.h>
+   3:./Application/Src/sdcard.c **** 
+   4:./Application/Src/sdcard.c **** uint8_t SDBuffer[512];
+   5:./Application/Src/sdcard.c **** 
+   6:./Application/Src/sdcard.c **** uint8_t SD_SendCommand(uint8_t* cmd, uint8_t len) {
+  28              		.loc 1 6 51 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 8
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              		.loc 1 6 51 is_stmt 0 view .LVU1
+  33 0000 70B5     		push	{r4, r5, r6, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 16
+  36              		.cfi_offset 4, -16
+  37              		.cfi_offset 5, -12
+  38              		.cfi_offset 6, -8
+  39              		.cfi_offset 14, -4
+  40 0002 84B0     		sub	sp, sp, #16
+  41              	.LCFI1:
+  42              		.cfi_def_cfa_offset 32
+  43 0004 0646     		mov	r6, r0
+  44 0006 0D46     		mov	r5, r1
+   7:./Application/Src/sdcard.c ****     uint8_t response = 0x00;
+  45              		.loc 1 7 5 is_stmt 1 view .LVU2
+  46              		.loc 1 7 13 is_stmt 0 view .LVU3
+  47 0008 0024     		movs	r4, #0
+  48 000a 8DF80F40 		strb	r4, [sp, #15]
+   8:./Application/Src/sdcard.c ****     uint8_t dummy = 0xFF;
+  49              		.loc 1 8 5 is_stmt 1 view .LVU4
+  50              		.loc 1 8 13 is_stmt 0 view .LVU5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 2
+
+
+  51 000e FF23     		movs	r3, #255
+  52 0010 8DF80E30 		strb	r3, [sp, #14]
+   9:./Application/Src/sdcard.c **** 
+  10:./Application/Src/sdcard.c ****     // iterate to transmite the spi data
+  11:./Application/Src/sdcard.c ****     for (int i = 0; i < len; i++) {
+  53              		.loc 1 11 5 is_stmt 1 view .LVU6
+  54              	.LBB2:
+  55              		.loc 1 11 10 view .LVU7
+  56              	.LVL1:
+  57              		.loc 1 11 5 is_stmt 0 view .LVU8
+  58 0014 09E0     		b	.L2
+  59              	.LVL2:
+  60              	.L3:
+  12:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &cmd[i], &response, 1, 100);
+  61              		.loc 1 12 9 is_stmt 1 view .LVU9
+  62 0016 6423     		movs	r3, #100
+  63 0018 0093     		str	r3, [sp]
+  64 001a 0123     		movs	r3, #1
+  65 001c 0DF10F02 		add	r2, sp, #15
+  66 0020 3119     		adds	r1, r6, r4
+  67 0022 0F48     		ldr	r0, .L9
+  68 0024 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+  69              	.LVL3:
+  11:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &cmd[i], &response, 1, 100);
+  70              		.loc 1 11 31 discriminator 3 view .LVU10
+  71 0028 0134     		adds	r4, r4, #1
+  72              	.LVL4:
+  73              	.L2:
+  11:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &cmd[i], &response, 1, 100);
+  74              		.loc 1 11 23 discriminator 1 view .LVU11
+  75 002a A542     		cmp	r5, r4
+  76 002c F3DC     		bgt	.L3
+  77              	.LBE2:
+  78              	.LBB3:
+  13:./Application/Src/sdcard.c ****     }
+  14:./Application/Src/sdcard.c **** 
+  15:./Application/Src/sdcard.c ****     // wait for response from SD card since SD card has delay (bit 7 = 0)
+  16:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) { // response within 10 iterations
+  79              		.loc 1 16 14 is_stmt 0 view .LVU12
+  80 002e 0024     		movs	r4, #0
+  81              	.LVL5:
+  82              	.L4:
+  83              		.loc 1 16 23 is_stmt 1 discriminator 1 view .LVU13
+  84 0030 092C     		cmp	r4, #9
+  85 0032 11DC     		bgt	.L8
+  17:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+  86              		.loc 1 17 9 view .LVU14
+  87 0034 6423     		movs	r3, #100
+  88 0036 0093     		str	r3, [sp]
+  89 0038 0123     		movs	r3, #1
+  90 003a 0DF10F02 		add	r2, sp, #15
+  91 003e 0DF10E01 		add	r1, sp, #14
+  92 0042 0748     		ldr	r0, .L9
+  93 0044 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+  94              	.LVL6:
+  18:./Application/Src/sdcard.c ****         if ((response & 0x80) == 0) {
+  95              		.loc 1 18 9 view .LVU15
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 3
+
+
+  96              		.loc 1 18 31 is_stmt 0 view .LVU16
+  97 0048 9DF80F00 		ldrb	r0, [sp, #15]	@ zero_extendqisi2
+  98 004c 9DF90F30 		ldrsb	r3, [sp, #15]
+  99              		.loc 1 18 12 view .LVU17
+ 100 0050 002B     		cmp	r3, #0
+ 101 0052 02DA     		bge	.L5
+  16:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 102              		.loc 1 16 30 is_stmt 1 discriminator 2 view .LVU18
+ 103 0054 0134     		adds	r4, r4, #1
+ 104              	.LVL7:
+  16:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 105              		.loc 1 16 30 is_stmt 0 discriminator 2 view .LVU19
+ 106 0056 EBE7     		b	.L4
+ 107              	.LVL8:
+ 108              	.L8:
+  16:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 109              		.loc 1 16 30 discriminator 2 view .LVU20
+ 110              	.LBE3:
+  19:./Application/Src/sdcard.c ****             return response;
+  20:./Application/Src/sdcard.c ****         }
+  21:./Application/Src/sdcard.c ****     }
+  22:./Application/Src/sdcard.c ****     return 0xFF; // cannot get command response
+ 111              		.loc 1 22 12 view .LVU21
+ 112 0058 FF20     		movs	r0, #255
+ 113              	.L5:
+  23:./Application/Src/sdcard.c **** }
+ 114              		.loc 1 23 1 view .LVU22
+ 115 005a 04B0     		add	sp, sp, #16
+ 116              	.LCFI2:
+ 117              		.cfi_def_cfa_offset 16
+ 118              		@ sp needed
+ 119 005c 70BD     		pop	{r4, r5, r6, pc}
+ 120              	.LVL9:
+ 121              	.L10:
+ 122              		.loc 1 23 1 view .LVU23
+ 123 005e 00BF     		.align	2
+ 124              	.L9:
+ 125 0060 00000000 		.word	hspi2
+ 126              		.cfi_endproc
+ 127              	.LFE65:
+ 129              		.section	.text.SD_readData,"ax",%progbits
+ 130              		.align	1
+ 131              		.global	SD_readData
+ 132              		.syntax unified
+ 133              		.thumb
+ 134              		.thumb_func
+ 136              	SD_readData:
+ 137              	.LVL10:
+ 138              	.LFB66:
+  24:./Application/Src/sdcard.c **** 
+  25:./Application/Src/sdcard.c **** int SD_readData(uint32_t blockAddr, uint8_t* buffer) {
+ 139              		.loc 1 25 54 is_stmt 1 view -0
+ 140              		.cfi_startproc
+ 141              		@ args = 0, pretend = 0, frame = 8
+ 142              		@ frame_needed = 0, uses_anonymous_args = 0
+ 143              		.loc 1 25 54 is_stmt 0 view .LVU25
+ 144 0000 30B5     		push	{r4, r5, lr}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 4
+
+
+ 145              	.LCFI3:
+ 146              		.cfi_def_cfa_offset 12
+ 147              		.cfi_offset 4, -12
+ 148              		.cfi_offset 5, -8
+ 149              		.cfi_offset 14, -4
+ 150 0002 85B0     		sub	sp, sp, #20
+ 151              	.LCFI4:
+ 152              		.cfi_def_cfa_offset 32
+ 153 0004 0D46     		mov	r5, r1
+  26:./Application/Src/sdcard.c ****     // read 512 byte from a statring address
+  27:./Application/Src/sdcard.c ****     uint8_t response = 0x00;
+ 154              		.loc 1 27 5 is_stmt 1 view .LVU26
+ 155              		.loc 1 27 13 is_stmt 0 view .LVU27
+ 156 0006 0022     		movs	r2, #0
+ 157 0008 8DF80F20 		strb	r2, [sp, #15]
+  28:./Application/Src/sdcard.c ****     uint8_t dummy = 0xFF;
+ 158              		.loc 1 28 5 is_stmt 1 view .LVU28
+ 159              		.loc 1 28 13 is_stmt 0 view .LVU29
+ 160 000c FF23     		movs	r3, #255
+ 161 000e 8DF80E30 		strb	r3, [sp, #14]
+  29:./Application/Src/sdcard.c ****     uint8_t cmd17[] = {0x51,(blockAddr >> 24) & 0xFF, (blockAddr >> 16) & 0xFF, (blockAddr >> 8) & 
+ 162              		.loc 1 29 5 is_stmt 1 view .LVU30
+ 163              		.loc 1 29 13 is_stmt 0 view .LVU31
+ 164 0012 5121     		movs	r1, #81
+ 165              	.LVL11:
+ 166              		.loc 1 29 13 view .LVU32
+ 167 0014 8DF80810 		strb	r1, [sp, #8]
+ 168              		.loc 1 29 40 view .LVU33
+ 169 0018 010E     		lsrs	r1, r0, #24
+ 170              		.loc 1 29 13 view .LVU34
+ 171 001a 8DF80910 		strb	r1, [sp, #9]
+ 172              		.loc 1 29 66 view .LVU35
+ 173 001e 010C     		lsrs	r1, r0, #16
+ 174              		.loc 1 29 13 view .LVU36
+ 175 0020 8DF80A10 		strb	r1, [sp, #10]
+ 176              		.loc 1 29 92 view .LVU37
+ 177 0024 010A     		lsrs	r1, r0, #8
+ 178              		.loc 1 29 13 view .LVU38
+ 179 0026 8DF80B10 		strb	r1, [sp, #11]
+ 180 002a 8DF80C00 		strb	r0, [sp, #12]
+ 181 002e 8DF80D30 		strb	r3, [sp, #13]
+  30:./Application/Src/sdcard.c **** 
+  31:./Application/Src/sdcard.c ****     // Select card and send CMD17 (READ_SINGLE_BLOCK)
+  32:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 182              		.loc 1 32 5 is_stmt 1 view .LVU39
+ 183 0032 4FF48041 		mov	r1, #16384
+ 184 0036 3448     		ldr	r0, .L20
+ 185              	.LVL12:
+ 186              		.loc 1 32 5 is_stmt 0 view .LVU40
+ 187 0038 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 188              	.LVL13:
+  33:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);  // sync after CS low
+ 189              		.loc 1 33 5 is_stmt 1 view .LVU41
+ 190 003c 6423     		movs	r3, #100
+ 191 003e 0093     		str	r3, [sp]
+ 192 0040 0123     		movs	r3, #1
+ 193 0042 0DF10F02 		add	r2, sp, #15
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 5
+
+
+ 194 0046 0DF10E01 		add	r1, sp, #14
+ 195 004a 3048     		ldr	r0, .L20+4
+ 196 004c FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 197              	.LVL14:
+  34:./Application/Src/sdcard.c ****     response = SD_SendCommand(cmd17, sizeof(cmd17));
+ 198              		.loc 1 34 5 view .LVU42
+ 199              		.loc 1 34 16 is_stmt 0 view .LVU43
+ 200 0050 0621     		movs	r1, #6
+ 201 0052 02A8     		add	r0, sp, #8
+ 202 0054 FFF7FEFF 		bl	SD_SendCommand
+ 203              	.LVL15:
+ 204              		.loc 1 34 14 discriminator 1 view .LVU44
+ 205 0058 8DF80F00 		strb	r0, [sp, #15]
+  35:./Application/Src/sdcard.c **** 
+  36:./Application/Src/sdcard.c ****     if (response != 0x00) {
+ 206              		.loc 1 36 5 is_stmt 1 view .LVU45
+ 207              		.loc 1 36 8 is_stmt 0 view .LVU46
+ 208 005c A0B9     		cbnz	r0, .L19
+ 209              	.LBB4:
+  37:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+  38:./Application/Src/sdcard.c ****         return 1;  // first need to check whether the SD card has response
+  39:./Application/Src/sdcard.c ****     }
+  40:./Application/Src/sdcard.c **** 
+  41:./Application/Src/sdcard.c ****     // then wait for FE which means SD card starts to report 
+  42:./Application/Src/sdcard.c ****     for (int i = 0; i < 10000; i++) {
+ 210              		.loc 1 42 14 view .LVU47
+ 211 005e 0446     		mov	r4, r0
+ 212              	.L12:
+ 213              	.LVL16:
+ 214              		.loc 1 42 23 is_stmt 1 discriminator 1 view .LVU48
+ 215 0060 42F20F73 		movw	r3, #9999
+ 216 0064 9C42     		cmp	r4, r3
+ 217 0066 17DC     		bgt	.L14
+  43:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 218              		.loc 1 43 9 view .LVU49
+ 219 0068 6423     		movs	r3, #100
+ 220 006a 0093     		str	r3, [sp]
+ 221 006c 0123     		movs	r3, #1
+ 222 006e 0DF10F02 		add	r2, sp, #15
+ 223 0072 0DF10E01 		add	r1, sp, #14
+ 224 0076 2548     		ldr	r0, .L20+4
+ 225 0078 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 226              	.LVL17:
+  44:./Application/Src/sdcard.c ****         if (response == 0xFE) {
+ 227              		.loc 1 44 9 view .LVU50
+ 228              		.loc 1 44 22 is_stmt 0 view .LVU51
+ 229 007c 9DF80F30 		ldrb	r3, [sp, #15]	@ zero_extendqisi2
+ 230              		.loc 1 44 12 view .LVU52
+ 231 0080 FE2B     		cmp	r3, #254
+ 232 0082 09D0     		beq	.L14
+  42:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 233              		.loc 1 42 33 is_stmt 1 discriminator 2 view .LVU53
+ 234 0084 0134     		adds	r4, r4, #1
+ 235              	.LVL18:
+  42:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 236              		.loc 1 42 33 is_stmt 0 discriminator 2 view .LVU54
+ 237 0086 EBE7     		b	.L12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 6
+
+
+ 238              	.LVL19:
+ 239              	.L19:
+  42:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 240              		.loc 1 42 33 discriminator 2 view .LVU55
+ 241              	.LBE4:
+  37:./Application/Src/sdcard.c ****         return 1;  // first need to check whether the SD card has response
+ 242              		.loc 1 37 9 is_stmt 1 view .LVU56
+ 243 0088 0122     		movs	r2, #1
+ 244 008a 4FF48041 		mov	r1, #16384
+ 245 008e 1E48     		ldr	r0, .L20
+ 246 0090 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 247              	.LVL20:
+  38:./Application/Src/sdcard.c ****     }
+ 248              		.loc 1 38 9 view .LVU57
+  38:./Application/Src/sdcard.c ****     }
+ 249              		.loc 1 38 16 is_stmt 0 view .LVU58
+ 250 0094 0120     		movs	r0, #1
+ 251 0096 0AE0     		b	.L11
+ 252              	.LVL21:
+ 253              	.L14:
+  45:./Application/Src/sdcard.c ****             break;
+  46:./Application/Src/sdcard.c ****         }
+  47:./Application/Src/sdcard.c ****     }
+  48:./Application/Src/sdcard.c **** 
+  49:./Application/Src/sdcard.c ****     if (response != 0xFE) {
+ 254              		.loc 1 49 5 is_stmt 1 view .LVU59
+ 255              		.loc 1 49 18 is_stmt 0 view .LVU60
+ 256 0098 9DF80F30 		ldrb	r3, [sp, #15]	@ zero_extendqisi2
+ 257              		.loc 1 49 8 view .LVU61
+ 258 009c FE2B     		cmp	r3, #254
+ 259 009e 08D0     		beq	.L16
+  50:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 260              		.loc 1 50 9 is_stmt 1 view .LVU62
+ 261 00a0 0122     		movs	r2, #1
+ 262 00a2 4FF48041 		mov	r1, #16384
+ 263 00a6 1848     		ldr	r0, .L20
+ 264 00a8 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 265              	.LVL22:
+  51:./Application/Src/sdcard.c ****         return 1;  // failed to report
+ 266              		.loc 1 51 9 view .LVU63
+ 267              		.loc 1 51 16 is_stmt 0 view .LVU64
+ 268 00ac 0120     		movs	r0, #1
+ 269              	.LVL23:
+ 270              	.L11:
+  52:./Application/Src/sdcard.c ****     }
+  53:./Application/Src/sdcard.c **** 
+  54:./Application/Src/sdcard.c ****     HAL_SPI_Receive(&hspi2, buffer, 512, 5000); // receive and get data from card
+  55:./Application/Src/sdcard.c **** 
+  56:./Application/Src/sdcard.c ****     // consume 2-byte CRC (must read these or next command will be corrupted)
+  57:./Application/Src/sdcard.c ****     // Every SD card data block is: 0xFE + 512 data bytes + 2 CRC bytes
+  58:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+  59:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+  60:./Application/Src/sdcard.c **** 
+  61:./Application/Src/sdcard.c ****     // deselect card
+  62:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+  63:./Application/Src/sdcard.c ****     HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);  // extra clock to finish
+  64:./Application/Src/sdcard.c ****     return 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 7
+
+
+  65:./Application/Src/sdcard.c **** }
+ 271              		.loc 1 65 1 view .LVU65
+ 272 00ae 05B0     		add	sp, sp, #20
+ 273              	.LCFI5:
+ 274              		.cfi_remember_state
+ 275              		.cfi_def_cfa_offset 12
+ 276              		@ sp needed
+ 277 00b0 30BD     		pop	{r4, r5, pc}
+ 278              	.LVL24:
+ 279              	.L16:
+ 280              	.LCFI6:
+ 281              		.cfi_restore_state
+  54:./Application/Src/sdcard.c **** 
+ 282              		.loc 1 54 5 is_stmt 1 view .LVU66
+ 283 00b2 164C     		ldr	r4, .L20+4
+ 284              	.LVL25:
+  54:./Application/Src/sdcard.c **** 
+ 285              		.loc 1 54 5 is_stmt 0 view .LVU67
+ 286 00b4 41F28833 		movw	r3, #5000
+ 287 00b8 4FF40072 		mov	r2, #512
+ 288 00bc 2946     		mov	r1, r5
+ 289 00be 2046     		mov	r0, r4
+ 290 00c0 FFF7FEFF 		bl	HAL_SPI_Receive
+ 291              	.LVL26:
+  58:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 292              		.loc 1 58 5 is_stmt 1 view .LVU68
+ 293 00c4 6425     		movs	r5, #100
+ 294              	.LVL27:
+  58:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 295              		.loc 1 58 5 is_stmt 0 view .LVU69
+ 296 00c6 0095     		str	r5, [sp]
+ 297 00c8 0123     		movs	r3, #1
+ 298 00ca 0DF10F02 		add	r2, sp, #15
+ 299 00ce 0DF10E01 		add	r1, sp, #14
+ 300 00d2 2046     		mov	r0, r4
+ 301 00d4 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 302              	.LVL28:
+  59:./Application/Src/sdcard.c **** 
+ 303              		.loc 1 59 5 is_stmt 1 view .LVU70
+ 304 00d8 0095     		str	r5, [sp]
+ 305 00da 0123     		movs	r3, #1
+ 306 00dc 0DF10F02 		add	r2, sp, #15
+ 307 00e0 0DF10E01 		add	r1, sp, #14
+ 308 00e4 2046     		mov	r0, r4
+ 309 00e6 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 310              	.LVL29:
+  62:./Application/Src/sdcard.c ****     HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);  // extra clock to finish
+ 311              		.loc 1 62 5 view .LVU71
+ 312 00ea 0122     		movs	r2, #1
+ 313 00ec 4FF48041 		mov	r1, #16384
+ 314 00f0 0548     		ldr	r0, .L20
+ 315 00f2 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 316              	.LVL30:
+  63:./Application/Src/sdcard.c ****     return 0;
+ 317              		.loc 1 63 5 view .LVU72
+ 318 00f6 2B46     		mov	r3, r5
+ 319 00f8 0122     		movs	r2, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 8
+
+
+ 320 00fa 0DF10E01 		add	r1, sp, #14
+ 321 00fe 2046     		mov	r0, r4
+ 322 0100 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 323              	.LVL31:
+  64:./Application/Src/sdcard.c **** }
+ 324              		.loc 1 64 5 view .LVU73
+  64:./Application/Src/sdcard.c **** }
+ 325              		.loc 1 64 12 is_stmt 0 view .LVU74
+ 326 0104 0020     		movs	r0, #0
+ 327 0106 D2E7     		b	.L11
+ 328              	.L21:
+ 329              		.align	2
+ 330              	.L20:
+ 331 0108 00100140 		.word	1073811456
+ 332 010c 00000000 		.word	hspi2
+ 333              		.cfi_endproc
+ 334              	.LFE66:
+ 336              		.section	.text.initSDCard,"ax",%progbits
+ 337              		.align	1
+ 338              		.global	initSDCard
+ 339              		.syntax unified
+ 340              		.thumb
+ 341              		.thumb_func
+ 343              	initSDCard:
+ 344              	.LFB67:
+  66:./Application/Src/sdcard.c **** 
+  67:./Application/Src/sdcard.c **** // init SD card and read FAT32 boot sector
+  68:./Application/Src/sdcard.c **** int initSDCard(void) {
+ 345              		.loc 1 68 22 is_stmt 1 view -0
+ 346              		.cfi_startproc
+ 347              		@ args = 0, pretend = 0, frame = 32
+ 348              		@ frame_needed = 0, uses_anonymous_args = 0
+ 349 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 350              	.LCFI7:
+ 351              		.cfi_def_cfa_offset 28
+ 352              		.cfi_offset 4, -28
+ 353              		.cfi_offset 5, -24
+ 354              		.cfi_offset 6, -20
+ 355              		.cfi_offset 7, -16
+ 356              		.cfi_offset 8, -12
+ 357              		.cfi_offset 9, -8
+ 358              		.cfi_offset 14, -4
+ 359 0004 8BB0     		sub	sp, sp, #44
+ 360              	.LCFI8:
+ 361              		.cfi_def_cfa_offset 72
+  69:./Application/Src/sdcard.c ****     uint8_t response;
+ 362              		.loc 1 69 5 view .LVU76
+  70:./Application/Src/sdcard.c ****     uint8_t dummy = 0xFF;
+ 363              		.loc 1 70 5 view .LVU77
+ 364              		.loc 1 70 13 is_stmt 0 view .LVU78
+ 365 0006 FF23     		movs	r3, #255
+ 366 0008 8DF82630 		strb	r3, [sp, #38]
+  71:./Application/Src/sdcard.c ****     uint8_t cmd0[] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
+ 367              		.loc 1 71 5 is_stmt 1 view .LVU79
+ 368              		.loc 1 71 13 is_stmt 0 view .LVU80
+ 369 000c 874B     		ldr	r3, .L39
+ 370 000e 93E80300 		ldm	r3, {r0, r1}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 9
+
+
+ 371 0012 0890     		str	r0, [sp, #32]
+ 372 0014 ADF82410 		strh	r1, [sp, #36]	@ movhi
+  72:./Application/Src/sdcard.c ****     uint8_t cmd8[] = {0x48, 0x00, 0x00, 0x01, 0xAA, 0x87};
+ 373              		.loc 1 72 5 is_stmt 1 view .LVU81
+ 374              		.loc 1 72 13 is_stmt 0 view .LVU82
+ 375 0018 03F10802 		add	r2, r3, #8
+ 376 001c 92E80300 		ldm	r2, {r0, r1}
+ 377 0020 0690     		str	r0, [sp, #24]
+ 378 0022 ADF81C10 		strh	r1, [sp, #28]	@ movhi
+  73:./Application/Src/sdcard.c ****     uint8_t cmd55[] = {0x77, 0x00, 0x00, 0x00, 0x00, 0x65};
+ 379              		.loc 1 73 5 is_stmt 1 view .LVU83
+ 380              		.loc 1 73 13 is_stmt 0 view .LVU84
+ 381 0026 03F11002 		add	r2, r3, #16
+ 382 002a 92E80300 		ldm	r2, {r0, r1}
+ 383 002e 0490     		str	r0, [sp, #16]
+ 384 0030 ADF81410 		strh	r1, [sp, #20]	@ movhi
+  74:./Application/Src/sdcard.c ****     uint8_t acmd41[] = {0x69, 0x40, 0x00, 0x00, 0x00, 0x77};
+ 385              		.loc 1 74 5 is_stmt 1 view .LVU85
+ 386              		.loc 1 74 13 is_stmt 0 view .LVU86
+ 387 0034 1833     		adds	r3, r3, #24
+ 388 0036 93E80300 		ldm	r3, {r0, r1}
+ 389 003a 0290     		str	r0, [sp, #8]
+ 390 003c ADF80C10 		strh	r1, [sp, #12]	@ movhi
+  75:./Application/Src/sdcard.c ****     
+  76:./Application/Src/sdcard.c ****     // wait for power
+  77:./Application/Src/sdcard.c ****     HAL_Delay(500);  
+ 391              		.loc 1 77 5 is_stmt 1 view .LVU87
+ 392 0040 4FF4FA70 		mov	r0, #500
+ 393 0044 FFF7FEFF 		bl	HAL_Delay
+ 394              	.LVL32:
+  78:./Application/Src/sdcard.c **** 
+  79:./Application/Src/sdcard.c ****     // send clock impluse (requirement -> 74+ cycle)
+  80:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 395              		.loc 1 80 5 view .LVU88
+ 396 0048 0122     		movs	r2, #1
+ 397 004a 4FF48041 		mov	r1, #16384
+ 398 004e 7848     		ldr	r0, .L39+4
+ 399 0050 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 400              	.LVL33:
+  81:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+ 401              		.loc 1 81 5 view .LVU89
+ 402              	.LBB5:
+ 403              		.loc 1 81 10 view .LVU90
+ 404              		.loc 1 81 14 is_stmt 0 view .LVU91
+ 405 0054 0024     		movs	r4, #0
+ 406              		.loc 1 81 5 view .LVU92
+ 407 0056 0AE0     		b	.L23
+ 408              	.LVL34:
+ 409              	.L24:
+  82:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 410              		.loc 1 82 9 is_stmt 1 view .LVU93
+ 411 0058 6423     		movs	r3, #100
+ 412 005a 0093     		str	r3, [sp]
+ 413 005c 0123     		movs	r3, #1
+ 414 005e 0DF12702 		add	r2, sp, #39
+ 415 0062 0DF12601 		add	r1, sp, #38
+ 416 0066 7348     		ldr	r0, .L39+8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 10
+
+
+ 417 0068 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 418              	.LVL35:
+  81:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+ 419              		.loc 1 81 30 discriminator 3 view .LVU94
+ 420 006c 0134     		adds	r4, r4, #1
+ 421              	.LVL36:
+ 422              	.L23:
+  81:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+ 423              		.loc 1 81 23 discriminator 1 view .LVU95
+ 424 006e 092C     		cmp	r4, #9
+ 425 0070 F2DD     		ble	.L24
+ 426              	.LBE5:
+  83:./Application/Src/sdcard.c ****     }
+  84:./Application/Src/sdcard.c **** 
+  85:./Application/Src/sdcard.c ****     // CMD0: go idle
+  86:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 427              		.loc 1 86 5 view .LVU96
+ 428 0072 6F4F     		ldr	r7, .L39+4
+ 429 0074 0022     		movs	r2, #0
+ 430 0076 4FF48041 		mov	r1, #16384
+ 431 007a 3846     		mov	r0, r7
+ 432 007c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 433              	.LVL37:
+  87:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 434              		.loc 1 87 5 view .LVU97
+ 435 0080 0DF12605 		add	r5, sp, #38
+ 436 0084 6B4C     		ldr	r4, .L39+8
+ 437              	.LVL38:
+ 438              		.loc 1 87 5 is_stmt 0 view .LVU98
+ 439 0086 6426     		movs	r6, #100
+ 440 0088 0096     		str	r6, [sp]
+ 441 008a 0123     		movs	r3, #1
+ 442 008c 0DF12702 		add	r2, sp, #39
+ 443 0090 2946     		mov	r1, r5
+ 444 0092 2046     		mov	r0, r4
+ 445 0094 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 446              	.LVL39:
+  88:./Application/Src/sdcard.c ****     response = SD_SendCommand(cmd0, sizeof(cmd0));
+ 447              		.loc 1 88 5 is_stmt 1 view .LVU99
+ 448              		.loc 1 88 16 is_stmt 0 view .LVU100
+ 449 0098 0621     		movs	r1, #6
+ 450 009a 08A8     		add	r0, sp, #32
+ 451 009c FFF7FEFF 		bl	SD_SendCommand
+ 452              	.LVL40:
+ 453              		.loc 1 88 14 discriminator 1 view .LVU101
+ 454 00a0 8DF82700 		strb	r0, [sp, #39]
+  89:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 455              		.loc 1 89 5 is_stmt 1 view .LVU102
+ 456 00a4 0122     		movs	r2, #1
+ 457 00a6 4FF48041 		mov	r1, #16384
+ 458 00aa 3846     		mov	r0, r7
+ 459 00ac FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 460              	.LVL41:
+  90:./Application/Src/sdcard.c ****     HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 461              		.loc 1 90 5 view .LVU103
+ 462 00b0 3346     		mov	r3, r6
+ 463 00b2 0122     		movs	r2, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 11
+
+
+ 464 00b4 2946     		mov	r1, r5
+ 465 00b6 2046     		mov	r0, r4
+ 466 00b8 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 467              	.LVL42:
+  91:./Application/Src/sdcard.c ****     if (response != 0x01) {
+ 468              		.loc 1 91 5 view .LVU104
+ 469              		.loc 1 91 18 is_stmt 0 view .LVU105
+ 470 00bc 9DF82730 		ldrb	r3, [sp, #39]	@ zero_extendqisi2
+ 471              		.loc 1 91 8 view .LVU106
+ 472 00c0 012B     		cmp	r3, #1
+ 473 00c2 03D0     		beq	.L36
+  92:./Application/Src/sdcard.c ****         return 1;
+ 474              		.loc 1 92 16 view .LVU107
+ 475 00c4 0120     		movs	r0, #1
+ 476              	.L22:
+  93:./Application/Src/sdcard.c ****     }
+  94:./Application/Src/sdcard.c **** 
+  95:./Application/Src/sdcard.c ****     // CMD8: check voltage
+  96:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+  97:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+  98:./Application/Src/sdcard.c ****     response = SD_SendCommand(cmd8, sizeof(cmd8));
+  99:./Application/Src/sdcard.c ****     for (int i = 0; i < 4; i++) {
+ 100:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 101:./Application/Src/sdcard.c ****     }
+ 102:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 103:./Application/Src/sdcard.c ****     HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 104:./Application/Src/sdcard.c **** 
+ 105:./Application/Src/sdcard.c ****     // init card
+ 106:./Application/Src/sdcard.c ****     for (int retry = 0; retry < 100; retry++) {
+ 107:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 108:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 109:./Application/Src/sdcard.c ****         SD_SendCommand(cmd55, sizeof(cmd55));
+ 110:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 111:./Application/Src/sdcard.c ****         HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 112:./Application/Src/sdcard.c **** 
+ 113:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 114:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 115:./Application/Src/sdcard.c ****         response = SD_SendCommand(acmd41, sizeof(acmd41));
+ 116:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 117:./Application/Src/sdcard.c ****         HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 118:./Application/Src/sdcard.c **** 
+ 119:./Application/Src/sdcard.c ****         if (response == 0x00) { // card init ok
+ 120:./Application/Src/sdcard.c ****             if (SD_readData(0, SDBuffer) != 0) { // check data there
+ 121:./Application/Src/sdcard.c ****                 return 2;  // MBR read failed, check whether it can read
+ 122:./Application/Src/sdcard.c ****             }
+ 123:./Application/Src/sdcard.c **** 
+ 124:./Application/Src/sdcard.c ****             // LBA start at offset 0x1C6 (little endian)
+ 125:./Application/Src/sdcard.c ****             uint32_t partitionStart = SDBuffer[0x1C6] | (SDBuffer[0x1C7] << 8) | (SDBuffer[0x1C8] <
+ 126:./Application/Src/sdcard.c **** 
+ 127:./Application/Src/sdcard.c ****             HAL_Delay(10);
+ 128:./Application/Src/sdcard.c ****             for (int d = 0; d < 16; d++) {
+ 129:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 130:./Application/Src/sdcard.c ****             }
+ 131:./Application/Src/sdcard.c **** 
+ 132:./Application/Src/sdcard.c ****             // read FAT32 boot sector
+ 133:./Application/Src/sdcard.c ****             return SD_readData(partitionStart, SDBuffer);
+ 134:./Application/Src/sdcard.c ****         }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 12
+
+
+ 135:./Application/Src/sdcard.c ****         HAL_Delay(10);
+ 136:./Application/Src/sdcard.c ****     }
+ 137:./Application/Src/sdcard.c **** 
+ 138:./Application/Src/sdcard.c ****     return 3;  // ACMD41 timeout
+ 139:./Application/Src/sdcard.c **** }
+ 477              		.loc 1 139 1 view .LVU108
+ 478 00c6 0BB0     		add	sp, sp, #44
+ 479              	.LCFI9:
+ 480              		.cfi_remember_state
+ 481              		.cfi_def_cfa_offset 28
+ 482              		@ sp needed
+ 483 00c8 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 484              	.L36:
+ 485              	.LCFI10:
+ 486              		.cfi_restore_state
+  96:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 487              		.loc 1 96 5 is_stmt 1 view .LVU109
+ 488 00cc 0022     		movs	r2, #0
+ 489 00ce 4FF48041 		mov	r1, #16384
+ 490 00d2 3846     		mov	r0, r7
+ 491 00d4 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 492              	.LVL43:
+  97:./Application/Src/sdcard.c ****     response = SD_SendCommand(cmd8, sizeof(cmd8));
+ 493              		.loc 1 97 5 view .LVU110
+ 494 00d8 0096     		str	r6, [sp]
+ 495 00da 0123     		movs	r3, #1
+ 496 00dc 0DF12702 		add	r2, sp, #39
+ 497 00e0 2946     		mov	r1, r5
+ 498 00e2 2046     		mov	r0, r4
+ 499 00e4 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 500              	.LVL44:
+  98:./Application/Src/sdcard.c ****     for (int i = 0; i < 4; i++) {
+ 501              		.loc 1 98 5 view .LVU111
+  98:./Application/Src/sdcard.c ****     for (int i = 0; i < 4; i++) {
+ 502              		.loc 1 98 16 is_stmt 0 view .LVU112
+ 503 00e8 0621     		movs	r1, #6
+ 504 00ea 06A8     		add	r0, sp, #24
+ 505 00ec FFF7FEFF 		bl	SD_SendCommand
+ 506              	.LVL45:
+  98:./Application/Src/sdcard.c ****     for (int i = 0; i < 4; i++) {
+ 507              		.loc 1 98 14 discriminator 1 view .LVU113
+ 508 00f0 8DF82700 		strb	r0, [sp, #39]
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 509              		.loc 1 99 5 is_stmt 1 view .LVU114
+ 510              	.LBB6:
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 511              		.loc 1 99 10 view .LVU115
+ 512              	.LVL46:
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 513              		.loc 1 99 14 is_stmt 0 view .LVU116
+ 514 00f4 0024     		movs	r4, #0
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 515              		.loc 1 99 5 view .LVU117
+ 516 00f6 0AE0     		b	.L26
+ 517              	.LVL47:
+ 518              	.L27:
+ 100:./Application/Src/sdcard.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 13
+
+
+ 519              		.loc 1 100 9 is_stmt 1 view .LVU118
+ 520 00f8 6423     		movs	r3, #100
+ 521 00fa 0093     		str	r3, [sp]
+ 522 00fc 0123     		movs	r3, #1
+ 523 00fe 0DF12702 		add	r2, sp, #39
+ 524 0102 0DF12601 		add	r1, sp, #38
+ 525 0106 4B48     		ldr	r0, .L39+8
+ 526 0108 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 527              	.LVL48:
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 528              		.loc 1 99 29 discriminator 3 view .LVU119
+ 529 010c 0134     		adds	r4, r4, #1
+ 530              	.LVL49:
+ 531              	.L26:
+  99:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 532              		.loc 1 99 23 discriminator 1 view .LVU120
+ 533 010e 032C     		cmp	r4, #3
+ 534 0110 F2DD     		ble	.L27
+ 535              	.LBE6:
+ 102:./Application/Src/sdcard.c ****     HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 536              		.loc 1 102 5 view .LVU121
+ 537 0112 0122     		movs	r2, #1
+ 538 0114 4FF48041 		mov	r1, #16384
+ 539 0118 4548     		ldr	r0, .L39+4
+ 540 011a FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 541              	.LVL50:
+ 103:./Application/Src/sdcard.c **** 
+ 542              		.loc 1 103 5 view .LVU122
+ 543 011e 6423     		movs	r3, #100
+ 544 0120 0122     		movs	r2, #1
+ 545 0122 0DF12601 		add	r1, sp, #38
+ 546 0126 4348     		ldr	r0, .L39+8
+ 547 0128 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 548              	.LVL51:
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 549              		.loc 1 106 5 view .LVU123
+ 550              	.LBB7:
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 551              		.loc 1 106 10 view .LVU124
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 552              		.loc 1 106 14 is_stmt 0 view .LVU125
+ 553 012c 4FF00009 		mov	r9, #0
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 554              		.loc 1 106 5 view .LVU126
+ 555 0130 26E0     		b	.L28
+ 556              	.LVL52:
+ 557              	.L38:
+ 558              	.LBB8:
+ 125:./Application/Src/sdcard.c **** 
+ 559              		.loc 1 125 13 is_stmt 1 view .LVU127
+ 125:./Application/Src/sdcard.c **** 
+ 560              		.loc 1 125 47 is_stmt 0 view .LVU128
+ 561 0132 414B     		ldr	r3, .L39+12
+ 562 0134 93F8C651 		ldrb	r5, [r3, #454]	@ zero_extendqisi2
+ 125:./Application/Src/sdcard.c **** 
+ 563              		.loc 1 125 66 view .LVU129
+ 564 0138 93F8C721 		ldrb	r2, [r3, #455]	@ zero_extendqisi2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 14
+
+
+ 125:./Application/Src/sdcard.c **** 
+ 565              		.loc 1 125 55 view .LVU130
+ 566 013c 45EA0225 		orr	r5, r5, r2, lsl #8
+ 125:./Application/Src/sdcard.c **** 
+ 567              		.loc 1 125 91 view .LVU131
+ 568 0140 93F8C821 		ldrb	r2, [r3, #456]	@ zero_extendqisi2
+ 125:./Application/Src/sdcard.c **** 
+ 569              		.loc 1 125 80 view .LVU132
+ 570 0144 45EA0245 		orr	r5, r5, r2, lsl #16
+ 125:./Application/Src/sdcard.c **** 
+ 571              		.loc 1 125 117 view .LVU133
+ 572 0148 93F8C931 		ldrb	r3, [r3, #457]	@ zero_extendqisi2
+ 125:./Application/Src/sdcard.c **** 
+ 573              		.loc 1 125 106 view .LVU134
+ 574 014c 45EA0365 		orr	r5, r5, r3, lsl #24
+ 575              	.LVL53:
+ 127:./Application/Src/sdcard.c ****             for (int d = 0; d < 16; d++) {
+ 576              		.loc 1 127 13 is_stmt 1 view .LVU135
+ 577 0150 0A20     		movs	r0, #10
+ 578 0152 FFF7FEFF 		bl	HAL_Delay
+ 579              	.LVL54:
+ 128:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 580              		.loc 1 128 13 view .LVU136
+ 581              	.LBB9:
+ 128:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 582              		.loc 1 128 18 view .LVU137
+ 128:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 583              		.loc 1 128 13 is_stmt 0 view .LVU138
+ 584 0156 07E0     		b	.L30
+ 585              	.LVL55:
+ 586              	.L31:
+ 129:./Application/Src/sdcard.c ****             }
+ 587              		.loc 1 129 17 is_stmt 1 view .LVU139
+ 588 0158 6423     		movs	r3, #100
+ 589 015a 0122     		movs	r2, #1
+ 590 015c 0DF12601 		add	r1, sp, #38
+ 591 0160 3448     		ldr	r0, .L39+8
+ 592 0162 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 593              	.LVL56:
+ 128:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 594              		.loc 1 128 38 discriminator 3 view .LVU140
+ 595 0166 0134     		adds	r4, r4, #1
+ 596              	.LVL57:
+ 597              	.L30:
+ 128:./Application/Src/sdcard.c ****                 HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 598              		.loc 1 128 31 discriminator 1 view .LVU141
+ 599 0168 0F2C     		cmp	r4, #15
+ 600 016a F5DD     		ble	.L31
+ 601              	.LBE9:
+ 133:./Application/Src/sdcard.c ****         }
+ 602              		.loc 1 133 13 view .LVU142
+ 133:./Application/Src/sdcard.c ****         }
+ 603              		.loc 1 133 20 is_stmt 0 view .LVU143
+ 604 016c 3249     		ldr	r1, .L39+12
+ 605 016e 2846     		mov	r0, r5
+ 606 0170 FFF7FEFF 		bl	SD_readData
+ 607              	.LVL58:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 15
+
+
+ 608 0174 A7E7     		b	.L22
+ 609              	.LVL59:
+ 610              	.L29:
+ 133:./Application/Src/sdcard.c ****         }
+ 611              		.loc 1 133 20 view .LVU144
+ 612              	.LBE8:
+ 135:./Application/Src/sdcard.c ****     }
+ 613              		.loc 1 135 9 is_stmt 1 view .LVU145
+ 614 0176 0A20     		movs	r0, #10
+ 615 0178 FFF7FEFF 		bl	HAL_Delay
+ 616              	.LVL60:
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 617              		.loc 1 106 43 discriminator 2 view .LVU146
+ 618 017c 09F10109 		add	r9, r9, #1
+ 619              	.LVL61:
+ 620              	.L28:
+ 106:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
+ 621              		.loc 1 106 31 discriminator 1 view .LVU147
+ 622 0180 B9F1630F 		cmp	r9, #99
+ 623 0184 4FDC     		bgt	.L37
+ 107:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 624              		.loc 1 107 9 view .LVU148
+ 625 0186 2A4F     		ldr	r7, .L39+4
+ 626 0188 0022     		movs	r2, #0
+ 627 018a 4FF48041 		mov	r1, #16384
+ 628 018e 3846     		mov	r0, r7
+ 629 0190 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 630              	.LVL62:
+ 108:./Application/Src/sdcard.c ****         SD_SendCommand(cmd55, sizeof(cmd55));
+ 631              		.loc 1 108 9 view .LVU149
+ 632 0194 0DF12708 		add	r8, sp, #39
+ 633 0198 0DF12605 		add	r5, sp, #38
+ 634 019c 254C     		ldr	r4, .L39+8
+ 635 019e 6426     		movs	r6, #100
+ 636 01a0 0096     		str	r6, [sp]
+ 637 01a2 0123     		movs	r3, #1
+ 638 01a4 4246     		mov	r2, r8
+ 639 01a6 2946     		mov	r1, r5
+ 640 01a8 2046     		mov	r0, r4
+ 641 01aa FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 642              	.LVL63:
+ 109:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 643              		.loc 1 109 9 view .LVU150
+ 644 01ae 0621     		movs	r1, #6
+ 645 01b0 04A8     		add	r0, sp, #16
+ 646 01b2 FFF7FEFF 		bl	SD_SendCommand
+ 647              	.LVL64:
+ 110:./Application/Src/sdcard.c ****         HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 648              		.loc 1 110 9 view .LVU151
+ 649 01b6 0122     		movs	r2, #1
+ 650 01b8 4FF48041 		mov	r1, #16384
+ 651 01bc 3846     		mov	r0, r7
+ 652 01be FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 653              	.LVL65:
+ 111:./Application/Src/sdcard.c **** 
+ 654              		.loc 1 111 9 view .LVU152
+ 655 01c2 3346     		mov	r3, r6
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 16
+
+
+ 656 01c4 0122     		movs	r2, #1
+ 657 01c6 2946     		mov	r1, r5
+ 658 01c8 2046     		mov	r0, r4
+ 659 01ca FFF7FEFF 		bl	HAL_SPI_Transmit
+ 660              	.LVL66:
+ 113:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+ 661              		.loc 1 113 9 view .LVU153
+ 662 01ce 0022     		movs	r2, #0
+ 663 01d0 4FF48041 		mov	r1, #16384
+ 664 01d4 3846     		mov	r0, r7
+ 665 01d6 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 666              	.LVL67:
+ 114:./Application/Src/sdcard.c ****         response = SD_SendCommand(acmd41, sizeof(acmd41));
+ 667              		.loc 1 114 9 view .LVU154
+ 668 01da 0096     		str	r6, [sp]
+ 669 01dc 0123     		movs	r3, #1
+ 670 01de 4246     		mov	r2, r8
+ 671 01e0 2946     		mov	r1, r5
+ 672 01e2 2046     		mov	r0, r4
+ 673 01e4 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 674              	.LVL68:
+ 115:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 675              		.loc 1 115 9 view .LVU155
+ 115:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 676              		.loc 1 115 20 is_stmt 0 view .LVU156
+ 677 01e8 0621     		movs	r1, #6
+ 678 01ea 02A8     		add	r0, sp, #8
+ 679 01ec FFF7FEFF 		bl	SD_SendCommand
+ 680              	.LVL69:
+ 115:./Application/Src/sdcard.c ****         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
+ 681              		.loc 1 115 18 discriminator 1 view .LVU157
+ 682 01f0 8DF82700 		strb	r0, [sp, #39]
+ 116:./Application/Src/sdcard.c ****         HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
+ 683              		.loc 1 116 9 is_stmt 1 view .LVU158
+ 684 01f4 0122     		movs	r2, #1
+ 685 01f6 4FF48041 		mov	r1, #16384
+ 686 01fa 3846     		mov	r0, r7
+ 687 01fc FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 688              	.LVL70:
+ 117:./Application/Src/sdcard.c **** 
+ 689              		.loc 1 117 9 view .LVU159
+ 690 0200 3346     		mov	r3, r6
+ 691 0202 0122     		movs	r2, #1
+ 692 0204 2946     		mov	r1, r5
+ 693 0206 2046     		mov	r0, r4
+ 694 0208 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 695              	.LVL71:
+ 119:./Application/Src/sdcard.c ****             if (SD_readData(0, SDBuffer) != 0) { // check data there
+ 696              		.loc 1 119 9 view .LVU160
+ 119:./Application/Src/sdcard.c ****             if (SD_readData(0, SDBuffer) != 0) { // check data there
+ 697              		.loc 1 119 22 is_stmt 0 view .LVU161
+ 698 020c 9DF82730 		ldrb	r3, [sp, #39]	@ zero_extendqisi2
+ 119:./Application/Src/sdcard.c ****             if (SD_readData(0, SDBuffer) != 0) { // check data there
+ 699              		.loc 1 119 12 view .LVU162
+ 700 0210 002B     		cmp	r3, #0
+ 701 0212 B0D1     		bne	.L29
+ 702              	.LBB10:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 17
+
+
+ 120:./Application/Src/sdcard.c ****                 return 2;  // MBR read failed, check whether it can read
+ 703              		.loc 1 120 13 is_stmt 1 view .LVU163
+ 120:./Application/Src/sdcard.c ****                 return 2;  // MBR read failed, check whether it can read
+ 704              		.loc 1 120 17 is_stmt 0 view .LVU164
+ 705 0214 0849     		ldr	r1, .L39+12
+ 706 0216 1846     		mov	r0, r3
+ 707 0218 FFF7FEFF 		bl	SD_readData
+ 708              	.LVL72:
+ 120:./Application/Src/sdcard.c ****                 return 2;  // MBR read failed, check whether it can read
+ 709              		.loc 1 120 16 discriminator 1 view .LVU165
+ 710 021c 0446     		mov	r4, r0
+ 711 021e 0028     		cmp	r0, #0
+ 712 0220 87D0     		beq	.L38
+ 121:./Application/Src/sdcard.c ****             }
+ 713              		.loc 1 121 24 view .LVU166
+ 714 0222 0220     		movs	r0, #2
+ 715 0224 4FE7     		b	.L22
+ 716              	.L37:
+ 717              	.LBE10:
+ 718              	.LBE7:
+ 138:./Application/Src/sdcard.c **** }
+ 719              		.loc 1 138 12 view .LVU167
+ 720 0226 0320     		movs	r0, #3
+ 721              	.LBB11:
+ 722 0228 4DE7     		b	.L22
+ 723              	.L40:
+ 724 022a 00BF     		.align	2
+ 725              	.L39:
+ 726 022c 00000000 		.word	.LANCHOR0
+ 727 0230 00100140 		.word	1073811456
+ 728 0234 00000000 		.word	hspi2
+ 729 0238 00000000 		.word	SDBuffer
+ 730              	.LBE11:
+ 731              		.cfi_endproc
+ 732              	.LFE67:
+ 734              		.global	SDBuffer
+ 735              		.section	.bss.SDBuffer,"aw",%nobits
+ 736              		.align	2
+ 739              	SDBuffer:
+ 740 0000 00000000 		.space	512
+ 740      00000000 
+ 740      00000000 
+ 740      00000000 
+ 740      00000000 
+ 741              		.section	.rodata
+ 742              		.align	2
+ 743              		.set	.LANCHOR0,. + 0
+ 744              	.LC0:
+ 745 0000 40000000 		.ascii	"@\000\000\000\000\225"
+ 745      0095
+ 746 0006 0000     		.space	2
+ 747              	.LC1:
+ 748 0008 48000001 		.ascii	"H\000\000\001\252\207"
+ 748      AA87
+ 749 000e 0000     		.space	2
+ 750              	.LC2:
+ 751 0010 77000000 		.ascii	"w\000\000\000\000e"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 18
+
+
+ 751      0065
+ 752 0016 0000     		.space	2
+ 753              	.LC3:
+ 754 0018 69400000 		.ascii	"i@\000\000\000w"
+ 754      0077
+ 755              		.text
+ 756              	.Letext0:
+ 757              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 758              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 759              		.file 4 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 760              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h"
+ 761              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 762              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h"
+ 763              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 764              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h"
+ 765              		.file 10 "Core/Inc/spi.h"
+ 766              		.file 11 "Application/Inc/sdcard.h"
+ 767              		.file 12 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s 			page 19
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 sdcard.c
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:19     .text.SD_SendCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:25     .text.SD_SendCommand:00000000 SD_SendCommand
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:125    .text.SD_SendCommand:00000060 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:130    .text.SD_readData:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:136    .text.SD_readData:00000000 SD_readData
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:331    .text.SD_readData:00000108 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:337    .text.initSDCard:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:343    .text.initSDCard:00000000 initSDCard
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:726    .text.initSDCard:0000022c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:739    .bss.SDBuffer:00000000 SDBuffer
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:736    .bss.SDBuffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc75w4MT.s:742    .rodata:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_SPI_TransmitReceive
+hspi2
+HAL_GPIO_WritePin
+HAL_SPI_Receive
+HAL_SPI_Transmit
+HAL_Delay
