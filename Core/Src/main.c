@@ -51,6 +51,9 @@
 /* USER CODE BEGIN PV */
 int pwmNum = 200;
 uint8_t hexSDRead[20] = {0};
+FIL file;
+uint8_t FileBuffer[512];
+UINT BytesRead;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -143,26 +146,42 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim4);  // Start TIM4 interrupt for controllerUpdate
   // OLED_SetCursor(0, 6);
   // OLED_WriteString("PWM ready!");
-  int sdResult = initSDCard();
-  // Show SD card status
+  // Initialize SD card with FatFs
+  FRESULT sdResult = FR_NOT_READY;
   OLED_SetCursor(0, 2);
-  // try init with multiple times (5 times)
-  for (int i = 0; i < 5; i++){
-    if (sdResult == 0) {
+
+  // Try init multiple times (5 times)
+  for (int i = 0; i < 5; i++) {
+    sdResult = SD_Init();
+    if (sdResult == FR_OK) {
       OLED_WriteString("SD Card OK!");
-      // Show first bytes of FAT32 boot sector
-      OLED_SetCursor(0, 3);
-      snprintf((char*)hexSDRead, sizeof(hexSDRead), "%02X%02X%02X%02X%02X%02X",
-              SDBuffer[0], SDBuffer[1], SDBuffer[2], SDBuffer[3], SDBuffer[4], SDBuffer[5]);
-      OLED_WriteString((char*)hexSDRead);
       break;
-    } else {
-      sdResult = initSDCard();
     }
     HAL_Delay(100);
   }
-  if (sdResult!=0) OLED_WriteString("SD Card init error");
+
+  if (sdResult != FR_OK) {
+    snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
+    OLED_WriteString((char*)hexSDRead);
+  } else {
+    // List MIDI files and display
+    OLED_SetCursor(0, 3);
+    int numSongs = SD_ListMidiFiles();
+    snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
+    OLED_WriteString((char*)hexSDRead);
+    SD_DisplaySongList(0, 0);
+  }
   
+  OLED_SetCursor(0, 1);
+  OLED_WriteString("System Ready");
+
+  if (SD_OpenFile(&file, "test1.mid", FA_READ) == FR_OK){
+    SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
+    SD_CloseFile(&file);
+  }
+  HC05_SendBytes(FileBuffer, BytesRead);
+  OLED_SetCursor(0, 1);
+  OLED_WriteString("Send bytes!   ");
 
   /* USER CODE END 2 */
 
@@ -185,6 +204,9 @@ int main(void)
     }
     HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
   #endif
+
+
+
     // dynamic pwm from 40%->100%, 40% -> 200, 100% -> 500
     if (pwmNum < 500) {
       pwmNum++;

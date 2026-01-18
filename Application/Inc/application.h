@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include "usart.h"
 #include <sdcard.h>
+#include <fatfs_sd.h>
 
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 

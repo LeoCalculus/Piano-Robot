@@ -1,26 +1,58 @@
 #ifndef __SDCARD_H
 #define __SDCARD_H
 
-#include <gpio.h>
-#include <spi.h>
+#include <main.h>
+#include <ff.h>
 #include <stdint.h>
 
-// SD card uses SPI2: PB13=SCK, PB14=MISO, PB15=MOSI
-// CS pin: PC14 (directly controlled via GPIO)
+/* SD Card Configuration */
+#define MAX_FILENAME_LEN 13  /* 8.3 format + null terminator */
+#define MAX_FILES        100
 
-extern uint8_t SDBuffer[512];
+/* File entry structure for MIDI file listing */
+typedef struct {
+    char     name[MAX_FILENAME_LEN];
+    uint32_t size;
+} FileEntry;
 
-// Initialize SD card and load FAT32 boot sector into SDBuffer
-// Returns: 0=success, 1=CMD0 fail, 2=MBR read fail, 3=ACMD41 timeout
-int initSDCard(void);
+/* Global variables */
+extern FATFS fatFs;           /* FatFs filesystem object */
+extern FileEntry fileList[MAX_FILES];
+extern uint8_t fileCount;
 
-// Read a 512-byte block from SD card
-// blockAddr: block number (for SDHC cards, this is the sector number)
-// buffer: pointer to 512-byte buffer
-// Returns: 0=success, 1=command fail, 2=no data token
-int SD_readData(uint32_t blockAddr, uint8_t* buffer);
+/* SD Card / FatFs initialization */
+/* Returns: FR_OK (0) on success, error code otherwise */
+FRESULT SD_Init(void);
 
-// Send command to SD card and get response
-uint8_t SD_SendCommand(uint8_t* cmd, uint8_t len);
+/* Mount/Unmount SD card */
+FRESULT SD_Mount(void);
+FRESULT SD_Unmount(void);
 
-#endif
+/* File operations using FatFs */
+FRESULT SD_OpenFile(FIL* file, const char* path, BYTE mode);
+FRESULT SD_CloseFile(FIL* file);
+FRESULT SD_ReadFile(FIL* file, void* buff, UINT btr, UINT* br);
+FRESULT SD_WriteFile(FIL* file, const void* buff, UINT btw, UINT* bw);
+
+/* MIDI file listing (backward compatible) */
+int SD_ListMidiFiles(void);
+
+/* Read MIDI file into buffer */
+/* fileIndex: index into fileList array */
+/* buffer: destination buffer */
+/* maxSize: maximum bytes to read */
+/* Returns: bytes read, or -1 on error */
+int SD_ReadMidiFile(uint8_t fileIndex, uint8_t* buffer, uint32_t maxSize);
+
+/* Display song list on OLED */
+void SD_DisplaySongList(uint8_t startIndex, uint8_t selectedIndex);
+
+/* Get storage info */
+typedef struct {
+    uint32_t totalKB;
+    uint32_t freeKB;
+} SD_StorageInfo;
+
+FRESULT SD_GetStorageInfo(SD_StorageInfo* info);
+
+#endif /* __SDCARD_H */

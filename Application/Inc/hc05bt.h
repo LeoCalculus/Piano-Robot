@@ -19,5 +19,6 @@ int setupBT();
 // runtime functions
 int HC05_SendInfo(uint8_t* buffer);
 void HC05_ReceiveInfo(uint8_t* receiveBuffer);
+int HC05_SendBytes(uint8_t* buffer, uint16_t len);
 
 #endif

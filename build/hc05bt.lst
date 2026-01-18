@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -56,363 +56,448 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 1
   38              		.cfi_startproc
   39              		@ args = 0, pretend = 0, frame = 72
   40              		@ frame_needed = 0, uses_anonymous_args = 0
-  41 0000 30B5     		push	{r4, r5, lr}
+  41 0000 70B5     		push	{r4, r5, r6, lr}
   42              	.LCFI0:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 2
 
 
-  43              		.cfi_def_cfa_offset 12
-  44              		.cfi_offset 4, -12
-  45              		.cfi_offset 5, -8
-  46              		.cfi_offset 14, -4
-  47 0002 93B0     		sub	sp, sp, #76
-  48              	.LCFI1:
-  49              		.cfi_def_cfa_offset 88
+  43              		.cfi_def_cfa_offset 16
+  44              		.cfi_offset 4, -16
+  45              		.cfi_offset 5, -12
+  46              		.cfi_offset 6, -8
+  47              		.cfi_offset 14, -4
+  48 0002 92B0     		sub	sp, sp, #72
+  49              	.LCFI1:
+  50              		.cfi_def_cfa_offset 88
   10:./Application/Src/hc05bt.c ****     // reset baudrate
   11:./Application/Src/hc05bt.c ****     uint8_t cmd[] = "AT+UART=115200,0,0\r\n";
-  50              		.loc 1 11 5 view .LVU1
-  51              		.loc 1 11 13 is_stmt 0 view .LVU2
-  52 0004 0DF1300C 		add	ip, sp, #48
-  53 0008 2A4C     		ldr	r4, .L7
-  54 000a 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
-  55 000c ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
-  56 0010 94E80300 		ldm	r4, {r0, r1}
-  57 0014 4CF8040B 		str	r0, [ip], #4
-  58 0018 8CF80010 		strb	r1, [ip]
+  51              		.loc 1 11 5 view .LVU1
+  52              		.loc 1 11 13 is_stmt 0 view .LVU2
+  53 0004 0DF1300C 		add	ip, sp, #48
+  54 0008 2B4C     		ldr	r4, .L7
+  55 000a 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+  56 000c ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
+  57 0010 94E80300 		ldm	r4, {r0, r1}
+  58 0014 4CF8040B 		str	r0, [ip], #4
+  59 0018 8CF80010 		strb	r1, [ip]
   12:./Application/Src/hc05bt.c ****     uint8_t buffer[16] = {0};
-  59              		.loc 1 12 5 is_stmt 1 view .LVU3
-  60              		.loc 1 12 13 is_stmt 0 view .LVU4
-  61 001c 0023     		movs	r3, #0
-  62 001e 0893     		str	r3, [sp, #32]
-  63 0020 0993     		str	r3, [sp, #36]
-  64 0022 0A93     		str	r3, [sp, #40]
-  65 0024 0B93     		str	r3, [sp, #44]
+  60              		.loc 1 12 5 is_stmt 1 view .LVU3
+  61              		.loc 1 12 13 is_stmt 0 view .LVU4
+  62 001c 08AC     		add	r4, sp, #32
+  63 001e 0023     		movs	r3, #0
+  64 0020 0893     		str	r3, [sp, #32]
+  65 0022 0993     		str	r3, [sp, #36]
+  66 0024 0A93     		str	r3, [sp, #40]
+  67 0026 0B93     		str	r3, [sp, #44]
   13:./Application/Src/hc05bt.c ****     HAL_UART_Transmit(&huart1, cmd, strlen((char*)cmd), 100);
-  66              		.loc 1 13 5 is_stmt 1 view .LVU5
-  67              		.loc 1 13 37 is_stmt 0 view .LVU6
-  68 0026 0CA8     		add	r0, sp, #48
-  69 0028 FFF7FEFF 		bl	strlen
-  70              	.LVL0:
-  71              		.loc 1 13 5 discriminator 1 view .LVU7
-  72 002c 224C     		ldr	r4, .L7+4
-  73 002e 6423     		movs	r3, #100
-  74 0030 82B2     		uxth	r2, r0
-  75 0032 0CA9     		add	r1, sp, #48
-  76 0034 2046     		mov	r0, r4
-  77 0036 FFF7FEFF 		bl	HAL_UART_Transmit
-  78              	.LVL1:
+  68              		.loc 1 13 5 is_stmt 1 view .LVU5
+  69              		.loc 1 13 37 is_stmt 0 view .LVU6
+  70 0028 0CAE     		add	r6, sp, #48
+  71 002a 3046     		mov	r0, r6
+  72 002c FFF7FEFF 		bl	strlen
+  73              	.LVL0:
+  74              		.loc 1 13 5 discriminator 1 view .LVU7
+  75 0030 224D     		ldr	r5, .L7+4
+  76 0032 6423     		movs	r3, #100
+  77 0034 82B2     		uxth	r2, r0
+  78 0036 3146     		mov	r1, r6
+  79 0038 2846     		mov	r0, r5
+  80 003a FFF7FEFF 		bl	HAL_UART_Transmit
+  81              	.LVL1:
   14:./Application/Src/hc05bt.c ****     // receive response
   15:./Application/Src/hc05bt.c ****     HAL_StatusTypeDef status = HAL_UART_Receive(&huart1, buffer, 4, 1000);
-  79              		.loc 1 15 5 is_stmt 1 view .LVU8
-  80              		.loc 1 15 32 is_stmt 0 view .LVU9
-  81 003a 4FF47A73 		mov	r3, #1000
-  82 003e 0422     		movs	r2, #4
-  83 0040 08A9     		add	r1, sp, #32
-  84 0042 2046     		mov	r0, r4
-  85 0044 FFF7FEFF 		bl	HAL_UART_Receive
-  86              	.LVL2:
+  82              		.loc 1 15 5 is_stmt 1 view .LVU8
+  83              		.loc 1 15 32 is_stmt 0 view .LVU9
+  84 003e 4FF47A73 		mov	r3, #1000
+  85 0042 0422     		movs	r2, #4
+  86 0044 2146     		mov	r1, r4
+  87 0046 2846     		mov	r0, r5
+  88 0048 FFF7FEFF 		bl	HAL_UART_Receive
+  89              	.LVL2:
   16:./Application/Src/hc05bt.c ****     // use strncmp to compare strings and find "OK"
   17:./Application/Src/hc05bt.c ****     if (status != HAL_OK || strncmp((char*)buffer, "OK", 2) != 0){
-  87              		.loc 1 17 5 is_stmt 1 view .LVU10
-  88              		.loc 1 17 8 is_stmt 0 view .LVU11
-  89 0048 78BB     		cbnz	r0, .L3
-  90              		.loc 1 17 29 discriminator 1 view .LVU12
-  91 004a 0222     		movs	r2, #2
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 3
+  90              		.loc 1 17 5 is_stmt 1 view .LVU10
+  91              		.loc 1 17 8 is_stmt 0 view .LVU11
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 3
 
 
-  92 004c 1B49     		ldr	r1, .L7+8
-  93 004e 08A8     		add	r0, sp, #32
-  94              	.LVL3:
-  95              		.loc 1 17 29 discriminator 1 view .LVU13
-  96 0050 FFF7FEFF 		bl	strncmp
-  97              	.LVL4:
-  98              		.loc 1 17 26 discriminator 1 view .LVU14
-  99 0054 0546     		mov	r5, r0
- 100 0056 08B1     		cbz	r0, .L6
+  92 004c 78BB     		cbnz	r0, .L3
+  93              		.loc 1 17 29 discriminator 1 view .LVU12
+  94 004e 0222     		movs	r2, #2
+  95 0050 1B49     		ldr	r1, .L7+8
+  96 0052 2046     		mov	r0, r4
+  97              	.LVL3:
+  98              		.loc 1 17 29 discriminator 1 view .LVU13
+  99 0054 FFF7FEFF 		bl	strncmp
+ 100              	.LVL4:
+ 101              		.loc 1 17 26 discriminator 2 view .LVU14
+ 102 0058 0546     		mov	r5, r0
+ 103 005a 08B1     		cbz	r0, .L6
   18:./Application/Src/hc05bt.c ****         return 0;
- 101              		.loc 1 18 16 view .LVU15
- 102 0058 0025     		movs	r5, #0
- 103 005a 27E0     		b	.L1
- 104              	.L6:
+ 104              		.loc 1 18 16 view .LVU15
+ 105 005c 0025     		movs	r5, #0
+ 106 005e 27E0     		b	.L1
+ 107              	.L6:
   19:./Application/Src/hc05bt.c ****     } 
   20:./Application/Src/hc05bt.c **** 
   21:./Application/Src/hc05bt.c ****     // set PIN (do this BEFORE changing baud rate!)
   22:./Application/Src/hc05bt.c ****     uint8_t cmd2[] = "AT+PSWD=6666\r\n";  // fixed typo: PSWD not PSDW
- 105              		.loc 1 22 5 is_stmt 1 view .LVU16
- 106              		.loc 1 22 13 is_stmt 0 view .LVU17
- 107 005c 184B     		ldr	r3, .L7+12
- 108 005e 04AC     		add	r4, sp, #16
- 109 0060 0FCB     		ldm	r3, {r0, r1, r2, r3}
- 110 0062 07C4     		stmia	r4!, {r0, r1, r2}
- 111 0064 24F8023B 		strh	r3, [r4], #2	@ movhi
- 112 0068 1B0C     		lsrs	r3, r3, #16
- 113 006a 2370     		strb	r3, [r4]
+ 108              		.loc 1 22 5 is_stmt 1 view .LVU16
+ 109              		.loc 1 22 13 is_stmt 0 view .LVU17
+ 110 0060 184B     		ldr	r3, .L7+12
+ 111 0062 04AC     		add	r4, sp, #16
+ 112 0064 0FCB     		ldm	r3, {r0, r1, r2, r3}
+ 113 0066 07C4     		stmia	r4!, {r0, r1, r2}
+ 114 0068 24F8023B 		strh	r3, [r4], #2	@ movhi
+ 115 006c 1B0C     		lsrs	r3, r3, #16
+ 116 006e 2370     		strb	r3, [r4]
   23:./Application/Src/hc05bt.c ****     uint8_t buffer2[16] = {0};
- 114              		.loc 1 23 5 is_stmt 1 view .LVU18
- 115              		.loc 1 23 13 is_stmt 0 view .LVU19
- 116 006c 0023     		movs	r3, #0
- 117 006e 0093     		str	r3, [sp]
- 118 0070 0193     		str	r3, [sp, #4]
- 119 0072 0293     		str	r3, [sp, #8]
- 120 0074 0393     		str	r3, [sp, #12]
+ 117              		.loc 1 23 5 is_stmt 1 view .LVU18
+ 118              		.loc 1 23 13 is_stmt 0 view .LVU19
+ 119 0070 0023     		movs	r3, #0
+ 120 0072 0093     		str	r3, [sp]
+ 121 0074 0193     		str	r3, [sp, #4]
+ 122 0076 0293     		str	r3, [sp, #8]
+ 123 0078 0393     		str	r3, [sp, #12]
   24:./Application/Src/hc05bt.c ****     HAL_UART_Transmit(&huart1, cmd2, strlen((char*)cmd2), 100);
- 121              		.loc 1 24 5 is_stmt 1 view .LVU20
- 122              		.loc 1 24 38 is_stmt 0 view .LVU21
- 123 0076 04A8     		add	r0, sp, #16
- 124 0078 FFF7FEFF 		bl	strlen
- 125              	.LVL5:
- 126              		.loc 1 24 5 discriminator 1 view .LVU22
- 127 007c 0E4C     		ldr	r4, .L7+4
- 128 007e 6423     		movs	r3, #100
- 129 0080 82B2     		uxth	r2, r0
- 130 0082 04A9     		add	r1, sp, #16
- 131 0084 2046     		mov	r0, r4
- 132 0086 FFF7FEFF 		bl	HAL_UART_Transmit
- 133              	.LVL6:
+ 124              		.loc 1 24 5 is_stmt 1 view .LVU20
+ 125              		.loc 1 24 38 is_stmt 0 view .LVU21
+ 126 007a 04AE     		add	r6, sp, #16
+ 127 007c 3046     		mov	r0, r6
+ 128 007e FFF7FEFF 		bl	strlen
+ 129              	.LVL5:
+ 130              		.loc 1 24 5 discriminator 1 view .LVU22
+ 131 0082 6423     		movs	r3, #100
+ 132 0084 82B2     		uxth	r2, r0
+ 133 0086 3146     		mov	r1, r6
+ 134 0088 0C48     		ldr	r0, .L7+4
+ 135 008a FFF7FEFF 		bl	HAL_UART_Transmit
+ 136              	.LVL6:
   25:./Application/Src/hc05bt.c ****     // receive response
   26:./Application/Src/hc05bt.c ****     HAL_StatusTypeDef status2 = HAL_UART_Receive(&huart1, buffer2, 4, 1000);
- 134              		.loc 1 26 5 is_stmt 1 view .LVU23
- 135              		.loc 1 26 33 is_stmt 0 view .LVU24
- 136 008a 4FF47A73 		mov	r3, #1000
- 137 008e 0422     		movs	r2, #4
- 138 0090 6946     		mov	r1, sp
- 139 0092 2046     		mov	r0, r4
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 4
+ 137              		.loc 1 26 5 is_stmt 1 view .LVU23
+ 138              		.loc 1 26 33 is_stmt 0 view .LVU24
+ 139 008e 4FF47A73 		mov	r3, #1000
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 4
 
 
- 140 0094 FFF7FEFF 		bl	HAL_UART_Receive
- 141              	.LVL7:
+ 140 0092 0422     		movs	r2, #4
+ 141 0094 6946     		mov	r1, sp
+ 142 0096 0948     		ldr	r0, .L7+4
+ 143 0098 FFF7FEFF 		bl	HAL_UART_Receive
+ 144              	.LVL7:
   27:./Application/Src/hc05bt.c ****     // use strncmp to compare strings and find "OK"
   28:./Application/Src/hc05bt.c ****     if (status2 != HAL_OK || strncmp((char*)buffer2, "OK", 2) != 0){  // fixed: buffer2
- 142              		.loc 1 28 5 is_stmt 1 view .LVU25
- 143              		.loc 1 28 8 is_stmt 0 view .LVU26
- 144 0098 40B9     		cbnz	r0, .L1
- 145              		.loc 1 28 30 discriminator 1 view .LVU27
- 146 009a 0222     		movs	r2, #2
- 147 009c 0749     		ldr	r1, .L7+8
- 148 009e 6846     		mov	r0, sp
- 149              	.LVL8:
- 150              		.loc 1 28 30 discriminator 1 view .LVU28
- 151 00a0 FFF7FEFF 		bl	strncmp
- 152              	.LVL9:
- 153              		.loc 1 28 27 discriminator 1 view .LVU29
- 154 00a4 10B9     		cbnz	r0, .L1
+ 145              		.loc 1 28 5 is_stmt 1 view .LVU25
+ 146              		.loc 1 28 8 is_stmt 0 view .LVU26
+ 147 009c 40B9     		cbnz	r0, .L1
+ 148              		.loc 1 28 30 discriminator 1 view .LVU27
+ 149 009e 0222     		movs	r2, #2
+ 150 00a0 0749     		ldr	r1, .L7+8
+ 151 00a2 6846     		mov	r0, sp
+ 152              	.LVL8:
+ 153              		.loc 1 28 30 discriminator 1 view .LVU28
+ 154 00a4 FFF7FEFF 		bl	strncmp
+ 155              	.LVL9:
+ 156              		.loc 1 28 27 discriminator 2 view .LVU29
+ 157 00a8 10B9     		cbnz	r0, .L1
   29:./Application/Src/hc05bt.c ****         return 0;
   30:./Application/Src/hc05bt.c ****     }    
   31:./Application/Src/hc05bt.c ****     return 1; // all set done!
- 155              		.loc 1 31 12 view .LVU30
- 156 00a6 0125     		movs	r5, #1
- 157 00a8 00E0     		b	.L1
- 158              	.LVL10:
- 159              	.L3:
+ 158              		.loc 1 31 12 view .LVU30
+ 159 00aa 0125     		movs	r5, #1
+ 160 00ac 00E0     		b	.L1
+ 161              	.LVL10:
+ 162              	.L3:
   18:./Application/Src/hc05bt.c ****     } 
- 160              		.loc 1 18 16 view .LVU31
- 161 00aa 0025     		movs	r5, #0
- 162              	.LVL11:
- 163              	.L1:
+ 163              		.loc 1 18 16 view .LVU31
+ 164 00ae 0025     		movs	r5, #0
+ 165              	.LVL11:
+ 166              	.L1:
   32:./Application/Src/hc05bt.c **** }
- 164              		.loc 1 32 1 view .LVU32
- 165 00ac 2846     		mov	r0, r5
- 166 00ae 13B0     		add	sp, sp, #76
- 167              	.LCFI2:
- 168              		.cfi_def_cfa_offset 12
- 169              		@ sp needed
- 170 00b0 30BD     		pop	{r4, r5, pc}
- 171              	.L8:
- 172 00b2 00BF     		.align	2
- 173              	.L7:
- 174 00b4 04000000 		.word	.LC0
- 175 00b8 00000000 		.word	huart1
- 176 00bc 00000000 		.word	.LC1
- 177 00c0 1C000000 		.word	.LC2
- 178              		.cfi_endproc
- 179              	.LFE65:
- 181              		.section	.text.HC05_SendInfo,"ax",%progbits
- 182              		.align	1
- 183              		.global	HC05_SendInfo
- 184              		.syntax unified
- 185              		.thumb
- 186              		.thumb_func
- 188              	HC05_SendInfo:
- 189              	.LVL12:
- 190              	.LFB66:
+ 167              		.loc 1 32 1 view .LVU32
+ 168 00b0 2846     		mov	r0, r5
+ 169 00b2 12B0     		add	sp, sp, #72
+ 170              	.LCFI2:
+ 171              		.cfi_def_cfa_offset 16
+ 172              		@ sp needed
+ 173 00b4 70BD     		pop	{r4, r5, r6, pc}
+ 174              	.L8:
+ 175 00b6 00BF     		.align	2
+ 176              	.L7:
+ 177 00b8 04000000 		.word	.LC0
+ 178 00bc 00000000 		.word	huart1
+ 179 00c0 00000000 		.word	.LC1
+ 180 00c4 1C000000 		.word	.LC2
+ 181              		.cfi_endproc
+ 182              	.LFE65:
+ 184              		.section	.text.HC05_SendInfo,"ax",%progbits
+ 185              		.align	1
+ 186              		.global	HC05_SendInfo
+ 187              		.syntax unified
+ 188              		.thumb
+ 189              		.thumb_func
+ 191              	HC05_SendInfo:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 5
+
+
+ 192              	.LVL12:
+ 193              	.LFB66:
   33:./Application/Src/hc05bt.c **** 
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 5
-
-
   34:./Application/Src/hc05bt.c **** // runtime function will use interrupt
   35:./Application/Src/hc05bt.c **** // use interrupt to send
   36:./Application/Src/hc05bt.c **** // expect input a string
   37:./Application/Src/hc05bt.c **** int HC05_SendInfo(uint8_t* buffer){
- 191              		.loc 1 37 35 is_stmt 1 view -0
- 192              		.cfi_startproc
- 193              		@ args = 0, pretend = 0, frame = 0
- 194              		@ frame_needed = 0, uses_anonymous_args = 0
- 195              		.loc 1 37 35 is_stmt 0 view .LVU34
- 196 0000 10B5     		push	{r4, lr}
- 197              	.LCFI3:
- 198              		.cfi_def_cfa_offset 8
- 199              		.cfi_offset 4, -8
- 200              		.cfi_offset 14, -4
- 201 0002 0446     		mov	r4, r0
+ 194              		.loc 1 37 35 is_stmt 1 view -0
+ 195              		.cfi_startproc
+ 196              		@ args = 0, pretend = 0, frame = 0
+ 197              		@ frame_needed = 0, uses_anonymous_args = 0
+ 198              		.loc 1 37 35 is_stmt 0 view .LVU34
+ 199 0000 10B5     		push	{r4, lr}
+ 200              	.LCFI3:
+ 201              		.cfi_def_cfa_offset 8
+ 202              		.cfi_offset 4, -8
+ 203              		.cfi_offset 14, -4
+ 204 0002 0446     		mov	r4, r0
   38:./Application/Src/hc05bt.c ****     HAL_UART_StateTypeDef state = HAL_UART_GetState(&huart1);
- 202              		.loc 1 38 5 is_stmt 1 view .LVU35
- 203              		.loc 1 38 35 is_stmt 0 view .LVU36
- 204 0004 0948     		ldr	r0, .L14
- 205              	.LVL13:
- 206              		.loc 1 38 35 view .LVU37
- 207 0006 FFF7FEFF 		bl	HAL_UART_GetState
- 208              	.LVL14:
+ 205              		.loc 1 38 5 is_stmt 1 view .LVU35
+ 206              		.loc 1 38 35 is_stmt 0 view .LVU36
+ 207 0004 0948     		ldr	r0, .L14
+ 208              	.LVL13:
+ 209              		.loc 1 38 35 view .LVU37
+ 210 0006 FFF7FEFF 		bl	HAL_UART_GetState
+ 211              	.LVL14:
   39:./Application/Src/hc05bt.c ****     // allow transmit when idle OR when only receiving (not when already transmitting)
   40:./Application/Src/hc05bt.c ****     if(state == HAL_UART_STATE_READY || state == HAL_UART_STATE_BUSY_RX){
- 209              		.loc 1 40 5 is_stmt 1 view .LVU38
- 210              		.loc 1 40 7 is_stmt 0 view .LVU39
- 211 000a 2028     		cmp	r0, #32
- 212 000c 03D0     		beq	.L10
- 213              		.loc 1 40 38 discriminator 1 view .LVU40
- 214 000e 2228     		cmp	r0, #34
- 215 0010 01D0     		beq	.L10
+ 212              		.loc 1 40 5 is_stmt 1 view .LVU38
+ 213              		.loc 1 40 7 is_stmt 0 view .LVU39
+ 214 000a 2028     		cmp	r0, #32
+ 215 000c 03D0     		beq	.L10
+ 216              		.loc 1 40 38 discriminator 1 view .LVU40
+ 217 000e 2228     		cmp	r0, #34
+ 218 0010 01D0     		beq	.L10
   41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
   42:./Application/Src/hc05bt.c ****         return 1;
   43:./Application/Src/hc05bt.c ****     }
   44:./Application/Src/hc05bt.c **** 
   45:./Application/Src/hc05bt.c ****     return 0; // busy transmitting
- 216              		.loc 1 45 12 view .LVU41
- 217 0012 0020     		movs	r0, #0
- 218              	.LVL15:
- 219              	.L9:
+ 219              		.loc 1 45 12 view .LVU41
+ 220 0012 0020     		movs	r0, #0
+ 221              	.LVL15:
+ 222              	.L9:
   46:./Application/Src/hc05bt.c **** }
- 220              		.loc 1 46 1 view .LVU42
- 221 0014 10BD     		pop	{r4, pc}
- 222              	.LVL16:
- 223              	.L10:
+ 223              		.loc 1 46 1 view .LVU42
+ 224 0014 10BD     		pop	{r4, pc}
+ 225              	.LVL16:
+ 226              	.L10:
   41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
- 224              		.loc 1 41 9 is_stmt 1 view .LVU43
+ 227              		.loc 1 41 9 is_stmt 1 view .LVU43
   41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
- 225              		.loc 1 41 47 is_stmt 0 view .LVU44
- 226 0016 2046     		mov	r0, r4
- 227              	.LVL17:
+ 228              		.loc 1 41 47 is_stmt 0 view .LVU44
+ 229 0016 2046     		mov	r0, r4
+ 230              	.LVL17:
   41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
- 228              		.loc 1 41 47 view .LVU45
- 229 0018 FFF7FEFF 		bl	strlen
- 230              	.LVL18:
-  41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 6
+ 231              		.loc 1 41 47 view .LVU45
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 6
 
 
- 231              		.loc 1 41 9 discriminator 1 view .LVU46
- 232 001c 82B2     		uxth	r2, r0
- 233 001e 2146     		mov	r1, r4
- 234 0020 0248     		ldr	r0, .L14
- 235 0022 FFF7FEFF 		bl	HAL_UART_Transmit_IT
- 236              	.LVL19:
+ 232 0018 FFF7FEFF 		bl	strlen
+ 233              	.LVL18:
+  41:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, strlen((char*)buffer));
+ 234              		.loc 1 41 9 discriminator 1 view .LVU46
+ 235 001c 82B2     		uxth	r2, r0
+ 236 001e 2146     		mov	r1, r4
+ 237 0020 0248     		ldr	r0, .L14
+ 238 0022 FFF7FEFF 		bl	HAL_UART_Transmit_IT
+ 239              	.LVL19:
   42:./Application/Src/hc05bt.c ****     }
- 237              		.loc 1 42 9 is_stmt 1 view .LVU47
+ 240              		.loc 1 42 9 is_stmt 1 view .LVU47
   42:./Application/Src/hc05bt.c ****     }
- 238              		.loc 1 42 16 is_stmt 0 view .LVU48
- 239 0026 0120     		movs	r0, #1
- 240 0028 F4E7     		b	.L9
- 241              	.L15:
- 242 002a 00BF     		.align	2
- 243              	.L14:
- 244 002c 00000000 		.word	huart1
- 245              		.cfi_endproc
- 246              	.LFE66:
- 248              		.section	.text.HC05_ReceiveInfo,"ax",%progbits
- 249              		.align	1
- 250              		.global	HC05_ReceiveInfo
- 251              		.syntax unified
- 252              		.thumb
- 253              		.thumb_func
- 255              	HC05_ReceiveInfo:
- 256              	.LVL20:
- 257              	.LFB67:
+ 241              		.loc 1 42 16 is_stmt 0 view .LVU48
+ 242 0026 0120     		movs	r0, #1
+ 243 0028 F4E7     		b	.L9
+ 244              	.L15:
+ 245 002a 00BF     		.align	2
+ 246              	.L14:
+ 247 002c 00000000 		.word	huart1
+ 248              		.cfi_endproc
+ 249              	.LFE66:
+ 251              		.section	.text.HC05_ReceiveInfo,"ax",%progbits
+ 252              		.align	1
+ 253              		.global	HC05_ReceiveInfo
+ 254              		.syntax unified
+ 255              		.thumb
+ 256              		.thumb_func
+ 258              	HC05_ReceiveInfo:
+ 259              	.LVL20:
+ 260              	.LFB67:
   47:./Application/Src/hc05bt.c **** 
   48:./Application/Src/hc05bt.c **** void HC05_ReceiveInfo(uint8_t* receiveBuffer){
- 258              		.loc 1 48 46 is_stmt 1 view -0
- 259              		.cfi_startproc
- 260              		@ args = 0, pretend = 0, frame = 0
- 261              		@ frame_needed = 0, uses_anonymous_args = 0
- 262              		.loc 1 48 46 is_stmt 0 view .LVU50
- 263 0000 08B5     		push	{r3, lr}
- 264              	.LCFI4:
- 265              		.cfi_def_cfa_offset 8
- 266              		.cfi_offset 3, -8
- 267              		.cfi_offset 14, -4
+ 261              		.loc 1 48 46 is_stmt 1 view -0
+ 262              		.cfi_startproc
+ 263              		@ args = 0, pretend = 0, frame = 0
+ 264              		@ frame_needed = 0, uses_anonymous_args = 0
+ 265              		.loc 1 48 46 is_stmt 0 view .LVU50
+ 266 0000 08B5     		push	{r3, lr}
+ 267              	.LCFI4:
+ 268              		.cfi_def_cfa_offset 8
+ 269              		.cfi_offset 3, -8
+ 270              		.cfi_offset 14, -4
   49:./Application/Src/hc05bt.c ****     HAL_UART_Receive_IT(&huart1, &rx_byte, 1); // trigger interrupt when one byte is fetched!
- 268              		.loc 1 49 5 is_stmt 1 view .LVU51
- 269 0002 0122     		movs	r2, #1
- 270 0004 0249     		ldr	r1, .L18
- 271 0006 0348     		ldr	r0, .L18+4
- 272              	.LVL21:
- 273              		.loc 1 49 5 is_stmt 0 view .LVU52
- 274 0008 FFF7FEFF 		bl	HAL_UART_Receive_IT
- 275              	.LVL22:
+ 271              		.loc 1 49 5 is_stmt 1 view .LVU51
+ 272 0002 0122     		movs	r2, #1
+ 273 0004 0249     		ldr	r1, .L18
+ 274 0006 0348     		ldr	r0, .L18+4
+ 275              	.LVL21:
+ 276              		.loc 1 49 5 is_stmt 0 view .LVU52
+ 277 0008 FFF7FEFF 		bl	HAL_UART_Receive_IT
+ 278              	.LVL22:
   50:./Application/Src/hc05bt.c **** 
   51:./Application/Src/hc05bt.c **** }
- 276              		.loc 1 51 1 view .LVU53
- 277 000c 08BD     		pop	{r3, pc}
- 278              	.L19:
- 279 000e 00BF     		.align	2
- 280              	.L18:
- 281 0010 00000000 		.word	rx_byte
- 282 0014 00000000 		.word	huart1
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 7
+ 279              		.loc 1 51 1 view .LVU53
+ 280 000c 08BD     		pop	{r3, pc}
+ 281              	.L19:
+ 282 000e 00BF     		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 7
 
 
- 283              		.cfi_endproc
- 284              	.LFE67:
- 286              		.global	rx_complete
- 287              		.section	.bss.rx_complete,"aw",%nobits
- 290              	rx_complete:
- 291 0000 00       		.space	1
- 292              		.global	rx_byte
- 293              		.section	.bss.rx_byte,"aw",%nobits
- 296              	rx_byte:
- 297 0000 00       		.space	1
- 298              		.global	rx_data
- 299              		.section	.bss.rx_data,"aw",%nobits
- 300              		.align	2
- 303              	rx_data:
- 304 0000 00000000 		.space	100
- 304      00000000 
- 304      00000000 
- 304      00000000 
- 304      00000000 
- 305              		.text
- 306              	.Letext0:
- 307              		.file 2 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/inc
- 308              		.file 3 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
- 309              		.file 4 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/../
- 310              		.file 5 "Application/Inc/hc05bt.h"
- 311              		.file 6 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
- 312              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
- 313              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
- 314              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
- 315              		.file 10 "Core/Inc/usart.h"
- 316              		.file 11 "C:\\ST\\STM32CubeCLT_1.19.0\\GNU-tools-for-STM32\\bin/../lib/gcc/arm-none-eabi/13.3.1/..
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s 			page 8
+ 283              	.L18:
+ 284 0010 00000000 		.word	rx_byte
+ 285 0014 00000000 		.word	huart1
+ 286              		.cfi_endproc
+ 287              	.LFE67:
+ 289              		.section	.text.HC05_SendBytes,"ax",%progbits
+ 290              		.align	1
+ 291              		.global	HC05_SendBytes
+ 292              		.syntax unified
+ 293              		.thumb
+ 294              		.thumb_func
+ 296              	HC05_SendBytes:
+ 297              	.LVL23:
+ 298              	.LFB68:
+  52:./Application/Src/hc05bt.c **** 
+  53:./Application/Src/hc05bt.c **** int HC05_SendBytes(uint8_t* buffer, uint16_t len){
+ 299              		.loc 1 53 50 is_stmt 1 view -0
+ 300              		.cfi_startproc
+ 301              		@ args = 0, pretend = 0, frame = 0
+ 302              		@ frame_needed = 0, uses_anonymous_args = 0
+ 303              		.loc 1 53 50 is_stmt 0 view .LVU55
+ 304 0000 38B5     		push	{r3, r4, r5, lr}
+ 305              	.LCFI5:
+ 306              		.cfi_def_cfa_offset 16
+ 307              		.cfi_offset 3, -16
+ 308              		.cfi_offset 4, -12
+ 309              		.cfi_offset 5, -8
+ 310              		.cfi_offset 14, -4
+ 311 0002 0446     		mov	r4, r0
+ 312 0004 0D46     		mov	r5, r1
+  54:./Application/Src/hc05bt.c ****     HAL_UART_StateTypeDef state = HAL_UART_GetState(&huart1);
+ 313              		.loc 1 54 5 is_stmt 1 view .LVU56
+ 314              		.loc 1 54 35 is_stmt 0 view .LVU57
+ 315 0006 0848     		ldr	r0, .L25
+ 316              	.LVL24:
+ 317              		.loc 1 54 35 view .LVU58
+ 318 0008 FFF7FEFF 		bl	HAL_UART_GetState
+ 319              	.LVL25:
+  55:./Application/Src/hc05bt.c ****     if(state == HAL_UART_STATE_READY || state == HAL_UART_STATE_BUSY_RX){
+ 320              		.loc 1 55 5 is_stmt 1 view .LVU59
+ 321              		.loc 1 55 7 is_stmt 0 view .LVU60
+ 322 000c 2028     		cmp	r0, #32
+ 323 000e 03D0     		beq	.L21
+ 324              		.loc 1 55 38 discriminator 1 view .LVU61
+ 325 0010 2228     		cmp	r0, #34
+ 326 0012 01D0     		beq	.L21
+  56:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, len);
+  57:./Application/Src/hc05bt.c ****         return 1;
+  58:./Application/Src/hc05bt.c ****     }
+  59:./Application/Src/hc05bt.c ****     return 0;
+ 327              		.loc 1 59 12 view .LVU62
+ 328 0014 0020     		movs	r0, #0
+ 329              	.LVL26:
+ 330              	.L20:
+  60:./Application/Src/hc05bt.c **** }
+ 331              		.loc 1 60 1 view .LVU63
+ 332 0016 38BD     		pop	{r3, r4, r5, pc}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 8
+
+
+ 333              	.LVL27:
+ 334              	.L21:
+  56:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, len);
+ 335              		.loc 1 56 9 is_stmt 1 view .LVU64
+ 336 0018 2A46     		mov	r2, r5
+ 337 001a 2146     		mov	r1, r4
+ 338 001c 0248     		ldr	r0, .L25
+ 339              	.LVL28:
+  56:./Application/Src/hc05bt.c ****         HAL_UART_Transmit_IT(&huart1, buffer, len);
+ 340              		.loc 1 56 9 is_stmt 0 view .LVU65
+ 341 001e FFF7FEFF 		bl	HAL_UART_Transmit_IT
+ 342              	.LVL29:
+  57:./Application/Src/hc05bt.c ****     }
+ 343              		.loc 1 57 9 is_stmt 1 view .LVU66
+  57:./Application/Src/hc05bt.c ****     }
+ 344              		.loc 1 57 16 is_stmt 0 view .LVU67
+ 345 0022 0120     		movs	r0, #1
+ 346 0024 F7E7     		b	.L20
+ 347              	.L26:
+ 348 0026 00BF     		.align	2
+ 349              	.L25:
+ 350 0028 00000000 		.word	huart1
+ 351              		.cfi_endproc
+ 352              	.LFE68:
+ 354              		.global	rx_complete
+ 355              		.section	.bss.rx_complete,"aw",%nobits
+ 358              	rx_complete:
+ 359 0000 00       		.space	1
+ 360              		.global	rx_byte
+ 361              		.section	.bss.rx_byte,"aw",%nobits
+ 364              	rx_byte:
+ 365 0000 00       		.space	1
+ 366              		.global	rx_data
+ 367              		.section	.bss.rx_data,"aw",%nobits
+ 368              		.align	2
+ 371              	rx_data:
+ 372 0000 00000000 		.space	100
+ 372      00000000 
+ 372      00000000 
+ 372      00000000 
+ 372      00000000 
+ 373              		.text
+ 374              	.Letext0:
+ 375              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 376              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 377              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 378              		.file 5 "Application/Inc/hc05bt.h"
+ 379              		.file 6 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 380              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 381              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 382              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
+ 383              		.file 10 "Core/Inc/usart.h"
+ 384              		.file 11 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s 			page 9
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 hc05bt.c
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:19     .rodata.setupBT.str1.4:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:29     .text.setupBT:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:35     .text.setupBT:00000000 setupBT
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:174    .text.setupBT:000000b4 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:182    .text.HC05_SendInfo:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:188    .text.HC05_SendInfo:00000000 HC05_SendInfo
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:244    .text.HC05_SendInfo:0000002c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:249    .text.HC05_ReceiveInfo:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:255    .text.HC05_ReceiveInfo:00000000 HC05_ReceiveInfo
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:281    .text.HC05_ReceiveInfo:00000010 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:296    .bss.rx_byte:00000000 rx_byte
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:290    .bss.rx_complete:00000000 rx_complete
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:291    .bss.rx_complete:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:297    .bss.rx_byte:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:303    .bss.rx_data:00000000 rx_data
-C:\Users\Xuleo\AppData\Local\Temp\ccNVGQe8.s:300    .bss.rx_data:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:19     .rodata.setupBT.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:29     .text.setupBT:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:35     .text.setupBT:00000000 setupBT
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:177    .text.setupBT:000000b8 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:185    .text.HC05_SendInfo:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:191    .text.HC05_SendInfo:00000000 HC05_SendInfo
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:247    .text.HC05_SendInfo:0000002c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:252    .text.HC05_ReceiveInfo:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:258    .text.HC05_ReceiveInfo:00000000 HC05_ReceiveInfo
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:284    .text.HC05_ReceiveInfo:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:364    .bss.rx_byte:00000000 rx_byte
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:290    .text.HC05_SendBytes:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:296    .text.HC05_SendBytes:00000000 HC05_SendBytes
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:350    .text.HC05_SendBytes:00000028 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:358    .bss.rx_complete:00000000 rx_complete
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:359    .bss.rx_complete:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:365    .bss.rx_byte:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:371    .bss.rx_data:00000000 rx_data
+C:\Users\Xuleo\AppData\Local\Temp\ccHgaMEi.s:368    .bss.rx_data:00000000 $d
 
 UNDEFINED SYMBOLS
 strlen

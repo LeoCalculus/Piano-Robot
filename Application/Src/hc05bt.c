@@ -49,3 +49,12 @@ void HC05_ReceiveInfo(uint8_t* receiveBuffer){
     HAL_UART_Receive_IT(&huart1, &rx_byte, 1); // trigger interrupt when one byte is fetched!
 
 }
+
+int HC05_SendBytes(uint8_t* buffer, uint16_t len){
+    HAL_UART_StateTypeDef state = HAL_UART_GetState(&huart1);
+    if(state == HAL_UART_STATE_READY || state == HAL_UART_STATE_BUSY_RX){
+        HAL_UART_Transmit_IT(&huart1, buffer, len);
+        return 1;
+    }
+    return 0;
+}

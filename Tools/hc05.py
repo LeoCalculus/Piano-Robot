@@ -75,17 +75,17 @@ class HC05SerialGUI:
         self.connection_tab = ttk.Frame(self.notebook)
         self.serial_testing_tab = ttk.Frame(self.notebook)
         self.at_command_tab = ttk.Frame(self.notebook)
-        
+
         # Add tabs to notebook
         self.notebook.add(self.connection_tab, text="Connection")
         self.notebook.add(self.serial_testing_tab, text="Serial Testing")
         self.notebook.add(self.at_command_tab, text="AT Commands")
-        
+
         # Set up each tab
         self.setup_connection_tab()
         self.setup_serial_testing_tab()
         self.setup_at_command_tab()
-        
+
         # Disable tabs until connected
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
@@ -365,7 +365,7 @@ class HC05SerialGUI:
         # Response text area
         self.at_response_text = scrolledtext.ScrolledText(response_frame, height=12, width=80, wrap=tk.WORD)
         self.at_response_text.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
-        
+
     def on_tab_change(self, event):
         """Handle tab change event"""
         selected_tab = self.notebook.index(self.notebook.select())
@@ -772,7 +772,7 @@ class HC05SerialGUI:
         # Disable tabs
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
-        
+
         # Switch to connection tab
         self.notebook.select(0)
         

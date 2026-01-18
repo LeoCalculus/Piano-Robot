@@ -1,139 +1,190 @@
+/*
+ * sdcard.c - SD Card operations using FatFs
+ */
+
 #include <sdcard.h>
+#include <oled1315.h>
 #include <string.h>
+#include <stdio.h>
 
-uint8_t SDBuffer[512];
+/* Global variables */
+FATFS fatFs;
+FileEntry fileList[MAX_FILES];
+uint8_t fileCount = 0;
 
-uint8_t SD_SendCommand(uint8_t* cmd, uint8_t len) {
-    uint8_t response = 0x00;
-    uint8_t dummy = 0xFF;
+/* Initialize SD card and mount filesystem */
+FRESULT SD_Init(void) {
+    FRESULT res;
 
-    // iterate to transmite the spi data
-    for (int i = 0; i < len; i++) {
-        HAL_SPI_TransmitReceive(&hspi2, &cmd[i], &response, 1, 100);
-    }
+    /* Mount the filesystem */
+    res = f_mount(&fatFs, "", 1);  /* 1 = mount now */
 
-    // wait for response from SD card since SD card has delay (bit 7 = 0)
-    for (int i = 0; i < 10; i++) { // response within 10 iterations
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-        if ((response & 0x80) == 0) {
-            return response;
-        }
-    }
-    return 0xFF; // cannot get command response
+    return res;
 }
 
-int SD_readData(uint32_t blockAddr, uint8_t* buffer) {
-    // read 512 byte from a statring address
-    uint8_t response = 0x00;
-    uint8_t dummy = 0xFF;
-    uint8_t cmd17[] = {0x51,(blockAddr >> 24) & 0xFF, (blockAddr >> 16) & 0xFF, (blockAddr >> 8) & 0xFF, blockAddr & 0xFF, 0xFF};
-
-    // Select card and send CMD17 (READ_SINGLE_BLOCK)
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
-    HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);  // sync after CS low
-    response = SD_SendCommand(cmd17, sizeof(cmd17));
-
-    if (response != 0x00) {
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-        return 1;  // first need to check whether the SD card has response
-    }
-
-    // then wait for FE which means SD card starts to report 
-    for (int i = 0; i < 10000; i++) {
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-        if (response == 0xFE) {
-            break;
-        }
-    }
-
-    if (response != 0xFE) {
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-        return 1;  // failed to report
-    }
-
-    HAL_SPI_Receive(&hspi2, buffer, 512, 5000); // receive and get data from card
-
-    // consume 2-byte CRC (must read these or next command will be corrupted)
-    // Every SD card data block is: 0xFE + 512 data bytes + 2 CRC bytes
-    HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-    HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-
-    // deselect card
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-    HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);  // extra clock to finish
-    return 0;
+/* Mount SD card */
+FRESULT SD_Mount(void) {
+    return f_mount(&fatFs, "", 1);
 }
 
-// init SD card and read FAT32 boot sector
-int initSDCard(void) {
-    uint8_t response;
-    uint8_t dummy = 0xFF;
-    uint8_t cmd0[] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
-    uint8_t cmd8[] = {0x48, 0x00, 0x00, 0x01, 0xAA, 0x87};
-    uint8_t cmd55[] = {0x77, 0x00, 0x00, 0x00, 0x00, 0x65};
-    uint8_t acmd41[] = {0x69, 0x40, 0x00, 0x00, 0x00, 0x77};
-    
-    // wait for power
-    HAL_Delay(500);  
+/* Unmount SD card */
+FRESULT SD_Unmount(void) {
+    return f_mount(NULL, "", 0);
+}
 
-    // send clock impluse (requirement -> 74+ cycle)
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-    for (int i = 0; i < 10; i++) {
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
+/* Open file */
+FRESULT SD_OpenFile(FIL* file, const char* path, BYTE mode) {
+    return f_open(file, path, mode);
+}
+
+/* Close file */
+FRESULT SD_CloseFile(FIL* file) {
+    return f_close(file);
+}
+
+/* Read from file */
+FRESULT SD_ReadFile(FIL* file, void* buff, UINT btr, UINT* br) {
+    return f_read(file, buff, btr, br);
+}
+
+/* Write to file */
+FRESULT SD_WriteFile(FIL* file, const void* buff, UINT btw, UINT* bw) {
+    return f_write(file, buff, btw, bw);
+}
+
+/* Helper: Check if filename has .MID extension */
+static int isMidiFile(const char* name) {
+    size_t len = strlen(name);
+    if (len < 4) return 0;
+
+    const char* ext = name + len - 4;
+    return (ext[0] == '.' &&
+            (ext[1] == 'M' || ext[1] == 'm') &&
+            (ext[2] == 'I' || ext[2] == 'i') &&
+            (ext[3] == 'D' || ext[3] == 'd'));
+}
+
+/* List all MIDI files in root directory */
+int SD_ListMidiFiles(void) {
+    FRESULT res;
+    DIR dir;
+    FILINFO fno;
+
+    fileCount = 0;
+
+    res = f_opendir(&dir, "/");
+    if (res != FR_OK) {
+        return 0;
     }
 
-    // CMD0: go idle
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
-    HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-    response = SD_SendCommand(cmd0, sizeof(cmd0));
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-    HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
-    if (response != 0x01) {
-        return 1;
-    }
-
-    // CMD8: check voltage
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
-    HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-    response = SD_SendCommand(cmd8, sizeof(cmd8));
-    for (int i = 0; i < 4; i++) {
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-    }
-    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-    HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
-
-    // init card
-    for (int retry = 0; retry < 100; retry++) {
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-        SD_SendCommand(cmd55, sizeof(cmd55));
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-        HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
-
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, RESET);
-        HAL_SPI_TransmitReceive(&hspi2, &dummy, &response, 1, 100);
-        response = SD_SendCommand(acmd41, sizeof(acmd41));
-        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, SET);
-        HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
-
-        if (response == 0x00) { // card init ok
-            if (SD_readData(0, SDBuffer) != 0) { // check data there
-                return 2;  // MBR read failed, check whether it can read
-            }
-
-            // LBA start at offset 0x1C6 (little endian)  FAT32 partition starts at sector 64
-            uint32_t partitionStart = SDBuffer[0x1C6] | (SDBuffer[0x1C7] << 8) | (SDBuffer[0x1C8] << 16) | (SDBuffer[0x1C9] << 24);
-
-            HAL_Delay(10);
-            for (int d = 0; d < 16; d++) {
-                HAL_SPI_Transmit(&hspi2, &dummy, 1, 100);
-            }
-
-            // read FAT32 boot sector
-            return SD_readData(partitionStart, SDBuffer);
+    while (fileCount < MAX_FILES) {
+        res = f_readdir(&dir, &fno);
+        if (res != FR_OK || fno.fname[0] == 0) {
+            break;  /* Error or end of directory */
         }
-        HAL_Delay(10);
+
+        /* Skip directories and hidden/system files */
+        if (fno.fattrib & (AM_DIR | AM_HID | AM_SYS)) {
+            continue;
+        }
+
+        /* Check if it's a .MID file */
+        if (isMidiFile(fno.fname)) {
+            /* Copy filename (truncate if needed) */
+            strncpy(fileList[fileCount].name, fno.fname, MAX_FILENAME_LEN - 1);
+            fileList[fileCount].name[MAX_FILENAME_LEN - 1] = '\0';
+            fileList[fileCount].size = fno.fsize;
+            fileCount++;
+        }
     }
 
-    return 3;  // ACMD41 timeout
+    f_closedir(&dir);
+    return fileCount;
+}
+
+/* Read MIDI file into buffer */
+int SD_ReadMidiFile(uint8_t fileIndex, uint8_t* buffer, uint32_t maxSize) {
+    if (fileIndex >= fileCount) {
+        return -1;
+    }
+
+    FIL file;
+    FRESULT res;
+    UINT bytesRead;
+
+    res = f_open(&file, fileList[fileIndex].name, FA_READ);
+    if (res != FR_OK) {
+        return -1;
+    }
+
+    uint32_t readSize = (fileList[fileIndex].size < maxSize) ?
+                         fileList[fileIndex].size : maxSize;
+
+    res = f_read(&file, buffer, readSize, &bytesRead);
+    f_close(&file);
+
+    if (res != FR_OK) {
+        return -1;
+    }
+
+    return (int)bytesRead;
+}
+
+/* Display song list on OLED */
+void SD_DisplaySongList(uint8_t startIndex, uint8_t selectedIndex) {
+    char displayName[20];
+
+    /* Display up to 5 songs on OLED pages 3-7 */
+    for (uint8_t i = 0; i < 5; i++) {
+        uint8_t fileIdx = startIndex + i;
+        uint8_t page = 3 + i;
+
+        OLED_SetCursor(0, page);
+
+        if (fileIdx < fileCount) {
+            /* Show selection indicator */
+            if (fileIdx == selectedIndex) {
+                OLED_WriteChar('>');
+            } else {
+                OLED_WriteChar(' ');
+            }
+
+            /* Display filename (truncate if needed) */
+            strncpy(displayName, fileList[fileIdx].name, 19);
+            displayName[19] = '\0';
+            OLED_WriteString(displayName);
+
+            /* Clear rest of line */
+            uint8_t nameLen = strlen(displayName) + 1;
+            for (uint8_t j = nameLen; j < 21; j++) {
+                OLED_WriteChar(' ');
+            }
+        } else {
+            /* Clear empty line */
+            for (uint8_t j = 0; j < 21; j++) {
+                OLED_WriteChar(' ');
+            }
+        }
+    }
+}
+
+/* Get storage info */
+FRESULT SD_GetStorageInfo(SD_StorageInfo* info) {
+    FATFS* fs;
+    DWORD freeClusters;
+    FRESULT res;
+
+    res = f_getfree("", &freeClusters, &fs);
+    if (res != FR_OK) {
+        return res;
+    }
+
+    /* Calculate sizes in KB */
+    DWORD totalSectors = (fs->n_fatent - 2) * fs->csize;
+    DWORD freeSectors = freeClusters * fs->csize;
+
+    info->totalKB = totalSectors / 2;  /* 512 bytes per sector, /2 = KB */
+    info->freeKB = freeSectors / 2;
+
+    return FR_OK;
 }
