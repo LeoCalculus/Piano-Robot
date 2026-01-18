@@ -11,6 +11,6 @@ void executeCommand(uint8_t* command);
 
 // commands
 void setText(uint8_t* displayedText);
-
+void listMidiFiles(void);
 
 #endif

@@ -1,11 +1,26 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+from tkinter import ttk, messagebox, scrolledtext, filedialog
 import threading
 import time
 import serial
 import serial.tools.list_ports
 import sys
 import os
+import struct
+
+# File Transfer Protocol Constants
+FT_CMD_FILE_START = 0xF0
+FT_CMD_FILE_DATA = 0xF1
+FT_CMD_FILE_END = 0xF2
+FT_CMD_FILE_ABORT = 0xF3
+
+FT_RSP_ACK = 0xA0
+FT_RSP_NAK = 0xA1
+FT_RSP_READY = 0xA2
+FT_RSP_ERROR = 0xA3
+FT_RSP_SUCCESS = 0xA4
+
+FT_CHUNK_SIZE = 64  # Match STM32 FT_MAX_CHUNK_SIZE (can't exceed 64 due to STM32 buffer)
 
 class HC05SerialGUI:
     def __init__(self, root):
@@ -75,20 +90,24 @@ class HC05SerialGUI:
         self.connection_tab = ttk.Frame(self.notebook)
         self.serial_testing_tab = ttk.Frame(self.notebook)
         self.at_command_tab = ttk.Frame(self.notebook)
+        self.file_upload_tab = ttk.Frame(self.notebook)
 
         # Add tabs to notebook
         self.notebook.add(self.connection_tab, text="Connection")
         self.notebook.add(self.serial_testing_tab, text="Serial Testing")
         self.notebook.add(self.at_command_tab, text="AT Commands")
+        self.notebook.add(self.file_upload_tab, text="File Upload")
 
         # Set up each tab
         self.setup_connection_tab()
         self.setup_serial_testing_tab()
         self.setup_at_command_tab()
+        self.setup_file_upload_tab()
 
         # Disable tabs until connected
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
+        self.notebook.tab(3, state="disabled")
         
         # Bind tab change event
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
@@ -366,10 +385,88 @@ class HC05SerialGUI:
         self.at_response_text = scrolledtext.ScrolledText(response_frame, height=12, width=80, wrap=tk.WORD)
         self.at_response_text.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
 
+    def setup_file_upload_tab(self):
+        """Setup the file upload tab for MIDI file transfer"""
+        # File selection frame
+        file_frame = ttk.LabelFrame(self.file_upload_tab, text="Select MIDI File")
+        file_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        select_frame = ttk.Frame(file_frame)
+        select_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.file_path_var = tk.StringVar(value="No file selected")
+        ttk.Label(select_frame, textvariable=self.file_path_var, width=60).pack(
+            side=tk.LEFT, padx=5)
+
+        ttk.Button(select_frame, text="Browse...",
+                   command=self.browse_midi_file).pack(side=tk.LEFT, padx=5)
+
+        # File info frame
+        info_frame = ttk.LabelFrame(self.file_upload_tab, text="File Information")
+        info_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.file_info_var = tk.StringVar(value="Select a MIDI file to see details")
+        ttk.Label(info_frame, textvariable=self.file_info_var, justify=tk.LEFT).pack(
+            pady=10, padx=10)
+
+        # Upload controls frame
+        control_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Control")
+        control_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        btn_frame = ttk.Frame(control_frame)
+        btn_frame.pack(fill=tk.X, pady=5)
+
+        self.upload_button = ttk.Button(btn_frame, text="Upload File",
+                                         command=self.start_upload, state=tk.DISABLED)
+        self.upload_button.pack(side=tk.LEFT, padx=5)
+
+        self.abort_button = ttk.Button(btn_frame, text="Abort",
+                                        command=self.abort_upload, state=tk.DISABLED)
+        self.abort_button.pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(btn_frame, text="Refresh File List",
+                   command=self.refresh_device_files).pack(side=tk.LEFT, padx=5)
+
+        # Progress frame
+        progress_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Progress")
+        progress_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.progress_var = tk.DoubleVar(value=0)
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var,
+                                             maximum=100, length=400)
+        self.progress_bar.pack(pady=10, padx=10, fill=tk.X)
+
+        self.progress_label_var = tk.StringVar(value="Ready")
+        ttk.Label(progress_frame, textvariable=self.progress_label_var).pack(pady=5)
+
+        # Device files frame
+        device_frame = ttk.LabelFrame(self.file_upload_tab, text="Files on Device")
+        device_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        columns = ("filename", "size")
+        self.device_files_tree = ttk.Treeview(device_frame, columns=columns,
+                                               show="headings", height=6)
+        self.device_files_tree.heading("filename", text="Filename")
+        self.device_files_tree.heading("size", text="Size (bytes)")
+        self.device_files_tree.column("filename", width=200)
+        self.device_files_tree.column("size", width=100)
+        self.device_files_tree.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Upload log
+        log_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Log")
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        self.upload_log = scrolledtext.ScrolledText(log_frame, height=5, width=80)
+        self.upload_log.pack(fill=tk.BOTH, expand=True)
+
+        # Initialize upload state
+        self.selected_file_path = None
+        self.upload_abort_flag = False
+
     def on_tab_change(self, event):
         """Handle tab change event"""
         selected_tab = self.notebook.index(self.notebook.select())
-        
+
         # If changed to Serial Testing tab, focus on data entry
         if selected_tab == 1 and self.connected:
             self.data_entry.focus()
@@ -626,6 +723,7 @@ class HC05SerialGUI:
         # Enable other tabs
         self.notebook.tab(1, state="normal")
         self.notebook.tab(2, state="normal")
+        self.notebook.tab(3, state="normal")
         
         # Update button states
         self.connect_button.config(state=tk.DISABLED)
@@ -772,6 +870,7 @@ class HC05SerialGUI:
         # Disable tabs
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
+        self.notebook.tab(3, state="disabled")
 
         # Switch to connection tab
         self.notebook.select(0)
@@ -908,10 +1007,388 @@ class HC05SerialGUI:
         # Disconnect if connected
         if self.connected and self.ser:
             self.disconnect_port()
-                
+
         # Close window
         self.root.destroy()
         sys.exit(0)
+
+    # ========== File Upload Methods ==========
+
+    def browse_midi_file(self):
+        """Open file dialog to select MIDI file"""
+        filepath = filedialog.askopenfilename(
+            title="Select MIDI File",
+            filetypes=[("MIDI files", "*.mid *.MID"), ("All files", "*.*")]
+        )
+        if filepath:
+            self.selected_file_path = filepath
+            self.file_path_var.set(filepath)
+
+            # Get file info
+            file_size = os.path.getsize(filepath)
+            filename = os.path.basename(filepath)
+
+            # Check 8.3 format
+            name, ext = os.path.splitext(filename)
+            total_chunks = (file_size + FT_CHUNK_SIZE - 1) // FT_CHUNK_SIZE
+
+            if len(name) > 8:
+                self.file_info_var.set(
+                    f"WARNING: Filename '{name}' exceeds 8 characters!\n"
+                    f"Will be truncated to: {name[:8]}{ext}\n"
+                    f"Size: {file_size:,} bytes ({total_chunks} chunks)"
+                )
+            else:
+                self.file_info_var.set(
+                    f"Filename: {filename}\n"
+                    f"Size: {file_size:,} bytes\n"
+                    f"Chunks: {total_chunks}"
+                )
+
+            if file_size > 65535:
+                self.upload_button.config(state=tk.DISABLED)
+                self.upload_log_message("ERROR: File too large (max 64KB)")
+            elif self.connected:
+                self.upload_button.config(state=tk.NORMAL)
+
+    def upload_log_message(self, message):
+        """Add message to upload log"""
+        timestamp = time.strftime("%H:%M:%S")
+        self.upload_log.insert(tk.END, f"[{timestamp}] {message}\n")
+        self.upload_log.see(tk.END)
+
+    def calculate_checksum(self, data):
+        """Calculate XOR checksum"""
+        checksum = 0
+        for byte in data:
+            checksum ^= byte
+        return checksum
+
+    def start_upload(self):
+        """Start file upload in a separate thread"""
+        if not self.selected_file_path:
+            messagebox.showerror("Error", "No file selected")
+            return
+
+        self.upload_button.config(state=tk.DISABLED)
+        self.abort_button.config(state=tk.NORMAL)
+        self.upload_abort_flag = False
+        self.progress_var.set(0)
+
+        upload_thread = threading.Thread(target=self.upload_file_thread)
+        upload_thread.daemon = True
+        upload_thread.start()
+
+    def upload_file_thread(self):
+        """Thread function to handle file upload"""
+        try:
+            filepath = self.selected_file_path
+            file_size = os.path.getsize(filepath)
+            filename = os.path.basename(filepath)
+            name, ext = os.path.splitext(filename)
+
+            # Truncate to 8.3 format
+            name = name[:8].upper()
+            ext = ext[:4].upper()
+
+            total_chunks = (file_size + FT_CHUNK_SIZE - 1) // FT_CHUNK_SIZE
+
+            self.root.after(0, lambda: self.upload_log_message(
+                f"Starting upload: {name}{ext} ({file_size} bytes, {total_chunks} chunks)"))
+
+            # Read file data
+            with open(filepath, 'rb') as f:
+                file_data = f.read()
+
+            # Step 1: Send FILE_START
+            start_packet = bytearray([FT_CMD_FILE_START])
+            start_packet.extend(struct.pack('<H', file_size))      # size (2 bytes)
+            start_packet.extend(struct.pack('<H', total_chunks))   # chunks (2 bytes)
+            start_packet.extend(name.ljust(8, '\x00').encode('ascii')[:8])  # name (8 bytes)
+            start_packet.extend(ext.ljust(4, '\x00').encode('ascii')[:4])   # ext (4 bytes)
+            start_packet.append(self.calculate_checksum(start_packet))
+
+            # Send FILE_START with retry logic
+            self.root.after(0, lambda: self.upload_log_message("Sending FILE_START..."))
+            start_success = False
+            for start_retry in range(10):
+                self.ser.reset_input_buffer()  # Clear any pending data
+                self.ser.write(start_packet)
+
+                # Wait for READY response (file creation can take time on SD card)
+                response = self.wait_for_response(timeout=2.0)
+
+                if response and response[0] == FT_RSP_READY:
+                    start_success = True
+                    break
+                elif response and response[0] == FT_RSP_ERROR:
+                    err = response[1] if len(response) > 1 else 0
+                    err_msgs = {1: "checksum", 2: "sequence", 3: "SD write", 4: "SD full",
+                               5: "file exists", 6: "bad name", 7: "timeout", 8: "overflow"}
+                    self.root.after(0, lambda e=err: self.upload_log_message(
+                        f"Device error: {err_msgs.get(e, e)}"))
+                    self.root.after(0, self.upload_complete_error)
+                    return
+                elif response:
+                    self.root.after(0, lambda r=response[0], rt=start_retry: self.upload_log_message(
+                        f"Unexpected response: 0x{r:02X}, retry {rt+1}/10"))
+                else:
+                    self.root.after(0, lambda rt=start_retry: self.upload_log_message(
+                        f"Timeout waiting for READY, retry {rt+1}/10"))
+
+                time.sleep(0.1 * (start_retry + 1))  # Progressive backoff
+
+            if not start_success:
+                self.root.after(0, lambda: self.upload_log_message("Failed to start transfer after 10 retries"))
+                self.root.after(0, self.upload_complete_error)
+                return
+
+            self.root.after(0, lambda: self.upload_log_message("Device ready, sending chunks..."))
+
+            # Step 2: Send chunks
+            start_time = time.time()
+            bytes_sent = 0
+            total_retries = 0  # Track total retries across all chunks
+
+            for chunk_idx in range(total_chunks):
+                if self.upload_abort_flag:
+                    self.send_abort()
+                    return
+
+                start = chunk_idx * FT_CHUNK_SIZE
+                end = min(start + FT_CHUNK_SIZE, file_size)
+                chunk_data = file_data[start:end]
+                data_len = len(chunk_data)
+
+                # Build data packet
+                data_packet = bytearray([FT_CMD_FILE_DATA])
+                data_packet.extend(struct.pack('<H', chunk_idx))  # chunk index
+                data_packet.append(data_len)                       # data length
+                data_packet.extend(chunk_data)                     # data
+                data_packet.append(self.calculate_checksum(data_packet))
+
+                # Robust retry logic - 10 retries with progressive backoff
+                max_retries = 10
+                success = False
+                for retry in range(max_retries):
+                    # Clear any stale data in RX buffer before sending
+                    if retry > 0:
+                        self.ser.reset_input_buffer()
+                        # Progressive backoff: wait longer on each retry
+                        backoff_ms = min(50 * (retry + 1), 300)  # 50ms, 100ms, ... up to 300ms
+                        time.sleep(backoff_ms / 1000.0)
+
+                    self.ser.write(data_packet)
+
+                    # Timeout depends on chunk position and retry count
+                    # SD flush happens every 8 chunks - give more time
+                    base_timeout = 1.0 if ((chunk_idx + 1) % 8 == 0) else 0.5
+                    # Increase timeout on retries (device might be busy)
+                    timeout = base_timeout + (0.2 * retry)
+                    response = self.wait_for_response(timeout=timeout)
+
+                    if response and response[0] == FT_RSP_ACK:
+                        success = True
+                        bytes_sent += data_len
+                        if retry > 0:
+                            total_retries += retry
+                        # Normal inter-packet delay
+                        if (chunk_idx + 1) % 8 == 0:
+                            time.sleep(0.005)  # 5ms when SD flushes
+                        else:
+                            time.sleep(0.001)  # 1ms normal delay
+                        break
+                    elif response and response[0] == FT_RSP_NAK:
+                        err = response[3] if len(response) > 3 else 0
+                        self.root.after(0, lambda c=chunk_idx, r=retry, e=err, m=max_retries:
+                            self.upload_log_message(f"Chunk {c}: NAK (err={e}), retry {r+1}/{m}"))
+                    elif response and response[0] == FT_RSP_ERROR:
+                        err = response[1] if len(response) > 1 else 0
+                        self.root.after(0, lambda e=err: self.upload_log_message(f"Device error: {e}"))
+                        self.root.after(0, self.upload_complete_error)
+                        return
+                    else:
+                        # Timeout - log only every few retries to reduce spam
+                        if retry == 0 or retry == 4 or retry == 9:
+                            self.root.after(0, lambda c=chunk_idx, r=retry, m=max_retries:
+                                self.upload_log_message(f"Chunk {c}: timeout, retry {r+1}/{m}"))
+
+                if not success:
+                    self.root.after(0, lambda c=chunk_idx, m=max_retries: self.upload_log_message(
+                        f"FAILED at chunk {c} after {m} retries - aborting"))
+                    self.root.after(0, self.upload_complete_error)
+                    return
+
+                # Update progress with speed and retry info
+                elapsed = time.time() - start_time
+                speed = bytes_sent / elapsed if elapsed > 0 else 0
+                progress = (chunk_idx + 1) / total_chunks * 100
+                remaining = file_size - bytes_sent
+                eta = remaining / speed if speed > 0 else 0
+                retry_str = f" R:{total_retries}" if total_retries > 0 else ""
+
+                self.root.after(0, lambda p=progress, c=chunk_idx+1, t=total_chunks, s=speed, e=eta, rs=retry_str:
+                              self.update_progress(p, f"{c}/{t} | {s:.0f} B/s | ETA {e:.0f}s{rs}"))
+
+            # Step 3: Send FILE_END with retry logic
+            self.root.after(0, lambda: self.upload_log_message("Finalizing..."))
+            end_packet = bytearray([FT_CMD_FILE_END])
+            end_packet.extend(struct.pack('<H', file_size & 0xFFFF))
+            end_packet.append(self.calculate_checksum(end_packet))
+
+            end_success = False
+            for end_retry in range(10):
+                self.ser.reset_input_buffer()
+                self.ser.write(end_packet)
+
+                # Timeout for final flush and file close
+                response = self.wait_for_response(timeout=2.0 + (0.5 * end_retry))
+
+                if response and response[0] == FT_RSP_SUCCESS:
+                    end_success = True
+                    elapsed = time.time() - start_time
+                    avg_speed = file_size / elapsed if elapsed > 0 else 0
+                    retry_info = f" ({total_retries} total retries)" if total_retries > 0 else ""
+                    self.root.after(0, lambda s=avg_speed, t=elapsed, ri=retry_info: self.upload_log_message(
+                        f"Upload complete! {s:.0f} B/s avg, {t:.1f}s total{ri}"))
+                    self.root.after(0, self.upload_complete_success)
+                    break
+                elif response and response[0] == FT_RSP_ERROR:
+                    err = response[1] if len(response) > 1 else 0
+                    self.root.after(0, lambda e=err: self.upload_log_message(f"Finalize error: {e}"))
+                    self.root.after(0, self.upload_complete_error)
+                    return
+                else:
+                    if end_retry < 9:
+                        self.root.after(0, lambda rt=end_retry: self.upload_log_message(
+                            f"Finalize timeout, retry {rt+1}/10"))
+                    time.sleep(0.2 * (end_retry + 1))
+
+            if not end_success:
+                self.root.after(0, lambda: self.upload_log_message("Failed to finalize after 10 retries"))
+                self.root.after(0, self.upload_complete_error)
+
+        except Exception as e:
+            self.root.after(0, lambda: self.upload_log_message(f"Error: {str(e)}"))
+            self.root.after(0, self.upload_complete_error)
+
+    def wait_for_response(self, timeout=2.0):
+        """Wait for binary response from device with optimized polling"""
+        start_time = time.time()
+        response = bytearray()
+        expected_len = 2  # minimum response length
+
+        while time.time() - start_time < timeout:
+            # Read all available bytes at once (more efficient than byte-by-byte)
+            waiting = self.ser.in_waiting
+            if waiting > 0:
+                data = self.ser.read(waiting)
+                if data:
+                    response.extend(data)
+
+                    # Determine expected length once we have the first byte
+                    if len(response) >= 1 and response[0] >= 0xA0 and response[0] <= 0xA4:
+                        if response[0] == FT_RSP_ACK:
+                            expected_len = 4  # code + 2 bytes index + checksum
+                        elif response[0] == FT_RSP_NAK:
+                            expected_len = 5  # code + 2 bytes index + error + checksum
+                        elif response[0] == FT_RSP_SUCCESS:
+                            expected_len = 4  # code + 2 bytes size + checksum
+                        elif response[0] == FT_RSP_ERROR:
+                            expected_len = 3  # code + error + checksum
+                        else:
+                            expected_len = 2  # default: code + checksum
+
+                        if len(response) >= expected_len:
+                            return bytes(response)
+
+            # Shorter sleep for faster response (1ms instead of 10ms)
+            time.sleep(0.001)
+
+        return None if len(response) == 0 else bytes(response)
+
+    def update_progress(self, progress, label):
+        """Update progress bar and label"""
+        self.progress_var.set(progress)
+        self.progress_label_var.set(label)
+
+    def upload_complete_success(self):
+        """Handle successful upload completion"""
+        self.progress_label_var.set("Upload Complete!")
+        self.upload_button.config(state=tk.NORMAL)
+        self.abort_button.config(state=tk.DISABLED)
+        self.refresh_device_files()
+
+    def upload_complete_error(self):
+        """Handle upload error"""
+        self.progress_label_var.set("Upload Failed")
+        self.upload_button.config(state=tk.NORMAL)
+        self.abort_button.config(state=tk.DISABLED)
+
+    def abort_upload(self):
+        """Abort current upload"""
+        self.upload_abort_flag = True
+        self.upload_log_message("Upload aborted by user")
+
+    def send_abort(self):
+        """Send abort command to device"""
+        abort_packet = bytearray([FT_CMD_FILE_ABORT])
+        abort_packet.append(self.calculate_checksum(abort_packet))
+        self.ser.write(abort_packet)
+        self.root.after(0, lambda: self.upload_log_message("Abort sent to device"))
+        self.root.after(0, self.upload_complete_error)
+
+    def refresh_device_files(self):
+        """Request file list from device"""
+        if not self.connected:
+            return
+
+        # Clear existing entries
+        for item in self.device_files_tree.get_children():
+            self.device_files_tree.delete(item)
+
+        # Temporarily pause read thread to avoid conflicts
+        was_reading = self.keep_reading
+        self.keep_reading = False
+        time.sleep(0.1)  # Let read thread pause
+
+        try:
+            # Clear buffer and send command
+            self.ser.reset_input_buffer()
+            self.ser.write(b"/listFiles\n")
+
+            # Read response directly (no thread conflict now)
+            lines = []
+            timeout = time.time() + 3.0
+            while time.time() < timeout:
+                if self.ser.in_waiting > 0:
+                    data = self.ser.read(self.ser.in_waiting)
+                    lines.extend(data.decode('utf-8', errors='replace').split('\n'))
+                    if any('END' in line for line in lines):
+                        break
+                time.sleep(0.05)
+
+            # Parse file entries
+            for line in lines:
+                line = line.strip()
+                if ',' in line and not line.startswith('FILES:'):
+                    parts = line.split(',')
+                    if len(parts) >= 2:
+                        filename = parts[0]
+                        size = parts[1]
+                        self.device_files_tree.insert('', tk.END, values=(filename, size))
+
+            if not lines:
+                self.upload_log_message("No response from device (check USINGHC05 define)")
+        except Exception as e:
+            self.upload_log_message(f"Error reading file list: {e}")
+        finally:
+            # Restart read thread
+            if was_reading:
+                self.keep_reading = True
+                self.reading_thread = threading.Thread(target=self.read_serial)
+                self.reading_thread.daemon = True
+                self.reading_thread.start()
 
 
 if __name__ == "__main__":

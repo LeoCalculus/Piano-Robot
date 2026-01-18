@@ -28,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <application.h>
+#include <file_transfer.h>
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -137,6 +138,7 @@ int main(void)
 #endif
 
   HC05_ReceiveInfo(rx_data);
+  FT_Init();  // Initialize file transfer module
   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
   // set duty cycle
@@ -192,6 +194,24 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // Process file transfer binary packets
+    if (rx_binary_complete) {
+      // Copy packet data BEFORE resetting - prevents race condition with interrupt
+      uint8_t packet_copy[80];
+      uint16_t packet_len = rx_binary_index;
+      memcpy(packet_copy, rx_binary_buffer, packet_len);
+
+      // Reset BEFORE processing so interrupt can receive next packet
+      rx_binary_complete = 0;
+      rx_binary_index = 0;
+
+      // Now safely process the copy
+      FT_ProcessPacket(packet_copy, packet_len);
+    }
+
+    // Check for file transfer timeout
+    FT_TimeoutCheck();
+
     // only process when complete message received
   #ifdef USINGHC05
     if(rx_complete){
@@ -202,7 +222,7 @@ int main(void)
       // echo back with \r\n for terminal
       HC05_SendInfo((uint8_t*)"Got it!\r\n");
     }
-    HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
+    // HC05_SendInfo((uint8_t*)"Still Alive!\r\n");  // Disabled during file transfer
   #endif
 
 
@@ -258,22 +278,10 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-// auto call on receive uart is used, move everything in buffer
+/* Note: USART1 now uses DMA with IDLE line detection (HAL_UARTEx_RxEventCallback)
+   This old callback is kept for compatibility but USART1 won't trigger it anymore */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-  static int rx_index = 0;
-
-  if(huart->Instance == USART1)
-  {
-    rx_data[rx_index++] = rx_byte;
-    if(rx_byte == '\n' || rx_index >= 99)
-    {
-      rx_data[rx_index] = '\0';
-      rx_index = 0;
-      rx_complete = 1;  // signal that message is ready
-    }
-    // must need re-enable since this function will be closed on done
-    HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
-  }
+  (void)huart;  /* Unused - USART1 uses DMA now */
 }
 
 // DMA TX complete callback - required for continuous DMA transmission
@@ -284,10 +292,48 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
   }
 }
 
-// DMA RX callback
+// UART Error callback - critical for handling overrun errors on STM32F1
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
+  if(huart->Instance == USART1){
+    // Clear all error flags (ORE, NE, FE, PE)
+    __HAL_UART_CLEAR_OREFLAG(huart);
+    __HAL_UART_CLEAR_NEFLAG(huart);
+    __HAL_UART_CLEAR_FEFLAG(huart);
+    __HAL_UART_CLEAR_PEFLAG(huart);
+
+    // Restart DMA reception
+    HC05_RestartDMA();
+  }
+}
+
+// DMA RX callback - handles both USART1 (HC05) and USART2 (VOFA)
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-  if (huart->Instance == USART2) {
+  if (huart->Instance == USART1) {
+    /* HC05 Bluetooth - DMA reception with IDLE line detection */
+    /* IMPORTANT: Process data BEFORE restarting DMA (single buffer) */
+
+    if (Size > 0) {
+      /* Check if it's a binary protocol packet */
+      if (rx_dma_buffer[0] >= 0xF0 && rx_dma_buffer[0] <= 0xF3) {
+        /* Binary packet - always copy (main loop copies before processing so safe) */
+        uint16_t copy_len = (Size < sizeof(rx_binary_buffer)) ? Size : sizeof(rx_binary_buffer);
+        memcpy(rx_binary_buffer, rx_dma_buffer, copy_len);
+        rx_binary_index = copy_len;
+        rx_binary_complete = 1;
+      } else if (!rx_complete) {
+        /* Text command - only copy if previous not pending (text can be lost) */
+        uint16_t copy_len = (Size < sizeof(rx_data) - 1) ? Size : sizeof(rx_data) - 1;
+        memcpy(rx_data, rx_dma_buffer, copy_len);
+        rx_data[copy_len] = '\0';
+        rx_complete = 1;
+      }
+    }
+
+    /* Restart DMA AFTER processing - abort ensures clean state */
+    HC05_RestartDMA();
+  }
+  else if (huart->Instance == USART2) {
     // parse vofa message and save pid data
     // first only handle if message >= 5 bytes
     if (Size >= 5) {

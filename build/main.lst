@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 1
 
 
    1              		.cpu cortex-m3
@@ -57,711 +57,927 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
   28:Core/Src/main.c **** /* Private includes ----------------------------------------------------------*/
   29:Core/Src/main.c **** /* USER CODE BEGIN Includes */
   30:Core/Src/main.c **** #include <application.h>
-  31:Core/Src/main.c **** #include <stdio.h>
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 2
+  31:Core/Src/main.c **** #include <file_transfer.h>
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 2
 
 
-  32:Core/Src/main.c **** /* USER CODE END Includes */
-  33:Core/Src/main.c **** 
-  34:Core/Src/main.c **** /* Private typedef -----------------------------------------------------------*/
-  35:Core/Src/main.c **** /* USER CODE BEGIN PTD */
-  36:Core/Src/main.c **** 
-  37:Core/Src/main.c **** /* USER CODE END PTD */
-  38:Core/Src/main.c **** 
-  39:Core/Src/main.c **** /* Private define ------------------------------------------------------------*/
-  40:Core/Src/main.c **** /* USER CODE BEGIN PD */
-  41:Core/Src/main.c **** 
-  42:Core/Src/main.c **** /* USER CODE END PD */
-  43:Core/Src/main.c **** 
-  44:Core/Src/main.c **** /* Private macro -------------------------------------------------------------*/
-  45:Core/Src/main.c **** /* USER CODE BEGIN PM */
-  46:Core/Src/main.c **** 
-  47:Core/Src/main.c **** /* USER CODE END PM */
-  48:Core/Src/main.c **** 
-  49:Core/Src/main.c **** /* Private variables ---------------------------------------------------------*/
-  50:Core/Src/main.c **** 
-  51:Core/Src/main.c **** /* USER CODE BEGIN PV */
-  52:Core/Src/main.c **** int pwmNum = 200;
-  53:Core/Src/main.c **** uint8_t hexSDRead[20] = {0};
-  54:Core/Src/main.c **** FIL file;
-  55:Core/Src/main.c **** uint8_t FileBuffer[512];
-  56:Core/Src/main.c **** UINT BytesRead;
-  57:Core/Src/main.c **** /* USER CODE END PV */
-  58:Core/Src/main.c **** 
-  59:Core/Src/main.c **** /* Private function prototypes -----------------------------------------------*/
-  60:Core/Src/main.c **** void SystemClock_Config(void);
-  61:Core/Src/main.c **** /* USER CODE BEGIN PFP */
-  62:Core/Src/main.c **** 
-  63:Core/Src/main.c **** /* USER CODE END PFP */
-  64:Core/Src/main.c **** 
-  65:Core/Src/main.c **** /* Private user code ---------------------------------------------------------*/
-  66:Core/Src/main.c **** /* USER CODE BEGIN 0 */
-  67:Core/Src/main.c **** 
-  68:Core/Src/main.c **** /* USER CODE END 0 */
-  69:Core/Src/main.c **** 
-  70:Core/Src/main.c **** /**
-  71:Core/Src/main.c ****   * @brief  The application entry point.
-  72:Core/Src/main.c ****   * @retval int
-  73:Core/Src/main.c ****   */
-  74:Core/Src/main.c **** int main(void)
-  75:Core/Src/main.c **** {
-  76:Core/Src/main.c **** 
-  77:Core/Src/main.c ****   /* USER CODE BEGIN 1 */
-  78:Core/Src/main.c **** 
-  79:Core/Src/main.c ****   /* USER CODE END 1 */
-  80:Core/Src/main.c **** 
-  81:Core/Src/main.c ****   /* MCU Configuration--------------------------------------------------------*/
-  82:Core/Src/main.c **** 
-  83:Core/Src/main.c ****   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  84:Core/Src/main.c ****   HAL_Init();
-  85:Core/Src/main.c **** 
-  86:Core/Src/main.c ****   /* USER CODE BEGIN Init */
-  87:Core/Src/main.c **** 
-  88:Core/Src/main.c ****   /* USER CODE END Init */
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 3
+  32:Core/Src/main.c **** #include <stdio.h>
+  33:Core/Src/main.c **** /* USER CODE END Includes */
+  34:Core/Src/main.c **** 
+  35:Core/Src/main.c **** /* Private typedef -----------------------------------------------------------*/
+  36:Core/Src/main.c **** /* USER CODE BEGIN PTD */
+  37:Core/Src/main.c **** 
+  38:Core/Src/main.c **** /* USER CODE END PTD */
+  39:Core/Src/main.c **** 
+  40:Core/Src/main.c **** /* Private define ------------------------------------------------------------*/
+  41:Core/Src/main.c **** /* USER CODE BEGIN PD */
+  42:Core/Src/main.c **** 
+  43:Core/Src/main.c **** /* USER CODE END PD */
+  44:Core/Src/main.c **** 
+  45:Core/Src/main.c **** /* Private macro -------------------------------------------------------------*/
+  46:Core/Src/main.c **** /* USER CODE BEGIN PM */
+  47:Core/Src/main.c **** 
+  48:Core/Src/main.c **** /* USER CODE END PM */
+  49:Core/Src/main.c **** 
+  50:Core/Src/main.c **** /* Private variables ---------------------------------------------------------*/
+  51:Core/Src/main.c **** 
+  52:Core/Src/main.c **** /* USER CODE BEGIN PV */
+  53:Core/Src/main.c **** int pwmNum = 200;
+  54:Core/Src/main.c **** uint8_t hexSDRead[20] = {0};
+  55:Core/Src/main.c **** FIL file;
+  56:Core/Src/main.c **** uint8_t FileBuffer[512];
+  57:Core/Src/main.c **** UINT BytesRead;
+  58:Core/Src/main.c **** /* USER CODE END PV */
+  59:Core/Src/main.c **** 
+  60:Core/Src/main.c **** /* Private function prototypes -----------------------------------------------*/
+  61:Core/Src/main.c **** void SystemClock_Config(void);
+  62:Core/Src/main.c **** /* USER CODE BEGIN PFP */
+  63:Core/Src/main.c **** 
+  64:Core/Src/main.c **** /* USER CODE END PFP */
+  65:Core/Src/main.c **** 
+  66:Core/Src/main.c **** /* Private user code ---------------------------------------------------------*/
+  67:Core/Src/main.c **** /* USER CODE BEGIN 0 */
+  68:Core/Src/main.c **** 
+  69:Core/Src/main.c **** /* USER CODE END 0 */
+  70:Core/Src/main.c **** 
+  71:Core/Src/main.c **** /**
+  72:Core/Src/main.c ****   * @brief  The application entry point.
+  73:Core/Src/main.c ****   * @retval int
+  74:Core/Src/main.c ****   */
+  75:Core/Src/main.c **** int main(void)
+  76:Core/Src/main.c **** {
+  77:Core/Src/main.c **** 
+  78:Core/Src/main.c ****   /* USER CODE BEGIN 1 */
+  79:Core/Src/main.c **** 
+  80:Core/Src/main.c ****   /* USER CODE END 1 */
+  81:Core/Src/main.c **** 
+  82:Core/Src/main.c ****   /* MCU Configuration--------------------------------------------------------*/
+  83:Core/Src/main.c **** 
+  84:Core/Src/main.c ****   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  85:Core/Src/main.c ****   HAL_Init();
+  86:Core/Src/main.c **** 
+  87:Core/Src/main.c ****   /* USER CODE BEGIN Init */
+  88:Core/Src/main.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 3
 
 
-  89:Core/Src/main.c **** 
-  90:Core/Src/main.c ****   /* Configure the system clock */
-  91:Core/Src/main.c ****   SystemClock_Config();
-  92:Core/Src/main.c **** 
-  93:Core/Src/main.c ****   /* USER CODE BEGIN SysInit */
-  94:Core/Src/main.c **** 
-  95:Core/Src/main.c ****   /* USER CODE END SysInit */
-  96:Core/Src/main.c **** 
-  97:Core/Src/main.c ****   /* Initialize all configured peripherals */
-  98:Core/Src/main.c ****   MX_GPIO_Init();
-  99:Core/Src/main.c ****   MX_DMA_Init();
- 100:Core/Src/main.c ****   MX_USART1_UART_Init();
- 101:Core/Src/main.c ****   MX_I2C1_Init();
- 102:Core/Src/main.c ****   MX_TIM3_Init();
- 103:Core/Src/main.c ****   MX_TIM2_Init();
- 104:Core/Src/main.c ****   MX_USART2_UART_Init();
- 105:Core/Src/main.c ****   MX_TIM4_Init();
- 106:Core/Src/main.c ****   MX_SPI2_Init();
- 107:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
- 108:Core/Src/main.c **** #ifdef USINGOLED
- 109:Core/Src/main.c ****   OLED_Init();
- 110:Core/Src/main.c ****   OLED_WriteString("ELEC-391");
- 111:Core/Src/main.c **** #endif
- 112:Core/Src/main.c **** 
- 113:Core/Src/main.c **** #ifdef USINGMPU6050
- 114:Core/Src/main.c ****   if (checkExist()){ // cannot detect -> light LED
- 115:Core/Src/main.c ****     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, RESET);
- 116:Core/Src/main.c ****     OLED_SetCursor(0, 3);
- 117:Core/Src/main.c ****     OLED_WriteString("Cannot find MPU 6050!");
- 118:Core/Src/main.c ****   } else {
- 119:Core/Src/main.c ****     OLED_SetCursor(0, 3);
- 120:Core/Src/main.c ****     OLED_WriteString("MPU 6050 Detected!");
- 121:Core/Src/main.c ****   }
- 122:Core/Src/main.c ****   mpu6050Init();
- 123:Core/Src/main.c ****   int16_t accBuffer[3];
- 124:Core/Src/main.c ****   readAcc(accBuffer);
- 125:Core/Src/main.c **** #endif 
- 126:Core/Src/main.c **** 
- 127:Core/Src/main.c ****   init();  // Initialize VOFA struct
- 128:Core/Src/main.c ****   //char displayAccBuffer[32];
- 129:Core/Src/main.c **** #ifdef HC05SETUP 
- 130:Core/Src/main.c ****   if (setupBT()){
- 131:Core/Src/main.c ****     OLED_SetCursor(0, 5);
- 132:Core/Src/main.c ****     OLED_WriteString("HC-05 is configured!");
- 133:Core/Src/main.c ****   } else {
- 134:Core/Src/main.c ****     OLED_SetCursor(0, 5);
- 135:Core/Src/main.c ****     OLED_WriteString("Unable to config HC-05!");
- 136:Core/Src/main.c ****   }
- 137:Core/Src/main.c **** #endif
- 138:Core/Src/main.c **** 
- 139:Core/Src/main.c ****   HC05_ReceiveInfo(rx_data);
- 140:Core/Src/main.c ****   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
- 141:Core/Src/main.c ****   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
- 142:Core/Src/main.c ****   // set duty cycle
- 143:Core/Src/main.c ****   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
- 144:Core/Src/main.c **** 
- 145:Core/Src/main.c ****     // Initialize accData before starting interrupt
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 4
+  89:Core/Src/main.c ****   /* USER CODE END Init */
+  90:Core/Src/main.c **** 
+  91:Core/Src/main.c ****   /* Configure the system clock */
+  92:Core/Src/main.c ****   SystemClock_Config();
+  93:Core/Src/main.c **** 
+  94:Core/Src/main.c ****   /* USER CODE BEGIN SysInit */
+  95:Core/Src/main.c **** 
+  96:Core/Src/main.c ****   /* USER CODE END SysInit */
+  97:Core/Src/main.c **** 
+  98:Core/Src/main.c ****   /* Initialize all configured peripherals */
+  99:Core/Src/main.c ****   MX_GPIO_Init();
+ 100:Core/Src/main.c ****   MX_DMA_Init();
+ 101:Core/Src/main.c ****   MX_USART1_UART_Init();
+ 102:Core/Src/main.c ****   MX_I2C1_Init();
+ 103:Core/Src/main.c ****   MX_TIM3_Init();
+ 104:Core/Src/main.c ****   MX_TIM2_Init();
+ 105:Core/Src/main.c ****   MX_USART2_UART_Init();
+ 106:Core/Src/main.c ****   MX_TIM4_Init();
+ 107:Core/Src/main.c ****   MX_SPI2_Init();
+ 108:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 109:Core/Src/main.c **** #ifdef USINGOLED
+ 110:Core/Src/main.c ****   OLED_Init();
+ 111:Core/Src/main.c ****   OLED_WriteString("ELEC-391");
+ 112:Core/Src/main.c **** #endif
+ 113:Core/Src/main.c **** 
+ 114:Core/Src/main.c **** #ifdef USINGMPU6050
+ 115:Core/Src/main.c ****   if (checkExist()){ // cannot detect -> light LED
+ 116:Core/Src/main.c ****     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, RESET);
+ 117:Core/Src/main.c ****     OLED_SetCursor(0, 3);
+ 118:Core/Src/main.c ****     OLED_WriteString("Cannot find MPU 6050!");
+ 119:Core/Src/main.c ****   } else {
+ 120:Core/Src/main.c ****     OLED_SetCursor(0, 3);
+ 121:Core/Src/main.c ****     OLED_WriteString("MPU 6050 Detected!");
+ 122:Core/Src/main.c ****   }
+ 123:Core/Src/main.c ****   mpu6050Init();
+ 124:Core/Src/main.c ****   int16_t accBuffer[3];
+ 125:Core/Src/main.c ****   readAcc(accBuffer);
+ 126:Core/Src/main.c **** #endif 
+ 127:Core/Src/main.c **** 
+ 128:Core/Src/main.c ****   init();  // Initialize VOFA struct
+ 129:Core/Src/main.c ****   //char displayAccBuffer[32];
+ 130:Core/Src/main.c **** #ifdef HC05SETUP 
+ 131:Core/Src/main.c ****   if (setupBT()){
+ 132:Core/Src/main.c ****     OLED_SetCursor(0, 5);
+ 133:Core/Src/main.c ****     OLED_WriteString("HC-05 is configured!");
+ 134:Core/Src/main.c ****   } else {
+ 135:Core/Src/main.c ****     OLED_SetCursor(0, 5);
+ 136:Core/Src/main.c ****     OLED_WriteString("Unable to config HC-05!");
+ 137:Core/Src/main.c ****   }
+ 138:Core/Src/main.c **** #endif
+ 139:Core/Src/main.c **** 
+ 140:Core/Src/main.c ****   HC05_ReceiveInfo(rx_data);
+ 141:Core/Src/main.c ****   FT_Init();  // Initialize file transfer module
+ 142:Core/Src/main.c ****   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
+ 143:Core/Src/main.c ****   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // TIM3_CH1 as displayed
+ 144:Core/Src/main.c ****   // set duty cycle
+ 145:Core/Src/main.c ****   __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 250); // 50% duty cycle, 250 by (499+1)/2=250
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 4
 
 
- 146:Core/Src/main.c ****   HAL_TIM_Base_Start_IT(&htim4);  // Start TIM4 interrupt for controllerUpdate
- 147:Core/Src/main.c ****   // OLED_SetCursor(0, 6);
- 148:Core/Src/main.c ****   // OLED_WriteString("PWM ready!");
- 149:Core/Src/main.c ****   // Initialize SD card with FatFs
- 150:Core/Src/main.c ****   FRESULT sdResult = FR_NOT_READY;
- 151:Core/Src/main.c ****   OLED_SetCursor(0, 2);
- 152:Core/Src/main.c **** 
- 153:Core/Src/main.c ****   // Try init multiple times (5 times)
- 154:Core/Src/main.c ****   for (int i = 0; i < 5; i++) {
- 155:Core/Src/main.c ****     sdResult = SD_Init();
- 156:Core/Src/main.c ****     if (sdResult == FR_OK) {
- 157:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
- 158:Core/Src/main.c ****       break;
- 159:Core/Src/main.c ****     }
- 160:Core/Src/main.c ****     HAL_Delay(100);
- 161:Core/Src/main.c ****   }
- 162:Core/Src/main.c **** 
- 163:Core/Src/main.c ****   if (sdResult != FR_OK) {
- 164:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
- 165:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 166:Core/Src/main.c ****   } else {
- 167:Core/Src/main.c ****     // List MIDI files and display
- 168:Core/Src/main.c ****     OLED_SetCursor(0, 3);
- 169:Core/Src/main.c ****     int numSongs = SD_ListMidiFiles();
- 170:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
- 171:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 172:Core/Src/main.c ****     SD_DisplaySongList(0, 0);
- 173:Core/Src/main.c ****   }
- 174:Core/Src/main.c ****   
- 175:Core/Src/main.c ****   OLED_SetCursor(0, 1);
- 176:Core/Src/main.c ****   OLED_WriteString("System Ready");
- 177:Core/Src/main.c **** 
- 178:Core/Src/main.c ****   if (SD_OpenFile(&file, "test1.mid", FA_READ) == FR_OK){
- 179:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
- 180:Core/Src/main.c ****     SD_CloseFile(&file);
- 181:Core/Src/main.c ****   }
- 182:Core/Src/main.c ****   HC05_SendBytes(FileBuffer, BytesRead);
- 183:Core/Src/main.c ****   OLED_SetCursor(0, 1);
- 184:Core/Src/main.c ****   OLED_WriteString("Send bytes!   ");
- 185:Core/Src/main.c **** 
- 186:Core/Src/main.c ****   /* USER CODE END 2 */
+ 146:Core/Src/main.c **** 
+ 147:Core/Src/main.c ****     // Initialize accData before starting interrupt
+ 148:Core/Src/main.c ****   HAL_TIM_Base_Start_IT(&htim4);  // Start TIM4 interrupt for controllerUpdate
+ 149:Core/Src/main.c ****   // OLED_SetCursor(0, 6);
+ 150:Core/Src/main.c ****   // OLED_WriteString("PWM ready!");
+ 151:Core/Src/main.c ****   // Initialize SD card with FatFs
+ 152:Core/Src/main.c ****   FRESULT sdResult = FR_NOT_READY;
+ 153:Core/Src/main.c ****   OLED_SetCursor(0, 2);
+ 154:Core/Src/main.c **** 
+ 155:Core/Src/main.c ****   // Try init multiple times (5 times)
+ 156:Core/Src/main.c ****   for (int i = 0; i < 5; i++) {
+ 157:Core/Src/main.c ****     sdResult = SD_Init();
+ 158:Core/Src/main.c ****     if (sdResult == FR_OK) {
+ 159:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
+ 160:Core/Src/main.c ****       break;
+ 161:Core/Src/main.c ****     }
+ 162:Core/Src/main.c ****     HAL_Delay(100);
+ 163:Core/Src/main.c ****   }
+ 164:Core/Src/main.c **** 
+ 165:Core/Src/main.c ****   if (sdResult != FR_OK) {
+ 166:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
+ 167:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 168:Core/Src/main.c ****   } else {
+ 169:Core/Src/main.c ****     // List MIDI files and display
+ 170:Core/Src/main.c ****     OLED_SetCursor(0, 3);
+ 171:Core/Src/main.c ****     int numSongs = SD_ListMidiFiles();
+ 172:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
+ 173:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 174:Core/Src/main.c ****     SD_DisplaySongList(0, 0);
+ 175:Core/Src/main.c ****   }
+ 176:Core/Src/main.c ****   
+ 177:Core/Src/main.c ****   OLED_SetCursor(0, 1);
+ 178:Core/Src/main.c ****   OLED_WriteString("System Ready");
+ 179:Core/Src/main.c **** 
+ 180:Core/Src/main.c ****   if (SD_OpenFile(&file, "test1.mid", FA_READ) == FR_OK){
+ 181:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
+ 182:Core/Src/main.c ****     SD_CloseFile(&file);
+ 183:Core/Src/main.c ****   }
+ 184:Core/Src/main.c ****   HC05_SendBytes(FileBuffer, BytesRead);
+ 185:Core/Src/main.c ****   OLED_SetCursor(0, 1);
+ 186:Core/Src/main.c ****   OLED_WriteString("Send bytes!   ");
  187:Core/Src/main.c **** 
- 188:Core/Src/main.c ****   /* Infinite loop */
- 189:Core/Src/main.c ****   /* USER CODE BEGIN WHILE */
- 190:Core/Src/main.c ****   while (1)
- 191:Core/Src/main.c ****   {
- 192:Core/Src/main.c ****     /* USER CODE END WHILE */
- 193:Core/Src/main.c **** 
- 194:Core/Src/main.c ****     /* USER CODE BEGIN 3 */
- 195:Core/Src/main.c ****     // only process when complete message received
- 196:Core/Src/main.c ****   #ifdef USINGHC05
- 197:Core/Src/main.c ****     if(rx_complete){
- 198:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
- 199:Core/Src/main.c ****       // OLED_WriteString((char*)rx_data);  // cast to char*
- 200:Core/Src/main.c ****       executeCommand(rx_data);
- 201:Core/Src/main.c ****       rx_complete = 0;  // clear flag
- 202:Core/Src/main.c ****       // echo back with \r\n for terminal
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 5
+ 188:Core/Src/main.c ****   /* USER CODE END 2 */
+ 189:Core/Src/main.c **** 
+ 190:Core/Src/main.c ****   /* Infinite loop */
+ 191:Core/Src/main.c ****   /* USER CODE BEGIN WHILE */
+ 192:Core/Src/main.c ****   while (1)
+ 193:Core/Src/main.c ****   {
+ 194:Core/Src/main.c ****     /* USER CODE END WHILE */
+ 195:Core/Src/main.c **** 
+ 196:Core/Src/main.c ****     /* USER CODE BEGIN 3 */
+ 197:Core/Src/main.c ****     // Process file transfer binary packets
+ 198:Core/Src/main.c ****     if (rx_binary_complete) {
+ 199:Core/Src/main.c ****       // Copy packet data BEFORE resetting - prevents race condition with interrupt
+ 200:Core/Src/main.c ****       uint8_t packet_copy[80];
+ 201:Core/Src/main.c ****       uint16_t packet_len = rx_binary_index;
+ 202:Core/Src/main.c ****       memcpy(packet_copy, rx_binary_buffer, packet_len);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 5
 
 
- 203:Core/Src/main.c ****       HC05_SendInfo((uint8_t*)"Got it!\r\n");
- 204:Core/Src/main.c ****     }
- 205:Core/Src/main.c ****     HC05_SendInfo((uint8_t*)"Still Alive!\r\n");
- 206:Core/Src/main.c ****   #endif
+ 203:Core/Src/main.c **** 
+ 204:Core/Src/main.c ****       // Reset BEFORE processing so interrupt can receive next packet
+ 205:Core/Src/main.c ****       rx_binary_complete = 0;
+ 206:Core/Src/main.c ****       rx_binary_index = 0;
  207:Core/Src/main.c **** 
- 208:Core/Src/main.c **** 
- 209:Core/Src/main.c **** 
- 210:Core/Src/main.c ****     // dynamic pwm from 40%->100%, 40% -> 200, 100% -> 500
- 211:Core/Src/main.c ****     if (pwmNum < 500) {
- 212:Core/Src/main.c ****       pwmNum++;
- 213:Core/Src/main.c ****     } else {
- 214:Core/Src/main.c ****       pwmNum = 200;
- 215:Core/Src/main.c ****     }
- 216:Core/Src/main.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwmNum);
- 217:Core/Src/main.c ****   }
- 218:Core/Src/main.c ****   /* USER CODE END 3 */
- 219:Core/Src/main.c **** }
- 220:Core/Src/main.c **** 
- 221:Core/Src/main.c **** /**
- 222:Core/Src/main.c ****   * @brief System Clock Configuration
- 223:Core/Src/main.c ****   * @retval None
- 224:Core/Src/main.c ****   */
- 225:Core/Src/main.c **** void SystemClock_Config(void)
- 226:Core/Src/main.c **** {
- 227:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
- 228:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 208:Core/Src/main.c ****       // Now safely process the copy
+ 209:Core/Src/main.c ****       FT_ProcessPacket(packet_copy, packet_len);
+ 210:Core/Src/main.c ****     }
+ 211:Core/Src/main.c **** 
+ 212:Core/Src/main.c ****     // Check for file transfer timeout
+ 213:Core/Src/main.c ****     FT_TimeoutCheck();
+ 214:Core/Src/main.c **** 
+ 215:Core/Src/main.c ****     // only process when complete message received
+ 216:Core/Src/main.c ****   #ifdef USINGHC05
+ 217:Core/Src/main.c ****     if(rx_complete){
+ 218:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
+ 219:Core/Src/main.c ****       // OLED_WriteString((char*)rx_data);  // cast to char*
+ 220:Core/Src/main.c ****       executeCommand(rx_data);
+ 221:Core/Src/main.c ****       rx_complete = 0;  // clear flag
+ 222:Core/Src/main.c ****       // echo back with \r\n for terminal
+ 223:Core/Src/main.c ****       HC05_SendInfo((uint8_t*)"Got it!\r\n");
+ 224:Core/Src/main.c ****     }
+ 225:Core/Src/main.c ****     // HC05_SendInfo((uint8_t*)"Still Alive!\r\n");  // Disabled during file transfer
+ 226:Core/Src/main.c ****   #endif
+ 227:Core/Src/main.c **** 
+ 228:Core/Src/main.c **** 
  229:Core/Src/main.c **** 
- 230:Core/Src/main.c ****   /** Initializes the RCC Oscillators according to the specified parameters
- 231:Core/Src/main.c ****   * in the RCC_OscInitTypeDef structure.
- 232:Core/Src/main.c ****   */
- 233:Core/Src/main.c ****   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
- 234:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
- 235:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
- 236:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
- 237:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
- 238:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
- 239:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
- 240:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
- 241:Core/Src/main.c ****   {
- 242:Core/Src/main.c ****     Error_Handler();
- 243:Core/Src/main.c ****   }
- 244:Core/Src/main.c **** 
- 245:Core/Src/main.c ****   /** Initializes the CPU, AHB and APB buses clocks
- 246:Core/Src/main.c ****   */
- 247:Core/Src/main.c ****   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
- 248:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
- 249:Core/Src/main.c ****   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
- 250:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
- 251:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
- 252:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
- 253:Core/Src/main.c **** 
- 254:Core/Src/main.c ****   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
- 255:Core/Src/main.c ****   {
- 256:Core/Src/main.c ****     Error_Handler();
- 257:Core/Src/main.c ****   }
- 258:Core/Src/main.c **** }
- 259:Core/Src/main.c **** 
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 6
+ 230:Core/Src/main.c ****     // dynamic pwm from 40%->100%, 40% -> 200, 100% -> 500
+ 231:Core/Src/main.c ****     if (pwmNum < 500) {
+ 232:Core/Src/main.c ****       pwmNum++;
+ 233:Core/Src/main.c ****     } else {
+ 234:Core/Src/main.c ****       pwmNum = 200;
+ 235:Core/Src/main.c ****     }
+ 236:Core/Src/main.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwmNum);
+ 237:Core/Src/main.c ****   }
+ 238:Core/Src/main.c ****   /* USER CODE END 3 */
+ 239:Core/Src/main.c **** }
+ 240:Core/Src/main.c **** 
+ 241:Core/Src/main.c **** /**
+ 242:Core/Src/main.c ****   * @brief System Clock Configuration
+ 243:Core/Src/main.c ****   * @retval None
+ 244:Core/Src/main.c ****   */
+ 245:Core/Src/main.c **** void SystemClock_Config(void)
+ 246:Core/Src/main.c **** {
+ 247:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 248:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 249:Core/Src/main.c **** 
+ 250:Core/Src/main.c ****   /** Initializes the RCC Oscillators according to the specified parameters
+ 251:Core/Src/main.c ****   * in the RCC_OscInitTypeDef structure.
+ 252:Core/Src/main.c ****   */
+ 253:Core/Src/main.c ****   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+ 254:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 255:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 256:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 257:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 258:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 259:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 6
 
 
- 260:Core/Src/main.c **** /* USER CODE BEGIN 4 */
- 261:Core/Src/main.c **** // auto call on receive uart is used, move everything in buffer
- 262:Core/Src/main.c **** void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
-  28              		.loc 1 262 56 view -0
+ 260:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 261:Core/Src/main.c ****   {
+ 262:Core/Src/main.c ****     Error_Handler();
+ 263:Core/Src/main.c ****   }
+ 264:Core/Src/main.c **** 
+ 265:Core/Src/main.c ****   /** Initializes the CPU, AHB and APB buses clocks
+ 266:Core/Src/main.c ****   */
+ 267:Core/Src/main.c ****   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+ 268:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 269:Core/Src/main.c ****   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+ 270:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 271:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 272:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 273:Core/Src/main.c **** 
+ 274:Core/Src/main.c ****   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+ 275:Core/Src/main.c ****   {
+ 276:Core/Src/main.c ****     Error_Handler();
+ 277:Core/Src/main.c ****   }
+ 278:Core/Src/main.c **** }
+ 279:Core/Src/main.c **** 
+ 280:Core/Src/main.c **** /* USER CODE BEGIN 4 */
+ 281:Core/Src/main.c **** /* Note: USART1 now uses DMA with IDLE line detection (HAL_UARTEx_RxEventCallback)
+ 282:Core/Src/main.c ****    This old callback is kept for compatibility but USART1 won't trigger it anymore */
+ 283:Core/Src/main.c **** void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+  28              		.loc 1 283 56 view -0
   29              		.cfi_startproc
   30              		@ args = 0, pretend = 0, frame = 0
   31              		@ frame_needed = 0, uses_anonymous_args = 0
-  32              		.loc 1 262 56 is_stmt 0 view .LVU1
-  33 0000 08B5     		push	{r3, lr}
-  34              	.LCFI0:
-  35              		.cfi_def_cfa_offset 8
-  36              		.cfi_offset 3, -8
-  37              		.cfi_offset 14, -4
- 263:Core/Src/main.c ****   static int rx_index = 0;
-  38              		.loc 1 263 3 is_stmt 1 view .LVU2
- 264:Core/Src/main.c **** 
- 265:Core/Src/main.c ****   if(huart->Instance == USART1)
-  39              		.loc 1 265 3 view .LVU3
-  40              		.loc 1 265 11 is_stmt 0 view .LVU4
-  41 0002 0268     		ldr	r2, [r0]
-  42              		.loc 1 265 5 view .LVU5
-  43 0004 0E4B     		ldr	r3, .L7
-  44 0006 9A42     		cmp	r2, r3
-  45 0008 00D0     		beq	.L6
-  46              	.LVL1:
-  47              	.L1:
- 266:Core/Src/main.c ****   {
- 267:Core/Src/main.c ****     rx_data[rx_index++] = rx_byte;
- 268:Core/Src/main.c ****     if(rx_byte == '\n' || rx_index >= 99)
- 269:Core/Src/main.c ****     {
- 270:Core/Src/main.c ****       rx_data[rx_index] = '\0';
- 271:Core/Src/main.c ****       rx_index = 0;
- 272:Core/Src/main.c ****       rx_complete = 1;  // signal that message is ready
- 273:Core/Src/main.c ****     }
- 274:Core/Src/main.c ****     // must need re-enable since this function will be closed on done
- 275:Core/Src/main.c ****     HAL_UART_Receive_IT(&huart1, &rx_byte, 1);
- 276:Core/Src/main.c ****   }
- 277:Core/Src/main.c **** }
-  48              		.loc 1 277 1 view .LVU6
-  49 000a 08BD     		pop	{r3, pc}
-  50              	.LVL2:
-  51              	.L6:
- 267:Core/Src/main.c ****     if(rx_byte == '\n' || rx_index >= 99)
-  52              		.loc 1 267 5 is_stmt 1 view .LVU7
- 267:Core/Src/main.c ****     if(rx_byte == '\n' || rx_index >= 99)
-  53              		.loc 1 267 21 is_stmt 0 view .LVU8
-  54 000c 0D4A     		ldr	r2, .L7+4
-  55 000e 1168     		ldr	r1, [r2]
-  56 0010 4B1C     		adds	r3, r1, #1
-  57 0012 1360     		str	r3, [r2]
- 267:Core/Src/main.c ****     if(rx_byte == '\n' || rx_index >= 99)
-  58              		.loc 1 267 25 view .LVU9
-  59 0014 0C4A     		ldr	r2, .L7+8
-  60 0016 1278     		ldrb	r2, [r2]	@ zero_extendqisi2
-  61 0018 0C48     		ldr	r0, .L7+12
-  62              	.LVL3:
- 267:Core/Src/main.c ****     if(rx_byte == '\n' || rx_index >= 99)
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 7
-
-
-  63              		.loc 1 267 25 view .LVU10
-  64 001a 4254     		strb	r2, [r0, r1]
- 268:Core/Src/main.c ****     {
-  65              		.loc 1 268 5 is_stmt 1 view .LVU11
- 268:Core/Src/main.c ****     {
-  66              		.loc 1 268 7 is_stmt 0 view .LVU12
-  67 001c 0A2A     		cmp	r2, #10
-  68 001e 01D0     		beq	.L3
- 268:Core/Src/main.c ****     {
-  69              		.loc 1 268 24 discriminator 1 view .LVU13
-  70 0020 622B     		cmp	r3, #98
-  71 0022 07DD     		ble	.L4
-  72              	.L3:
- 270:Core/Src/main.c ****       rx_index = 0;
-  73              		.loc 1 270 7 is_stmt 1 view .LVU14
- 270:Core/Src/main.c ****       rx_index = 0;
-  74              		.loc 1 270 25 is_stmt 0 view .LVU15
-  75 0024 0022     		movs	r2, #0
-  76 0026 0949     		ldr	r1, .L7+12
-  77 0028 CA54     		strb	r2, [r1, r3]
- 271:Core/Src/main.c ****       rx_complete = 1;  // signal that message is ready
-  78              		.loc 1 271 7 is_stmt 1 view .LVU16
- 271:Core/Src/main.c ****       rx_complete = 1;  // signal that message is ready
-  79              		.loc 1 271 16 is_stmt 0 view .LVU17
-  80 002a 064B     		ldr	r3, .L7+4
-  81 002c 1A60     		str	r2, [r3]
- 272:Core/Src/main.c ****     }
-  82              		.loc 1 272 7 is_stmt 1 view .LVU18
- 272:Core/Src/main.c ****     }
-  83              		.loc 1 272 19 is_stmt 0 view .LVU19
-  84 002e 084B     		ldr	r3, .L7+16
-  85 0030 0122     		movs	r2, #1
-  86 0032 1A70     		strb	r2, [r3]
-  87              	.L4:
- 275:Core/Src/main.c ****   }
-  88              		.loc 1 275 5 is_stmt 1 view .LVU20
-  89 0034 0122     		movs	r2, #1
-  90 0036 0449     		ldr	r1, .L7+8
-  91 0038 0648     		ldr	r0, .L7+20
-  92 003a FFF7FEFF 		bl	HAL_UART_Receive_IT
-  93              	.LVL4:
-  94              		.loc 1 277 1 is_stmt 0 view .LVU21
-  95 003e E4E7     		b	.L1
-  96              	.L8:
-  97              		.align	2
-  98              	.L7:
-  99 0040 00380140 		.word	1073821696
- 100 0044 00000000 		.word	rx_index.0
- 101 0048 00000000 		.word	rx_byte
- 102 004c 00000000 		.word	rx_data
- 103 0050 00000000 		.word	rx_complete
- 104 0054 00000000 		.word	huart1
- 105              		.cfi_endproc
- 106              	.LFE70:
- 108              		.section	.text.HAL_UART_TxCpltCallback,"ax",%progbits
- 109              		.align	1
- 110              		.global	HAL_UART_TxCpltCallback
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 8
-
-
- 111              		.syntax unified
- 112              		.thumb
- 113              		.thumb_func
- 115              	HAL_UART_TxCpltCallback:
- 116              	.LVL5:
- 117              	.LFB71:
- 278:Core/Src/main.c **** 
- 279:Core/Src/main.c **** // DMA TX complete callback - required for continuous DMA transmission
- 280:Core/Src/main.c **** void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
- 118              		.loc 1 280 56 is_stmt 1 view -0
- 119              		.cfi_startproc
- 120              		@ args = 0, pretend = 0, frame = 0
- 121              		@ frame_needed = 0, uses_anonymous_args = 0
- 122              		@ link register save eliminated.
- 281:Core/Src/main.c ****   if(huart->Instance == USART2){
- 123              		.loc 1 281 3 view .LVU23
- 282:Core/Src/main.c ****     // DMA transfer complete - state automatically reset to READY by HAL
- 283:Core/Src/main.c ****     // This callback confirms DMA is working
- 284:Core/Src/main.c ****   }
- 124              		.loc 1 284 3 view .LVU24
+  32              		@ link register save eliminated.
+ 284:Core/Src/main.c ****   (void)huart;  /* Unused - USART1 uses DMA now */
+  33              		.loc 1 284 3 view .LVU1
  285:Core/Src/main.c **** }
- 125              		.loc 1 285 1 is_stmt 0 view .LVU25
- 126 0000 7047     		bx	lr
- 127              		.cfi_endproc
- 128              	.LFE71:
- 130              		.section	.text.HAL_UARTEx_RxEventCallback,"ax",%progbits
- 131              		.align	1
- 132              		.global	HAL_UARTEx_RxEventCallback
- 133              		.syntax unified
- 134              		.thumb
- 135              		.thumb_func
- 137              	HAL_UARTEx_RxEventCallback:
- 138              	.LVL6:
- 139              	.LFB72:
+  34              		.loc 1 285 1 is_stmt 0 view .LVU2
+  35 0000 7047     		bx	lr
+  36              		.cfi_endproc
+  37              	.LFE70:
+  39              		.section	.text.HAL_UART_TxCpltCallback,"ax",%progbits
+  40              		.align	1
+  41              		.global	HAL_UART_TxCpltCallback
+  42              		.syntax unified
+  43              		.thumb
+  44              		.thumb_func
+  46              	HAL_UART_TxCpltCallback:
+  47              	.LVL1:
+  48              	.LFB71:
  286:Core/Src/main.c **** 
- 287:Core/Src/main.c **** // DMA RX callback
- 288:Core/Src/main.c **** void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
- 289:Core/Src/main.c **** {
- 140              		.loc 1 289 1 is_stmt 1 view -0
- 141              		.cfi_startproc
- 142              		@ args = 0, pretend = 0, frame = 0
- 143              		@ frame_needed = 0, uses_anonymous_args = 0
- 144              		.loc 1 289 1 is_stmt 0 view .LVU27
- 145 0000 08B5     		push	{r3, lr}
- 146              	.LCFI1:
- 147              		.cfi_def_cfa_offset 8
- 148              		.cfi_offset 3, -8
- 149              		.cfi_offset 14, -4
- 290:Core/Src/main.c ****   if (huart->Instance == USART2) {
- 150              		.loc 1 290 3 is_stmt 1 view .LVU28
- 151              		.loc 1 290 12 is_stmt 0 view .LVU29
- 152 0002 0268     		ldr	r2, [r0]
- 153              		.loc 1 290 6 view .LVU30
- 154 0004 1E4B     		ldr	r3, .L23
- 155 0006 9A42     		cmp	r2, r3
- 156 0008 00D0     		beq	.L22
- 157              	.LVL7:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 9
+ 287:Core/Src/main.c **** // DMA TX complete callback - required for continuous DMA transmission
+ 288:Core/Src/main.c **** void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+  49              		.loc 1 288 56 is_stmt 1 view -0
+  50              		.cfi_startproc
+  51              		@ args = 0, pretend = 0, frame = 0
+  52              		@ frame_needed = 0, uses_anonymous_args = 0
+  53              		@ link register save eliminated.
+ 289:Core/Src/main.c ****   if(huart->Instance == USART2){
+  54              		.loc 1 289 3 view .LVU4
+ 290:Core/Src/main.c ****     // DMA transfer complete - state automatically reset to READY by HAL
+ 291:Core/Src/main.c ****     // This callback confirms DMA is working
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 7
 
 
- 158              	.L10:
- 291:Core/Src/main.c ****     // parse vofa message and save pid data
- 292:Core/Src/main.c ****     // first only handle if message >= 5 bytes
- 293:Core/Src/main.c ****     if (Size >= 5) {
- 294:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
- 295:Core/Src/main.c ****       float value; // the pid will be stored as float
- 296:Core/Src/main.c **** 
- 297:Core/Src/main.c ****       switch (command)
- 298:Core/Src/main.c ****       {
- 299:Core/Src/main.c ****       case CMD_SET_LEFT_P:
- 300:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
- 301:Core/Src/main.c ****         leftHandMotor.P=value;
- 302:Core/Src/main.c ****         break;
+ 292:Core/Src/main.c ****   }
+  55              		.loc 1 292 3 view .LVU5
+ 293:Core/Src/main.c **** }
+  56              		.loc 1 293 1 is_stmt 0 view .LVU6
+  57 0000 7047     		bx	lr
+  58              		.cfi_endproc
+  59              	.LFE71:
+  61              		.section	.text.HAL_UART_ErrorCallback,"ax",%progbits
+  62              		.align	1
+  63              		.global	HAL_UART_ErrorCallback
+  64              		.syntax unified
+  65              		.thumb
+  66              		.thumb_func
+  68              	HAL_UART_ErrorCallback:
+  69              	.LVL2:
+  70              	.LFB72:
+ 294:Core/Src/main.c **** 
+ 295:Core/Src/main.c **** // UART Error callback - critical for handling overrun errors on STM32F1
+ 296:Core/Src/main.c **** void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart){
+  71              		.loc 1 296 55 is_stmt 1 view -0
+  72              		.cfi_startproc
+  73              		@ args = 0, pretend = 0, frame = 16
+  74              		@ frame_needed = 0, uses_anonymous_args = 0
+ 297:Core/Src/main.c ****   if(huart->Instance == USART1){
+  75              		.loc 1 297 3 view .LVU8
+  76              		.loc 1 297 11 is_stmt 0 view .LVU9
+  77 0000 0368     		ldr	r3, [r0]
+  78              		.loc 1 297 5 view .LVU10
+  79 0002 114A     		ldr	r2, .L10
+  80 0004 9342     		cmp	r3, r2
+  81 0006 00D0     		beq	.L9
+  82 0008 7047     		bx	lr
+  83              	.L9:
+ 296:Core/Src/main.c ****   if(huart->Instance == USART1){
+  84              		.loc 1 296 55 view .LVU11
+  85 000a 00B5     		push	{lr}
+  86              	.LCFI0:
+  87              		.cfi_def_cfa_offset 4
+  88              		.cfi_offset 14, -4
+  89 000c 85B0     		sub	sp, sp, #20
+  90              	.LCFI1:
+  91              		.cfi_def_cfa_offset 24
+ 298:Core/Src/main.c ****     // Clear all error flags (ORE, NE, FE, PE)
+ 299:Core/Src/main.c ****     __HAL_UART_CLEAR_OREFLAG(huart);
+  92              		.loc 1 299 5 is_stmt 1 view .LVU12
+  93              	.LBB4:
+  94              		.loc 1 299 5 view .LVU13
+  95 000e 0022     		movs	r2, #0
+  96 0010 0092     		str	r2, [sp]
+  97              		.loc 1 299 5 view .LVU14
+  98 0012 1968     		ldr	r1, [r3]
+  99 0014 0091     		str	r1, [sp]
+ 100              		.loc 1 299 5 view .LVU15
+ 101 0016 5968     		ldr	r1, [r3, #4]
+ 102 0018 0091     		str	r1, [sp]
+ 103              		.loc 1 299 5 view .LVU16
+ 104 001a 0099     		ldr	r1, [sp]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 8
+
+
+ 105              	.LBE4:
+ 106              		.loc 1 299 5 view .LVU17
+ 300:Core/Src/main.c ****     __HAL_UART_CLEAR_NEFLAG(huart);
+ 107              		.loc 1 300 5 view .LVU18
+ 108              	.LBB5:
+ 109              		.loc 1 300 5 view .LVU19
+ 110 001c 0192     		str	r2, [sp, #4]
+ 111              		.loc 1 300 5 view .LVU20
+ 112 001e 1968     		ldr	r1, [r3]
+ 113 0020 0191     		str	r1, [sp, #4]
+ 114              		.loc 1 300 5 view .LVU21
+ 115 0022 5968     		ldr	r1, [r3, #4]
+ 116 0024 0191     		str	r1, [sp, #4]
+ 117              		.loc 1 300 5 view .LVU22
+ 118 0026 0199     		ldr	r1, [sp, #4]
+ 119              	.LBE5:
+ 120              		.loc 1 300 5 view .LVU23
+ 301:Core/Src/main.c ****     __HAL_UART_CLEAR_FEFLAG(huart);
+ 121              		.loc 1 301 5 view .LVU24
+ 122              	.LBB6:
+ 123              		.loc 1 301 5 view .LVU25
+ 124 0028 0292     		str	r2, [sp, #8]
+ 125              		.loc 1 301 5 view .LVU26
+ 126 002a 1968     		ldr	r1, [r3]
+ 127 002c 0291     		str	r1, [sp, #8]
+ 128              		.loc 1 301 5 view .LVU27
+ 129 002e 5968     		ldr	r1, [r3, #4]
+ 130 0030 0291     		str	r1, [sp, #8]
+ 131              		.loc 1 301 5 view .LVU28
+ 132 0032 0299     		ldr	r1, [sp, #8]
+ 133              	.LBE6:
+ 134              		.loc 1 301 5 view .LVU29
+ 302:Core/Src/main.c ****     __HAL_UART_CLEAR_PEFLAG(huart);
+ 135              		.loc 1 302 5 view .LVU30
+ 136              	.LBB7:
+ 137              		.loc 1 302 5 view .LVU31
+ 138 0034 0392     		str	r2, [sp, #12]
+ 139              		.loc 1 302 5 view .LVU32
+ 140 0036 1A68     		ldr	r2, [r3]
+ 141 0038 0392     		str	r2, [sp, #12]
+ 142              		.loc 1 302 5 view .LVU33
+ 143 003a 5B68     		ldr	r3, [r3, #4]
+ 144 003c 0393     		str	r3, [sp, #12]
+ 145              		.loc 1 302 5 view .LVU34
+ 146 003e 039B     		ldr	r3, [sp, #12]
+ 147              	.LBE7:
+ 148              		.loc 1 302 5 view .LVU35
  303:Core/Src/main.c **** 
- 304:Core/Src/main.c ****       case CMD_SET_LEFT_I:
- 305:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
- 306:Core/Src/main.c ****         leftHandMotor.I = value;
- 307:Core/Src/main.c ****         break;
+ 304:Core/Src/main.c ****     // Restart DMA reception
+ 305:Core/Src/main.c ****     HC05_RestartDMA();
+ 149              		.loc 1 305 5 view .LVU36
+ 150 0040 FFF7FEFF 		bl	HC05_RestartDMA
+ 151              	.LVL3:
+ 306:Core/Src/main.c ****   }
+ 307:Core/Src/main.c **** }
+ 152              		.loc 1 307 1 is_stmt 0 view .LVU37
+ 153 0044 05B0     		add	sp, sp, #20
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 9
+
+
+ 154              	.LCFI2:
+ 155              		.cfi_def_cfa_offset 4
+ 156              		@ sp needed
+ 157 0046 00BD     		pop	{pc}
+ 158              	.L11:
+ 159              		.align	2
+ 160              	.L10:
+ 161 0048 00380140 		.word	1073821696
+ 162              		.cfi_endproc
+ 163              	.LFE72:
+ 165              		.section	.text.HAL_UARTEx_RxEventCallback,"ax",%progbits
+ 166              		.align	1
+ 167              		.global	HAL_UARTEx_RxEventCallback
+ 168              		.syntax unified
+ 169              		.thumb
+ 170              		.thumb_func
+ 172              	HAL_UARTEx_RxEventCallback:
+ 173              	.LVL4:
+ 174              	.LFB73:
  308:Core/Src/main.c **** 
- 309:Core/Src/main.c ****       case CMD_SET_LEFT_D:
- 310:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
- 311:Core/Src/main.c ****         leftHandMotor.D = value;
- 312:Core/Src/main.c ****         break;
- 313:Core/Src/main.c **** 
- 314:Core/Src/main.c ****       case CMD_SET_RIGHT_P:
- 315:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
- 316:Core/Src/main.c ****         rightHandMotor.P=value;
- 317:Core/Src/main.c ****         break;
- 318:Core/Src/main.c **** 
- 319:Core/Src/main.c ****       case CMD_SET_RIGHT_I:
- 320:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
- 321:Core/Src/main.c ****         rightHandMotor.I = value;
- 322:Core/Src/main.c ****         break;
- 323:Core/Src/main.c **** 
- 324:Core/Src/main.c ****       case CMD_SET_RIGHT_D:
- 325:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
- 326:Core/Src/main.c ****         rightHandMotor.D = value;
- 327:Core/Src/main.c ****         break;
- 328:Core/Src/main.c ****       
- 329:Core/Src/main.c ****       default:
- 330:Core/Src/main.c ****         break;
- 331:Core/Src/main.c ****       }
- 332:Core/Src/main.c ****     }
- 333:Core/Src/main.c **** 
- 334:Core/Src/main.c ****     // restart receive
- 335:Core/Src/main.c ****     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, VOFA_SEND_BUFFER, sizeof(VOFA_SEND_BUFFER));
- 336:Core/Src/main.c ****   }
- 337:Core/Src/main.c **** }
- 159              		.loc 1 337 1 view .LVU31
- 160 000a 08BD     		pop	{r3, pc}
- 161              	.LVL8:
- 162              	.L22:
- 293:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
- 163              		.loc 1 293 5 is_stmt 1 view .LVU32
- 293:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
- 164              		.loc 1 293 8 is_stmt 0 view .LVU33
- 165 000c 0429     		cmp	r1, #4
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 10
+ 309:Core/Src/main.c **** // DMA RX callback - handles both USART1 (HC05) and USART2 (VOFA)
+ 310:Core/Src/main.c **** void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+ 311:Core/Src/main.c **** {
+ 175              		.loc 1 311 1 is_stmt 1 view -0
+ 176              		.cfi_startproc
+ 177              		@ args = 0, pretend = 0, frame = 0
+ 178              		@ frame_needed = 0, uses_anonymous_args = 0
+ 179              		.loc 1 311 1 is_stmt 0 view .LVU39
+ 180 0000 10B5     		push	{r4, lr}
+ 181              	.LCFI3:
+ 182              		.cfi_def_cfa_offset 8
+ 183              		.cfi_offset 4, -8
+ 184              		.cfi_offset 14, -4
+ 312:Core/Src/main.c ****   if (huart->Instance == USART1) {
+ 185              		.loc 1 312 3 is_stmt 1 view .LVU40
+ 186              		.loc 1 312 12 is_stmt 0 view .LVU41
+ 187 0002 0368     		ldr	r3, [r0]
+ 188              		.loc 1 312 6 view .LVU42
+ 189 0004 364A     		ldr	r2, .L31
+ 190 0006 9342     		cmp	r3, r2
+ 191 0008 03D0     		beq	.L27
+ 313:Core/Src/main.c ****     /* HC05 Bluetooth - DMA reception with IDLE line detection */
+ 314:Core/Src/main.c ****     /* IMPORTANT: Process data BEFORE restarting DMA (single buffer) */
+ 315:Core/Src/main.c **** 
+ 316:Core/Src/main.c ****     if (Size > 0) {
+ 317:Core/Src/main.c ****       /* Check if it's a binary protocol packet */
+ 318:Core/Src/main.c ****       if (rx_dma_buffer[0] >= 0xF0 && rx_dma_buffer[0] <= 0xF3) {
+ 319:Core/Src/main.c ****         /* Binary packet - always copy (main loop copies before processing so safe) */
+ 320:Core/Src/main.c ****         uint16_t copy_len = (Size < sizeof(rx_binary_buffer)) ? Size : sizeof(rx_binary_buffer);
+ 321:Core/Src/main.c ****         memcpy(rx_binary_buffer, rx_dma_buffer, copy_len);
+ 322:Core/Src/main.c ****         rx_binary_index = copy_len;
+ 323:Core/Src/main.c ****         rx_binary_complete = 1;
+ 324:Core/Src/main.c ****       } else if (!rx_complete) {
+ 325:Core/Src/main.c ****         /* Text command - only copy if previous not pending (text can be lost) */
+ 326:Core/Src/main.c ****         uint16_t copy_len = (Size < sizeof(rx_data) - 1) ? Size : sizeof(rx_data) - 1;
+ 327:Core/Src/main.c ****         memcpy(rx_data, rx_dma_buffer, copy_len);
+ 328:Core/Src/main.c ****         rx_data[copy_len] = '\0';
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 10
 
 
- 166 000e 0FD9     		bls	.L12
- 167              	.LBB4:
- 294:Core/Src/main.c ****       float value; // the pid will be stored as float
- 168              		.loc 1 294 7 is_stmt 1 view .LVU34
- 294:Core/Src/main.c ****       float value; // the pid will be stored as float
- 169              		.loc 1 294 15 is_stmt 0 view .LVU35
- 170 0010 1C4B     		ldr	r3, .L23+4
- 171 0012 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
- 172              	.LVL9:
- 295:Core/Src/main.c **** 
- 173              		.loc 1 295 7 is_stmt 1 view .LVU36
- 297:Core/Src/main.c ****       {
- 174              		.loc 1 297 7 view .LVU37
- 175 0014 112B     		cmp	r3, #17
- 176 0016 27D0     		beq	.L13
- 177 0018 10D8     		bhi	.L14
- 178 001a 022B     		cmp	r3, #2
- 179 001c 18D0     		beq	.L15
- 180 001e 032B     		cmp	r3, #3
- 181 0020 1CD0     		beq	.L16
- 182 0022 012B     		cmp	r3, #1
- 183 0024 04D1     		bne	.L12
- 300:Core/Src/main.c ****         leftHandMotor.P=value;
- 184              		.loc 1 300 9 view .LVU38
- 301:Core/Src/main.c ****         break;
- 185              		.loc 1 301 9 view .LVU39
- 301:Core/Src/main.c ****         break;
- 186              		.loc 1 301 24 is_stmt 0 view .LVU40
- 187 0026 174B     		ldr	r3, .L23+4
- 188              	.LVL10:
- 301:Core/Src/main.c ****         break;
- 189              		.loc 1 301 24 view .LVU41
- 190 0028 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 191 002c 164B     		ldr	r3, .L23+8
- 192              	.LVL11:
- 301:Core/Src/main.c ****         break;
- 193              		.loc 1 301 24 view .LVU42
- 194 002e 1A60     		str	r2, [r3]	@ float
- 302:Core/Src/main.c **** 
- 195              		.loc 1 302 9 is_stmt 1 view .LVU43
- 196              	.LVL12:
- 197              	.L12:
- 302:Core/Src/main.c **** 
- 198              		.loc 1 302 9 is_stmt 0 view .LVU44
- 199              	.LBE4:
+ 329:Core/Src/main.c ****         rx_complete = 1;
+ 330:Core/Src/main.c ****       }
+ 331:Core/Src/main.c ****     }
+ 332:Core/Src/main.c **** 
+ 333:Core/Src/main.c ****     /* Restart DMA AFTER processing - abort ensures clean state */
+ 334:Core/Src/main.c ****     HC05_RestartDMA();
  335:Core/Src/main.c ****   }
- 200              		.loc 1 335 5 is_stmt 1 view .LVU45
- 201 0030 4022     		movs	r2, #64
- 202 0032 1449     		ldr	r1, .L23+4
- 203              	.LVL13:
- 335:Core/Src/main.c ****   }
- 204              		.loc 1 335 5 is_stmt 0 view .LVU46
- 205 0034 1548     		ldr	r0, .L23+12
- 206              	.LVL14:
- 335:Core/Src/main.c ****   }
- 207              		.loc 1 335 5 view .LVU47
- 208 0036 FFF7FEFF 		bl	HAL_UARTEx_ReceiveToIdle_DMA
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 11
+ 336:Core/Src/main.c ****   else if (huart->Instance == USART2) {
+ 192              		.loc 1 336 8 is_stmt 1 view .LVU43
+ 193              		.loc 1 336 11 is_stmt 0 view .LVU44
+ 194 000a 364A     		ldr	r2, .L31+4
+ 195 000c 9342     		cmp	r3, r2
+ 196 000e 2CD0     		beq	.L28
+ 197              	.LVL5:
+ 198              	.L12:
+ 337:Core/Src/main.c ****     // parse vofa message and save pid data
+ 338:Core/Src/main.c ****     // first only handle if message >= 5 bytes
+ 339:Core/Src/main.c ****     if (Size >= 5) {
+ 340:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
+ 341:Core/Src/main.c ****       float value; // the pid will be stored as float
+ 342:Core/Src/main.c **** 
+ 343:Core/Src/main.c ****       switch (command)
+ 344:Core/Src/main.c ****       {
+ 345:Core/Src/main.c ****       case CMD_SET_LEFT_P:
+ 346:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
+ 347:Core/Src/main.c ****         leftHandMotor.P=value;
+ 348:Core/Src/main.c ****         break;
+ 349:Core/Src/main.c **** 
+ 350:Core/Src/main.c ****       case CMD_SET_LEFT_I:
+ 351:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+ 352:Core/Src/main.c ****         leftHandMotor.I = value;
+ 353:Core/Src/main.c ****         break;
+ 354:Core/Src/main.c **** 
+ 355:Core/Src/main.c ****       case CMD_SET_LEFT_D:
+ 356:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+ 357:Core/Src/main.c ****         leftHandMotor.D = value;
+ 358:Core/Src/main.c ****         break;
+ 359:Core/Src/main.c **** 
+ 360:Core/Src/main.c ****       case CMD_SET_RIGHT_P:
+ 361:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float)); // first copy to value 
+ 362:Core/Src/main.c ****         rightHandMotor.P=value;
+ 363:Core/Src/main.c ****         break;
+ 364:Core/Src/main.c **** 
+ 365:Core/Src/main.c ****       case CMD_SET_RIGHT_I:
+ 366:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+ 367:Core/Src/main.c ****         rightHandMotor.I = value;
+ 368:Core/Src/main.c ****         break;
+ 369:Core/Src/main.c **** 
+ 370:Core/Src/main.c ****       case CMD_SET_RIGHT_D:
+ 371:Core/Src/main.c ****         memcpy(&value, &VOFA_SEND_BUFFER[1], sizeof(float));
+ 372:Core/Src/main.c ****         rightHandMotor.D = value;
+ 373:Core/Src/main.c ****         break;
+ 374:Core/Src/main.c ****       
+ 375:Core/Src/main.c ****       default:
+ 376:Core/Src/main.c ****         break;
+ 377:Core/Src/main.c ****       }
+ 378:Core/Src/main.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 11
 
 
- 209              	.LVL15:
- 210              		.loc 1 337 1 view .LVU48
- 211 003a E6E7     		b	.L10
- 212              	.LVL16:
- 213              	.L14:
- 214              	.LBB5:
- 297:Core/Src/main.c ****       {
- 215              		.loc 1 297 7 view .LVU49
- 216 003c 122B     		cmp	r3, #18
- 217 003e 19D0     		beq	.L19
- 218 0040 132B     		cmp	r3, #19
- 219 0042 F5D1     		bne	.L12
- 325:Core/Src/main.c ****         rightHandMotor.D = value;
- 220              		.loc 1 325 9 is_stmt 1 view .LVU50
- 326:Core/Src/main.c ****         break;
- 221              		.loc 1 326 9 view .LVU51
- 326:Core/Src/main.c ****         break;
- 222              		.loc 1 326 26 is_stmt 0 view .LVU52
- 223 0044 0F4B     		ldr	r3, .L23+4
- 224              	.LVL17:
- 326:Core/Src/main.c ****         break;
- 225              		.loc 1 326 26 view .LVU53
- 226 0046 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 227 004a 114B     		ldr	r3, .L23+16
- 228              	.LVL18:
- 326:Core/Src/main.c ****         break;
- 229              		.loc 1 326 26 view .LVU54
- 230 004c 9A60     		str	r2, [r3, #8]	@ float
- 327:Core/Src/main.c ****       
- 231              		.loc 1 327 9 is_stmt 1 view .LVU55
- 232 004e EFE7     		b	.L12
- 233              	.LVL19:
- 234              	.L15:
- 305:Core/Src/main.c ****         leftHandMotor.I = value;
- 235              		.loc 1 305 9 view .LVU56
- 306:Core/Src/main.c ****         break;
- 236              		.loc 1 306 9 view .LVU57
- 306:Core/Src/main.c ****         break;
- 237              		.loc 1 306 25 is_stmt 0 view .LVU58
- 238 0050 0C4B     		ldr	r3, .L23+4
- 239              	.LVL20:
- 306:Core/Src/main.c ****         break;
- 240              		.loc 1 306 25 view .LVU59
- 241 0052 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 242 0056 0C4B     		ldr	r3, .L23+8
- 243              	.LVL21:
- 306:Core/Src/main.c ****         break;
- 244              		.loc 1 306 25 view .LVU60
- 245 0058 5A60     		str	r2, [r3, #4]	@ float
- 307:Core/Src/main.c **** 
- 246              		.loc 1 307 9 is_stmt 1 view .LVU61
- 247 005a E9E7     		b	.L12
- 248              	.LVL22:
- 249              	.L16:
- 310:Core/Src/main.c ****         leftHandMotor.D = value;
- 250              		.loc 1 310 9 view .LVU62
- 311:Core/Src/main.c ****         break;
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 12
+ 379:Core/Src/main.c **** 
+ 380:Core/Src/main.c ****     // restart receive
+ 381:Core/Src/main.c ****     HAL_UARTEx_ReceiveToIdle_DMA(&huart2, VOFA_SEND_BUFFER, sizeof(VOFA_SEND_BUFFER));
+ 382:Core/Src/main.c ****   }
+ 383:Core/Src/main.c **** }
+ 199              		.loc 1 383 1 view .LVU45
+ 200 0010 10BD     		pop	{r4, pc}
+ 201              	.LVL6:
+ 202              	.L27:
+ 316:Core/Src/main.c ****       /* Check if it's a binary protocol packet */
+ 203              		.loc 1 316 5 is_stmt 1 view .LVU46
+ 316:Core/Src/main.c ****       /* Check if it's a binary protocol packet */
+ 204              		.loc 1 316 8 is_stmt 0 view .LVU47
+ 205 0012 41B1     		cbz	r1, .L14
+ 318:Core/Src/main.c ****         /* Binary packet - always copy (main loop copies before processing so safe) */
+ 206              		.loc 1 318 7 is_stmt 1 view .LVU48
+ 318:Core/Src/main.c ****         /* Binary packet - always copy (main loop copies before processing so safe) */
+ 207              		.loc 1 318 24 is_stmt 0 view .LVU49
+ 208 0014 344B     		ldr	r3, .L31+8
+ 209 0016 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 318:Core/Src/main.c ****         /* Binary packet - always copy (main loop copies before processing so safe) */
+ 210              		.loc 1 318 36 view .LVU50
+ 211 0018 1033     		adds	r3, r3, #16
+ 212 001a DBB2     		uxtb	r3, r3
+ 318:Core/Src/main.c ****         /* Binary packet - always copy (main loop copies before processing so safe) */
+ 213              		.loc 1 318 10 view .LVU51
+ 214 001c 032B     		cmp	r3, #3
+ 215 001e 05D9     		bls	.L29
+ 324:Core/Src/main.c ****         /* Text command - only copy if previous not pending (text can be lost) */
+ 216              		.loc 1 324 14 is_stmt 1 view .LVU52
+ 324:Core/Src/main.c ****         /* Text command - only copy if previous not pending (text can be lost) */
+ 217              		.loc 1 324 18 is_stmt 0 view .LVU53
+ 218 0020 324B     		ldr	r3, .L31+12
+ 219 0022 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 324:Core/Src/main.c ****         /* Text command - only copy if previous not pending (text can be lost) */
+ 220              		.loc 1 324 17 view .LVU54
+ 221 0024 8BB1     		cbz	r3, .L30
+ 222              	.LVL7:
+ 223              	.L14:
+ 334:Core/Src/main.c ****   }
+ 224              		.loc 1 334 5 is_stmt 1 view .LVU55
+ 225 0026 FFF7FEFF 		bl	HC05_RestartDMA
+ 226              	.LVL8:
+ 227 002a F1E7     		b	.L12
+ 228              	.LVL9:
+ 229              	.L29:
+ 230              	.LBB8:
+ 320:Core/Src/main.c ****         memcpy(rx_binary_buffer, rx_dma_buffer, copy_len);
+ 231              		.loc 1 320 9 view .LVU56
+ 320:Core/Src/main.c ****         memcpy(rx_binary_buffer, rx_dma_buffer, copy_len);
+ 232              		.loc 1 320 18 is_stmt 0 view .LVU57
+ 233 002c 5029     		cmp	r1, #80
+ 234 002e 28BF     		it	cs
+ 235 0030 5021     		movcs	r1, #80
+ 236              	.LVL10:
+ 320:Core/Src/main.c ****         memcpy(rx_binary_buffer, rx_dma_buffer, copy_len);
+ 237              		.loc 1 320 18 view .LVU58
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 12
 
 
- 251              		.loc 1 311 9 view .LVU63
- 311:Core/Src/main.c ****         break;
- 252              		.loc 1 311 25 is_stmt 0 view .LVU64
- 253 005c 094B     		ldr	r3, .L23+4
- 254              	.LVL23:
- 311:Core/Src/main.c ****         break;
- 255              		.loc 1 311 25 view .LVU65
- 256 005e D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 257 0062 094B     		ldr	r3, .L23+8
- 258              	.LVL24:
- 311:Core/Src/main.c ****         break;
- 259              		.loc 1 311 25 view .LVU66
- 260 0064 9A60     		str	r2, [r3, #8]	@ float
- 312:Core/Src/main.c **** 
- 261              		.loc 1 312 9 is_stmt 1 view .LVU67
- 262 0066 E3E7     		b	.L12
- 263              	.LVL25:
- 264              	.L13:
- 315:Core/Src/main.c ****         rightHandMotor.P=value;
- 265              		.loc 1 315 9 view .LVU68
- 316:Core/Src/main.c ****         break;
- 266              		.loc 1 316 9 view .LVU69
- 316:Core/Src/main.c ****         break;
- 267              		.loc 1 316 25 is_stmt 0 view .LVU70
- 268 0068 064B     		ldr	r3, .L23+4
- 269              	.LVL26:
- 316:Core/Src/main.c ****         break;
- 270              		.loc 1 316 25 view .LVU71
- 271 006a D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 272 006e 084B     		ldr	r3, .L23+16
- 273              	.LVL27:
- 316:Core/Src/main.c ****         break;
- 274              		.loc 1 316 25 view .LVU72
- 275 0070 1A60     		str	r2, [r3]	@ float
- 317:Core/Src/main.c **** 
- 276              		.loc 1 317 9 is_stmt 1 view .LVU73
- 277 0072 DDE7     		b	.L12
- 278              	.LVL28:
- 279              	.L19:
- 320:Core/Src/main.c ****         rightHandMotor.I = value;
- 280              		.loc 1 320 9 view .LVU74
- 321:Core/Src/main.c ****         break;
- 281              		.loc 1 321 9 view .LVU75
- 321:Core/Src/main.c ****         break;
- 282              		.loc 1 321 26 is_stmt 0 view .LVU76
- 283 0074 034B     		ldr	r3, .L23+4
- 284              	.LVL29:
- 321:Core/Src/main.c ****         break;
- 285              		.loc 1 321 26 view .LVU77
- 286 0076 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
- 287 007a 054B     		ldr	r3, .L23+16
- 288              	.LVL30:
- 321:Core/Src/main.c ****         break;
- 289              		.loc 1 321 26 view .LVU78
- 290 007c 5A60     		str	r2, [r3, #4]	@ float
- 322:Core/Src/main.c **** 
- 291              		.loc 1 322 9 is_stmt 1 view .LVU79
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 13
+ 238 0032 0C46     		mov	r4, r1
+ 239              	.LVL11:
+ 321:Core/Src/main.c ****         rx_binary_index = copy_len;
+ 240              		.loc 1 321 9 is_stmt 1 view .LVU59
+ 241 0034 0A46     		mov	r2, r1
+ 242 0036 2C49     		ldr	r1, .L31+8
+ 243              	.LVL12:
+ 321:Core/Src/main.c ****         rx_binary_index = copy_len;
+ 244              		.loc 1 321 9 is_stmt 0 view .LVU60
+ 245 0038 2D48     		ldr	r0, .L31+16
+ 246              	.LVL13:
+ 321:Core/Src/main.c ****         rx_binary_index = copy_len;
+ 247              		.loc 1 321 9 view .LVU61
+ 248 003a FFF7FEFF 		bl	memcpy
+ 249              	.LVL14:
+ 322:Core/Src/main.c ****         rx_binary_complete = 1;
+ 250              		.loc 1 322 9 is_stmt 1 view .LVU62
+ 322:Core/Src/main.c ****         rx_binary_complete = 1;
+ 251              		.loc 1 322 25 is_stmt 0 view .LVU63
+ 252 003e 2D4B     		ldr	r3, .L31+20
+ 253 0040 1C80     		strh	r4, [r3]	@ movhi
+ 323:Core/Src/main.c ****       } else if (!rx_complete) {
+ 254              		.loc 1 323 9 is_stmt 1 view .LVU64
+ 323:Core/Src/main.c ****       } else if (!rx_complete) {
+ 255              		.loc 1 323 28 is_stmt 0 view .LVU65
+ 256 0042 2D4B     		ldr	r3, .L31+24
+ 257 0044 0122     		movs	r2, #1
+ 258 0046 1A70     		strb	r2, [r3]
+ 259              	.LBE8:
+ 260 0048 EDE7     		b	.L14
+ 261              	.LVL15:
+ 262              	.L30:
+ 263              	.LBB9:
+ 326:Core/Src/main.c ****         memcpy(rx_data, rx_dma_buffer, copy_len);
+ 264              		.loc 1 326 9 is_stmt 1 view .LVU66
+ 326:Core/Src/main.c ****         memcpy(rx_data, rx_dma_buffer, copy_len);
+ 265              		.loc 1 326 18 is_stmt 0 view .LVU67
+ 266 004a 6329     		cmp	r1, #99
+ 267 004c 28BF     		it	cs
+ 268 004e 6321     		movcs	r1, #99
+ 269              	.LVL16:
+ 326:Core/Src/main.c ****         memcpy(rx_data, rx_dma_buffer, copy_len);
+ 270              		.loc 1 326 18 view .LVU68
+ 271 0050 0C46     		mov	r4, r1
+ 272              	.LVL17:
+ 327:Core/Src/main.c ****         rx_data[copy_len] = '\0';
+ 273              		.loc 1 327 9 is_stmt 1 view .LVU69
+ 274 0052 0A46     		mov	r2, r1
+ 275 0054 2449     		ldr	r1, .L31+8
+ 276              	.LVL18:
+ 327:Core/Src/main.c ****         rx_data[copy_len] = '\0';
+ 277              		.loc 1 327 9 is_stmt 0 view .LVU70
+ 278 0056 2948     		ldr	r0, .L31+28
+ 279              	.LVL19:
+ 327:Core/Src/main.c ****         rx_data[copy_len] = '\0';
+ 280              		.loc 1 327 9 view .LVU71
+ 281 0058 FFF7FEFF 		bl	memcpy
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 13
 
 
- 292 007e D7E7     		b	.L12
- 293              	.L24:
- 294              		.align	2
- 295              	.L23:
- 296 0080 00440040 		.word	1073759232
- 297 0084 00000000 		.word	VOFA_SEND_BUFFER
- 298 0088 00000000 		.word	leftHandMotor
- 299 008c 00000000 		.word	huart2
- 300 0090 00000000 		.word	rightHandMotor
- 301              	.LBE5:
- 302              		.cfi_endproc
- 303              	.LFE72:
- 305              		.section	.text.Error_Handler,"ax",%progbits
- 306              		.align	1
- 307              		.global	Error_Handler
- 308              		.syntax unified
- 309              		.thumb
- 310              		.thumb_func
- 312              	Error_Handler:
- 313              	.LFB73:
- 338:Core/Src/main.c **** /* USER CODE END 4 */
- 339:Core/Src/main.c **** 
- 340:Core/Src/main.c **** /**
- 341:Core/Src/main.c ****   * @brief  This function is executed in case of error occurrence.
- 342:Core/Src/main.c ****   * @retval None
- 343:Core/Src/main.c ****   */
- 344:Core/Src/main.c **** void Error_Handler(void)
- 345:Core/Src/main.c **** {
- 314              		.loc 1 345 1 view -0
- 315              		.cfi_startproc
- 316              		@ Volatile: function does not return.
- 317              		@ args = 0, pretend = 0, frame = 0
- 318              		@ frame_needed = 0, uses_anonymous_args = 0
- 319              		@ link register save eliminated.
- 346:Core/Src/main.c ****   /* USER CODE BEGIN Error_Handler_Debug */
- 347:Core/Src/main.c ****   /* User can add his own implementation to report the HAL error return state */
- 348:Core/Src/main.c ****   __disable_irq();
- 320              		.loc 1 348 3 view .LVU81
- 321              	.LBB6:
- 322              	.LBI6:
- 323              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
+ 282              	.LVL20:
+ 328:Core/Src/main.c ****         rx_complete = 1;
+ 283              		.loc 1 328 9 is_stmt 1 view .LVU72
+ 328:Core/Src/main.c ****         rx_complete = 1;
+ 284              		.loc 1 328 27 is_stmt 0 view .LVU73
+ 285 005c 0023     		movs	r3, #0
+ 286 005e 274A     		ldr	r2, .L31+28
+ 287 0060 1355     		strb	r3, [r2, r4]
+ 329:Core/Src/main.c ****       }
+ 288              		.loc 1 329 9 is_stmt 1 view .LVU74
+ 329:Core/Src/main.c ****       }
+ 289              		.loc 1 329 21 is_stmt 0 view .LVU75
+ 290 0062 224B     		ldr	r3, .L31+12
+ 291 0064 0122     		movs	r2, #1
+ 292 0066 1A70     		strb	r2, [r3]
+ 293 0068 DDE7     		b	.L14
+ 294              	.LVL21:
+ 295              	.L28:
+ 329:Core/Src/main.c ****       }
+ 296              		.loc 1 329 21 view .LVU76
+ 297              	.LBE9:
+ 339:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
+ 298              		.loc 1 339 5 is_stmt 1 view .LVU77
+ 339:Core/Src/main.c ****       uint8_t command = VOFA_SEND_BUFFER[0];
+ 299              		.loc 1 339 8 is_stmt 0 view .LVU78
+ 300 006a 0429     		cmp	r1, #4
+ 301 006c 0FD9     		bls	.L17
+ 302              	.LBB10:
+ 340:Core/Src/main.c ****       float value; // the pid will be stored as float
+ 303              		.loc 1 340 7 is_stmt 1 view .LVU79
+ 340:Core/Src/main.c ****       float value; // the pid will be stored as float
+ 304              		.loc 1 340 15 is_stmt 0 view .LVU80
+ 305 006e 244B     		ldr	r3, .L31+32
+ 306 0070 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 307              	.LVL22:
+ 341:Core/Src/main.c **** 
+ 308              		.loc 1 341 7 is_stmt 1 view .LVU81
+ 343:Core/Src/main.c ****       {
+ 309              		.loc 1 343 7 view .LVU82
+ 310 0072 112B     		cmp	r3, #17
+ 311 0074 27D0     		beq	.L18
+ 312 0076 10D8     		bhi	.L19
+ 313 0078 022B     		cmp	r3, #2
+ 314 007a 18D0     		beq	.L20
+ 315 007c 032B     		cmp	r3, #3
+ 316 007e 1CD0     		beq	.L21
+ 317 0080 012B     		cmp	r3, #1
+ 318 0082 04D1     		bne	.L17
+ 346:Core/Src/main.c ****         leftHandMotor.P=value;
+ 319              		.loc 1 346 9 view .LVU83
+ 347:Core/Src/main.c ****         break;
+ 320              		.loc 1 347 9 view .LVU84
+ 347:Core/Src/main.c ****         break;
+ 321              		.loc 1 347 24 is_stmt 0 view .LVU85
+ 322 0084 1E4B     		ldr	r3, .L31+32
+ 323              	.LVL23:
+ 347:Core/Src/main.c ****         break;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 14
+
+
+ 324              		.loc 1 347 24 view .LVU86
+ 325 0086 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 326 008a 1E4B     		ldr	r3, .L31+36
+ 327              	.LVL24:
+ 347:Core/Src/main.c ****         break;
+ 328              		.loc 1 347 24 view .LVU87
+ 329 008c 1A60     		str	r2, [r3]	@ float
+ 348:Core/Src/main.c **** 
+ 330              		.loc 1 348 9 is_stmt 1 view .LVU88
+ 331              	.LVL25:
+ 332              	.L17:
+ 348:Core/Src/main.c **** 
+ 333              		.loc 1 348 9 is_stmt 0 view .LVU89
+ 334              	.LBE10:
+ 381:Core/Src/main.c ****   }
+ 335              		.loc 1 381 5 is_stmt 1 view .LVU90
+ 336 008e 4022     		movs	r2, #64
+ 337 0090 1B49     		ldr	r1, .L31+32
+ 338              	.LVL26:
+ 381:Core/Src/main.c ****   }
+ 339              		.loc 1 381 5 is_stmt 0 view .LVU91
+ 340 0092 1D48     		ldr	r0, .L31+40
+ 341              	.LVL27:
+ 381:Core/Src/main.c ****   }
+ 342              		.loc 1 381 5 view .LVU92
+ 343 0094 FFF7FEFF 		bl	HAL_UARTEx_ReceiveToIdle_DMA
+ 344              	.LVL28:
+ 345              		.loc 1 383 1 view .LVU93
+ 346 0098 BAE7     		b	.L12
+ 347              	.LVL29:
+ 348              	.L19:
+ 349              	.LBB11:
+ 343:Core/Src/main.c ****       {
+ 350              		.loc 1 343 7 view .LVU94
+ 351 009a 122B     		cmp	r3, #18
+ 352 009c 19D0     		beq	.L24
+ 353 009e 132B     		cmp	r3, #19
+ 354 00a0 F5D1     		bne	.L17
+ 371:Core/Src/main.c ****         rightHandMotor.D = value;
+ 355              		.loc 1 371 9 is_stmt 1 view .LVU95
+ 372:Core/Src/main.c ****         break;
+ 356              		.loc 1 372 9 view .LVU96
+ 372:Core/Src/main.c ****         break;
+ 357              		.loc 1 372 26 is_stmt 0 view .LVU97
+ 358 00a2 174B     		ldr	r3, .L31+32
+ 359              	.LVL30:
+ 372:Core/Src/main.c ****         break;
+ 360              		.loc 1 372 26 view .LVU98
+ 361 00a4 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 362 00a8 184B     		ldr	r3, .L31+44
+ 363              	.LVL31:
+ 372:Core/Src/main.c ****         break;
+ 364              		.loc 1 372 26 view .LVU99
+ 365 00aa 9A60     		str	r2, [r3, #8]	@ float
+ 373:Core/Src/main.c ****       
+ 366              		.loc 1 373 9 is_stmt 1 view .LVU100
+ 367 00ac EFE7     		b	.L17
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 15
+
+
+ 368              	.LVL32:
+ 369              	.L20:
+ 351:Core/Src/main.c ****         leftHandMotor.I = value;
+ 370              		.loc 1 351 9 view .LVU101
+ 352:Core/Src/main.c ****         break;
+ 371              		.loc 1 352 9 view .LVU102
+ 352:Core/Src/main.c ****         break;
+ 372              		.loc 1 352 25 is_stmt 0 view .LVU103
+ 373 00ae 144B     		ldr	r3, .L31+32
+ 374              	.LVL33:
+ 352:Core/Src/main.c ****         break;
+ 375              		.loc 1 352 25 view .LVU104
+ 376 00b0 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 377 00b4 134B     		ldr	r3, .L31+36
+ 378              	.LVL34:
+ 352:Core/Src/main.c ****         break;
+ 379              		.loc 1 352 25 view .LVU105
+ 380 00b6 5A60     		str	r2, [r3, #4]	@ float
+ 353:Core/Src/main.c **** 
+ 381              		.loc 1 353 9 is_stmt 1 view .LVU106
+ 382 00b8 E9E7     		b	.L17
+ 383              	.LVL35:
+ 384              	.L21:
+ 356:Core/Src/main.c ****         leftHandMotor.D = value;
+ 385              		.loc 1 356 9 view .LVU107
+ 357:Core/Src/main.c ****         break;
+ 386              		.loc 1 357 9 view .LVU108
+ 357:Core/Src/main.c ****         break;
+ 387              		.loc 1 357 25 is_stmt 0 view .LVU109
+ 388 00ba 114B     		ldr	r3, .L31+32
+ 389              	.LVL36:
+ 357:Core/Src/main.c ****         break;
+ 390              		.loc 1 357 25 view .LVU110
+ 391 00bc D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 392 00c0 104B     		ldr	r3, .L31+36
+ 393              	.LVL37:
+ 357:Core/Src/main.c ****         break;
+ 394              		.loc 1 357 25 view .LVU111
+ 395 00c2 9A60     		str	r2, [r3, #8]	@ float
+ 358:Core/Src/main.c **** 
+ 396              		.loc 1 358 9 is_stmt 1 view .LVU112
+ 397 00c4 E3E7     		b	.L17
+ 398              	.LVL38:
+ 399              	.L18:
+ 361:Core/Src/main.c ****         rightHandMotor.P=value;
+ 400              		.loc 1 361 9 view .LVU113
+ 362:Core/Src/main.c ****         break;
+ 401              		.loc 1 362 9 view .LVU114
+ 362:Core/Src/main.c ****         break;
+ 402              		.loc 1 362 25 is_stmt 0 view .LVU115
+ 403 00c6 0E4B     		ldr	r3, .L31+32
+ 404              	.LVL39:
+ 362:Core/Src/main.c ****         break;
+ 405              		.loc 1 362 25 view .LVU116
+ 406 00c8 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 407 00cc 0F4B     		ldr	r3, .L31+44
+ 408              	.LVL40:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 16
+
+
+ 362:Core/Src/main.c ****         break;
+ 409              		.loc 1 362 25 view .LVU117
+ 410 00ce 1A60     		str	r2, [r3]	@ float
+ 363:Core/Src/main.c **** 
+ 411              		.loc 1 363 9 is_stmt 1 view .LVU118
+ 412 00d0 DDE7     		b	.L17
+ 413              	.LVL41:
+ 414              	.L24:
+ 366:Core/Src/main.c ****         rightHandMotor.I = value;
+ 415              		.loc 1 366 9 view .LVU119
+ 367:Core/Src/main.c ****         break;
+ 416              		.loc 1 367 9 view .LVU120
+ 367:Core/Src/main.c ****         break;
+ 417              		.loc 1 367 26 is_stmt 0 view .LVU121
+ 418 00d2 0B4B     		ldr	r3, .L31+32
+ 419              	.LVL42:
+ 367:Core/Src/main.c ****         break;
+ 420              		.loc 1 367 26 view .LVU122
+ 421 00d4 D3F80120 		ldr	r2, [r3, #1]	@ unaligned
+ 422 00d8 0C4B     		ldr	r3, .L31+44
+ 423              	.LVL43:
+ 367:Core/Src/main.c ****         break;
+ 424              		.loc 1 367 26 view .LVU123
+ 425 00da 5A60     		str	r2, [r3, #4]	@ float
+ 368:Core/Src/main.c **** 
+ 426              		.loc 1 368 9 is_stmt 1 view .LVU124
+ 427 00dc D7E7     		b	.L17
+ 428              	.L32:
+ 429 00de 00BF     		.align	2
+ 430              	.L31:
+ 431 00e0 00380140 		.word	1073821696
+ 432 00e4 00440040 		.word	1073759232
+ 433 00e8 00000000 		.word	rx_dma_buffer
+ 434 00ec 00000000 		.word	rx_complete
+ 435 00f0 00000000 		.word	rx_binary_buffer
+ 436 00f4 00000000 		.word	rx_binary_index
+ 437 00f8 00000000 		.word	rx_binary_complete
+ 438 00fc 00000000 		.word	rx_data
+ 439 0100 00000000 		.word	VOFA_SEND_BUFFER
+ 440 0104 00000000 		.word	leftHandMotor
+ 441 0108 00000000 		.word	huart2
+ 442 010c 00000000 		.word	rightHandMotor
+ 443              	.LBE11:
+ 444              		.cfi_endproc
+ 445              	.LFE73:
+ 447              		.section	.text.Error_Handler,"ax",%progbits
+ 448              		.align	1
+ 449              		.global	Error_Handler
+ 450              		.syntax unified
+ 451              		.thumb
+ 452              		.thumb_func
+ 454              	Error_Handler:
+ 455              	.LFB74:
+ 384:Core/Src/main.c **** /* USER CODE END 4 */
+ 385:Core/Src/main.c **** 
+ 386:Core/Src/main.c **** /**
+ 387:Core/Src/main.c ****   * @brief  This function is executed in case of error occurrence.
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 17
+
+
+ 388:Core/Src/main.c ****   * @retval None
+ 389:Core/Src/main.c ****   */
+ 390:Core/Src/main.c **** void Error_Handler(void)
+ 391:Core/Src/main.c **** {
+ 456              		.loc 1 391 1 view -0
+ 457              		.cfi_startproc
+ 458              		@ Volatile: function does not return.
+ 459              		@ args = 0, pretend = 0, frame = 0
+ 460              		@ frame_needed = 0, uses_anonymous_args = 0
+ 461              		@ link register save eliminated.
+ 392:Core/Src/main.c ****   /* USER CODE BEGIN Error_Handler_Debug */
+ 393:Core/Src/main.c ****   /* User can add his own implementation to report the HAL error return state */
+ 394:Core/Src/main.c ****   __disable_irq();
+ 462              		.loc 1 394 3 view .LVU126
+ 463              	.LBB12:
+ 464              	.LBI12:
+ 465              		.file 2 "Drivers/CMSIS/Include/cmsis_gcc.h"
    1:Drivers/CMSIS/Include/cmsis_gcc.h **** /**************************************************************************//**
    2:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @file     cmsis_gcc.h
    3:Drivers/CMSIS/Include/cmsis_gcc.h ****  * @brief    CMSIS compiler GCC header file
@@ -778,9 +994,6 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
   14:Drivers/CMSIS/Include/cmsis_gcc.h ****  * You may obtain a copy of the License at
   15:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
   16:Drivers/CMSIS/Include/cmsis_gcc.h ****  * www.apache.org/licenses/LICENSE-2.0
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 14
-
-
   17:Drivers/CMSIS/Include/cmsis_gcc.h ****  *
   18:Drivers/CMSIS/Include/cmsis_gcc.h ****  * Unless required by applicable law or agreed to in writing, software
   19:Drivers/CMSIS/Include/cmsis_gcc.h ****  * distributed under the License is distributed on an AS IS BASIS, WITHOUT
@@ -805,6 +1018,9 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
   38:Drivers/CMSIS/Include/cmsis_gcc.h **** 
   39:Drivers/CMSIS/Include/cmsis_gcc.h **** /* CMSIS compiler specific defines */
   40:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __ASM
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 18
+
+
   41:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __ASM                                  __asm
   42:Drivers/CMSIS/Include/cmsis_gcc.h **** #endif
   43:Drivers/CMSIS/Include/cmsis_gcc.h **** #ifndef   __INLINE
@@ -838,9 +1054,6 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
   71:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
   72:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
   73:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 15
-
-
   74:Drivers/CMSIS/Include/cmsis_gcc.h ****   struct __attribute__((packed)) T_UINT32 { uint32_t v; };
   75:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
   76:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32(x)                  (((struct T_UINT32 *)(x))->v)
@@ -865,6 +1078,9 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
   95:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic push
   96:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wpacked"
   97:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic ignored "-Wattributes"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 19
+
+
   98:Drivers/CMSIS/Include/cmsis_gcc.h ****   __PACKED_STRUCT T_UINT32_WRITE { uint32_t v; };
   99:Drivers/CMSIS/Include/cmsis_gcc.h ****   #pragma GCC diagnostic pop
  100:Drivers/CMSIS/Include/cmsis_gcc.h ****   #define __UNALIGNED_UINT32_WRITE(addr, val)    (void)((((struct T_UINT32_WRITE *)(void *)(addr))-
@@ -898,9 +1114,6 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
  128:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  129:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __enable_irq(void)
  130:Drivers/CMSIS/Include/cmsis_gcc.h **** {
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 16
-
-
  131:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsie i" : : : "memory");
  132:Drivers/CMSIS/Include/cmsis_gcc.h **** }
  133:Drivers/CMSIS/Include/cmsis_gcc.h **** 
@@ -911,768 +1124,827 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 1
  138:Drivers/CMSIS/Include/cmsis_gcc.h ****            Can only be executed in Privileged modes.
  139:Drivers/CMSIS/Include/cmsis_gcc.h ****  */
  140:Drivers/CMSIS/Include/cmsis_gcc.h **** __STATIC_FORCEINLINE void __disable_irq(void)
- 324              		.loc 2 140 27 view .LVU82
- 325              	.LBB7:
+ 466              		.loc 2 140 27 view .LVU127
+ 467              	.LBB13:
  141:Drivers/CMSIS/Include/cmsis_gcc.h **** {
  142:Drivers/CMSIS/Include/cmsis_gcc.h ****   __ASM volatile ("cpsid i" : : : "memory");
- 326              		.loc 2 142 3 view .LVU83
- 327              		.syntax unified
- 328              	@ 142 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
- 329 0000 72B6     		cpsid i
- 330              	@ 0 "" 2
- 331              		.thumb
- 332              		.syntax unified
- 333              	.L26:
- 334              	.LBE7:
- 335              	.LBE6:
- 349:Core/Src/main.c ****   while (1)
- 336              		.loc 1 349 3 view .LVU84
- 350:Core/Src/main.c ****   {
- 351:Core/Src/main.c ****   }
- 337              		.loc 1 351 3 view .LVU85
- 349:Core/Src/main.c ****   while (1)
- 338              		.loc 1 349 9 view .LVU86
- 339 0002 FEE7     		b	.L26
- 340              		.cfi_endproc
- 341              	.LFE73:
- 343              		.section	.text.SystemClock_Config,"ax",%progbits
- 344              		.align	1
- 345              		.global	SystemClock_Config
- 346              		.syntax unified
- 347              		.thumb
- 348              		.thumb_func
- 350              	SystemClock_Config:
- 351              	.LFB69:
- 226:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
- 352              		.loc 1 226 1 view -0
- 353              		.cfi_startproc
- 354              		@ args = 0, pretend = 0, frame = 64
- 355              		@ frame_needed = 0, uses_anonymous_args = 0
- 356 0000 10B5     		push	{r4, lr}
- 357              	.LCFI2:
- 358              		.cfi_def_cfa_offset 8
- 359              		.cfi_offset 4, -8
- 360              		.cfi_offset 14, -4
- 361 0002 90B0     		sub	sp, sp, #64
- 362              	.LCFI3:
- 363              		.cfi_def_cfa_offset 72
- 227:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
- 364              		.loc 1 227 3 view .LVU88
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 17
+ 468              		.loc 2 142 3 view .LVU128
+ 469              		.syntax unified
+ 470              	@ 142 "Drivers/CMSIS/Include/cmsis_gcc.h" 1
+ 471 0000 72B6     		cpsid i
+ 472              	@ 0 "" 2
+ 473              		.thumb
+ 474              		.syntax unified
+ 475              	.L34:
+ 476              	.LBE13:
+ 477              	.LBE12:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 20
 
 
- 227:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
- 365              		.loc 1 227 22 is_stmt 0 view .LVU89
- 366 0004 06AC     		add	r4, sp, #24
- 367 0006 2822     		movs	r2, #40
- 368 0008 0021     		movs	r1, #0
- 369 000a 2046     		mov	r0, r4
- 370 000c FFF7FEFF 		bl	memset
- 371              	.LVL31:
- 228:Core/Src/main.c **** 
- 372              		.loc 1 228 3 is_stmt 1 view .LVU90
- 228:Core/Src/main.c **** 
- 373              		.loc 1 228 22 is_stmt 0 view .LVU91
- 374 0010 0023     		movs	r3, #0
- 375 0012 0193     		str	r3, [sp, #4]
- 376 0014 0293     		str	r3, [sp, #8]
- 377 0016 0393     		str	r3, [sp, #12]
- 378 0018 0493     		str	r3, [sp, #16]
- 379 001a 0593     		str	r3, [sp, #20]
- 233:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
- 380              		.loc 1 233 3 is_stmt 1 view .LVU92
- 233:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
- 381              		.loc 1 233 36 is_stmt 0 view .LVU93
- 382 001c 0122     		movs	r2, #1
- 383 001e 0692     		str	r2, [sp, #24]
- 234:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
- 384              		.loc 1 234 3 is_stmt 1 view .LVU94
- 234:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
- 385              		.loc 1 234 30 is_stmt 0 view .LVU95
- 386 0020 4FF48033 		mov	r3, #65536
- 387 0024 0793     		str	r3, [sp, #28]
- 235:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
- 388              		.loc 1 235 3 is_stmt 1 view .LVU96
- 236:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
- 389              		.loc 1 236 3 view .LVU97
- 236:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
- 390              		.loc 1 236 30 is_stmt 0 view .LVU98
- 391 0026 0A92     		str	r2, [sp, #40]
- 237:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
- 392              		.loc 1 237 3 is_stmt 1 view .LVU99
- 237:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
- 393              		.loc 1 237 34 is_stmt 0 view .LVU100
- 394 0028 0222     		movs	r2, #2
- 395 002a 0D92     		str	r2, [sp, #52]
- 238:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
- 396              		.loc 1 238 3 is_stmt 1 view .LVU101
- 238:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
- 397              		.loc 1 238 35 is_stmt 0 view .LVU102
- 398 002c 0E93     		str	r3, [sp, #56]
- 239:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
- 399              		.loc 1 239 3 is_stmt 1 view .LVU103
- 239:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
- 400              		.loc 1 239 32 is_stmt 0 view .LVU104
- 401 002e 4FF4E013 		mov	r3, #1835008
- 402 0032 0F93     		str	r3, [sp, #60]
- 240:Core/Src/main.c ****   {
- 403              		.loc 1 240 3 is_stmt 1 view .LVU105
- 240:Core/Src/main.c ****   {
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 18
-
-
- 404              		.loc 1 240 7 is_stmt 0 view .LVU106
- 405 0034 2046     		mov	r0, r4
- 406 0036 FFF7FEFF 		bl	HAL_RCC_OscConfig
- 407              	.LVL32:
- 240:Core/Src/main.c ****   {
- 408              		.loc 1 240 6 discriminator 1 view .LVU107
- 409 003a 70B9     		cbnz	r0, .L31
- 247:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
- 410              		.loc 1 247 3 is_stmt 1 view .LVU108
- 247:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
- 411              		.loc 1 247 31 is_stmt 0 view .LVU109
- 412 003c 0F23     		movs	r3, #15
- 413 003e 0193     		str	r3, [sp, #4]
- 249:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
- 414              		.loc 1 249 3 is_stmt 1 view .LVU110
- 249:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
- 415              		.loc 1 249 34 is_stmt 0 view .LVU111
- 416 0040 0221     		movs	r1, #2
- 417 0042 0291     		str	r1, [sp, #8]
- 250:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
- 418              		.loc 1 250 3 is_stmt 1 view .LVU112
- 250:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
- 419              		.loc 1 250 35 is_stmt 0 view .LVU113
- 420 0044 0390     		str	r0, [sp, #12]
- 251:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
- 421              		.loc 1 251 3 is_stmt 1 view .LVU114
- 251:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
- 422              		.loc 1 251 36 is_stmt 0 view .LVU115
- 423 0046 4FF48062 		mov	r2, #1024
- 424 004a 0492     		str	r2, [sp, #16]
- 252:Core/Src/main.c **** 
- 425              		.loc 1 252 3 is_stmt 1 view .LVU116
- 252:Core/Src/main.c **** 
- 426              		.loc 1 252 36 is_stmt 0 view .LVU117
- 427 004c 0590     		str	r0, [sp, #20]
- 254:Core/Src/main.c ****   {
- 428              		.loc 1 254 3 is_stmt 1 view .LVU118
- 254:Core/Src/main.c ****   {
- 429              		.loc 1 254 7 is_stmt 0 view .LVU119
- 430 004e 01A8     		add	r0, sp, #4
- 431 0050 FFF7FEFF 		bl	HAL_RCC_ClockConfig
- 432              	.LVL33:
- 254:Core/Src/main.c ****   {
- 433              		.loc 1 254 6 discriminator 1 view .LVU120
- 434 0054 18B9     		cbnz	r0, .L32
- 258:Core/Src/main.c **** 
- 435              		.loc 1 258 1 view .LVU121
- 436 0056 10B0     		add	sp, sp, #64
- 437              	.LCFI4:
- 438              		.cfi_remember_state
- 439              		.cfi_def_cfa_offset 8
- 440              		@ sp needed
- 441 0058 10BD     		pop	{r4, pc}
- 442              	.L31:
- 443              	.LCFI5:
- 444              		.cfi_restore_state
- 242:Core/Src/main.c ****   }
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 19
-
-
- 445              		.loc 1 242 5 is_stmt 1 view .LVU122
- 446 005a FFF7FEFF 		bl	Error_Handler
- 447              	.LVL34:
- 448              	.L32:
- 256:Core/Src/main.c ****   }
- 449              		.loc 1 256 5 view .LVU123
- 450 005e FFF7FEFF 		bl	Error_Handler
- 451              	.LVL35:
- 452              		.cfi_endproc
- 453              	.LFE69:
- 455              		.section	.rodata.main.str1.4,"aMS",%progbits,1
- 456              		.align	2
- 457              	.LC0:
- 458 0000 454C4543 		.ascii	"ELEC-391\000"
- 458      2D333931 
- 458      00
- 459 0009 000000   		.align	2
- 460              	.LC1:
- 461 000c 53442043 		.ascii	"SD Card OK!\000"
- 461      61726420 
- 461      4F4B2100 
- 462              		.align	2
- 463              	.LC2:
- 464 0018 53442065 		.ascii	"SD err %d\000"
- 464      72722025 
- 464      6400
- 465 0022 0000     		.align	2
- 466              	.LC3:
- 467 0024 466F756E 		.ascii	"Found %d songs\000"
- 467      64202564 
- 467      20736F6E 
- 467      677300
- 468 0033 00       		.align	2
- 469              	.LC4:
- 470 0034 53797374 		.ascii	"System Ready\000"
- 470      656D2052 
- 470      65616479 
- 470      00
- 471 0041 000000   		.align	2
- 472              	.LC5:
- 473 0044 74657374 		.ascii	"test1.mid\000"
- 473      312E6D69 
- 473      6400
- 474 004e 0000     		.align	2
- 475              	.LC6:
- 476 0050 53656E64 		.ascii	"Send bytes!   \000"
- 476      20627974 
- 476      65732120 
- 476      202000
- 477 005f 00       		.align	2
- 478              	.LC7:
- 479 0060 476F7420 		.ascii	"Got it!\015\012\000"
- 479      6974210D 
- 479      0A00
- 480 006a 0000     		.align	2
- 481              	.LC8:
- 482 006c 5374696C 		.ascii	"Still Alive!\015\012\000"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 20
-
-
- 482      6C20416C 
- 482      69766521 
- 482      0D0A00
- 483              		.section	.text.main,"ax",%progbits
- 484              		.align	1
- 485              		.global	main
- 486              		.syntax unified
- 487              		.thumb
- 488              		.thumb_func
- 490              	main:
- 491              	.LFB68:
-  75:Core/Src/main.c **** 
- 492              		.loc 1 75 1 view -0
- 493              		.cfi_startproc
- 494              		@ args = 0, pretend = 0, frame = 0
- 495              		@ frame_needed = 0, uses_anonymous_args = 0
- 496 0000 38B5     		push	{r3, r4, r5, lr}
- 497              	.LCFI6:
- 498              		.cfi_def_cfa_offset 16
- 499              		.cfi_offset 3, -16
- 500              		.cfi_offset 4, -12
- 501              		.cfi_offset 5, -8
+ 395:Core/Src/main.c ****   while (1)
+ 478              		.loc 1 395 3 view .LVU129
+ 396:Core/Src/main.c ****   {
+ 397:Core/Src/main.c ****   }
+ 479              		.loc 1 397 3 view .LVU130
+ 395:Core/Src/main.c ****   while (1)
+ 480              		.loc 1 395 9 view .LVU131
+ 481 0002 FEE7     		b	.L34
+ 482              		.cfi_endproc
+ 483              	.LFE74:
+ 485              		.section	.text.SystemClock_Config,"ax",%progbits
+ 486              		.align	1
+ 487              		.global	SystemClock_Config
+ 488              		.syntax unified
+ 489              		.thumb
+ 490              		.thumb_func
+ 492              	SystemClock_Config:
+ 493              	.LFB69:
+ 246:Core/Src/main.c ****   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+ 494              		.loc 1 246 1 view -0
+ 495              		.cfi_startproc
+ 496              		@ args = 0, pretend = 0, frame = 64
+ 497              		@ frame_needed = 0, uses_anonymous_args = 0
+ 498 0000 10B5     		push	{r4, lr}
+ 499              	.LCFI4:
+ 500              		.cfi_def_cfa_offset 8
+ 501              		.cfi_offset 4, -8
  502              		.cfi_offset 14, -4
-  84:Core/Src/main.c **** 
- 503              		.loc 1 84 3 view .LVU125
- 504 0002 FFF7FEFF 		bl	HAL_Init
- 505              	.LVL36:
-  91:Core/Src/main.c **** 
- 506              		.loc 1 91 3 view .LVU126
- 507 0006 FFF7FEFF 		bl	SystemClock_Config
- 508              	.LVL37:
-  98:Core/Src/main.c ****   MX_DMA_Init();
- 509              		.loc 1 98 3 view .LVU127
- 510 000a FFF7FEFF 		bl	MX_GPIO_Init
- 511              	.LVL38:
-  99:Core/Src/main.c ****   MX_USART1_UART_Init();
- 512              		.loc 1 99 3 view .LVU128
- 513 000e FFF7FEFF 		bl	MX_DMA_Init
- 514              	.LVL39:
- 100:Core/Src/main.c ****   MX_I2C1_Init();
- 515              		.loc 1 100 3 view .LVU129
- 516 0012 FFF7FEFF 		bl	MX_USART1_UART_Init
- 517              	.LVL40:
- 101:Core/Src/main.c ****   MX_TIM3_Init();
- 518              		.loc 1 101 3 view .LVU130
- 519 0016 FFF7FEFF 		bl	MX_I2C1_Init
- 520              	.LVL41:
- 102:Core/Src/main.c ****   MX_TIM2_Init();
- 521              		.loc 1 102 3 view .LVU131
- 522 001a FFF7FEFF 		bl	MX_TIM3_Init
- 523              	.LVL42:
- 103:Core/Src/main.c ****   MX_USART2_UART_Init();
- 524              		.loc 1 103 3 view .LVU132
- 525 001e FFF7FEFF 		bl	MX_TIM2_Init
- 526              	.LVL43:
- 104:Core/Src/main.c ****   MX_TIM4_Init();
- 527              		.loc 1 104 3 view .LVU133
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 21
+ 503 0002 90B0     		sub	sp, sp, #64
+ 504              	.LCFI5:
+ 505              		.cfi_def_cfa_offset 72
+ 247:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 506              		.loc 1 247 3 view .LVU133
+ 247:Core/Src/main.c ****   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+ 507              		.loc 1 247 22 is_stmt 0 view .LVU134
+ 508 0004 06AC     		add	r4, sp, #24
+ 509 0006 2822     		movs	r2, #40
+ 510 0008 0021     		movs	r1, #0
+ 511 000a 2046     		mov	r0, r4
+ 512 000c FFF7FEFF 		bl	memset
+ 513              	.LVL44:
+ 248:Core/Src/main.c **** 
+ 514              		.loc 1 248 3 is_stmt 1 view .LVU135
+ 248:Core/Src/main.c **** 
+ 515              		.loc 1 248 22 is_stmt 0 view .LVU136
+ 516 0010 0023     		movs	r3, #0
+ 517 0012 0193     		str	r3, [sp, #4]
+ 518 0014 0293     		str	r3, [sp, #8]
+ 519 0016 0393     		str	r3, [sp, #12]
+ 520 0018 0493     		str	r3, [sp, #16]
+ 521 001a 0593     		str	r3, [sp, #20]
+ 253:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 522              		.loc 1 253 3 is_stmt 1 view .LVU137
+ 253:Core/Src/main.c ****   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+ 523              		.loc 1 253 36 is_stmt 0 view .LVU138
+ 524 001c 0122     		movs	r2, #1
+ 525 001e 0692     		str	r2, [sp, #24]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 21
 
 
- 528 0022 FFF7FEFF 		bl	MX_USART2_UART_Init
- 529              	.LVL44:
- 105:Core/Src/main.c ****   MX_SPI2_Init();
- 530              		.loc 1 105 3 view .LVU134
- 531 0026 FFF7FEFF 		bl	MX_TIM4_Init
- 532              	.LVL45:
- 106:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
- 533              		.loc 1 106 3 view .LVU135
- 534 002a FFF7FEFF 		bl	MX_SPI2_Init
- 535              	.LVL46:
- 109:Core/Src/main.c ****   OLED_WriteString("ELEC-391");
- 536              		.loc 1 109 3 view .LVU136
- 537 002e FFF7FEFF 		bl	OLED_Init
- 538              	.LVL47:
- 110:Core/Src/main.c **** #endif
- 539              		.loc 1 110 3 view .LVU137
- 540 0032 4748     		ldr	r0, .L49
- 541 0034 FFF7FEFF 		bl	OLED_WriteString
- 542              	.LVL48:
- 127:Core/Src/main.c ****   //char displayAccBuffer[32];
- 543              		.loc 1 127 3 view .LVU138
- 544 0038 FFF7FEFF 		bl	init
- 545              	.LVL49:
- 139:Core/Src/main.c ****   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
- 546              		.loc 1 139 3 view .LVU139
- 547 003c 4548     		ldr	r0, .L49+4
- 548 003e FFF7FEFF 		bl	HC05_ReceiveInfo
- 549              	.LVL50:
- 141:Core/Src/main.c ****   // set duty cycle
- 550              		.loc 1 141 3 view .LVU140
- 551 0042 454C     		ldr	r4, .L49+8
- 552 0044 0021     		movs	r1, #0
- 553 0046 2046     		mov	r0, r4
- 554 0048 FFF7FEFF 		bl	HAL_TIM_PWM_Start
- 555              	.LVL51:
- 143:Core/Src/main.c **** 
- 556              		.loc 1 143 3 view .LVU141
- 557 004c 2368     		ldr	r3, [r4]
- 558 004e FA22     		movs	r2, #250
- 559 0050 5A63     		str	r2, [r3, #52]
- 146:Core/Src/main.c ****   // OLED_SetCursor(0, 6);
- 560              		.loc 1 146 3 view .LVU142
- 561 0052 4248     		ldr	r0, .L49+12
- 562 0054 FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
- 563              	.LVL52:
- 150:Core/Src/main.c ****   OLED_SetCursor(0, 2);
- 564              		.loc 1 150 3 view .LVU143
- 151:Core/Src/main.c **** 
- 565              		.loc 1 151 3 view .LVU144
- 566 0058 0221     		movs	r1, #2
- 567 005a 0020     		movs	r0, #0
- 568 005c FFF7FEFF 		bl	OLED_SetCursor
- 569              	.LVL53:
- 154:Core/Src/main.c ****     sdResult = SD_Init();
- 570              		.loc 1 154 3 view .LVU145
- 571              	.LBB8:
- 154:Core/Src/main.c ****     sdResult = SD_Init();
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 22
+ 254:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 526              		.loc 1 254 3 is_stmt 1 view .LVU139
+ 254:Core/Src/main.c ****   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
+ 527              		.loc 1 254 30 is_stmt 0 view .LVU140
+ 528 0020 4FF48033 		mov	r3, #65536
+ 529 0024 0793     		str	r3, [sp, #28]
+ 255:Core/Src/main.c ****   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+ 530              		.loc 1 255 3 is_stmt 1 view .LVU141
+ 256:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 531              		.loc 1 256 3 view .LVU142
+ 256:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+ 532              		.loc 1 256 30 is_stmt 0 view .LVU143
+ 533 0026 0A92     		str	r2, [sp, #40]
+ 257:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 534              		.loc 1 257 3 is_stmt 1 view .LVU144
+ 257:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+ 535              		.loc 1 257 34 is_stmt 0 view .LVU145
+ 536 0028 0222     		movs	r2, #2
+ 537 002a 0D92     		str	r2, [sp, #52]
+ 258:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ 538              		.loc 1 258 3 is_stmt 1 view .LVU146
+ 258:Core/Src/main.c ****   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+ 539              		.loc 1 258 35 is_stmt 0 view .LVU147
+ 540 002c 0E93     		str	r3, [sp, #56]
+ 259:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 541              		.loc 1 259 3 is_stmt 1 view .LVU148
+ 259:Core/Src/main.c ****   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+ 542              		.loc 1 259 32 is_stmt 0 view .LVU149
+ 543 002e 4FF4E013 		mov	r3, #1835008
+ 544 0032 0F93     		str	r3, [sp, #60]
+ 260:Core/Src/main.c ****   {
+ 545              		.loc 1 260 3 is_stmt 1 view .LVU150
+ 260:Core/Src/main.c ****   {
+ 546              		.loc 1 260 7 is_stmt 0 view .LVU151
+ 547 0034 2046     		mov	r0, r4
+ 548 0036 FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 549              	.LVL45:
+ 260:Core/Src/main.c ****   {
+ 550              		.loc 1 260 6 discriminator 1 view .LVU152
+ 551 003a 70B9     		cbnz	r0, .L39
+ 267:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 552              		.loc 1 267 3 is_stmt 1 view .LVU153
+ 267:Core/Src/main.c ****                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+ 553              		.loc 1 267 31 is_stmt 0 view .LVU154
+ 554 003c 0F23     		movs	r3, #15
+ 555 003e 0193     		str	r3, [sp, #4]
+ 269:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 556              		.loc 1 269 3 is_stmt 1 view .LVU155
+ 269:Core/Src/main.c ****   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+ 557              		.loc 1 269 34 is_stmt 0 view .LVU156
+ 558 0040 0221     		movs	r1, #2
+ 559 0042 0291     		str	r1, [sp, #8]
+ 270:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 560              		.loc 1 270 3 is_stmt 1 view .LVU157
+ 270:Core/Src/main.c ****   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+ 561              		.loc 1 270 35 is_stmt 0 view .LVU158
+ 562 0044 0390     		str	r0, [sp, #12]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 22
 
 
- 572              		.loc 1 154 8 view .LVU146
- 154:Core/Src/main.c ****     sdResult = SD_Init();
- 573              		.loc 1 154 12 is_stmt 0 view .LVU147
- 574 0060 0024     		movs	r4, #0
- 575              	.LBE8:
- 150:Core/Src/main.c ****   OLED_SetCursor(0, 2);
- 576              		.loc 1 150 11 view .LVU148
- 577 0062 0325     		movs	r5, #3
- 578              	.LVL54:
- 579              	.L34:
- 580              	.LBB9:
- 154:Core/Src/main.c ****     sdResult = SD_Init();
- 581              		.loc 1 154 21 is_stmt 1 discriminator 1 view .LVU149
- 582 0064 042C     		cmp	r4, #4
- 583 0066 0BDC     		bgt	.L36
- 155:Core/Src/main.c ****     if (sdResult == FR_OK) {
- 584              		.loc 1 155 5 view .LVU150
- 155:Core/Src/main.c ****     if (sdResult == FR_OK) {
- 585              		.loc 1 155 16 is_stmt 0 view .LVU151
- 586 0068 FFF7FEFF 		bl	SD_Init
- 587              	.LVL55:
- 156:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
- 588              		.loc 1 156 5 is_stmt 1 view .LVU152
- 156:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
- 589              		.loc 1 156 8 is_stmt 0 view .LVU153
- 590 006c 0546     		mov	r5, r0
- 591 006e 20B1     		cbz	r0, .L46
- 160:Core/Src/main.c ****   }
- 592              		.loc 1 160 5 is_stmt 1 view .LVU154
- 593 0070 6420     		movs	r0, #100
- 594              	.LVL56:
- 160:Core/Src/main.c ****   }
- 595              		.loc 1 160 5 is_stmt 0 view .LVU155
- 596 0072 FFF7FEFF 		bl	HAL_Delay
- 597              	.LVL57:
- 154:Core/Src/main.c ****     sdResult = SD_Init();
- 598              		.loc 1 154 27 is_stmt 1 discriminator 2 view .LVU156
- 599 0076 0134     		adds	r4, r4, #1
- 600              	.LVL58:
- 154:Core/Src/main.c ****     sdResult = SD_Init();
- 601              		.loc 1 154 27 is_stmt 0 discriminator 2 view .LVU157
- 602 0078 F4E7     		b	.L34
- 603              	.LVL59:
- 604              	.L46:
- 157:Core/Src/main.c ****       break;
- 605              		.loc 1 157 7 is_stmt 1 view .LVU158
- 606 007a 3948     		ldr	r0, .L49+16
- 607              	.LVL60:
- 157:Core/Src/main.c ****       break;
- 608              		.loc 1 157 7 is_stmt 0 view .LVU159
- 609 007c FFF7FEFF 		bl	OLED_WriteString
- 610              	.LVL61:
- 158:Core/Src/main.c ****     }
- 611              		.loc 1 158 7 is_stmt 1 view .LVU160
- 612              	.L36:
- 158:Core/Src/main.c ****     }
- 613              		.loc 1 158 7 is_stmt 0 view .LVU161
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 23
+ 271:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 563              		.loc 1 271 3 is_stmt 1 view .LVU159
+ 271:Core/Src/main.c ****   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+ 564              		.loc 1 271 36 is_stmt 0 view .LVU160
+ 565 0046 4FF48062 		mov	r2, #1024
+ 566 004a 0492     		str	r2, [sp, #16]
+ 272:Core/Src/main.c **** 
+ 567              		.loc 1 272 3 is_stmt 1 view .LVU161
+ 272:Core/Src/main.c **** 
+ 568              		.loc 1 272 36 is_stmt 0 view .LVU162
+ 569 004c 0590     		str	r0, [sp, #20]
+ 274:Core/Src/main.c ****   {
+ 570              		.loc 1 274 3 is_stmt 1 view .LVU163
+ 274:Core/Src/main.c ****   {
+ 571              		.loc 1 274 7 is_stmt 0 view .LVU164
+ 572 004e 01A8     		add	r0, sp, #4
+ 573 0050 FFF7FEFF 		bl	HAL_RCC_ClockConfig
+ 574              	.LVL46:
+ 274:Core/Src/main.c ****   {
+ 575              		.loc 1 274 6 discriminator 1 view .LVU165
+ 576 0054 18B9     		cbnz	r0, .L40
+ 278:Core/Src/main.c **** 
+ 577              		.loc 1 278 1 view .LVU166
+ 578 0056 10B0     		add	sp, sp, #64
+ 579              	.LCFI6:
+ 580              		.cfi_remember_state
+ 581              		.cfi_def_cfa_offset 8
+ 582              		@ sp needed
+ 583 0058 10BD     		pop	{r4, pc}
+ 584              	.L39:
+ 585              	.LCFI7:
+ 586              		.cfi_restore_state
+ 262:Core/Src/main.c ****   }
+ 587              		.loc 1 262 5 is_stmt 1 view .LVU167
+ 588 005a FFF7FEFF 		bl	Error_Handler
+ 589              	.LVL47:
+ 590              	.L40:
+ 276:Core/Src/main.c ****   }
+ 591              		.loc 1 276 5 view .LVU168
+ 592 005e FFF7FEFF 		bl	Error_Handler
+ 593              	.LVL48:
+ 594              		.cfi_endproc
+ 595              	.LFE69:
+ 597              		.section	.rodata.main.str1.4,"aMS",%progbits,1
+ 598              		.align	2
+ 599              	.LC0:
+ 600 0000 454C4543 		.ascii	"ELEC-391\000"
+ 600      2D333931 
+ 600      00
+ 601 0009 000000   		.align	2
+ 602              	.LC1:
+ 603 000c 53442043 		.ascii	"SD Card OK!\000"
+ 603      61726420 
+ 603      4F4B2100 
+ 604              		.align	2
+ 605              	.LC2:
+ 606 0018 53442065 		.ascii	"SD err %d\000"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 23
 
 
- 614              	.LBE9:
- 163:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
- 615              		.loc 1 163 3 is_stmt 1 view .LVU162
- 163:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
- 616              		.loc 1 163 6 is_stmt 0 view .LVU163
- 617 0080 1DB3     		cbz	r5, .L38
- 164:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 618              		.loc 1 164 5 is_stmt 1 view .LVU164
- 619 0082 384C     		ldr	r4, .L49+20
- 620              	.LVL62:
- 164:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 621              		.loc 1 164 5 is_stmt 0 view .LVU165
- 622 0084 2B46     		mov	r3, r5
- 623 0086 384A     		ldr	r2, .L49+24
- 624 0088 1421     		movs	r1, #20
- 625 008a 2046     		mov	r0, r4
- 626 008c FFF7FEFF 		bl	snprintf
- 627              	.LVL63:
- 165:Core/Src/main.c ****   } else {
- 628              		.loc 1 165 5 is_stmt 1 view .LVU166
- 629 0090 2046     		mov	r0, r4
- 630 0092 FFF7FEFF 		bl	OLED_WriteString
- 631              	.LVL64:
- 632              	.L39:
- 175:Core/Src/main.c ****   OLED_WriteString("System Ready");
- 633              		.loc 1 175 3 view .LVU167
- 634 0096 0121     		movs	r1, #1
- 635 0098 0020     		movs	r0, #0
- 636 009a FFF7FEFF 		bl	OLED_SetCursor
- 637              	.LVL65:
- 176:Core/Src/main.c **** 
- 638              		.loc 1 176 3 view .LVU168
- 639 009e 3348     		ldr	r0, .L49+28
- 640 00a0 FFF7FEFF 		bl	OLED_WriteString
- 641              	.LVL66:
- 178:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
- 642              		.loc 1 178 3 view .LVU169
- 178:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
- 643              		.loc 1 178 7 is_stmt 0 view .LVU170
- 644 00a4 0122     		movs	r2, #1
- 645 00a6 3249     		ldr	r1, .L49+32
- 646 00a8 3248     		ldr	r0, .L49+36
- 647 00aa FFF7FEFF 		bl	SD_OpenFile
- 648              	.LVL67:
- 178:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
- 649              		.loc 1 178 6 discriminator 1 view .LVU171
- 650 00ae 08B3     		cbz	r0, .L47
- 651              	.L40:
- 182:Core/Src/main.c ****   OLED_SetCursor(0, 1);
- 652              		.loc 1 182 3 is_stmt 1 view .LVU172
- 653 00b0 314B     		ldr	r3, .L49+40
- 654 00b2 1988     		ldrh	r1, [r3]
- 655 00b4 3148     		ldr	r0, .L49+44
- 656 00b6 FFF7FEFF 		bl	HC05_SendBytes
- 657              	.LVL68:
- 183:Core/Src/main.c ****   OLED_WriteString("Send bytes!   ");
- 658              		.loc 1 183 3 view .LVU173
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 24
+ 606      72722025 
+ 606      6400
+ 607 0022 0000     		.align	2
+ 608              	.LC3:
+ 609 0024 466F756E 		.ascii	"Found %d songs\000"
+ 609      64202564 
+ 609      20736F6E 
+ 609      677300
+ 610 0033 00       		.align	2
+ 611              	.LC4:
+ 612 0034 53797374 		.ascii	"System Ready\000"
+ 612      656D2052 
+ 612      65616479 
+ 612      00
+ 613 0041 000000   		.align	2
+ 614              	.LC5:
+ 615 0044 74657374 		.ascii	"test1.mid\000"
+ 615      312E6D69 
+ 615      6400
+ 616 004e 0000     		.align	2
+ 617              	.LC6:
+ 618 0050 53656E64 		.ascii	"Send bytes!   \000"
+ 618      20627974 
+ 618      65732120 
+ 618      202000
+ 619 005f 00       		.align	2
+ 620              	.LC7:
+ 621 0060 476F7420 		.ascii	"Got it!\015\012\000"
+ 621      6974210D 
+ 621      0A00
+ 622              		.section	.text.main,"ax",%progbits
+ 623              		.align	1
+ 624              		.global	main
+ 625              		.syntax unified
+ 626              		.thumb
+ 627              		.thumb_func
+ 629              	main:
+ 630              	.LFB68:
+  76:Core/Src/main.c **** 
+ 631              		.loc 1 76 1 view -0
+ 632              		.cfi_startproc
+ 633              		@ args = 0, pretend = 0, frame = 80
+ 634              		@ frame_needed = 0, uses_anonymous_args = 0
+ 635 0000 70B5     		push	{r4, r5, r6, lr}
+ 636              	.LCFI8:
+ 637              		.cfi_def_cfa_offset 16
+ 638              		.cfi_offset 4, -16
+ 639              		.cfi_offset 5, -12
+ 640              		.cfi_offset 6, -8
+ 641              		.cfi_offset 14, -4
+ 642 0002 94B0     		sub	sp, sp, #80
+ 643              	.LCFI9:
+ 644              		.cfi_def_cfa_offset 96
+  85:Core/Src/main.c **** 
+ 645              		.loc 1 85 3 view .LVU170
+ 646 0004 FFF7FEFF 		bl	HAL_Init
+ 647              	.LVL49:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 24
 
 
- 659 00ba 0121     		movs	r1, #1
- 660 00bc 0020     		movs	r0, #0
- 661 00be FFF7FEFF 		bl	OLED_SetCursor
- 662              	.LVL69:
- 184:Core/Src/main.c **** 
- 663              		.loc 1 184 3 view .LVU174
- 664 00c2 2F48     		ldr	r0, .L49+48
- 665 00c4 FFF7FEFF 		bl	OLED_WriteString
- 666              	.LVL70:
- 667 00c8 32E0     		b	.L44
- 668              	.LVL71:
- 669              	.L38:
- 670              	.LBB10:
- 168:Core/Src/main.c ****     int numSongs = SD_ListMidiFiles();
- 671              		.loc 1 168 5 view .LVU175
- 672 00ca 0321     		movs	r1, #3
- 673 00cc 2846     		mov	r0, r5
- 674 00ce FFF7FEFF 		bl	OLED_SetCursor
- 675              	.LVL72:
- 169:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
- 676              		.loc 1 169 5 view .LVU176
- 169:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
- 677              		.loc 1 169 20 is_stmt 0 view .LVU177
- 678 00d2 FFF7FEFF 		bl	SD_ListMidiFiles
- 679              	.LVL73:
- 680 00d6 0346     		mov	r3, r0
- 681              	.LVL74:
- 170:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 682              		.loc 1 170 5 is_stmt 1 view .LVU178
- 683 00d8 224C     		ldr	r4, .L49+20
- 684              	.LVL75:
- 170:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 685              		.loc 1 170 5 is_stmt 0 view .LVU179
- 686 00da 2A4A     		ldr	r2, .L49+52
- 687 00dc 1421     		movs	r1, #20
- 688 00de 2046     		mov	r0, r4
- 689              	.LVL76:
- 170:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
- 690              		.loc 1 170 5 view .LVU180
- 691 00e0 FFF7FEFF 		bl	snprintf
- 692              	.LVL77:
- 171:Core/Src/main.c ****     SD_DisplaySongList(0, 0);
- 693              		.loc 1 171 5 is_stmt 1 view .LVU181
- 694 00e4 2046     		mov	r0, r4
- 695 00e6 FFF7FEFF 		bl	OLED_WriteString
- 696              	.LVL78:
- 172:Core/Src/main.c ****   }
- 697              		.loc 1 172 5 view .LVU182
- 698 00ea 2946     		mov	r1, r5
- 699 00ec 2846     		mov	r0, r5
- 700 00ee FFF7FEFF 		bl	SD_DisplaySongList
- 701              	.LVL79:
- 702 00f2 D0E7     		b	.L39
- 703              	.LVL80:
- 704              	.L47:
- 172:Core/Src/main.c ****   }
- 705              		.loc 1 172 5 is_stmt 0 view .LVU183
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 25
+  92:Core/Src/main.c **** 
+ 648              		.loc 1 92 3 view .LVU171
+ 649 0008 FFF7FEFF 		bl	SystemClock_Config
+ 650              	.LVL50:
+  99:Core/Src/main.c ****   MX_DMA_Init();
+ 651              		.loc 1 99 3 view .LVU172
+ 652 000c FFF7FEFF 		bl	MX_GPIO_Init
+ 653              	.LVL51:
+ 100:Core/Src/main.c ****   MX_USART1_UART_Init();
+ 654              		.loc 1 100 3 view .LVU173
+ 655 0010 FFF7FEFF 		bl	MX_DMA_Init
+ 656              	.LVL52:
+ 101:Core/Src/main.c ****   MX_I2C1_Init();
+ 657              		.loc 1 101 3 view .LVU174
+ 658 0014 FFF7FEFF 		bl	MX_USART1_UART_Init
+ 659              	.LVL53:
+ 102:Core/Src/main.c ****   MX_TIM3_Init();
+ 660              		.loc 1 102 3 view .LVU175
+ 661 0018 FFF7FEFF 		bl	MX_I2C1_Init
+ 662              	.LVL54:
+ 103:Core/Src/main.c ****   MX_TIM2_Init();
+ 663              		.loc 1 103 3 view .LVU176
+ 664 001c FFF7FEFF 		bl	MX_TIM3_Init
+ 665              	.LVL55:
+ 104:Core/Src/main.c ****   MX_USART2_UART_Init();
+ 666              		.loc 1 104 3 view .LVU177
+ 667 0020 FFF7FEFF 		bl	MX_TIM2_Init
+ 668              	.LVL56:
+ 105:Core/Src/main.c ****   MX_TIM4_Init();
+ 669              		.loc 1 105 3 view .LVU178
+ 670 0024 FFF7FEFF 		bl	MX_USART2_UART_Init
+ 671              	.LVL57:
+ 106:Core/Src/main.c ****   MX_SPI2_Init();
+ 672              		.loc 1 106 3 view .LVU179
+ 673 0028 FFF7FEFF 		bl	MX_TIM4_Init
+ 674              	.LVL58:
+ 107:Core/Src/main.c ****   /* USER CODE BEGIN 2 */
+ 675              		.loc 1 107 3 view .LVU180
+ 676 002c FFF7FEFF 		bl	MX_SPI2_Init
+ 677              	.LVL59:
+ 110:Core/Src/main.c ****   OLED_WriteString("ELEC-391");
+ 678              		.loc 1 110 3 view .LVU181
+ 679 0030 FFF7FEFF 		bl	OLED_Init
+ 680              	.LVL60:
+ 111:Core/Src/main.c **** #endif
+ 681              		.loc 1 111 3 view .LVU182
+ 682 0034 5248     		ldr	r0, .L59
+ 683 0036 FFF7FEFF 		bl	OLED_WriteString
+ 684              	.LVL61:
+ 128:Core/Src/main.c ****   //char displayAccBuffer[32];
+ 685              		.loc 1 128 3 view .LVU183
+ 686 003a FFF7FEFF 		bl	init
+ 687              	.LVL62:
+ 140:Core/Src/main.c ****   FT_Init();  // Initialize file transfer module
+ 688              		.loc 1 140 3 view .LVU184
+ 689 003e 5148     		ldr	r0, .L59+4
+ 690 0040 FFF7FEFF 		bl	HC05_ReceiveInfo
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 25
 
 
- 706              	.LBE10:
- 179:Core/Src/main.c ****     SD_CloseFile(&file);
- 707              		.loc 1 179 5 is_stmt 1 view .LVU184
- 708 00f4 1F4C     		ldr	r4, .L49+36
- 709 00f6 204B     		ldr	r3, .L49+40
- 710 00f8 4FF40072 		mov	r2, #512
- 711 00fc 1F49     		ldr	r1, .L49+44
- 712 00fe 2046     		mov	r0, r4
- 713 0100 FFF7FEFF 		bl	SD_ReadFile
- 714              	.LVL81:
- 180:Core/Src/main.c ****   }
- 715              		.loc 1 180 5 view .LVU185
- 716 0104 2046     		mov	r0, r4
- 717 0106 FFF7FEFF 		bl	SD_CloseFile
- 718              	.LVL82:
- 719 010a D1E7     		b	.L40
- 720              	.L48:
- 200:Core/Src/main.c ****       rx_complete = 0;  // clear flag
- 721              		.loc 1 200 7 view .LVU186
- 722 010c 1148     		ldr	r0, .L49+4
- 723 010e FFF7FEFF 		bl	executeCommand
- 724              	.LVL83:
- 201:Core/Src/main.c ****       // echo back with \r\n for terminal
- 725              		.loc 1 201 7 view .LVU187
- 201:Core/Src/main.c ****       // echo back with \r\n for terminal
- 726              		.loc 1 201 19 is_stmt 0 view .LVU188
- 727 0112 1D4B     		ldr	r3, .L49+56
- 728 0114 0022     		movs	r2, #0
- 729 0116 1A70     		strb	r2, [r3]
- 203:Core/Src/main.c ****     }
- 730              		.loc 1 203 7 is_stmt 1 view .LVU189
- 731 0118 1C48     		ldr	r0, .L49+60
- 732 011a FFF7FEFF 		bl	HC05_SendInfo
- 733              	.LVL84:
- 734 011e 0BE0     		b	.L41
- 735              	.L42:
- 214:Core/Src/main.c ****     }
- 736              		.loc 1 214 7 view .LVU190
- 214:Core/Src/main.c ****     }
- 737              		.loc 1 214 14 is_stmt 0 view .LVU191
- 738 0120 1B4B     		ldr	r3, .L49+64
- 739 0122 C822     		movs	r2, #200
- 740 0124 1A60     		str	r2, [r3]
- 741              	.L43:
- 216:Core/Src/main.c ****   }
- 742              		.loc 1 216 5 is_stmt 1 view .LVU192
- 743 0126 0C4B     		ldr	r3, .L49+8
- 744 0128 1B68     		ldr	r3, [r3]
- 745 012a 194A     		ldr	r2, .L49+64
- 746 012c 1268     		ldr	r2, [r2]
- 747 012e 5A63     		str	r2, [r3, #52]
- 190:Core/Src/main.c ****   {
- 748              		.loc 1 190 9 view .LVU193
- 749              	.L44:
- 190:Core/Src/main.c ****   {
- 750              		.loc 1 190 3 view .LVU194
- 197:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 26
+ 691              	.LVL63:
+ 141:Core/Src/main.c ****   // start PWM: this PWM runs at 2000Hz, Calculation: 72MHz/(71+1)/(499+1) = 2000Hz
+ 692              		.loc 1 141 3 view .LVU185
+ 693 0044 FFF7FEFF 		bl	FT_Init
+ 694              	.LVL64:
+ 143:Core/Src/main.c ****   // set duty cycle
+ 695              		.loc 1 143 3 view .LVU186
+ 696 0048 4F4C     		ldr	r4, .L59+8
+ 697 004a 0021     		movs	r1, #0
+ 698 004c 2046     		mov	r0, r4
+ 699 004e FFF7FEFF 		bl	HAL_TIM_PWM_Start
+ 700              	.LVL65:
+ 145:Core/Src/main.c **** 
+ 701              		.loc 1 145 3 view .LVU187
+ 702 0052 2368     		ldr	r3, [r4]
+ 703 0054 FA22     		movs	r2, #250
+ 704 0056 5A63     		str	r2, [r3, #52]
+ 148:Core/Src/main.c ****   // OLED_SetCursor(0, 6);
+ 705              		.loc 1 148 3 view .LVU188
+ 706 0058 4C48     		ldr	r0, .L59+12
+ 707 005a FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+ 708              	.LVL66:
+ 152:Core/Src/main.c ****   OLED_SetCursor(0, 2);
+ 709              		.loc 1 152 3 view .LVU189
+ 153:Core/Src/main.c **** 
+ 710              		.loc 1 153 3 view .LVU190
+ 711 005e 0221     		movs	r1, #2
+ 712 0060 0020     		movs	r0, #0
+ 713 0062 FFF7FEFF 		bl	OLED_SetCursor
+ 714              	.LVL67:
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 715              		.loc 1 156 3 view .LVU191
+ 716              	.LBB14:
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 717              		.loc 1 156 8 view .LVU192
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 718              		.loc 1 156 12 is_stmt 0 view .LVU193
+ 719 0066 0024     		movs	r4, #0
+ 720              	.LBE14:
+ 152:Core/Src/main.c ****   OLED_SetCursor(0, 2);
+ 721              		.loc 1 152 11 view .LVU194
+ 722 0068 0325     		movs	r5, #3
+ 723              	.LVL68:
+ 724              	.L42:
+ 725              	.LBB15:
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 726              		.loc 1 156 21 is_stmt 1 discriminator 1 view .LVU195
+ 727 006a 042C     		cmp	r4, #4
+ 728 006c 0BDC     		bgt	.L44
+ 157:Core/Src/main.c ****     if (sdResult == FR_OK) {
+ 729              		.loc 1 157 5 view .LVU196
+ 157:Core/Src/main.c ****     if (sdResult == FR_OK) {
+ 730              		.loc 1 157 16 is_stmt 0 view .LVU197
+ 731 006e FFF7FEFF 		bl	SD_Init
+ 732              	.LVL69:
+ 158:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
+ 733              		.loc 1 158 5 is_stmt 1 view .LVU198
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 26
 
 
- 751              		.loc 1 197 5 view .LVU195
- 197:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
- 752              		.loc 1 197 8 is_stmt 0 view .LVU196
- 753 0130 154B     		ldr	r3, .L49+56
- 754 0132 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
- 197:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
- 755              		.loc 1 197 7 view .LVU197
- 756 0134 002B     		cmp	r3, #0
- 757 0136 E9D1     		bne	.L48
- 758              	.L41:
- 205:Core/Src/main.c ****   #endif
- 759              		.loc 1 205 5 is_stmt 1 view .LVU198
- 760 0138 1648     		ldr	r0, .L49+68
- 761 013a FFF7FEFF 		bl	HC05_SendInfo
- 762              	.LVL85:
- 211:Core/Src/main.c ****       pwmNum++;
- 763              		.loc 1 211 5 view .LVU199
- 211:Core/Src/main.c ****       pwmNum++;
- 764              		.loc 1 211 16 is_stmt 0 view .LVU200
- 765 013e 144B     		ldr	r3, .L49+64
- 766 0140 1B68     		ldr	r3, [r3]
- 211:Core/Src/main.c ****       pwmNum++;
- 767              		.loc 1 211 8 view .LVU201
- 768 0142 B3F5FA7F 		cmp	r3, #500
- 769 0146 EBDA     		bge	.L42
- 212:Core/Src/main.c ****     } else {
- 770              		.loc 1 212 7 is_stmt 1 view .LVU202
- 212:Core/Src/main.c ****     } else {
- 771              		.loc 1 212 13 is_stmt 0 view .LVU203
- 772 0148 0133     		adds	r3, r3, #1
- 773 014a 114A     		ldr	r2, .L49+64
- 774 014c 1360     		str	r3, [r2]
- 775 014e EAE7     		b	.L43
- 776              	.L50:
- 777              		.align	2
- 778              	.L49:
- 779 0150 00000000 		.word	.LC0
- 780 0154 00000000 		.word	rx_data
- 781 0158 00000000 		.word	htim3
- 782 015c 00000000 		.word	htim4
- 783 0160 0C000000 		.word	.LC1
- 784 0164 00000000 		.word	hexSDRead
- 785 0168 18000000 		.word	.LC2
- 786 016c 34000000 		.word	.LC4
- 787 0170 44000000 		.word	.LC5
- 788 0174 00000000 		.word	file
- 789 0178 00000000 		.word	BytesRead
- 790 017c 00000000 		.word	FileBuffer
- 791 0180 50000000 		.word	.LC6
- 792 0184 24000000 		.word	.LC3
- 793 0188 00000000 		.word	rx_complete
- 794 018c 60000000 		.word	.LC7
- 795 0190 00000000 		.word	pwmNum
- 796 0194 6C000000 		.word	.LC8
- 797              		.cfi_endproc
- 798              	.LFE68:
- 800              		.section	.bss.rx_index.0,"aw",%nobits
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 27
+ 158:Core/Src/main.c ****       OLED_WriteString("SD Card OK!");
+ 734              		.loc 1 158 8 is_stmt 0 view .LVU199
+ 735 0072 0546     		mov	r5, r0
+ 736 0074 20B1     		cbz	r0, .L55
+ 162:Core/Src/main.c ****   }
+ 737              		.loc 1 162 5 is_stmt 1 view .LVU200
+ 738 0076 6420     		movs	r0, #100
+ 739              	.LVL70:
+ 162:Core/Src/main.c ****   }
+ 740              		.loc 1 162 5 is_stmt 0 view .LVU201
+ 741 0078 FFF7FEFF 		bl	HAL_Delay
+ 742              	.LVL71:
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 743              		.loc 1 156 27 is_stmt 1 discriminator 2 view .LVU202
+ 744 007c 0134     		adds	r4, r4, #1
+ 745              	.LVL72:
+ 156:Core/Src/main.c ****     sdResult = SD_Init();
+ 746              		.loc 1 156 27 is_stmt 0 discriminator 2 view .LVU203
+ 747 007e F4E7     		b	.L42
+ 748              	.LVL73:
+ 749              	.L55:
+ 159:Core/Src/main.c ****       break;
+ 750              		.loc 1 159 7 is_stmt 1 view .LVU204
+ 751 0080 4348     		ldr	r0, .L59+16
+ 752              	.LVL74:
+ 159:Core/Src/main.c ****       break;
+ 753              		.loc 1 159 7 is_stmt 0 view .LVU205
+ 754 0082 FFF7FEFF 		bl	OLED_WriteString
+ 755              	.LVL75:
+ 160:Core/Src/main.c ****     }
+ 756              		.loc 1 160 7 is_stmt 1 view .LVU206
+ 757              	.L44:
+ 160:Core/Src/main.c ****     }
+ 758              		.loc 1 160 7 is_stmt 0 view .LVU207
+ 759              	.LBE15:
+ 165:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
+ 760              		.loc 1 165 3 is_stmt 1 view .LVU208
+ 165:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "SD err %d", sdResult);
+ 761              		.loc 1 165 6 is_stmt 0 view .LVU209
+ 762 0086 1DB3     		cbz	r5, .L46
+ 166:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 763              		.loc 1 166 5 is_stmt 1 view .LVU210
+ 764 0088 424C     		ldr	r4, .L59+20
+ 765              	.LVL76:
+ 166:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 766              		.loc 1 166 5 is_stmt 0 view .LVU211
+ 767 008a 2B46     		mov	r3, r5
+ 768 008c 424A     		ldr	r2, .L59+24
+ 769 008e 1421     		movs	r1, #20
+ 770 0090 2046     		mov	r0, r4
+ 771 0092 FFF7FEFF 		bl	snprintf
+ 772              	.LVL77:
+ 167:Core/Src/main.c ****   } else {
+ 773              		.loc 1 167 5 is_stmt 1 view .LVU212
+ 774 0096 2046     		mov	r0, r4
+ 775 0098 FFF7FEFF 		bl	OLED_WriteString
+ 776              	.LVL78:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 27
 
 
- 801              		.align	2
- 804              	rx_index.0:
- 805 0000 00000000 		.space	4
- 806              		.global	BytesRead
- 807              		.section	.bss.BytesRead,"aw",%nobits
- 808              		.align	2
- 811              	BytesRead:
- 812 0000 00000000 		.space	4
- 813              		.global	FileBuffer
- 814              		.section	.bss.FileBuffer,"aw",%nobits
- 815              		.align	2
- 818              	FileBuffer:
- 819 0000 00000000 		.space	512
- 819      00000000 
- 819      00000000 
- 819      00000000 
- 819      00000000 
- 820              		.global	file
- 821              		.section	.bss.file,"aw",%nobits
- 822              		.align	2
- 825              	file:
- 826 0000 00000000 		.space	548
- 826      00000000 
- 826      00000000 
- 826      00000000 
- 826      00000000 
- 827              		.global	hexSDRead
- 828              		.section	.bss.hexSDRead,"aw",%nobits
- 829              		.align	2
- 832              	hexSDRead:
- 833 0000 00000000 		.space	20
- 833      00000000 
- 833      00000000 
- 833      00000000 
- 833      00000000 
- 834              		.global	pwmNum
- 835              		.section	.data.pwmNum,"aw"
- 836              		.align	2
- 839              	pwmNum:
- 840 0000 C8000000 		.word	200
- 841              		.text
- 842              	.Letext0:
- 843              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 844              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 845              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
- 846              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
- 847              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h"
- 848              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h"
- 849              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
- 850              		.file 10 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h"
- 851              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
- 852              		.file 12 "Core/Inc/tim.h"
- 853              		.file 13 "Core/Inc/usart.h"
- 854              		.file 14 "Application/Inc/utils.h"
- 855              		.file 15 "Application/Inc/hc05bt.h"
- 856              		.file 16 "Application/FatFs/integer.h"
- 857              		.file 17 "Application/FatFs/ff.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 28
+ 777              	.L47:
+ 177:Core/Src/main.c ****   OLED_WriteString("System Ready");
+ 778              		.loc 1 177 3 view .LVU213
+ 779 009c 0121     		movs	r1, #1
+ 780 009e 0020     		movs	r0, #0
+ 781 00a0 FFF7FEFF 		bl	OLED_SetCursor
+ 782              	.LVL79:
+ 178:Core/Src/main.c **** 
+ 783              		.loc 1 178 3 view .LVU214
+ 784 00a4 3D48     		ldr	r0, .L59+28
+ 785 00a6 FFF7FEFF 		bl	OLED_WriteString
+ 786              	.LVL80:
+ 180:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
+ 787              		.loc 1 180 3 view .LVU215
+ 180:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
+ 788              		.loc 1 180 7 is_stmt 0 view .LVU216
+ 789 00aa 0122     		movs	r2, #1
+ 790 00ac 3C49     		ldr	r1, .L59+32
+ 791 00ae 3D48     		ldr	r0, .L59+36
+ 792 00b0 FFF7FEFF 		bl	SD_OpenFile
+ 793              	.LVL81:
+ 180:Core/Src/main.c ****     SD_ReadFile(&file, FileBuffer, sizeof(FileBuffer), &BytesRead);
+ 794              		.loc 1 180 6 discriminator 1 view .LVU217
+ 795 00b4 08B3     		cbz	r0, .L56
+ 796              	.L48:
+ 184:Core/Src/main.c ****   OLED_SetCursor(0, 1);
+ 797              		.loc 1 184 3 is_stmt 1 view .LVU218
+ 798 00b6 3C4B     		ldr	r3, .L59+40
+ 799 00b8 1988     		ldrh	r1, [r3]
+ 800 00ba 3C48     		ldr	r0, .L59+44
+ 801 00bc FFF7FEFF 		bl	HC05_SendBytes
+ 802              	.LVL82:
+ 185:Core/Src/main.c ****   OLED_WriteString("Send bytes!   ");
+ 803              		.loc 1 185 3 view .LVU219
+ 804 00c0 0121     		movs	r1, #1
+ 805 00c2 0020     		movs	r0, #0
+ 806 00c4 FFF7FEFF 		bl	OLED_SetCursor
+ 807              	.LVL83:
+ 186:Core/Src/main.c **** 
+ 808              		.loc 1 186 3 view .LVU220
+ 809 00c8 3948     		ldr	r0, .L59+48
+ 810 00ca FFF7FEFF 		bl	OLED_WriteString
+ 811              	.LVL84:
+ 812 00ce 43E0     		b	.L53
+ 813              	.LVL85:
+ 814              	.L46:
+ 815              	.LBB16:
+ 170:Core/Src/main.c ****     int numSongs = SD_ListMidiFiles();
+ 816              		.loc 1 170 5 view .LVU221
+ 817 00d0 0321     		movs	r1, #3
+ 818 00d2 2846     		mov	r0, r5
+ 819 00d4 FFF7FEFF 		bl	OLED_SetCursor
+ 820              	.LVL86:
+ 171:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
+ 821              		.loc 1 171 5 view .LVU222
+ 171:Core/Src/main.c ****     snprintf((char*)hexSDRead, sizeof(hexSDRead), "Found %d songs", numSongs);
+ 822              		.loc 1 171 20 is_stmt 0 view .LVU223
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 28
 
 
- 858              		.file 18 "Application/Inc/application.h"
- 859              		.file 19 "Application/Inc/sdcard.h"
- 860              		.file 20 "Application/Inc/command.h"
- 861              		.file 21 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
- 862              		.file 22 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
- 863              		.file 23 "Application/Inc/oled1315.h"
- 864              		.file 24 "Core/Inc/spi.h"
- 865              		.file 25 "Core/Inc/i2c.h"
- 866              		.file 26 "Core/Inc/dma.h"
- 867              		.file 27 "Core/Inc/gpio.h"
- 868              		.file 28 "<built-in>"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 29
+ 823 00d8 FFF7FEFF 		bl	SD_ListMidiFiles
+ 824              	.LVL87:
+ 825 00dc 0346     		mov	r3, r0
+ 826              	.LVL88:
+ 172:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 827              		.loc 1 172 5 is_stmt 1 view .LVU224
+ 828 00de 2D4C     		ldr	r4, .L59+20
+ 829              	.LVL89:
+ 172:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 830              		.loc 1 172 5 is_stmt 0 view .LVU225
+ 831 00e0 344A     		ldr	r2, .L59+52
+ 832 00e2 1421     		movs	r1, #20
+ 833 00e4 2046     		mov	r0, r4
+ 834              	.LVL90:
+ 172:Core/Src/main.c ****     OLED_WriteString((char*)hexSDRead);
+ 835              		.loc 1 172 5 view .LVU226
+ 836 00e6 FFF7FEFF 		bl	snprintf
+ 837              	.LVL91:
+ 173:Core/Src/main.c ****     SD_DisplaySongList(0, 0);
+ 838              		.loc 1 173 5 is_stmt 1 view .LVU227
+ 839 00ea 2046     		mov	r0, r4
+ 840 00ec FFF7FEFF 		bl	OLED_WriteString
+ 841              	.LVL92:
+ 174:Core/Src/main.c ****   }
+ 842              		.loc 1 174 5 view .LVU228
+ 843 00f0 2946     		mov	r1, r5
+ 844 00f2 2846     		mov	r0, r5
+ 845 00f4 FFF7FEFF 		bl	SD_DisplaySongList
+ 846              	.LVL93:
+ 847 00f8 D0E7     		b	.L47
+ 848              	.LVL94:
+ 849              	.L56:
+ 174:Core/Src/main.c ****   }
+ 850              		.loc 1 174 5 is_stmt 0 view .LVU229
+ 851              	.LBE16:
+ 181:Core/Src/main.c ****     SD_CloseFile(&file);
+ 852              		.loc 1 181 5 is_stmt 1 view .LVU230
+ 853 00fa 2A4C     		ldr	r4, .L59+36
+ 854 00fc 2A4B     		ldr	r3, .L59+40
+ 855 00fe 4FF40072 		mov	r2, #512
+ 856 0102 2A49     		ldr	r1, .L59+44
+ 857 0104 2046     		mov	r0, r4
+ 858 0106 FFF7FEFF 		bl	SD_ReadFile
+ 859              	.LVL95:
+ 182:Core/Src/main.c ****   }
+ 860              		.loc 1 182 5 view .LVU231
+ 861 010a 2046     		mov	r0, r4
+ 862 010c FFF7FEFF 		bl	SD_CloseFile
+ 863              	.LVL96:
+ 864 0110 D1E7     		b	.L48
+ 865              	.L57:
+ 866              	.LBB17:
+ 200:Core/Src/main.c ****       uint16_t packet_len = rx_binary_index;
+ 867              		.loc 1 200 7 view .LVU232
+ 201:Core/Src/main.c ****       memcpy(packet_copy, rx_binary_buffer, packet_len);
+ 868              		.loc 1 201 7 view .LVU233
+ 201:Core/Src/main.c ****       memcpy(packet_copy, rx_binary_buffer, packet_len);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 29
+
+
+ 869              		.loc 1 201 16 is_stmt 0 view .LVU234
+ 870 0112 294E     		ldr	r6, .L59+56
+ 871 0114 3488     		ldrh	r4, [r6]
+ 872 0116 A4B2     		uxth	r4, r4
+ 873              	.LVL97:
+ 202:Core/Src/main.c **** 
+ 874              		.loc 1 202 7 is_stmt 1 view .LVU235
+ 875 0118 2246     		mov	r2, r4
+ 876 011a 2849     		ldr	r1, .L59+60
+ 877 011c 6846     		mov	r0, sp
+ 878 011e FFF7FEFF 		bl	memcpy
+ 879              	.LVL98:
+ 205:Core/Src/main.c ****       rx_binary_index = 0;
+ 880              		.loc 1 205 7 view .LVU236
+ 205:Core/Src/main.c ****       rx_binary_index = 0;
+ 881              		.loc 1 205 26 is_stmt 0 view .LVU237
+ 882 0122 0023     		movs	r3, #0
+ 883 0124 264A     		ldr	r2, .L59+64
+ 884 0126 1370     		strb	r3, [r2]
+ 206:Core/Src/main.c **** 
+ 885              		.loc 1 206 7 is_stmt 1 view .LVU238
+ 206:Core/Src/main.c **** 
+ 886              		.loc 1 206 23 is_stmt 0 view .LVU239
+ 887 0128 3380     		strh	r3, [r6]	@ movhi
+ 209:Core/Src/main.c ****     }
+ 888              		.loc 1 209 7 is_stmt 1 view .LVU240
+ 889 012a 2146     		mov	r1, r4
+ 890 012c 6846     		mov	r0, sp
+ 891 012e FFF7FEFF 		bl	FT_ProcessPacket
+ 892              	.LVL99:
+ 893 0132 15E0     		b	.L49
+ 894              	.LVL100:
+ 895              	.L58:
+ 209:Core/Src/main.c ****     }
+ 896              		.loc 1 209 7 is_stmt 0 view .LVU241
+ 897              	.LBE17:
+ 220:Core/Src/main.c ****       rx_complete = 0;  // clear flag
+ 898              		.loc 1 220 7 is_stmt 1 view .LVU242
+ 899 0134 1348     		ldr	r0, .L59+4
+ 900 0136 FFF7FEFF 		bl	executeCommand
+ 901              	.LVL101:
+ 221:Core/Src/main.c ****       // echo back with \r\n for terminal
+ 902              		.loc 1 221 7 view .LVU243
+ 221:Core/Src/main.c ****       // echo back with \r\n for terminal
+ 903              		.loc 1 221 19 is_stmt 0 view .LVU244
+ 904 013a 224B     		ldr	r3, .L59+68
+ 905 013c 0022     		movs	r2, #0
+ 906 013e 1A70     		strb	r2, [r3]
+ 223:Core/Src/main.c ****     }
+ 907              		.loc 1 223 7 is_stmt 1 view .LVU245
+ 908 0140 2148     		ldr	r0, .L59+72
+ 909 0142 FFF7FEFF 		bl	HC05_SendInfo
+ 910              	.LVL102:
+ 911 0146 11E0     		b	.L50
+ 912              	.L51:
+ 234:Core/Src/main.c ****     }
+ 913              		.loc 1 234 7 view .LVU246
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 30
+
+
+ 234:Core/Src/main.c ****     }
+ 914              		.loc 1 234 14 is_stmt 0 view .LVU247
+ 915 0148 204B     		ldr	r3, .L59+76
+ 916 014a C822     		movs	r2, #200
+ 917 014c 1A60     		str	r2, [r3]
+ 918              	.L52:
+ 236:Core/Src/main.c ****   }
+ 919              		.loc 1 236 5 is_stmt 1 view .LVU248
+ 920 014e 0E4B     		ldr	r3, .L59+8
+ 921 0150 1B68     		ldr	r3, [r3]
+ 922 0152 1E4A     		ldr	r2, .L59+76
+ 923 0154 1268     		ldr	r2, [r2]
+ 924 0156 5A63     		str	r2, [r3, #52]
+ 192:Core/Src/main.c ****   {
+ 925              		.loc 1 192 9 view .LVU249
+ 926              	.L53:
+ 192:Core/Src/main.c ****   {
+ 927              		.loc 1 192 3 view .LVU250
+ 198:Core/Src/main.c ****       // Copy packet data BEFORE resetting - prevents race condition with interrupt
+ 928              		.loc 1 198 5 view .LVU251
+ 198:Core/Src/main.c ****       // Copy packet data BEFORE resetting - prevents race condition with interrupt
+ 929              		.loc 1 198 9 is_stmt 0 view .LVU252
+ 930 0158 194B     		ldr	r3, .L59+64
+ 931 015a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 198:Core/Src/main.c ****       // Copy packet data BEFORE resetting - prevents race condition with interrupt
+ 932              		.loc 1 198 8 view .LVU253
+ 933 015c 002B     		cmp	r3, #0
+ 934 015e D8D1     		bne	.L57
+ 935              	.L49:
+ 213:Core/Src/main.c **** 
+ 936              		.loc 1 213 5 is_stmt 1 view .LVU254
+ 937 0160 FFF7FEFF 		bl	FT_TimeoutCheck
+ 938              	.LVL103:
+ 217:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
+ 939              		.loc 1 217 5 view .LVU255
+ 217:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
+ 940              		.loc 1 217 8 is_stmt 0 view .LVU256
+ 941 0164 174B     		ldr	r3, .L59+68
+ 942 0166 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 217:Core/Src/main.c ****       // OLED_SetCursor(0, 5);
+ 943              		.loc 1 217 7 view .LVU257
+ 944 0168 002B     		cmp	r3, #0
+ 945 016a E3D1     		bne	.L58
+ 946              	.L50:
+ 231:Core/Src/main.c ****       pwmNum++;
+ 947              		.loc 1 231 5 is_stmt 1 view .LVU258
+ 231:Core/Src/main.c ****       pwmNum++;
+ 948              		.loc 1 231 16 is_stmt 0 view .LVU259
+ 949 016c 174B     		ldr	r3, .L59+76
+ 950 016e 1B68     		ldr	r3, [r3]
+ 231:Core/Src/main.c ****       pwmNum++;
+ 951              		.loc 1 231 8 view .LVU260
+ 952 0170 B3F5FA7F 		cmp	r3, #500
+ 953 0174 E8DA     		bge	.L51
+ 232:Core/Src/main.c ****     } else {
+ 954              		.loc 1 232 7 is_stmt 1 view .LVU261
+ 232:Core/Src/main.c ****     } else {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 31
+
+
+ 955              		.loc 1 232 13 is_stmt 0 view .LVU262
+ 956 0176 0133     		adds	r3, r3, #1
+ 957 0178 144A     		ldr	r2, .L59+76
+ 958 017a 1360     		str	r3, [r2]
+ 959 017c E7E7     		b	.L52
+ 960              	.L60:
+ 961 017e 00BF     		.align	2
+ 962              	.L59:
+ 963 0180 00000000 		.word	.LC0
+ 964 0184 00000000 		.word	rx_data
+ 965 0188 00000000 		.word	htim3
+ 966 018c 00000000 		.word	htim4
+ 967 0190 0C000000 		.word	.LC1
+ 968 0194 00000000 		.word	hexSDRead
+ 969 0198 18000000 		.word	.LC2
+ 970 019c 34000000 		.word	.LC4
+ 971 01a0 44000000 		.word	.LC5
+ 972 01a4 00000000 		.word	file
+ 973 01a8 00000000 		.word	BytesRead
+ 974 01ac 00000000 		.word	FileBuffer
+ 975 01b0 50000000 		.word	.LC6
+ 976 01b4 24000000 		.word	.LC3
+ 977 01b8 00000000 		.word	rx_binary_index
+ 978 01bc 00000000 		.word	rx_binary_buffer
+ 979 01c0 00000000 		.word	rx_binary_complete
+ 980 01c4 00000000 		.word	rx_complete
+ 981 01c8 60000000 		.word	.LC7
+ 982 01cc 00000000 		.word	pwmNum
+ 983              		.cfi_endproc
+ 984              	.LFE68:
+ 986              		.global	BytesRead
+ 987              		.section	.bss.BytesRead,"aw",%nobits
+ 988              		.align	2
+ 991              	BytesRead:
+ 992 0000 00000000 		.space	4
+ 993              		.global	FileBuffer
+ 994              		.section	.bss.FileBuffer,"aw",%nobits
+ 995              		.align	2
+ 998              	FileBuffer:
+ 999 0000 00000000 		.space	512
+ 999      00000000 
+ 999      00000000 
+ 999      00000000 
+ 999      00000000 
+ 1000              		.global	file
+ 1001              		.section	.bss.file,"aw",%nobits
+ 1002              		.align	2
+ 1005              	file:
+ 1006 0000 00000000 		.space	548
+ 1006      00000000 
+ 1006      00000000 
+ 1006      00000000 
+ 1006      00000000 
+ 1007              		.global	hexSDRead
+ 1008              		.section	.bss.hexSDRead,"aw",%nobits
+ 1009              		.align	2
+ 1012              	hexSDRead:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 32
+
+
+ 1013 0000 00000000 		.space	20
+ 1013      00000000 
+ 1013      00000000 
+ 1013      00000000 
+ 1013      00000000 
+ 1014              		.global	pwmNum
+ 1015              		.section	.data.pwmNum,"aw"
+ 1016              		.align	2
+ 1019              	pwmNum:
+ 1020 0000 C8000000 		.word	200
+ 1021              		.text
+ 1022              	.Letext0:
+ 1023              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 1024              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 1025              		.file 5 "Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h"
+ 1026              		.file 6 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h"
+ 1027              		.file 7 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h"
+ 1028              		.file 8 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h"
+ 1029              		.file 9 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h"
+ 1030              		.file 10 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h"
+ 1031              		.file 11 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h"
+ 1032              		.file 12 "Core/Inc/tim.h"
+ 1033              		.file 13 "Core/Inc/usart.h"
+ 1034              		.file 14 "Application/Inc/utils.h"
+ 1035              		.file 15 "Application/Inc/hc05bt.h"
+ 1036              		.file 16 "Application/FatFs/integer.h"
+ 1037              		.file 17 "Application/FatFs/ff.h"
+ 1038              		.file 18 "Application/Inc/application.h"
+ 1039              		.file 19 "Application/Inc/file_transfer.h"
+ 1040              		.file 20 "Application/Inc/command.h"
+ 1041              		.file 21 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 1042              		.file 22 "Application/Inc/sdcard.h"
+ 1043              		.file 23 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
+ 1044              		.file 24 "Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h"
+ 1045              		.file 25 "Application/Inc/oled1315.h"
+ 1046              		.file 26 "Core/Inc/spi.h"
+ 1047              		.file 27 "Core/Inc/i2c.h"
+ 1048              		.file 28 "Core/Inc/dma.h"
+ 1049              		.file 29 "Core/Inc/gpio.h"
+ 1050              		.file 30 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 33
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 main.c
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:19     .text.HAL_UART_RxCpltCallback:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:25     .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:99     .text.HAL_UART_RxCpltCallback:00000040 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:804    .bss.rx_index.0:00000000 rx_index.0
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:109    .text.HAL_UART_TxCpltCallback:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:115    .text.HAL_UART_TxCpltCallback:00000000 HAL_UART_TxCpltCallback
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:131    .text.HAL_UARTEx_RxEventCallback:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:137    .text.HAL_UARTEx_RxEventCallback:00000000 HAL_UARTEx_RxEventCallback
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:296    .text.HAL_UARTEx_RxEventCallback:00000080 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:306    .text.Error_Handler:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:312    .text.Error_Handler:00000000 Error_Handler
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:344    .text.SystemClock_Config:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:350    .text.SystemClock_Config:00000000 SystemClock_Config
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:456    .rodata.main.str1.4:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:484    .text.main:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:490    .text.main:00000000 main
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:779    .text.main:00000150 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:832    .bss.hexSDRead:00000000 hexSDRead
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:825    .bss.file:00000000 file
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:811    .bss.BytesRead:00000000 BytesRead
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:818    .bss.FileBuffer:00000000 FileBuffer
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:839    .data.pwmNum:00000000 pwmNum
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:801    .bss.rx_index.0:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:808    .bss.BytesRead:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:815    .bss.FileBuffer:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:822    .bss.file:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:829    .bss.hexSDRead:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s:836    .data.pwmNum:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:19     .text.HAL_UART_RxCpltCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:25     .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:40     .text.HAL_UART_TxCpltCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:46     .text.HAL_UART_TxCpltCallback:00000000 HAL_UART_TxCpltCallback
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:62     .text.HAL_UART_ErrorCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:68     .text.HAL_UART_ErrorCallback:00000000 HAL_UART_ErrorCallback
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:161    .text.HAL_UART_ErrorCallback:00000048 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:166    .text.HAL_UARTEx_RxEventCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:172    .text.HAL_UARTEx_RxEventCallback:00000000 HAL_UARTEx_RxEventCallback
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:431    .text.HAL_UARTEx_RxEventCallback:000000e0 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:448    .text.Error_Handler:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:454    .text.Error_Handler:00000000 Error_Handler
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:486    .text.SystemClock_Config:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:492    .text.SystemClock_Config:00000000 SystemClock_Config
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:598    .rodata.main.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:623    .text.main:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:629    .text.main:00000000 main
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:963    .text.main:00000180 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1012   .bss.hexSDRead:00000000 hexSDRead
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1005   .bss.file:00000000 file
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:991    .bss.BytesRead:00000000 BytesRead
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:998    .bss.FileBuffer:00000000 FileBuffer
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1019   .data.pwmNum:00000000 pwmNum
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:988    .bss.BytesRead:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:995    .bss.FileBuffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1002   .bss.file:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1009   .bss.hexSDRead:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s:1016   .data.pwmNum:00000000 $d
 
 UNDEFINED SYMBOLS
-HAL_UART_Receive_IT
-rx_byte
-rx_data
-rx_complete
-huart1
+HC05_RestartDMA
+memcpy
 HAL_UARTEx_ReceiveToIdle_DMA
+rx_dma_buffer
+rx_complete
+rx_binary_buffer
+rx_binary_index
+rx_binary_complete
+rx_data
 VOFA_SEND_BUFFER
 leftHandMotor
 huart2
@@ -1689,14 +1961,15 @@ MX_TIM3_Init
 MX_TIM2_Init
 MX_USART2_UART_Init
 MX_TIM4_Init
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccM92Jmi.s 			page 34
+
+
 MX_SPI2_Init
 OLED_Init
 OLED_WriteString
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIyHllx.s 			page 30
-
-
 init
 HC05_ReceiveInfo
+FT_Init
 HAL_TIM_PWM_Start
 HAL_TIM_Base_Start_IT
 OLED_SetCursor
@@ -1709,7 +1982,9 @@ SD_ListMidiFiles
 SD_DisplaySongList
 SD_ReadFile
 SD_CloseFile
+FT_ProcessPacket
 executeCommand
 HC05_SendInfo
+FT_TimeoutCheck
 htim3
 htim4
