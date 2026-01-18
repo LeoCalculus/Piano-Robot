@@ -117,7 +117,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* USART1 DMA Init */
-    /* USART1_RX Init - DMA1_Channel5 */
+    /* USART1_RX Init */
     hdma_usart1_rx.Instance = DMA1_Channel5;
     hdma_usart1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_usart1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -125,7 +125,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     hdma_usart1_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
     hdma_usart1_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
     hdma_usart1_rx.Init.Mode = DMA_NORMAL;
-    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_HIGH;  /* High priority for file transfer */
+    hdma_usart1_rx.Init.Priority = DMA_PRIORITY_HIGH;
     if (HAL_DMA_Init(&hdma_usart1_rx) != HAL_OK)
     {
       Error_Handler();

@@ -205,7 +205,7 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel5 global interrupt (USART1_RX).
+  * @brief This function handles DMA1 channel5 global interrupt.
   */
 void DMA1_Channel5_IRQHandler(void)
 {
