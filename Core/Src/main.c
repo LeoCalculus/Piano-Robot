@@ -105,11 +105,15 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM4_Init();
   MX_SPI2_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
 #ifdef USINGOLED
   OLED_Init();
   OLED_WriteString("ELEC-391");
 #endif
+  LcdInit(); // using LCD
+  LcdFillScreen(COLOR_WHITE); 
+  LcdDrawString(0, 0, "Hello ELEC 391!", COLOR_BLUE, COLOR_WHITE);
 
 #ifdef USINGMPU6050
   if (checkExist()){ // cannot detect -> light LED
@@ -184,6 +188,8 @@ int main(void)
   HC05_SendBytes(FileBuffer, BytesRead);
   OLED_SetCursor(0, 1);
   OLED_WriteString("Send bytes!   ");
+
+  OLED_Clear(); // clear the entire screen above features known to be ok
 
   /* USER CODE END 2 */
 

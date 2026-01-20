@@ -14,6 +14,7 @@
 #include "usart.h"
 #include <sdcard.h>
 #include <fatfs_sd.h>
+#include <ILI9341.h>
 
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 
@@ -62,9 +63,6 @@ typedef struct
 
 extern MahonyAHRS ahrs;
 extern controllerProperty cp;
-
-void Mahony_Init(MahonyAHRS *mahony, float Kp, float Ki);
-void Mahony_Update(MahonyAHRS *mahony, const float acc[3], const float gyro[3], float dt);
 
 void controllerUpdate(const float dt);
 void smoothVelocity(float currentPostion, float dt);
