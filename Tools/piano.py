@@ -457,13 +457,21 @@ class PianoSynth:
 
 class VirtualPiano:
     """Main piano application with GUI"""
-    
+
     # Standard piano frequencies (A4 = 440Hz)
     NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    
+
+    # Piano key range limits (MIDI note numbers) - RockJam RJ-654 54-key range
+    MIN_MIDI_NOTE = 36  # C2
+    MAX_MIDI_NOTE = 89  # F6
+
+    # Piano model info
+    PIANO_MODEL = "RockJam RJ-654"
+    NUM_KEYS = 54
+
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("🎹 Virtual Piano with MIDI Support")
+        self.root.title(f"🎹 {self.PIANO_MODEL} Virtual Piano")
         self.root.configure(bg='#1a1a2e')
         self.root.resizable(True, False)
         
@@ -482,9 +490,10 @@ class VirtualPiano:
         self.playback_paused = False
         self.playback_position = 0.0
         
-        # Piano range: C3 to C6 (37 keys like many electric keyboards)
-        self.start_octave = 3
-        self.num_octaves = 3
+        # Piano range: C2 to F6 (54 keys like RockJam RJ-654)
+        self.start_octave = 2
+        self.num_octaves = 4
+        self.end_note = 'F'  # End at F6 for 54 keys
         
         self.setup_ui()
         self.setup_keyboard_bindings()
@@ -507,14 +516,23 @@ class VirtualPiano:
         title_frame.pack(pady=(0, 10))
         
         title = tk.Label(
-            title_frame, 
-            text="🎹 Virtual Piano", 
+            title_frame,
+            text=f"🎹 {self.PIANO_MODEL} Virtual Piano",
             font=('Helvetica', 24, 'bold'),
             fg='#eee',
             bg='#1a1a2e'
         )
         title.pack()
-        
+
+        model_info = tk.Label(
+            title_frame,
+            text=f"{self.NUM_KEYS} Keys | C2-F6",
+            font=('Helvetica', 11),
+            fg='#aaa',
+            bg='#1a1a2e'
+        )
+        model_info.pack()
+
         subtitle = tk.Label(
             title_frame,
             text="Play with mouse/keyboard or load a MIDI file",
@@ -602,26 +620,29 @@ class VirtualPiano:
         black_height = 110
         
         # Canvas for piano keys
-        num_white_keys = self.num_octaves * 7 + 1
+        # 54 keys: C2-F6 = 32 white keys (4 octaves * 7 + C D E F at the end)
+        num_white_keys = 32
         canvas_width = num_white_keys * white_width + 20
         canvas_height = white_height + 20
-        
+
         self.canvas = tk.Canvas(
-            piano_frame, 
-            width=canvas_width, 
+            piano_frame,
+            width=canvas_width,
             height=canvas_height,
             bg='#2d2d44',
             highlightthickness=0
         )
         self.canvas.pack()
-        
+
         # Draw white keys first
         all_notes = []
-        
+
+        # Generate notes from C2 to F6 (54 keys)
+        end_notes = ['C', 'C#', 'D', 'D#', 'E', 'F']  # Notes to include in final octave
         for octave in range(self.start_octave, self.start_octave + self.num_octaves + 1):
             for note in self.NOTE_NAMES:
-                if octave == self.start_octave + self.num_octaves and note != 'C':
-                    break
+                if octave == self.start_octave + self.num_octaves and note not in end_notes:
+                    continue
                 all_notes.append((note, octave))
         
         # Separate white and black keys
@@ -664,11 +685,14 @@ class VirtualPiano:
             self.canvas.tag_bind(key_id, '<ButtonRelease-1>', lambda e, n=f'{note}{octave}': self.on_key_release(n))
         
         # Draw black keys
-        for octave in range(self.start_octave, self.start_octave + self.num_octaves):
+        for octave in range(self.start_octave, self.start_octave + self.num_octaves + 1):
             for note in self.NOTE_NAMES:
                 if '#' not in note:
                     continue
-                
+                # Only include C#6 and D#6 in the final octave
+                if octave == self.start_octave + self.num_octaves and note not in ['C#', 'D#']:
+                    continue
+
                 base_note = note[0]
                 white_index = sum(1 for n, o in white_notes if o < octave or (o == octave and self.NOTE_NAMES.index(n.replace('#', '')) < self.NOTE_NAMES.index(base_note)))
                 
@@ -712,8 +736,8 @@ class VirtualPiano:
         
         mapping_text = tk.Label(
             mapping_frame,
-            text="White: A S D F G H J K L ; ' (C4-C5)  |  Black: W E T Y U O P (sharps)\n"
-                 "Lower: Z X C V B N M , . / (C3-E4)   |  Upper: 1-0 (C5-E6)",
+            text="White: A S D F G H J K L ; ' (C4-F5)  |  Black: W E T Y U O P (sharps)\n"
+                 "Lower: Z X C V B N M , . / (C2-E3)   |  Upper: 1-0 (C5-F6)",
             font=('Courier', 9),
             fg='#888',
             bg='#1a1a2e',
@@ -733,12 +757,12 @@ class VirtualPiano:
         
     def setup_keyboard_bindings(self):
         """Setup computer keyboard to piano key mappings"""
-        # Lower row: C3 to E4
+        # Lower row: C2 to E3
         lower_keys = ['z', 'x', 'c', 'v', 'b', 'n', 'm', 'comma', 'period', 'slash']
-        lower_notes = [('C', 3), ('D', 3), ('E', 3), ('F', 3), ('G', 3), 
-                       ('A', 3), ('B', 3), ('C', 4), ('D', 4), ('E', 4)]
-        
-        # Middle row: C4 to C5 (white keys)
+        lower_notes = [('C', 2), ('D', 2), ('E', 2), ('F', 2), ('G', 2),
+                       ('A', 2), ('B', 2), ('C', 3), ('D', 3), ('E', 3)]
+
+        # Middle row: C4 to F5 (white keys)
         middle_keys = ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'semicolon', 'apostrophe']
         middle_notes = [('C', 4), ('D', 4), ('E', 4), ('F', 4), ('G', 4),
                         ('A', 4), ('B', 4), ('C', 5), ('D', 5), ('E', 5), ('F', 5)]
@@ -748,10 +772,10 @@ class VirtualPiano:
         top_notes = [('C#', 4), ('D#', 4), ('F#', 4), ('G#', 4), ('A#', 4),
                      ('C#', 5), ('D#', 5), ('F#', 5), ('G#', 5), ('A#', 5)]
         
-        # Number row: C5 to E6
+        # Number row: C5 to F6
         number_keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
         number_notes = [('C', 5), ('D', 5), ('E', 5), ('F', 5), ('G', 5),
-                        ('A', 5), ('B', 5), ('C', 6), ('D', 6), ('E', 6)]
+                        ('A', 5), ('B', 5), ('C', 6), ('D', 6), ('E', 6)]  # E6 is max white, F6 at end
         
         all_mappings = [(lower_keys, lower_notes), (middle_keys, middle_notes),
                         (top_keys, top_notes), (number_keys, number_notes)]
@@ -941,7 +965,11 @@ class VirtualPiano:
             
             # Get notes at this time
             notes_to_play = note_groups[target_time]
-            
+
+            # Filter out notes outside the piano's key range (C3-C6)
+            notes_to_play = [n for n in notes_to_play
+                           if self.MIN_MIDI_NOTE <= n.note_number <= self.MAX_MIDI_NOTE]
+
             # Apply hand simulation if enabled
             if self.hand_sim_var.get():
                 notes_to_play = self.hand_simulator.get_playable_notes(notes_to_play, target_time)
@@ -1054,8 +1082,9 @@ class VirtualPiano:
 def main():
     """Main entry point"""
     print("=" * 60)
-    print("🎹 Virtual Piano with MIDI Support")
+    print(f"🎹 {VirtualPiano.PIANO_MODEL} Virtual Piano")
     print("=" * 60)
+    print(f"\nModel: {VirtualPiano.PIANO_MODEL} ({VirtualPiano.NUM_KEYS} Keys, C2-F6)")
     print("\nFeatures:")
     print("  • Play with mouse or keyboard")
     print("  • Load and play MIDI files")
