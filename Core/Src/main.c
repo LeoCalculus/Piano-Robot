@@ -189,7 +189,7 @@ int main(void)
   OLED_SetCursor(0, 1);
   OLED_WriteString("Send bytes!   ");
 
-  OLED_Clear(); // clear the entire screen above features known to be ok
+  // OLED_Clear(); // clear the entire screen above features known to be ok
 
   /* USER CODE END 2 */
 
