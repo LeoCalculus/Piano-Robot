@@ -1,0 +1,2399 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"ILI9341.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/ILI9341.c"
+  21              		.section	.text.LCD_select,"ax",%progbits
+  22              		.align	1
+  23              		.global	LCD_select
+  24              		.syntax unified
+  25              		.thumb
+  26              		.thumb_func
+  28              	LCD_select:
+  29              	.LVL0:
+  30              	.LFB160:
+   1:./Application/Src/ILI9341.c **** #include <gpio.h>
+   2:./Application/Src/ILI9341.c **** #include <spi.h>
+   3:./Application/Src/ILI9341.c **** #include <ILI9341.h>
+   4:./Application/Src/ILI9341.c **** #include <string.h>
+   5:./Application/Src/ILI9341.c **** 
+   6:./Application/Src/ILI9341.c **** // 5x7 font for ASCII 32-126
+   7:./Application/Src/ILI9341.c **** static const uint8_t font5x7[][5] = {
+   8:./Application/Src/ILI9341.c ****     {0x00,0x00,0x00,0x00,0x00}, // space
+   9:./Application/Src/ILI9341.c ****     {0x00,0x00,0x5F,0x00,0x00}, // !
+  10:./Application/Src/ILI9341.c ****     {0x00,0x07,0x00,0x07,0x00}, // "
+  11:./Application/Src/ILI9341.c ****     {0x14,0x7F,0x14,0x7F,0x14}, // #
+  12:./Application/Src/ILI9341.c ****     {0x24,0x2A,0x7F,0x2A,0x12}, // $
+  13:./Application/Src/ILI9341.c ****     {0x23,0x13,0x08,0x64,0x62}, // %
+  14:./Application/Src/ILI9341.c ****     {0x36,0x49,0x55,0x22,0x50}, // &
+  15:./Application/Src/ILI9341.c ****     {0x00,0x05,0x03,0x00,0x00}, // '
+  16:./Application/Src/ILI9341.c ****     {0x00,0x1C,0x22,0x41,0x00}, // (
+  17:./Application/Src/ILI9341.c ****     {0x00,0x41,0x22,0x1C,0x00}, // )
+  18:./Application/Src/ILI9341.c ****     {0x08,0x2A,0x1C,0x2A,0x08}, // *
+  19:./Application/Src/ILI9341.c ****     {0x08,0x08,0x3E,0x08,0x08}, // +
+  20:./Application/Src/ILI9341.c ****     {0x00,0x50,0x30,0x00,0x00}, // ,
+  21:./Application/Src/ILI9341.c ****     {0x08,0x08,0x08,0x08,0x08}, // -
+  22:./Application/Src/ILI9341.c ****     {0x00,0x60,0x60,0x00,0x00}, // .
+  23:./Application/Src/ILI9341.c ****     {0x20,0x10,0x08,0x04,0x02}, // /
+  24:./Application/Src/ILI9341.c ****     {0x3E,0x51,0x49,0x45,0x3E}, // 0
+  25:./Application/Src/ILI9341.c ****     {0x00,0x42,0x7F,0x40,0x00}, // 1
+  26:./Application/Src/ILI9341.c ****     {0x42,0x61,0x51,0x49,0x46}, // 2
+  27:./Application/Src/ILI9341.c ****     {0x21,0x41,0x45,0x4B,0x31}, // 3
+  28:./Application/Src/ILI9341.c ****     {0x18,0x14,0x12,0x7F,0x10}, // 4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 2
+
+
+  29:./Application/Src/ILI9341.c ****     {0x27,0x45,0x45,0x45,0x39}, // 5
+  30:./Application/Src/ILI9341.c ****     {0x3C,0x4A,0x49,0x49,0x30}, // 6
+  31:./Application/Src/ILI9341.c ****     {0x01,0x71,0x09,0x05,0x03}, // 7
+  32:./Application/Src/ILI9341.c ****     {0x36,0x49,0x49,0x49,0x36}, // 8
+  33:./Application/Src/ILI9341.c ****     {0x06,0x49,0x49,0x29,0x1E}, // 9
+  34:./Application/Src/ILI9341.c ****     {0x00,0x36,0x36,0x00,0x00}, // :
+  35:./Application/Src/ILI9341.c ****     {0x00,0x56,0x36,0x00,0x00}, // ;
+  36:./Application/Src/ILI9341.c ****     {0x00,0x08,0x14,0x22,0x41}, // <
+  37:./Application/Src/ILI9341.c ****     {0x14,0x14,0x14,0x14,0x14}, // =
+  38:./Application/Src/ILI9341.c ****     {0x41,0x22,0x14,0x08,0x00}, // >
+  39:./Application/Src/ILI9341.c ****     {0x02,0x01,0x51,0x09,0x06}, // ?
+  40:./Application/Src/ILI9341.c ****     {0x32,0x49,0x79,0x41,0x3E}, // @
+  41:./Application/Src/ILI9341.c ****     {0x7E,0x11,0x11,0x11,0x7E}, // A
+  42:./Application/Src/ILI9341.c ****     {0x7F,0x49,0x49,0x49,0x36}, // B
+  43:./Application/Src/ILI9341.c ****     {0x3E,0x41,0x41,0x41,0x22}, // C
+  44:./Application/Src/ILI9341.c ****     {0x7F,0x41,0x41,0x22,0x1C}, // D
+  45:./Application/Src/ILI9341.c ****     {0x7F,0x49,0x49,0x49,0x41}, // E
+  46:./Application/Src/ILI9341.c ****     {0x7F,0x09,0x09,0x01,0x01}, // F
+  47:./Application/Src/ILI9341.c ****     {0x3E,0x41,0x41,0x51,0x32}, // G
+  48:./Application/Src/ILI9341.c ****     {0x7F,0x08,0x08,0x08,0x7F}, // H
+  49:./Application/Src/ILI9341.c ****     {0x00,0x41,0x7F,0x41,0x00}, // I
+  50:./Application/Src/ILI9341.c ****     {0x20,0x40,0x41,0x3F,0x01}, // J
+  51:./Application/Src/ILI9341.c ****     {0x7F,0x08,0x14,0x22,0x41}, // K
+  52:./Application/Src/ILI9341.c ****     {0x7F,0x40,0x40,0x40,0x40}, // L
+  53:./Application/Src/ILI9341.c ****     {0x7F,0x02,0x04,0x02,0x7F}, // M
+  54:./Application/Src/ILI9341.c ****     {0x7F,0x04,0x08,0x10,0x7F}, // N
+  55:./Application/Src/ILI9341.c ****     {0x3E,0x41,0x41,0x41,0x3E}, // O
+  56:./Application/Src/ILI9341.c ****     {0x7F,0x09,0x09,0x09,0x06}, // P
+  57:./Application/Src/ILI9341.c ****     {0x3E,0x41,0x51,0x21,0x5E}, // Q
+  58:./Application/Src/ILI9341.c ****     {0x7F,0x09,0x19,0x29,0x46}, // R
+  59:./Application/Src/ILI9341.c ****     {0x46,0x49,0x49,0x49,0x31}, // S
+  60:./Application/Src/ILI9341.c ****     {0x01,0x01,0x7F,0x01,0x01}, // T
+  61:./Application/Src/ILI9341.c ****     {0x3F,0x40,0x40,0x40,0x3F}, // U
+  62:./Application/Src/ILI9341.c ****     {0x1F,0x20,0x40,0x20,0x1F}, // V
+  63:./Application/Src/ILI9341.c ****     {0x7F,0x20,0x18,0x20,0x7F}, // W
+  64:./Application/Src/ILI9341.c ****     {0x63,0x14,0x08,0x14,0x63}, // X
+  65:./Application/Src/ILI9341.c ****     {0x03,0x04,0x78,0x04,0x03}, // Y
+  66:./Application/Src/ILI9341.c ****     {0x61,0x51,0x49,0x45,0x43}, // Z
+  67:./Application/Src/ILI9341.c ****     {0x00,0x00,0x7F,0x41,0x41}, // [
+  68:./Application/Src/ILI9341.c ****     {0x02,0x04,0x08,0x10,0x20}, // backslash
+  69:./Application/Src/ILI9341.c ****     {0x41,0x41,0x7F,0x00,0x00}, // ]
+  70:./Application/Src/ILI9341.c ****     {0x04,0x02,0x01,0x02,0x04}, // ^
+  71:./Application/Src/ILI9341.c ****     {0x40,0x40,0x40,0x40,0x40}, // _
+  72:./Application/Src/ILI9341.c ****     {0x00,0x01,0x02,0x04,0x00}, // `
+  73:./Application/Src/ILI9341.c ****     {0x20,0x54,0x54,0x54,0x78}, // a
+  74:./Application/Src/ILI9341.c ****     {0x7F,0x48,0x44,0x44,0x38}, // b
+  75:./Application/Src/ILI9341.c ****     {0x38,0x44,0x44,0x44,0x20}, // c
+  76:./Application/Src/ILI9341.c ****     {0x38,0x44,0x44,0x48,0x7F}, // d
+  77:./Application/Src/ILI9341.c ****     {0x38,0x54,0x54,0x54,0x18}, // e
+  78:./Application/Src/ILI9341.c ****     {0x08,0x7E,0x09,0x01,0x02}, // f
+  79:./Application/Src/ILI9341.c ****     {0x08,0x14,0x54,0x54,0x3C}, // g
+  80:./Application/Src/ILI9341.c ****     {0x7F,0x08,0x04,0x04,0x78}, // h
+  81:./Application/Src/ILI9341.c ****     {0x00,0x44,0x7D,0x40,0x00}, // i
+  82:./Application/Src/ILI9341.c ****     {0x20,0x40,0x44,0x3D,0x00}, // j
+  83:./Application/Src/ILI9341.c ****     {0x00,0x7F,0x10,0x28,0x44}, // k
+  84:./Application/Src/ILI9341.c ****     {0x00,0x41,0x7F,0x40,0x00}, // l
+  85:./Application/Src/ILI9341.c ****     {0x7C,0x04,0x18,0x04,0x78}, // m
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 3
+
+
+  86:./Application/Src/ILI9341.c ****     {0x7C,0x08,0x04,0x04,0x78}, // n
+  87:./Application/Src/ILI9341.c ****     {0x38,0x44,0x44,0x44,0x38}, // o
+  88:./Application/Src/ILI9341.c ****     {0x7C,0x14,0x14,0x14,0x08}, // p
+  89:./Application/Src/ILI9341.c ****     {0x08,0x14,0x14,0x18,0x7C}, // q
+  90:./Application/Src/ILI9341.c ****     {0x7C,0x08,0x04,0x04,0x08}, // r
+  91:./Application/Src/ILI9341.c ****     {0x48,0x54,0x54,0x54,0x20}, // s
+  92:./Application/Src/ILI9341.c ****     {0x04,0x3F,0x44,0x40,0x20}, // t
+  93:./Application/Src/ILI9341.c ****     {0x3C,0x40,0x40,0x20,0x7C}, // u
+  94:./Application/Src/ILI9341.c ****     {0x1C,0x20,0x40,0x20,0x1C}, // v
+  95:./Application/Src/ILI9341.c ****     {0x3C,0x40,0x30,0x40,0x3C}, // w
+  96:./Application/Src/ILI9341.c ****     {0x44,0x28,0x10,0x28,0x44}, // x
+  97:./Application/Src/ILI9341.c ****     {0x0C,0x50,0x50,0x50,0x3C}, // y
+  98:./Application/Src/ILI9341.c ****     {0x44,0x64,0x54,0x4C,0x44}, // z
+  99:./Application/Src/ILI9341.c ****     {0x00,0x08,0x36,0x41,0x00}, // {
+ 100:./Application/Src/ILI9341.c ****     {0x00,0x00,0x7F,0x00,0x00}, // |
+ 101:./Application/Src/ILI9341.c ****     {0x00,0x41,0x36,0x08,0x00}, // }
+ 102:./Application/Src/ILI9341.c ****     {0x08,0x08,0x2A,0x1C,0x08}, // ~
+ 103:./Application/Src/ILI9341.c **** };
+ 104:./Application/Src/ILI9341.c **** 
+ 105:./Application/Src/ILI9341.c **** // cursor position
+ 106:./Application/Src/ILI9341.c **** static uint16_t cursor_x = 0;
+ 107:./Application/Src/ILI9341.c **** static uint16_t cursor_y = 0;
+ 108:./Application/Src/ILI9341.c **** 
+ 109:./Application/Src/ILI9341.c **** // CS pin - indicate whether the device is selected
+ 110:./Application/Src/ILI9341.c **** void LCD_select(LCD_Config* cfg) {
+  31              		.loc 1 110 34 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		.loc 1 110 34 is_stmt 0 view .LVU1
+  36 0000 08B5     		push	{r3, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 3, -8
+  40              		.cfi_offset 14, -4
+ 111:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->cs_port, cfg->cs_pin, GPIO_PIN_RESET);
+  41              		.loc 1 111 5 is_stmt 1 view .LVU2
+  42 0002 0022     		movs	r2, #0
+  43 0004 0189     		ldrh	r1, [r0, #8]
+  44 0006 4068     		ldr	r0, [r0, #4]
+  45              	.LVL1:
+  46              		.loc 1 111 5 is_stmt 0 view .LVU3
+  47 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  48              	.LVL2:
+ 112:./Application/Src/ILI9341.c **** }
+  49              		.loc 1 112 1 view .LVU4
+  50 000c 08BD     		pop	{r3, pc}
+  51              		.cfi_endproc
+  52              	.LFE160:
+  54              		.section	.text.LCD_unselect,"ax",%progbits
+  55              		.align	1
+  56              		.global	LCD_unselect
+  57              		.syntax unified
+  58              		.thumb
+  59              		.thumb_func
+  61              	LCD_unselect:
+  62              	.LVL3:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 4
+
+
+  63              	.LFB161:
+ 113:./Application/Src/ILI9341.c **** 
+ 114:./Application/Src/ILI9341.c **** void LCD_unselect(LCD_Config* cfg) {
+  64              		.loc 1 114 36 is_stmt 1 view -0
+  65              		.cfi_startproc
+  66              		@ args = 0, pretend = 0, frame = 0
+  67              		@ frame_needed = 0, uses_anonymous_args = 0
+  68              		.loc 1 114 36 is_stmt 0 view .LVU6
+  69 0000 08B5     		push	{r3, lr}
+  70              	.LCFI1:
+  71              		.cfi_def_cfa_offset 8
+  72              		.cfi_offset 3, -8
+  73              		.cfi_offset 14, -4
+ 115:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->cs_port, cfg->cs_pin, GPIO_PIN_SET);
+  74              		.loc 1 115 5 is_stmt 1 view .LVU7
+  75 0002 0122     		movs	r2, #1
+  76 0004 0189     		ldrh	r1, [r0, #8]
+  77 0006 4068     		ldr	r0, [r0, #4]
+  78              	.LVL4:
+  79              		.loc 1 115 5 is_stmt 0 view .LVU8
+  80 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+  81              	.LVL5:
+ 116:./Application/Src/ILI9341.c **** }
+  82              		.loc 1 116 1 view .LVU9
+  83 000c 08BD     		pop	{r3, pc}
+  84              		.cfi_endproc
+  85              	.LFE161:
+  87              		.section	.text.LCD_data_mode,"ax",%progbits
+  88              		.align	1
+  89              		.global	LCD_data_mode
+  90              		.syntax unified
+  91              		.thumb
+  92              		.thumb_func
+  94              	LCD_data_mode:
+  95              	.LVL6:
+  96              	.LFB162:
+ 117:./Application/Src/ILI9341.c **** 
+ 118:./Application/Src/ILI9341.c **** // DC pin - indicate command mode or data mode
+ 119:./Application/Src/ILI9341.c **** void LCD_data_mode(LCD_Config* cfg) {
+  97              		.loc 1 119 37 is_stmt 1 view -0
+  98              		.cfi_startproc
+  99              		@ args = 0, pretend = 0, frame = 0
+ 100              		@ frame_needed = 0, uses_anonymous_args = 0
+ 101              		.loc 1 119 37 is_stmt 0 view .LVU11
+ 102 0000 08B5     		push	{r3, lr}
+ 103              	.LCFI2:
+ 104              		.cfi_def_cfa_offset 8
+ 105              		.cfi_offset 3, -8
+ 106              		.cfi_offset 14, -4
+ 120:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->rs_port, cfg->rs_pin, GPIO_PIN_SET);
+ 107              		.loc 1 120 5 is_stmt 1 view .LVU12
+ 108 0002 0122     		movs	r2, #1
+ 109 0004 018A     		ldrh	r1, [r0, #16]
+ 110 0006 C068     		ldr	r0, [r0, #12]
+ 111              	.LVL7:
+ 112              		.loc 1 120 5 is_stmt 0 view .LVU13
+ 113 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 5
+
+
+ 114              	.LVL8:
+ 121:./Application/Src/ILI9341.c **** }
+ 115              		.loc 1 121 1 view .LVU14
+ 116 000c 08BD     		pop	{r3, pc}
+ 117              		.cfi_endproc
+ 118              	.LFE162:
+ 120              		.section	.text.LCD_cmd_mode,"ax",%progbits
+ 121              		.align	1
+ 122              		.global	LCD_cmd_mode
+ 123              		.syntax unified
+ 124              		.thumb
+ 125              		.thumb_func
+ 127              	LCD_cmd_mode:
+ 128              	.LVL9:
+ 129              	.LFB163:
+ 122:./Application/Src/ILI9341.c **** 
+ 123:./Application/Src/ILI9341.c **** void LCD_cmd_mode(LCD_Config* cfg) {
+ 130              		.loc 1 123 36 is_stmt 1 view -0
+ 131              		.cfi_startproc
+ 132              		@ args = 0, pretend = 0, frame = 0
+ 133              		@ frame_needed = 0, uses_anonymous_args = 0
+ 134              		.loc 1 123 36 is_stmt 0 view .LVU16
+ 135 0000 08B5     		push	{r3, lr}
+ 136              	.LCFI3:
+ 137              		.cfi_def_cfa_offset 8
+ 138              		.cfi_offset 3, -8
+ 139              		.cfi_offset 14, -4
+ 124:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->rs_port, cfg->rs_pin, GPIO_PIN_RESET);
+ 140              		.loc 1 124 5 is_stmt 1 view .LVU17
+ 141 0002 0022     		movs	r2, #0
+ 142 0004 018A     		ldrh	r1, [r0, #16]
+ 143 0006 C068     		ldr	r0, [r0, #12]
+ 144              	.LVL10:
+ 145              		.loc 1 124 5 is_stmt 0 view .LVU18
+ 146 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 147              	.LVL11:
+ 125:./Application/Src/ILI9341.c **** }
+ 148              		.loc 1 125 1 view .LVU19
+ 149 000c 08BD     		pop	{r3, pc}
+ 150              		.cfi_endproc
+ 151              	.LFE163:
+ 153              		.section	.text.LCD_do_reset,"ax",%progbits
+ 154              		.align	1
+ 155              		.global	LCD_do_reset
+ 156              		.syntax unified
+ 157              		.thumb
+ 158              		.thumb_func
+ 160              	LCD_do_reset:
+ 161              	.LVL12:
+ 162              	.LFB164:
+ 126:./Application/Src/ILI9341.c **** 
+ 127:./Application/Src/ILI9341.c **** // RST pin - used to reset the device
+ 128:./Application/Src/ILI9341.c **** void LCD_do_reset(LCD_Config* cfg) {
+ 163              		.loc 1 128 36 is_stmt 1 view -0
+ 164              		.cfi_startproc
+ 165              		@ args = 0, pretend = 0, frame = 0
+ 166              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 6
+
+
+ 167              		.loc 1 128 36 is_stmt 0 view .LVU21
+ 168 0000 08B5     		push	{r3, lr}
+ 169              	.LCFI4:
+ 170              		.cfi_def_cfa_offset 8
+ 171              		.cfi_offset 3, -8
+ 172              		.cfi_offset 14, -4
+ 129:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->rst_port, cfg->rst_pin, GPIO_PIN_RESET);
+ 173              		.loc 1 129 5 is_stmt 1 view .LVU22
+ 174 0002 0022     		movs	r2, #0
+ 175 0004 018B     		ldrh	r1, [r0, #24]
+ 176 0006 4069     		ldr	r0, [r0, #20]
+ 177              	.LVL13:
+ 178              		.loc 1 129 5 is_stmt 0 view .LVU23
+ 179 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 180              	.LVL14:
+ 130:./Application/Src/ILI9341.c **** }
+ 181              		.loc 1 130 1 view .LVU24
+ 182 000c 08BD     		pop	{r3, pc}
+ 183              		.cfi_endproc
+ 184              	.LFE164:
+ 186              		.section	.text.LCD_no_reset,"ax",%progbits
+ 187              		.align	1
+ 188              		.global	LCD_no_reset
+ 189              		.syntax unified
+ 190              		.thumb
+ 191              		.thumb_func
+ 193              	LCD_no_reset:
+ 194              	.LVL15:
+ 195              	.LFB165:
+ 131:./Application/Src/ILI9341.c **** 
+ 132:./Application/Src/ILI9341.c **** void LCD_no_reset(LCD_Config* cfg) {
+ 196              		.loc 1 132 36 is_stmt 1 view -0
+ 197              		.cfi_startproc
+ 198              		@ args = 0, pretend = 0, frame = 0
+ 199              		@ frame_needed = 0, uses_anonymous_args = 0
+ 200              		.loc 1 132 36 is_stmt 0 view .LVU26
+ 201 0000 08B5     		push	{r3, lr}
+ 202              	.LCFI5:
+ 203              		.cfi_def_cfa_offset 8
+ 204              		.cfi_offset 3, -8
+ 205              		.cfi_offset 14, -4
+ 133:./Application/Src/ILI9341.c ****     HAL_GPIO_WritePin(cfg->rst_port, cfg->rst_pin, GPIO_PIN_SET);
+ 206              		.loc 1 133 5 is_stmt 1 view .LVU27
+ 207 0002 0122     		movs	r2, #1
+ 208 0004 018B     		ldrh	r1, [r0, #24]
+ 209 0006 4069     		ldr	r0, [r0, #20]
+ 210              	.LVL16:
+ 211              		.loc 1 133 5 is_stmt 0 view .LVU28
+ 212 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 213              	.LVL17:
+ 134:./Application/Src/ILI9341.c **** }
+ 214              		.loc 1 134 1 view .LVU29
+ 215 000c 08BD     		pop	{r3, pc}
+ 216              		.cfi_endproc
+ 217              	.LFE165:
+ 219              		.section	.text.LCD_send_cmd,"ax",%progbits
+ 220              		.align	1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 7
+
+
+ 221              		.global	LCD_send_cmd
+ 222              		.syntax unified
+ 223              		.thumb
+ 224              		.thumb_func
+ 226              	LCD_send_cmd:
+ 227              	.LVL18:
+ 228              	.LFB166:
+ 135:./Application/Src/ILI9341.c **** 
+ 136:./Application/Src/ILI9341.c **** // send command byte - known the device is selected
+ 137:./Application/Src/ILI9341.c **** void LCD_send_cmd(LCD_Config* cfg, uint8_t cmd) {
+ 229              		.loc 1 137 49 is_stmt 1 view -0
+ 230              		.cfi_startproc
+ 231              		@ args = 0, pretend = 0, frame = 8
+ 232              		@ frame_needed = 0, uses_anonymous_args = 0
+ 233              		.loc 1 137 49 is_stmt 0 view .LVU31
+ 234 0000 10B5     		push	{r4, lr}
+ 235              	.LCFI6:
+ 236              		.cfi_def_cfa_offset 8
+ 237              		.cfi_offset 4, -8
+ 238              		.cfi_offset 14, -4
+ 239 0002 82B0     		sub	sp, sp, #8
+ 240              	.LCFI7:
+ 241              		.cfi_def_cfa_offset 16
+ 242 0004 0446     		mov	r4, r0
+ 243 0006 8DF80710 		strb	r1, [sp, #7]
+ 138:./Application/Src/ILI9341.c ****     LCD_cmd_mode(cfg);
+ 244              		.loc 1 138 5 is_stmt 1 view .LVU32
+ 245 000a FFF7FEFF 		bl	LCD_cmd_mode
+ 246              	.LVL19:
+ 139:./Application/Src/ILI9341.c ****     HAL_SPI_Transmit(cfg->hspi, &cmd, 1, 10);
+ 247              		.loc 1 139 5 view .LVU33
+ 248 000e 0A23     		movs	r3, #10
+ 249 0010 0122     		movs	r2, #1
+ 250 0012 0DF10701 		add	r1, sp, #7
+ 251 0016 2068     		ldr	r0, [r4]
+ 252 0018 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 253              	.LVL20:
+ 140:./Application/Src/ILI9341.c **** }
+ 254              		.loc 1 140 1 is_stmt 0 view .LVU34
+ 255 001c 02B0     		add	sp, sp, #8
+ 256              	.LCFI8:
+ 257              		.cfi_def_cfa_offset 8
+ 258              		@ sp needed
+ 259 001e 10BD     		pop	{r4, pc}
+ 260              		.loc 1 140 1 view .LVU35
+ 261              		.cfi_endproc
+ 262              	.LFE166:
+ 264              		.section	.text.LCD_send_data,"ax",%progbits
+ 265              		.align	1
+ 266              		.global	LCD_send_data
+ 267              		.syntax unified
+ 268              		.thumb
+ 269              		.thumb_func
+ 271              	LCD_send_data:
+ 272              	.LVL21:
+ 273              	.LFB167:
+ 141:./Application/Src/ILI9341.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 8
+
+
+ 142:./Application/Src/ILI9341.c **** // send data byte - known the device is selected
+ 143:./Application/Src/ILI9341.c **** void LCD_send_data(LCD_Config* cfg, uint8_t data) {
+ 274              		.loc 1 143 51 is_stmt 1 view -0
+ 275              		.cfi_startproc
+ 276              		@ args = 0, pretend = 0, frame = 8
+ 277              		@ frame_needed = 0, uses_anonymous_args = 0
+ 278              		.loc 1 143 51 is_stmt 0 view .LVU37
+ 279 0000 10B5     		push	{r4, lr}
+ 280              	.LCFI9:
+ 281              		.cfi_def_cfa_offset 8
+ 282              		.cfi_offset 4, -8
+ 283              		.cfi_offset 14, -4
+ 284 0002 82B0     		sub	sp, sp, #8
+ 285              	.LCFI10:
+ 286              		.cfi_def_cfa_offset 16
+ 287 0004 0446     		mov	r4, r0
+ 288 0006 8DF80710 		strb	r1, [sp, #7]
+ 144:./Application/Src/ILI9341.c ****     LCD_data_mode(cfg);
+ 289              		.loc 1 144 5 is_stmt 1 view .LVU38
+ 290 000a FFF7FEFF 		bl	LCD_data_mode
+ 291              	.LVL22:
+ 145:./Application/Src/ILI9341.c ****     HAL_SPI_Transmit(cfg->hspi, &data, 1, 10);
+ 292              		.loc 1 145 5 view .LVU39
+ 293 000e 0A23     		movs	r3, #10
+ 294 0010 0122     		movs	r2, #1
+ 295 0012 0DF10701 		add	r1, sp, #7
+ 296 0016 2068     		ldr	r0, [r4]
+ 297 0018 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 298              	.LVL23:
+ 146:./Application/Src/ILI9341.c **** }
+ 299              		.loc 1 146 1 is_stmt 0 view .LVU40
+ 300 001c 02B0     		add	sp, sp, #8
+ 301              	.LCFI11:
+ 302              		.cfi_def_cfa_offset 8
+ 303              		@ sp needed
+ 304 001e 10BD     		pop	{r4, pc}
+ 305              		.loc 1 146 1 view .LVU41
+ 306              		.cfi_endproc
+ 307              	.LFE167:
+ 309              		.section	.text.LCD_send_group_data,"ax",%progbits
+ 310              		.align	1
+ 311              		.global	LCD_send_group_data
+ 312              		.syntax unified
+ 313              		.thumb
+ 314              		.thumb_func
+ 316              	LCD_send_group_data:
+ 317              	.LVL24:
+ 318              	.LFB168:
+ 147:./Application/Src/ILI9341.c **** 
+ 148:./Application/Src/ILI9341.c **** // send multiple data bytes - known the device is selected
+ 149:./Application/Src/ILI9341.c **** void LCD_send_group_data(LCD_Config* cfg, uint8_t* data, uint16_t len) {
+ 319              		.loc 1 149 72 is_stmt 1 view -0
+ 320              		.cfi_startproc
+ 321              		@ args = 0, pretend = 0, frame = 0
+ 322              		@ frame_needed = 0, uses_anonymous_args = 0
+ 323              		.loc 1 149 72 is_stmt 0 view .LVU43
+ 324 0000 70B5     		push	{r4, r5, r6, lr}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 9
+
+
+ 325              	.LCFI12:
+ 326              		.cfi_def_cfa_offset 16
+ 327              		.cfi_offset 4, -16
+ 328              		.cfi_offset 5, -12
+ 329              		.cfi_offset 6, -8
+ 330              		.cfi_offset 14, -4
+ 331 0002 0646     		mov	r6, r0
+ 332 0004 0D46     		mov	r5, r1
+ 333 0006 1446     		mov	r4, r2
+ 150:./Application/Src/ILI9341.c ****     LCD_data_mode(cfg);
+ 334              		.loc 1 150 5 is_stmt 1 view .LVU44
+ 335 0008 FFF7FEFF 		bl	LCD_data_mode
+ 336              	.LVL25:
+ 151:./Application/Src/ILI9341.c ****     HAL_SPI_Transmit(cfg->hspi, data, len, 100);
+ 337              		.loc 1 151 5 view .LVU45
+ 338 000c 6423     		movs	r3, #100
+ 339 000e 2246     		mov	r2, r4
+ 340 0010 2946     		mov	r1, r5
+ 341 0012 3068     		ldr	r0, [r6]
+ 342 0014 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 343              	.LVL26:
+ 152:./Application/Src/ILI9341.c **** }
+ 344              		.loc 1 152 1 is_stmt 0 view .LVU46
+ 345 0018 70BD     		pop	{r4, r5, r6, pc}
+ 346              		.loc 1 152 1 view .LVU47
+ 347              		.cfi_endproc
+ 348              	.LFE168:
+ 350              		.section	.text.LCD_reset,"ax",%progbits
+ 351              		.align	1
+ 352              		.global	LCD_reset
+ 353              		.syntax unified
+ 354              		.thumb
+ 355              		.thumb_func
+ 357              	LCD_reset:
+ 358              	.LVL27:
+ 359              	.LFB169:
+ 153:./Application/Src/ILI9341.c **** 
+ 154:./Application/Src/ILI9341.c **** // hardware reset sequence
+ 155:./Application/Src/ILI9341.c **** void LCD_reset(LCD_Config* cfg) {
+ 360              		.loc 1 155 33 is_stmt 1 view -0
+ 361              		.cfi_startproc
+ 362              		@ args = 0, pretend = 0, frame = 0
+ 363              		@ frame_needed = 0, uses_anonymous_args = 0
+ 364              		.loc 1 155 33 is_stmt 0 view .LVU49
+ 365 0000 10B5     		push	{r4, lr}
+ 366              	.LCFI13:
+ 367              		.cfi_def_cfa_offset 8
+ 368              		.cfi_offset 4, -8
+ 369              		.cfi_offset 14, -4
+ 370 0002 0446     		mov	r4, r0
+ 156:./Application/Src/ILI9341.c ****     LCD_no_reset(cfg);
+ 371              		.loc 1 156 5 is_stmt 1 view .LVU50
+ 372 0004 FFF7FEFF 		bl	LCD_no_reset
+ 373              	.LVL28:
+ 157:./Application/Src/ILI9341.c ****     HAL_Delay(5);
+ 374              		.loc 1 157 5 view .LVU51
+ 375 0008 0520     		movs	r0, #5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 10
+
+
+ 376 000a FFF7FEFF 		bl	HAL_Delay
+ 377              	.LVL29:
+ 158:./Application/Src/ILI9341.c ****     LCD_do_reset(cfg);
+ 378              		.loc 1 158 5 view .LVU52
+ 379 000e 2046     		mov	r0, r4
+ 380 0010 FFF7FEFF 		bl	LCD_do_reset
+ 381              	.LVL30:
+ 159:./Application/Src/ILI9341.c ****     HAL_Delay(20);
+ 382              		.loc 1 159 5 view .LVU53
+ 383 0014 1420     		movs	r0, #20
+ 384 0016 FFF7FEFF 		bl	HAL_Delay
+ 385              	.LVL31:
+ 160:./Application/Src/ILI9341.c ****     LCD_no_reset(cfg);
+ 386              		.loc 1 160 5 view .LVU54
+ 387 001a 2046     		mov	r0, r4
+ 388 001c FFF7FEFF 		bl	LCD_no_reset
+ 389              	.LVL32:
+ 161:./Application/Src/ILI9341.c ****     HAL_Delay(150);
+ 390              		.loc 1 161 5 view .LVU55
+ 391 0020 9620     		movs	r0, #150
+ 392 0022 FFF7FEFF 		bl	HAL_Delay
+ 393              	.LVL33:
+ 162:./Application/Src/ILI9341.c **** }
+ 394              		.loc 1 162 1 is_stmt 0 view .LVU56
+ 395 0026 10BD     		pop	{r4, pc}
+ 396              		.loc 1 162 1 view .LVU57
+ 397              		.cfi_endproc
+ 398              	.LFE169:
+ 400              		.section	.text.LCD_soft_reset,"ax",%progbits
+ 401              		.align	1
+ 402              		.global	LCD_soft_reset
+ 403              		.syntax unified
+ 404              		.thumb
+ 405              		.thumb_func
+ 407              	LCD_soft_reset:
+ 408              	.LVL34:
+ 409              	.LFB170:
+ 163:./Application/Src/ILI9341.c **** 
+ 164:./Application/Src/ILI9341.c **** // software reset command
+ 165:./Application/Src/ILI9341.c **** void LCD_soft_reset(LCD_Config* cfg) {
+ 410              		.loc 1 165 38 is_stmt 1 view -0
+ 411              		.cfi_startproc
+ 412              		@ args = 0, pretend = 0, frame = 0
+ 413              		@ frame_needed = 0, uses_anonymous_args = 0
+ 414              		.loc 1 165 38 is_stmt 0 view .LVU59
+ 415 0000 10B5     		push	{r4, lr}
+ 416              	.LCFI14:
+ 417              		.cfi_def_cfa_offset 8
+ 418              		.cfi_offset 4, -8
+ 419              		.cfi_offset 14, -4
+ 420 0002 0446     		mov	r4, r0
+ 166:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 421              		.loc 1 166 5 is_stmt 1 view .LVU60
+ 422 0004 FFF7FEFF 		bl	LCD_select
+ 423              	.LVL35:
+ 167:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x01);
+ 424              		.loc 1 167 5 view .LVU61
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 11
+
+
+ 425 0008 0121     		movs	r1, #1
+ 426 000a 2046     		mov	r0, r4
+ 427 000c FFF7FEFF 		bl	LCD_send_cmd
+ 428              	.LVL36:
+ 168:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 429              		.loc 1 168 5 view .LVU62
+ 430 0010 2046     		mov	r0, r4
+ 431 0012 FFF7FEFF 		bl	LCD_unselect
+ 432              	.LVL37:
+ 169:./Application/Src/ILI9341.c ****     HAL_Delay(150);
+ 433              		.loc 1 169 5 view .LVU63
+ 434 0016 9620     		movs	r0, #150
+ 435 0018 FFF7FEFF 		bl	HAL_Delay
+ 436              	.LVL38:
+ 170:./Application/Src/ILI9341.c **** }
+ 437              		.loc 1 170 1 is_stmt 0 view .LVU64
+ 438 001c 10BD     		pop	{r4, pc}
+ 439              		.loc 1 170 1 view .LVU65
+ 440              		.cfi_endproc
+ 441              	.LFE170:
+ 443              		.section	.text.LCD_set_power,"ax",%progbits
+ 444              		.align	1
+ 445              		.global	LCD_set_power
+ 446              		.syntax unified
+ 447              		.thumb
+ 448              		.thumb_func
+ 450              	LCD_set_power:
+ 451              	.LVL39:
+ 452              	.LFB171:
+ 171:./Application/Src/ILI9341.c **** 
+ 172:./Application/Src/ILI9341.c **** // power control settings
+ 173:./Application/Src/ILI9341.c **** void LCD_set_power(LCD_Config* cfg, uint8_t pwr1, uint8_t pwr2, uint8_t vcom1_h, uint8_t vcom1_l, u
+ 453              		.loc 1 173 114 is_stmt 1 view -0
+ 454              		.cfi_startproc
+ 455              		@ args = 8, pretend = 0, frame = 0
+ 456              		@ frame_needed = 0, uses_anonymous_args = 0
+ 457              		.loc 1 173 114 is_stmt 0 view .LVU67
+ 458 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 459              	.LCFI15:
+ 460              		.cfi_def_cfa_offset 24
+ 461              		.cfi_offset 3, -24
+ 462              		.cfi_offset 4, -20
+ 463              		.cfi_offset 5, -16
+ 464              		.cfi_offset 6, -12
+ 465              		.cfi_offset 7, -8
+ 466              		.cfi_offset 14, -4
+ 467 0002 0446     		mov	r4, r0
+ 468 0004 0F46     		mov	r7, r1
+ 469 0006 1646     		mov	r6, r2
+ 470 0008 1D46     		mov	r5, r3
+ 174:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 471              		.loc 1 174 5 is_stmt 1 view .LVU68
+ 472 000a FFF7FEFF 		bl	LCD_select
+ 473              	.LVL40:
+ 175:./Application/Src/ILI9341.c ****     // power control 1
+ 176:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xC0);
+ 474              		.loc 1 176 5 view .LVU69
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 12
+
+
+ 475 000e C021     		movs	r1, #192
+ 476 0010 2046     		mov	r0, r4
+ 477 0012 FFF7FEFF 		bl	LCD_send_cmd
+ 478              	.LVL41:
+ 177:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, pwr1);
+ 479              		.loc 1 177 5 view .LVU70
+ 480 0016 3946     		mov	r1, r7
+ 481 0018 2046     		mov	r0, r4
+ 482 001a FFF7FEFF 		bl	LCD_send_data
+ 483              	.LVL42:
+ 178:./Application/Src/ILI9341.c ****     // power control 2
+ 179:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xC1);
+ 484              		.loc 1 179 5 view .LVU71
+ 485 001e C121     		movs	r1, #193
+ 486 0020 2046     		mov	r0, r4
+ 487 0022 FFF7FEFF 		bl	LCD_send_cmd
+ 488              	.LVL43:
+ 180:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, pwr2);
+ 489              		.loc 1 180 5 view .LVU72
+ 490 0026 3146     		mov	r1, r6
+ 491 0028 2046     		mov	r0, r4
+ 492 002a FFF7FEFF 		bl	LCD_send_data
+ 493              	.LVL44:
+ 181:./Application/Src/ILI9341.c ****     // VCOM control 1
+ 182:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xC5);
+ 494              		.loc 1 182 5 view .LVU73
+ 495 002e C521     		movs	r1, #197
+ 496 0030 2046     		mov	r0, r4
+ 497 0032 FFF7FEFF 		bl	LCD_send_cmd
+ 498              	.LVL45:
+ 183:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, vcom1_h);
+ 499              		.loc 1 183 5 view .LVU74
+ 500 0036 2946     		mov	r1, r5
+ 501 0038 2046     		mov	r0, r4
+ 502 003a FFF7FEFF 		bl	LCD_send_data
+ 503              	.LVL46:
+ 184:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, vcom1_l);
+ 504              		.loc 1 184 5 view .LVU75
+ 505 003e 9DF81810 		ldrb	r1, [sp, #24]	@ zero_extendqisi2
+ 506 0042 2046     		mov	r0, r4
+ 507 0044 FFF7FEFF 		bl	LCD_send_data
+ 508              	.LVL47:
+ 185:./Application/Src/ILI9341.c ****     // VCOM control 2
+ 186:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xC7);
+ 509              		.loc 1 186 5 view .LVU76
+ 510 0048 C721     		movs	r1, #199
+ 511 004a 2046     		mov	r0, r4
+ 512 004c FFF7FEFF 		bl	LCD_send_cmd
+ 513              	.LVL48:
+ 187:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, vcom2);
+ 514              		.loc 1 187 5 view .LVU77
+ 515 0050 9DF81C10 		ldrb	r1, [sp, #28]	@ zero_extendqisi2
+ 516 0054 2046     		mov	r0, r4
+ 517 0056 FFF7FEFF 		bl	LCD_send_data
+ 518              	.LVL49:
+ 188:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 519              		.loc 1 188 5 view .LVU78
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 13
+
+
+ 520 005a 2046     		mov	r0, r4
+ 521 005c FFF7FEFF 		bl	LCD_unselect
+ 522              	.LVL50:
+ 189:./Application/Src/ILI9341.c **** }
+ 523              		.loc 1 189 1 is_stmt 0 view .LVU79
+ 524 0060 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 525              		.loc 1 189 1 view .LVU80
+ 526              		.cfi_endproc
+ 527              	.LFE171:
+ 529              		.section	.text.LCD_set_display,"ax",%progbits
+ 530              		.align	1
+ 531              		.global	LCD_set_display
+ 532              		.syntax unified
+ 533              		.thumb
+ 534              		.thumb_func
+ 536              	LCD_set_display:
+ 537              	.LVL51:
+ 538              	.LFB172:
+ 190:./Application/Src/ILI9341.c **** 
+ 191:./Application/Src/ILI9341.c **** // display configuration
+ 192:./Application/Src/ILI9341.c **** void LCD_set_display(LCD_Config* cfg, uint8_t orientation, uint8_t pixel_format, uint8_t frame_div,
+ 539              		.loc 1 192 120 is_stmt 1 view -0
+ 540              		.cfi_startproc
+ 541              		@ args = 4, pretend = 0, frame = 0
+ 542              		@ frame_needed = 0, uses_anonymous_args = 0
+ 543              		.loc 1 192 120 is_stmt 0 view .LVU82
+ 544 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 545              	.LCFI16:
+ 546              		.cfi_def_cfa_offset 24
+ 547              		.cfi_offset 3, -24
+ 548              		.cfi_offset 4, -20
+ 549              		.cfi_offset 5, -16
+ 550              		.cfi_offset 6, -12
+ 551              		.cfi_offset 7, -8
+ 552              		.cfi_offset 14, -4
+ 553 0002 0446     		mov	r4, r0
+ 554 0004 0F46     		mov	r7, r1
+ 555 0006 1646     		mov	r6, r2
+ 556 0008 1D46     		mov	r5, r3
+ 193:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 557              		.loc 1 193 5 is_stmt 1 view .LVU83
+ 558 000a FFF7FEFF 		bl	LCD_select
+ 559              	.LVL52:
+ 194:./Application/Src/ILI9341.c ****     // memory access control (orientation)
+ 195:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x36);
+ 560              		.loc 1 195 5 view .LVU84
+ 561 000e 3621     		movs	r1, #54
+ 562 0010 2046     		mov	r0, r4
+ 563 0012 FFF7FEFF 		bl	LCD_send_cmd
+ 564              	.LVL53:
+ 196:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, orientation);
+ 565              		.loc 1 196 5 view .LVU85
+ 566 0016 3946     		mov	r1, r7
+ 567 0018 2046     		mov	r0, r4
+ 568 001a FFF7FEFF 		bl	LCD_send_data
+ 569              	.LVL54:
+ 197:./Application/Src/ILI9341.c ****     // pixel format
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 14
+
+
+ 198:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x3A);
+ 570              		.loc 1 198 5 view .LVU86
+ 571 001e 3A21     		movs	r1, #58
+ 572 0020 2046     		mov	r0, r4
+ 573 0022 FFF7FEFF 		bl	LCD_send_cmd
+ 574              	.LVL55:
+ 199:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, pixel_format);
+ 575              		.loc 1 199 5 view .LVU87
+ 576 0026 3146     		mov	r1, r6
+ 577 0028 2046     		mov	r0, r4
+ 578 002a FFF7FEFF 		bl	LCD_send_data
+ 579              	.LVL56:
+ 200:./Application/Src/ILI9341.c ****     // frame rate control
+ 201:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xB1);
+ 580              		.loc 1 201 5 view .LVU88
+ 581 002e B121     		movs	r1, #177
+ 582 0030 2046     		mov	r0, r4
+ 583 0032 FFF7FEFF 		bl	LCD_send_cmd
+ 584              	.LVL57:
+ 202:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, frame_div);
+ 585              		.loc 1 202 5 view .LVU89
+ 586 0036 2946     		mov	r1, r5
+ 587 0038 2046     		mov	r0, r4
+ 588 003a FFF7FEFF 		bl	LCD_send_data
+ 589              	.LVL58:
+ 203:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, frame_clk);
+ 590              		.loc 1 203 5 view .LVU90
+ 591 003e 9DF81810 		ldrb	r1, [sp, #24]	@ zero_extendqisi2
+ 592 0042 2046     		mov	r0, r4
+ 593 0044 FFF7FEFF 		bl	LCD_send_data
+ 594              	.LVL59:
+ 204:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 595              		.loc 1 204 5 view .LVU91
+ 596 0048 2046     		mov	r0, r4
+ 597 004a FFF7FEFF 		bl	LCD_unselect
+ 598              	.LVL60:
+ 205:./Application/Src/ILI9341.c **** }
+ 599              		.loc 1 205 1 is_stmt 0 view .LVU92
+ 600 004e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 601              		.loc 1 205 1 view .LVU93
+ 602              		.cfi_endproc
+ 603              	.LFE172:
+ 605              		.section	.text.LCD_set_function,"ax",%progbits
+ 606              		.align	1
+ 607              		.global	LCD_set_function
+ 608              		.syntax unified
+ 609              		.thumb
+ 610              		.thumb_func
+ 612              	LCD_set_function:
+ 613              	.LVL61:
+ 614              	.LFB173:
+ 206:./Application/Src/ILI9341.c **** 
+ 207:./Application/Src/ILI9341.c **** // display function control
+ 208:./Application/Src/ILI9341.c **** void LCD_set_function(LCD_Config* cfg, uint8_t bypass, uint8_t scan_mode, uint8_t num_lines) {
+ 615              		.loc 1 208 94 is_stmt 1 view -0
+ 616              		.cfi_startproc
+ 617              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 15
+
+
+ 618              		@ frame_needed = 0, uses_anonymous_args = 0
+ 619              		.loc 1 208 94 is_stmt 0 view .LVU95
+ 620 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 621              	.LCFI17:
+ 622              		.cfi_def_cfa_offset 24
+ 623              		.cfi_offset 3, -24
+ 624              		.cfi_offset 4, -20
+ 625              		.cfi_offset 5, -16
+ 626              		.cfi_offset 6, -12
+ 627              		.cfi_offset 7, -8
+ 628              		.cfi_offset 14, -4
+ 629 0002 0446     		mov	r4, r0
+ 630 0004 0F46     		mov	r7, r1
+ 631 0006 1646     		mov	r6, r2
+ 632 0008 1D46     		mov	r5, r3
+ 209:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 633              		.loc 1 209 5 is_stmt 1 view .LVU96
+ 634 000a FFF7FEFF 		bl	LCD_select
+ 635              	.LVL62:
+ 210:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0xB6);
+ 636              		.loc 1 210 5 view .LVU97
+ 637 000e B621     		movs	r1, #182
+ 638 0010 2046     		mov	r0, r4
+ 639 0012 FFF7FEFF 		bl	LCD_send_cmd
+ 640              	.LVL63:
+ 211:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, bypass);
+ 641              		.loc 1 211 5 view .LVU98
+ 642 0016 3946     		mov	r1, r7
+ 643 0018 2046     		mov	r0, r4
+ 644 001a FFF7FEFF 		bl	LCD_send_data
+ 645              	.LVL64:
+ 212:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, scan_mode);
+ 646              		.loc 1 212 5 view .LVU99
+ 647 001e 3146     		mov	r1, r6
+ 648 0020 2046     		mov	r0, r4
+ 649 0022 FFF7FEFF 		bl	LCD_send_data
+ 650              	.LVL65:
+ 213:./Application/Src/ILI9341.c ****     LCD_send_data(cfg, num_lines);
+ 651              		.loc 1 213 5 view .LVU100
+ 652 0026 2946     		mov	r1, r5
+ 653 0028 2046     		mov	r0, r4
+ 654 002a FFF7FEFF 		bl	LCD_send_data
+ 655              	.LVL66:
+ 214:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 656              		.loc 1 214 5 view .LVU101
+ 657 002e 2046     		mov	r0, r4
+ 658 0030 FFF7FEFF 		bl	LCD_unselect
+ 659              	.LVL67:
+ 215:./Application/Src/ILI9341.c **** }
+ 660              		.loc 1 215 1 is_stmt 0 view .LVU102
+ 661 0034 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 662              		.loc 1 215 1 view .LVU103
+ 663              		.cfi_endproc
+ 664              	.LFE173:
+ 666              		.section	.text.LCD_sleep_out,"ax",%progbits
+ 667              		.align	1
+ 668              		.global	LCD_sleep_out
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 16
+
+
+ 669              		.syntax unified
+ 670              		.thumb
+ 671              		.thumb_func
+ 673              	LCD_sleep_out:
+ 674              	.LVL68:
+ 675              	.LFB174:
+ 216:./Application/Src/ILI9341.c **** 
+ 217:./Application/Src/ILI9341.c **** // sleep control
+ 218:./Application/Src/ILI9341.c **** void LCD_sleep_out(LCD_Config* cfg) {
+ 676              		.loc 1 218 37 is_stmt 1 view -0
+ 677              		.cfi_startproc
+ 678              		@ args = 0, pretend = 0, frame = 0
+ 679              		@ frame_needed = 0, uses_anonymous_args = 0
+ 680              		.loc 1 218 37 is_stmt 0 view .LVU105
+ 681 0000 10B5     		push	{r4, lr}
+ 682              	.LCFI18:
+ 683              		.cfi_def_cfa_offset 8
+ 684              		.cfi_offset 4, -8
+ 685              		.cfi_offset 14, -4
+ 686 0002 0446     		mov	r4, r0
+ 219:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 687              		.loc 1 219 5 is_stmt 1 view .LVU106
+ 688 0004 FFF7FEFF 		bl	LCD_select
+ 689              	.LVL69:
+ 220:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x11);
+ 690              		.loc 1 220 5 view .LVU107
+ 691 0008 1121     		movs	r1, #17
+ 692 000a 2046     		mov	r0, r4
+ 693 000c FFF7FEFF 		bl	LCD_send_cmd
+ 694              	.LVL70:
+ 221:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 695              		.loc 1 221 5 view .LVU108
+ 696 0010 2046     		mov	r0, r4
+ 697 0012 FFF7FEFF 		bl	LCD_unselect
+ 698              	.LVL71:
+ 222:./Application/Src/ILI9341.c ****     HAL_Delay(120);
+ 699              		.loc 1 222 5 view .LVU109
+ 700 0016 7820     		movs	r0, #120
+ 701 0018 FFF7FEFF 		bl	HAL_Delay
+ 702              	.LVL72:
+ 223:./Application/Src/ILI9341.c **** }
+ 703              		.loc 1 223 1 is_stmt 0 view .LVU110
+ 704 001c 10BD     		pop	{r4, pc}
+ 705              		.loc 1 223 1 view .LVU111
+ 706              		.cfi_endproc
+ 707              	.LFE174:
+ 709              		.section	.text.LCD_sleep_in,"ax",%progbits
+ 710              		.align	1
+ 711              		.global	LCD_sleep_in
+ 712              		.syntax unified
+ 713              		.thumb
+ 714              		.thumb_func
+ 716              	LCD_sleep_in:
+ 717              	.LVL73:
+ 718              	.LFB175:
+ 224:./Application/Src/ILI9341.c **** 
+ 225:./Application/Src/ILI9341.c **** void LCD_sleep_in(LCD_Config* cfg) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 17
+
+
+ 719              		.loc 1 225 36 is_stmt 1 view -0
+ 720              		.cfi_startproc
+ 721              		@ args = 0, pretend = 0, frame = 0
+ 722              		@ frame_needed = 0, uses_anonymous_args = 0
+ 723              		.loc 1 225 36 is_stmt 0 view .LVU113
+ 724 0000 10B5     		push	{r4, lr}
+ 725              	.LCFI19:
+ 726              		.cfi_def_cfa_offset 8
+ 727              		.cfi_offset 4, -8
+ 728              		.cfi_offset 14, -4
+ 729 0002 0446     		mov	r4, r0
+ 226:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 730              		.loc 1 226 5 is_stmt 1 view .LVU114
+ 731 0004 FFF7FEFF 		bl	LCD_select
+ 732              	.LVL74:
+ 227:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x10);
+ 733              		.loc 1 227 5 view .LVU115
+ 734 0008 1021     		movs	r1, #16
+ 735 000a 2046     		mov	r0, r4
+ 736 000c FFF7FEFF 		bl	LCD_send_cmd
+ 737              	.LVL75:
+ 228:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 738              		.loc 1 228 5 view .LVU116
+ 739 0010 2046     		mov	r0, r4
+ 740 0012 FFF7FEFF 		bl	LCD_unselect
+ 741              	.LVL76:
+ 229:./Application/Src/ILI9341.c ****     HAL_Delay(5);
+ 742              		.loc 1 229 5 view .LVU117
+ 743 0016 0520     		movs	r0, #5
+ 744 0018 FFF7FEFF 		bl	HAL_Delay
+ 745              	.LVL77:
+ 230:./Application/Src/ILI9341.c **** }
+ 746              		.loc 1 230 1 is_stmt 0 view .LVU118
+ 747 001c 10BD     		pop	{r4, pc}
+ 748              		.loc 1 230 1 view .LVU119
+ 749              		.cfi_endproc
+ 750              	.LFE175:
+ 752              		.section	.text.LCD_display_on,"ax",%progbits
+ 753              		.align	1
+ 754              		.global	LCD_display_on
+ 755              		.syntax unified
+ 756              		.thumb
+ 757              		.thumb_func
+ 759              	LCD_display_on:
+ 760              	.LVL78:
+ 761              	.LFB176:
+ 231:./Application/Src/ILI9341.c **** 
+ 232:./Application/Src/ILI9341.c **** // display on/off
+ 233:./Application/Src/ILI9341.c **** void LCD_display_on(LCD_Config* cfg) {
+ 762              		.loc 1 233 38 is_stmt 1 view -0
+ 763              		.cfi_startproc
+ 764              		@ args = 0, pretend = 0, frame = 0
+ 765              		@ frame_needed = 0, uses_anonymous_args = 0
+ 766              		.loc 1 233 38 is_stmt 0 view .LVU121
+ 767 0000 10B5     		push	{r4, lr}
+ 768              	.LCFI20:
+ 769              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 18
+
+
+ 770              		.cfi_offset 4, -8
+ 771              		.cfi_offset 14, -4
+ 772 0002 0446     		mov	r4, r0
+ 234:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 773              		.loc 1 234 5 is_stmt 1 view .LVU122
+ 774 0004 FFF7FEFF 		bl	LCD_select
+ 775              	.LVL79:
+ 235:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x29);
+ 776              		.loc 1 235 5 view .LVU123
+ 777 0008 2921     		movs	r1, #41
+ 778 000a 2046     		mov	r0, r4
+ 779 000c FFF7FEFF 		bl	LCD_send_cmd
+ 780              	.LVL80:
+ 236:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 781              		.loc 1 236 5 view .LVU124
+ 782 0010 2046     		mov	r0, r4
+ 783 0012 FFF7FEFF 		bl	LCD_unselect
+ 784              	.LVL81:
+ 237:./Application/Src/ILI9341.c **** }
+ 785              		.loc 1 237 1 is_stmt 0 view .LVU125
+ 786 0016 10BD     		pop	{r4, pc}
+ 787              		.loc 1 237 1 view .LVU126
+ 788              		.cfi_endproc
+ 789              	.LFE176:
+ 791              		.section	.text.LCD_display_off,"ax",%progbits
+ 792              		.align	1
+ 793              		.global	LCD_display_off
+ 794              		.syntax unified
+ 795              		.thumb
+ 796              		.thumb_func
+ 798              	LCD_display_off:
+ 799              	.LVL82:
+ 800              	.LFB177:
+ 238:./Application/Src/ILI9341.c **** 
+ 239:./Application/Src/ILI9341.c **** void LCD_display_off(LCD_Config* cfg) {
+ 801              		.loc 1 239 39 is_stmt 1 view -0
+ 802              		.cfi_startproc
+ 803              		@ args = 0, pretend = 0, frame = 0
+ 804              		@ frame_needed = 0, uses_anonymous_args = 0
+ 805              		.loc 1 239 39 is_stmt 0 view .LVU128
+ 806 0000 10B5     		push	{r4, lr}
+ 807              	.LCFI21:
+ 808              		.cfi_def_cfa_offset 8
+ 809              		.cfi_offset 4, -8
+ 810              		.cfi_offset 14, -4
+ 811 0002 0446     		mov	r4, r0
+ 240:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 812              		.loc 1 240 5 is_stmt 1 view .LVU129
+ 813 0004 FFF7FEFF 		bl	LCD_select
+ 814              	.LVL83:
+ 241:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x28);
+ 815              		.loc 1 241 5 view .LVU130
+ 816 0008 2821     		movs	r1, #40
+ 817 000a 2046     		mov	r0, r4
+ 818 000c FFF7FEFF 		bl	LCD_send_cmd
+ 819              	.LVL84:
+ 242:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 19
+
+
+ 820              		.loc 1 242 5 view .LVU131
+ 821 0010 2046     		mov	r0, r4
+ 822 0012 FFF7FEFF 		bl	LCD_unselect
+ 823              	.LVL85:
+ 243:./Application/Src/ILI9341.c **** }
+ 824              		.loc 1 243 1 is_stmt 0 view .LVU132
+ 825 0016 10BD     		pop	{r4, pc}
+ 826              		.loc 1 243 1 view .LVU133
+ 827              		.cfi_endproc
+ 828              	.LFE177:
+ 830              		.section	.text.LCD_set_window,"ax",%progbits
+ 831              		.align	1
+ 832              		.global	LCD_set_window
+ 833              		.syntax unified
+ 834              		.thumb
+ 835              		.thumb_func
+ 837              	LCD_set_window:
+ 838              	.LVL86:
+ 839              	.LFB179:
+ 244:./Application/Src/ILI9341.c **** 
+ 245:./Application/Src/ILI9341.c **** void LCD_init(LCD_Config* cfg) {
+ 246:./Application/Src/ILI9341.c ****     // hardware reset
+ 247:./Application/Src/ILI9341.c ****     LCD_reset(cfg);
+ 248:./Application/Src/ILI9341.c **** 
+ 249:./Application/Src/ILI9341.c ****     // software reset
+ 250:./Application/Src/ILI9341.c ****     LCD_soft_reset(cfg);
+ 251:./Application/Src/ILI9341.c **** 
+ 252:./Application/Src/ILI9341.c ****     // display off during init
+ 253:./Application/Src/ILI9341.c ****     LCD_display_off(cfg);
+ 254:./Application/Src/ILI9341.c **** 
+ 255:./Application/Src/ILI9341.c ****     // power settings (defaults)
+ 256:./Application/Src/ILI9341.c ****     LCD_set_power(cfg, 0x23, 0x10, 0x3E, 0x28, 0x86);
+ 257:./Application/Src/ILI9341.c **** 
+ 258:./Application/Src/ILI9341.c ****     // display settings: orientation (0xA8 for landscape, 0x68 for portrait), pixel format (0x55 fo
+ 259:./Application/Src/ILI9341.c ****     LCD_set_display(cfg, 0xA8, 0x55, 0x00, 0x18);
+ 260:./Application/Src/ILI9341.c **** 
+ 261:./Application/Src/ILI9341.c ****     // display function control
+ 262:./Application/Src/ILI9341.c ****     LCD_set_function(cfg, 0x08, 0x82, 0x27);
+ 263:./Application/Src/ILI9341.c **** 
+ 264:./Application/Src/ILI9341.c ****     // exit sleep
+ 265:./Application/Src/ILI9341.c ****     LCD_sleep_out(cfg);
+ 266:./Application/Src/ILI9341.c **** 
+ 267:./Application/Src/ILI9341.c ****     // turn on display
+ 268:./Application/Src/ILI9341.c ****     LCD_display_on(cfg);
+ 269:./Application/Src/ILI9341.c ****     HAL_Delay(50);
+ 270:./Application/Src/ILI9341.c **** 
+ 271:./Application/Src/ILI9341.c ****     // clear screen
+ 272:./Application/Src/ILI9341.c ****     LCD_fill_screen(cfg, COLOR_WHITE);
+ 273:./Application/Src/ILI9341.c **** }
+ 274:./Application/Src/ILI9341.c **** 
+ 275:./Application/Src/ILI9341.c **** // this LCD render things needs four parameters to set the window size from (x0, y0) to (x1, y1)
+ 276:./Application/Src/ILI9341.c **** // LCD flow chart: CASET(2A) and PASET(2B) -> RAMWR(2C)
+ 277:./Application/Src/ILI9341.c **** void LCD_set_window(LCD_Config* cfg, uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
+ 840              		.loc 1 277 90 is_stmt 1 view -0
+ 841              		.cfi_startproc
+ 842              		@ args = 4, pretend = 0, frame = 8
+ 843              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 20
+
+
+ 844              		.loc 1 277 90 is_stmt 0 view .LVU135
+ 845 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 846              	.LCFI22:
+ 847              		.cfi_def_cfa_offset 24
+ 848              		.cfi_offset 4, -24
+ 849              		.cfi_offset 5, -20
+ 850              		.cfi_offset 6, -16
+ 851              		.cfi_offset 7, -12
+ 852              		.cfi_offset 8, -8
+ 853              		.cfi_offset 14, -4
+ 854 0004 82B0     		sub	sp, sp, #8
+ 855              	.LCFI23:
+ 856              		.cfi_def_cfa_offset 32
+ 857 0006 0446     		mov	r4, r0
+ 858 0008 0F46     		mov	r7, r1
+ 859 000a 1546     		mov	r5, r2
+ 860 000c 1E46     		mov	r6, r3
+ 861 000e BDF82080 		ldrh	r8, [sp, #32]
+ 278:./Application/Src/ILI9341.c ****     LCD_select(cfg);
+ 862              		.loc 1 278 5 is_stmt 1 view .LVU136
+ 863 0012 FFF7FEFF 		bl	LCD_select
+ 864              	.LVL87:
+ 279:./Application/Src/ILI9341.c **** 
+ 280:./Application/Src/ILI9341.c ****     // column address set
+ 281:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x2A);
+ 865              		.loc 1 281 5 view .LVU137
+ 866 0016 2A21     		movs	r1, #42
+ 867 0018 2046     		mov	r0, r4
+ 868 001a FFF7FEFF 		bl	LCD_send_cmd
+ 869              	.LVL88:
+ 282:./Application/Src/ILI9341.c ****     // x0 for SC, SC is 16 bit but divided into 2 parameters
+ 283:./Application/Src/ILI9341.c ****     // x1 for EC, EC is 16 bit but divided into 2 parameters
+ 284:./Application/Src/ILI9341.c ****     uint8_t col_data[4] = {x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF};
+ 870              		.loc 1 284 5 view .LVU138
+ 871              		.loc 1 284 13 is_stmt 0 view .LVU139
+ 872 001e 3B0A     		lsrs	r3, r7, #8
+ 873 0020 8DF80430 		strb	r3, [sp, #4]
+ 874 0024 8DF80570 		strb	r7, [sp, #5]
+ 875 0028 330A     		lsrs	r3, r6, #8
+ 876 002a 8DF80630 		strb	r3, [sp, #6]
+ 877 002e 8DF80760 		strb	r6, [sp, #7]
+ 285:./Application/Src/ILI9341.c ****     LCD_send_group_data(cfg, col_data, 4);
+ 878              		.loc 1 285 5 is_stmt 1 view .LVU140
+ 879 0032 0422     		movs	r2, #4
+ 880 0034 0DEB0201 		add	r1, sp, r2
+ 881 0038 2046     		mov	r0, r4
+ 882 003a FFF7FEFF 		bl	LCD_send_group_data
+ 883              	.LVL89:
+ 286:./Application/Src/ILI9341.c **** 
+ 287:./Application/Src/ILI9341.c ****     // row address set
+ 288:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x2B);
+ 884              		.loc 1 288 5 view .LVU141
+ 885 003e 2B21     		movs	r1, #43
+ 886 0040 2046     		mov	r0, r4
+ 887 0042 FFF7FEFF 		bl	LCD_send_cmd
+ 888              	.LVL90:
+ 289:./Application/Src/ILI9341.c ****     uint8_t row_data[4] = {y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF};
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 21
+
+
+ 889              		.loc 1 289 5 view .LVU142
+ 890              		.loc 1 289 13 is_stmt 0 view .LVU143
+ 891 0046 2B0A     		lsrs	r3, r5, #8
+ 892 0048 8DF80030 		strb	r3, [sp]
+ 893 004c 8DF80150 		strb	r5, [sp, #1]
+ 894 0050 4FEA1823 		lsr	r3, r8, #8
+ 895 0054 8DF80230 		strb	r3, [sp, #2]
+ 896 0058 8DF80380 		strb	r8, [sp, #3]
+ 290:./Application/Src/ILI9341.c ****     LCD_send_group_data(cfg, row_data, 4);
+ 897              		.loc 1 290 5 is_stmt 1 view .LVU144
+ 898 005c 0422     		movs	r2, #4
+ 899 005e 6946     		mov	r1, sp
+ 900 0060 2046     		mov	r0, r4
+ 901 0062 FFF7FEFF 		bl	LCD_send_group_data
+ 902              	.LVL91:
+ 291:./Application/Src/ILI9341.c **** 
+ 292:./Application/Src/ILI9341.c ****     // memory write command - tells ready to receive pixel data (color)
+ 293:./Application/Src/ILI9341.c ****     LCD_send_cmd(cfg, 0x2C);
+ 903              		.loc 1 293 5 view .LVU145
+ 904 0066 2C21     		movs	r1, #44
+ 905 0068 2046     		mov	r0, r4
+ 906 006a FFF7FEFF 		bl	LCD_send_cmd
+ 907              	.LVL92:
+ 294:./Application/Src/ILI9341.c ****     // CS stays LOW, caller sends pixel data then calls LCD_unselect
+ 295:./Application/Src/ILI9341.c **** }
+ 908              		.loc 1 295 1 is_stmt 0 view .LVU146
+ 909 006e 02B0     		add	sp, sp, #8
+ 910              	.LCFI24:
+ 911              		.cfi_def_cfa_offset 24
+ 912              		@ sp needed
+ 913 0070 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 914              		.loc 1 295 1 view .LVU147
+ 915              		.cfi_endproc
+ 916              	.LFE179:
+ 918              		.section	.text.LCD_fill_screen,"ax",%progbits
+ 919              		.align	1
+ 920              		.global	LCD_fill_screen
+ 921              		.syntax unified
+ 922              		.thumb
+ 923              		.thumb_func
+ 925              	LCD_fill_screen:
+ 926              	.LVL93:
+ 927              	.LFB180:
+ 296:./Application/Src/ILI9341.c **** 
+ 297:./Application/Src/ILI9341.c **** void LCD_fill_screen(LCD_Config* cfg, uint16_t color) {
+ 928              		.loc 1 297 55 is_stmt 1 view -0
+ 929              		.cfi_startproc
+ 930              		@ args = 0, pretend = 0, frame = 8
+ 931              		@ frame_needed = 0, uses_anonymous_args = 0
+ 932              		.loc 1 297 55 is_stmt 0 view .LVU149
+ 933 0000 30B5     		push	{r4, r5, lr}
+ 934              	.LCFI25:
+ 935              		.cfi_def_cfa_offset 12
+ 936              		.cfi_offset 4, -12
+ 937              		.cfi_offset 5, -8
+ 938              		.cfi_offset 14, -4
+ 939 0002 85B0     		sub	sp, sp, #20
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 22
+
+
+ 940              	.LCFI26:
+ 941              		.cfi_def_cfa_offset 32
+ 942 0004 0546     		mov	r5, r0
+ 943 0006 0C46     		mov	r4, r1
+ 298:./Application/Src/ILI9341.c ****     LCD_set_window(cfg, 0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+ 944              		.loc 1 298 5 is_stmt 1 view .LVU150
+ 945 0008 40F2F313 		movw	r3, #499
+ 946 000c 0093     		str	r3, [sp]
+ 947 000e B323     		movs	r3, #179
+ 948 0010 0022     		movs	r2, #0
+ 949 0012 1146     		mov	r1, r2
+ 950              	.LVL94:
+ 951              		.loc 1 298 5 is_stmt 0 view .LVU151
+ 952 0014 FFF7FEFF 		bl	LCD_set_window
+ 953              	.LVL95:
+ 299:./Application/Src/ILI9341.c ****     // CS is already LOW from LCD_set_window
+ 300:./Application/Src/ILI9341.c ****     // RAMWR here, set pixel data (color)
+ 301:./Application/Src/ILI9341.c ****     uint8_t data[2] = {color >> 8, color & 0xFF};
+ 954              		.loc 1 301 5 is_stmt 1 view .LVU152
+ 955              		.loc 1 301 13 is_stmt 0 view .LVU153
+ 956 0018 230A     		lsrs	r3, r4, #8
+ 957 001a 8DF80C30 		strb	r3, [sp, #12]
+ 958 001e 8DF80D40 		strb	r4, [sp, #13]
+ 302:./Application/Src/ILI9341.c **** 
+ 303:./Application/Src/ILI9341.c ****     LCD_data_mode(cfg);
+ 959              		.loc 1 303 5 is_stmt 1 view .LVU154
+ 960 0022 2846     		mov	r0, r5
+ 961 0024 FFF7FEFF 		bl	LCD_data_mode
+ 962              	.LVL96:
+ 304:./Application/Src/ILI9341.c ****     // send pixel by pixel
+ 305:./Application/Src/ILI9341.c ****     for (uint32_t i = 0; i < (uint32_t)LCD_WIDTH * LCD_HEIGHT; i++) {
+ 963              		.loc 1 305 5 view .LVU155
+ 964              	.LBB2:
+ 965              		.loc 1 305 10 view .LVU156
+ 966              		.loc 1 305 19 is_stmt 0 view .LVU157
+ 967 0028 0024     		movs	r4, #0
+ 968              	.LVL97:
+ 969              		.loc 1 305 5 view .LVU158
+ 970 002a 07E0     		b	.L40
+ 971              	.LVL98:
+ 972              	.L41:
+ 306:./Application/Src/ILI9341.c ****         HAL_SPI_Transmit(cfg->hspi, data, 2, HAL_MAX_DELAY);
+ 973              		.loc 1 306 9 is_stmt 1 view .LVU159
+ 974 002c 4FF0FF33 		mov	r3, #-1
+ 975 0030 0222     		movs	r2, #2
+ 976 0032 03A9     		add	r1, sp, #12
+ 977 0034 2868     		ldr	r0, [r5]
+ 978 0036 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 979              	.LVL99:
+ 305:./Application/Src/ILI9341.c ****         HAL_SPI_Transmit(cfg->hspi, data, 2, HAL_MAX_DELAY);
+ 980              		.loc 1 305 65 discriminator 3 view .LVU160
+ 981 003a 0134     		adds	r4, r4, #1
+ 982              	.LVL100:
+ 983              	.L40:
+ 305:./Application/Src/ILI9341.c ****         HAL_SPI_Transmit(cfg->hspi, data, 2, HAL_MAX_DELAY);
+ 984              		.loc 1 305 28 discriminator 1 view .LVU161
+ 985 003c 034B     		ldr	r3, .L43
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 23
+
+
+ 986 003e 9C42     		cmp	r4, r3
+ 987 0040 F4D9     		bls	.L41
+ 988              	.LBE2:
+ 307:./Application/Src/ILI9341.c ****     }
+ 308:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 989              		.loc 1 308 5 view .LVU162
+ 990 0042 2846     		mov	r0, r5
+ 991 0044 FFF7FEFF 		bl	LCD_unselect
+ 992              	.LVL101:
+ 309:./Application/Src/ILI9341.c **** }
+ 993              		.loc 1 309 1 is_stmt 0 view .LVU163
+ 994 0048 05B0     		add	sp, sp, #20
+ 995              	.LCFI27:
+ 996              		.cfi_def_cfa_offset 12
+ 997              		@ sp needed
+ 998 004a 30BD     		pop	{r4, r5, pc}
+ 999              	.LVL102:
+ 1000              	.L44:
+ 1001              		.loc 1 309 1 view .LVU164
+ 1002              		.align	2
+ 1003              	.L43:
+ 1004 004c 8F5F0100 		.word	89999
+ 1005              		.cfi_endproc
+ 1006              	.LFE180:
+ 1008              		.section	.text.LCD_init,"ax",%progbits
+ 1009              		.align	1
+ 1010              		.global	LCD_init
+ 1011              		.syntax unified
+ 1012              		.thumb
+ 1013              		.thumb_func
+ 1015              	LCD_init:
+ 1016              	.LVL103:
+ 1017              	.LFB178:
+ 245:./Application/Src/ILI9341.c ****     // hardware reset
+ 1018              		.loc 1 245 32 is_stmt 1 view -0
+ 1019              		.cfi_startproc
+ 1020              		@ args = 0, pretend = 0, frame = 0
+ 1021              		@ frame_needed = 0, uses_anonymous_args = 0
+ 245:./Application/Src/ILI9341.c ****     // hardware reset
+ 1022              		.loc 1 245 32 is_stmt 0 view .LVU166
+ 1023 0000 10B5     		push	{r4, lr}
+ 1024              	.LCFI28:
+ 1025              		.cfi_def_cfa_offset 8
+ 1026              		.cfi_offset 4, -8
+ 1027              		.cfi_offset 14, -4
+ 1028 0002 82B0     		sub	sp, sp, #8
+ 1029              	.LCFI29:
+ 1030              		.cfi_def_cfa_offset 16
+ 1031 0004 0446     		mov	r4, r0
+ 247:./Application/Src/ILI9341.c **** 
+ 1032              		.loc 1 247 5 is_stmt 1 view .LVU167
+ 1033 0006 FFF7FEFF 		bl	LCD_reset
+ 1034              	.LVL104:
+ 250:./Application/Src/ILI9341.c **** 
+ 1035              		.loc 1 250 5 view .LVU168
+ 1036 000a 2046     		mov	r0, r4
+ 1037 000c FFF7FEFF 		bl	LCD_soft_reset
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 24
+
+
+ 1038              	.LVL105:
+ 253:./Application/Src/ILI9341.c **** 
+ 1039              		.loc 1 253 5 view .LVU169
+ 1040 0010 2046     		mov	r0, r4
+ 1041 0012 FFF7FEFF 		bl	LCD_display_off
+ 1042              	.LVL106:
+ 256:./Application/Src/ILI9341.c **** 
+ 1043              		.loc 1 256 5 view .LVU170
+ 1044 0016 8623     		movs	r3, #134
+ 1045 0018 0193     		str	r3, [sp, #4]
+ 1046 001a 2823     		movs	r3, #40
+ 1047 001c 0093     		str	r3, [sp]
+ 1048 001e 3E23     		movs	r3, #62
+ 1049 0020 1022     		movs	r2, #16
+ 1050 0022 2321     		movs	r1, #35
+ 1051 0024 2046     		mov	r0, r4
+ 1052 0026 FFF7FEFF 		bl	LCD_set_power
+ 1053              	.LVL107:
+ 259:./Application/Src/ILI9341.c **** 
+ 1054              		.loc 1 259 5 view .LVU171
+ 1055 002a 1823     		movs	r3, #24
+ 1056 002c 0093     		str	r3, [sp]
+ 1057 002e 0023     		movs	r3, #0
+ 1058 0030 5522     		movs	r2, #85
+ 1059 0032 A821     		movs	r1, #168
+ 1060 0034 2046     		mov	r0, r4
+ 1061 0036 FFF7FEFF 		bl	LCD_set_display
+ 1062              	.LVL108:
+ 262:./Application/Src/ILI9341.c **** 
+ 1063              		.loc 1 262 5 view .LVU172
+ 1064 003a 2723     		movs	r3, #39
+ 1065 003c 8222     		movs	r2, #130
+ 1066 003e 0821     		movs	r1, #8
+ 1067 0040 2046     		mov	r0, r4
+ 1068 0042 FFF7FEFF 		bl	LCD_set_function
+ 1069              	.LVL109:
+ 265:./Application/Src/ILI9341.c **** 
+ 1070              		.loc 1 265 5 view .LVU173
+ 1071 0046 2046     		mov	r0, r4
+ 1072 0048 FFF7FEFF 		bl	LCD_sleep_out
+ 1073              	.LVL110:
+ 268:./Application/Src/ILI9341.c ****     HAL_Delay(50);
+ 1074              		.loc 1 268 5 view .LVU174
+ 1075 004c 2046     		mov	r0, r4
+ 1076 004e FFF7FEFF 		bl	LCD_display_on
+ 1077              	.LVL111:
+ 269:./Application/Src/ILI9341.c **** 
+ 1078              		.loc 1 269 5 view .LVU175
+ 1079 0052 3220     		movs	r0, #50
+ 1080 0054 FFF7FEFF 		bl	HAL_Delay
+ 1081              	.LVL112:
+ 272:./Application/Src/ILI9341.c **** }
+ 1082              		.loc 1 272 5 view .LVU176
+ 1083 0058 4FF6FF71 		movw	r1, #65535
+ 1084 005c 2046     		mov	r0, r4
+ 1085 005e FFF7FEFF 		bl	LCD_fill_screen
+ 1086              	.LVL113:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 25
+
+
+ 273:./Application/Src/ILI9341.c **** 
+ 1087              		.loc 1 273 1 is_stmt 0 view .LVU177
+ 1088 0062 02B0     		add	sp, sp, #8
+ 1089              	.LCFI30:
+ 1090              		.cfi_def_cfa_offset 8
+ 1091              		@ sp needed
+ 1092 0064 10BD     		pop	{r4, pc}
+ 273:./Application/Src/ILI9341.c **** 
+ 1093              		.loc 1 273 1 view .LVU178
+ 1094              		.cfi_endproc
+ 1095              	.LFE178:
+ 1097              		.section	.text.LCD_draw_pixel,"ax",%progbits
+ 1098              		.align	1
+ 1099              		.global	LCD_draw_pixel
+ 1100              		.syntax unified
+ 1101              		.thumb
+ 1102              		.thumb_func
+ 1104              	LCD_draw_pixel:
+ 1105              	.LVL114:
+ 1106              	.LFB181:
+ 310:./Application/Src/ILI9341.c **** 
+ 311:./Application/Src/ILI9341.c **** void LCD_draw_pixel(LCD_Config* cfg, uint16_t x, uint16_t y, uint16_t color) {
+ 1107              		.loc 1 311 78 is_stmt 1 view -0
+ 1108              		.cfi_startproc
+ 1109              		@ args = 0, pretend = 0, frame = 8
+ 1110              		@ frame_needed = 0, uses_anonymous_args = 0
+ 312:./Application/Src/ILI9341.c ****     if (x >= LCD_WIDTH || y >= LCD_HEIGHT) return;
+ 1111              		.loc 1 312 5 view .LVU180
+ 1112              		.loc 1 312 8 is_stmt 0 view .LVU181
+ 1113 0000 B329     		cmp	r1, #179
+ 1114 0002 1AD8     		bhi	.L52
+ 311:./Application/Src/ILI9341.c ****     if (x >= LCD_WIDTH || y >= LCD_HEIGHT) return;
+ 1115              		.loc 1 311 78 view .LVU182
+ 1116 0004 30B5     		push	{r4, r5, lr}
+ 1117              	.LCFI31:
+ 1118              		.cfi_def_cfa_offset 12
+ 1119              		.cfi_offset 4, -12
+ 1120              		.cfi_offset 5, -8
+ 1121              		.cfi_offset 14, -4
+ 1122 0006 85B0     		sub	sp, sp, #20
+ 1123              	.LCFI32:
+ 1124              		.cfi_def_cfa_offset 32
+ 1125 0008 0446     		mov	r4, r0
+ 1126 000a 1D46     		mov	r5, r3
+ 1127              		.loc 1 312 24 discriminator 2 view .LVU183
+ 1128 000c B2F5FA7F 		cmp	r2, #500
+ 1129 0010 01D3     		bcc	.L55
+ 1130              	.LVL115:
+ 1131              	.L47:
+ 313:./Application/Src/ILI9341.c **** 
+ 314:./Application/Src/ILI9341.c ****     LCD_set_window(cfg, x, y, x, y);
+ 315:./Application/Src/ILI9341.c ****     // CS is LOW from LCD_set_window, start sending pixel data (color)
+ 316:./Application/Src/ILI9341.c ****     uint8_t data[2] = {color >> 8, color & 0xFF};
+ 317:./Application/Src/ILI9341.c ****     LCD_send_group_data(cfg, data, 2);
+ 318:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 319:./Application/Src/ILI9341.c **** }
+ 1132              		.loc 1 319 1 view .LVU184
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 26
+
+
+ 1133 0012 05B0     		add	sp, sp, #20
+ 1134              	.LCFI33:
+ 1135              		.cfi_remember_state
+ 1136              		.cfi_def_cfa_offset 12
+ 1137              		@ sp needed
+ 1138 0014 30BD     		pop	{r4, r5, pc}
+ 1139              	.LVL116:
+ 1140              	.L55:
+ 1141              	.LCFI34:
+ 1142              		.cfi_restore_state
+ 314:./Application/Src/ILI9341.c ****     // CS is LOW from LCD_set_window, start sending pixel data (color)
+ 1143              		.loc 1 314 5 is_stmt 1 view .LVU185
+ 1144 0016 0092     		str	r2, [sp]
+ 1145 0018 0B46     		mov	r3, r1
+ 1146              	.LVL117:
+ 314:./Application/Src/ILI9341.c ****     // CS is LOW from LCD_set_window, start sending pixel data (color)
+ 1147              		.loc 1 314 5 is_stmt 0 view .LVU186
+ 1148 001a FFF7FEFF 		bl	LCD_set_window
+ 1149              	.LVL118:
+ 316:./Application/Src/ILI9341.c ****     LCD_send_group_data(cfg, data, 2);
+ 1150              		.loc 1 316 5 is_stmt 1 view .LVU187
+ 316:./Application/Src/ILI9341.c ****     LCD_send_group_data(cfg, data, 2);
+ 1151              		.loc 1 316 13 is_stmt 0 view .LVU188
+ 1152 001e 2B0A     		lsrs	r3, r5, #8
+ 1153 0020 8DF80C30 		strb	r3, [sp, #12]
+ 1154 0024 8DF80D50 		strb	r5, [sp, #13]
+ 317:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 1155              		.loc 1 317 5 is_stmt 1 view .LVU189
+ 1156 0028 0222     		movs	r2, #2
+ 1157 002a 03A9     		add	r1, sp, #12
+ 1158 002c 2046     		mov	r0, r4
+ 1159 002e FFF7FEFF 		bl	LCD_send_group_data
+ 1160              	.LVL119:
+ 318:./Application/Src/ILI9341.c **** }
+ 1161              		.loc 1 318 5 view .LVU190
+ 1162 0032 2046     		mov	r0, r4
+ 1163 0034 FFF7FEFF 		bl	LCD_unselect
+ 1164              	.LVL120:
+ 1165 0038 EBE7     		b	.L47
+ 1166              	.LVL121:
+ 1167              	.L52:
+ 1168              	.LCFI35:
+ 1169              		.cfi_def_cfa_offset 0
+ 1170              		.cfi_restore 4
+ 1171              		.cfi_restore 5
+ 1172              		.cfi_restore 14
+ 318:./Application/Src/ILI9341.c **** }
+ 1173              		.loc 1 318 5 is_stmt 0 view .LVU191
+ 1174 003a 7047     		bx	lr
+ 1175              		.cfi_endproc
+ 1176              	.LFE181:
+ 1178              		.section	.text.LCD_draw_char,"ax",%progbits
+ 1179              		.align	1
+ 1180              		.global	LCD_draw_char
+ 1181              		.syntax unified
+ 1182              		.thumb
+ 1183              		.thumb_func
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 27
+
+
+ 1185              	LCD_draw_char:
+ 1186              	.LVL122:
+ 1187              	.LFB182:
+ 320:./Application/Src/ILI9341.c **** 
+ 321:./Application/Src/ILI9341.c **** void LCD_draw_char(LCD_Config* cfg, uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg) {
+ 1188              		.loc 1 321 98 is_stmt 1 view -0
+ 1189              		.cfi_startproc
+ 1190              		@ args = 8, pretend = 0, frame = 8
+ 1191              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1192              		.loc 1 321 98 is_stmt 0 view .LVU193
+ 1193 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 1194              	.LCFI36:
+ 1195              		.cfi_def_cfa_offset 36
+ 1196              		.cfi_offset 4, -36
+ 1197              		.cfi_offset 5, -32
+ 1198              		.cfi_offset 6, -28
+ 1199              		.cfi_offset 7, -24
+ 1200              		.cfi_offset 8, -20
+ 1201              		.cfi_offset 9, -16
+ 1202              		.cfi_offset 10, -12
+ 1203              		.cfi_offset 11, -8
+ 1204              		.cfi_offset 14, -4
+ 1205 0004 85B0     		sub	sp, sp, #20
+ 1206              	.LCFI37:
+ 1207              		.cfi_def_cfa_offset 56
+ 1208 0006 0646     		mov	r6, r0
+ 1209 0008 BDF838A0 		ldrh	r10, [sp, #56]
+ 1210 000c BDF83C80 		ldrh	r8, [sp, #60]
+ 322:./Application/Src/ILI9341.c ****     if (c < 32 || c > 126) c = '?'; // handle invalid characters
+ 1211              		.loc 1 322 5 is_stmt 1 view .LVU194
+ 1212              		.loc 1 322 16 is_stmt 0 view .LVU195
+ 1213 0010 A3F12000 		sub	r0, r3, #32
+ 1214              	.LVL123:
+ 1215              		.loc 1 322 16 view .LVU196
+ 1216 0014 C0B2     		uxtb	r0, r0
+ 1217              		.loc 1 322 8 view .LVU197
+ 1218 0016 5E28     		cmp	r0, #94
+ 1219 0018 00D9     		bls	.L57
+ 1220              		.loc 1 322 30 discriminator 1 view .LVU198
+ 1221 001a 3F23     		movs	r3, #63
+ 1222              	.LVL124:
+ 1223              	.L57:
+ 323:./Application/Src/ILI9341.c **** 
+ 324:./Application/Src/ILI9341.c ****     const uint8_t* glyph = font5x7[c - 32]; // match user input character to the glyph
+ 1224              		.loc 1 324 5 is_stmt 1 view .LVU199
+ 1225              		.loc 1 324 38 is_stmt 0 view .LVU200
+ 1226 001c 203B     		subs	r3, r3, #32
+ 1227              	.LVL125:
+ 1228              		.loc 1 324 20 view .LVU201
+ 1229 001e 03EB8303 		add	r3, r3, r3, lsl #2
+ 1230              	.LVL126:
+ 1231              		.loc 1 324 20 view .LVU202
+ 1232 0022 1E4F     		ldr	r7, .L68
+ 1233 0024 1F44     		add	r7, r7, r3
+ 1234              	.LVL127:
+ 325:./Application/Src/ILI9341.c **** 
+ 326:./Application/Src/ILI9341.c ****     // draw character using a window for better performance
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 28
+
+
+ 327:./Application/Src/ILI9341.c ****     LCD_set_window(cfg, x, y, x + 5, y + 6);
+ 1235              		.loc 1 327 5 is_stmt 1 view .LVU203
+ 1236 0026 4B1D     		adds	r3, r1, #5
+ 1237 0028 901D     		adds	r0, r2, #6
+ 1238 002a 80B2     		uxth	r0, r0
+ 1239 002c 0090     		str	r0, [sp]
+ 1240 002e 9BB2     		uxth	r3, r3
+ 1241 0030 3046     		mov	r0, r6
+ 1242 0032 FFF7FEFF 		bl	LCD_set_window
+ 1243              	.LVL128:
+ 328:./Application/Src/ILI9341.c ****     LCD_data_mode(cfg);
+ 1244              		.loc 1 328 5 view .LVU204
+ 1245 0036 3046     		mov	r0, r6
+ 1246 0038 FFF7FEFF 		bl	LCD_data_mode
+ 1247              	.LVL129:
+ 329:./Application/Src/ILI9341.c **** 
+ 330:./Application/Src/ILI9341.c ****     uint8_t color_hi = color >> 8;
+ 1248              		.loc 1 330 5 view .LVU205
+ 1249              		.loc 1 330 13 is_stmt 0 view .LVU206
+ 1250 003c 4FEA1A2B 		lsr	fp, r10, #8
+ 1251              	.LVL130:
+ 331:./Application/Src/ILI9341.c ****     uint8_t color_lo = color & 0xFF;
+ 1252              		.loc 1 331 5 is_stmt 1 view .LVU207
+ 1253              		.loc 1 331 13 is_stmt 0 view .LVU208
+ 1254 0040 5FFA8AFA 		uxtb	r10, r10
+ 1255              	.LVL131:
+ 332:./Application/Src/ILI9341.c ****     uint8_t bg_hi = bg >> 8;
+ 1256              		.loc 1 332 5 is_stmt 1 view .LVU209
+ 1257              		.loc 1 332 13 is_stmt 0 view .LVU210
+ 1258 0044 4FEA1829 		lsr	r9, r8, #8
+ 1259              	.LVL132:
+ 333:./Application/Src/ILI9341.c ****     uint8_t bg_lo = bg & 0xFF;
+ 1260              		.loc 1 333 5 is_stmt 1 view .LVU211
+ 1261              		.loc 1 333 13 is_stmt 0 view .LVU212
+ 1262 0048 5FFA88F8 		uxtb	r8, r8
+ 1263              	.LVL133:
+ 334:./Application/Src/ILI9341.c **** 
+ 335:./Application/Src/ILI9341.c ****     // font is 5 cols x 7 rows, plus 1 col spacing = 6x7 total
+ 336:./Application/Src/ILI9341.c ****     for (uint8_t row = 0; row < 7; row++) {
+ 1264              		.loc 1 336 5 is_stmt 1 view .LVU213
+ 1265              	.LBB3:
+ 1266              		.loc 1 336 10 view .LVU214
+ 1267              		.loc 1 336 18 is_stmt 0 view .LVU215
+ 1268 004c 0025     		movs	r5, #0
+ 1269              		.loc 1 336 5 view .LVU216
+ 1270 004e 1BE0     		b	.L58
+ 1271              	.LVL134:
+ 1272              	.L59:
+ 1273              	.LBB4:
+ 1274              	.LBB5:
+ 337:./Application/Src/ILI9341.c ****         for (uint8_t col = 0; col < 6; col++) {
+ 338:./Application/Src/ILI9341.c ****             uint8_t pixel[2];
+ 339:./Application/Src/ILI9341.c ****             if (col < 5 && (glyph[col] & (1 << row))) { // foreground color
+ 340:./Application/Src/ILI9341.c ****                 pixel[0] = color_hi;
+ 341:./Application/Src/ILI9341.c ****                 pixel[1] = color_lo;
+ 342:./Application/Src/ILI9341.c ****             } else { // background color
+ 343:./Application/Src/ILI9341.c ****                 pixel[0] = bg_hi;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 29
+
+
+ 1275              		.loc 1 343 17 is_stmt 1 view .LVU217
+ 1276              		.loc 1 343 26 is_stmt 0 view .LVU218
+ 1277 0050 8DF80C90 		strb	r9, [sp, #12]
+ 344:./Application/Src/ILI9341.c ****                 pixel[1] = bg_lo;
+ 1278              		.loc 1 344 17 is_stmt 1 view .LVU219
+ 1279              		.loc 1 344 26 is_stmt 0 view .LVU220
+ 1280 0054 8DF80D80 		strb	r8, [sp, #13]
+ 1281              	.L60:
+ 345:./Application/Src/ILI9341.c ****             }
+ 346:./Application/Src/ILI9341.c ****             HAL_SPI_Transmit(cfg->hspi, pixel, 2, 10);
+ 1282              		.loc 1 346 13 is_stmt 1 view .LVU221
+ 1283 0058 0A23     		movs	r3, #10
+ 1284 005a 0222     		movs	r2, #2
+ 1285 005c 03A9     		add	r1, sp, #12
+ 1286 005e 3068     		ldr	r0, [r6]
+ 1287 0060 FFF7FEFF 		bl	HAL_SPI_Transmit
+ 1288              	.LVL135:
+ 1289              	.LBE5:
+ 337:./Application/Src/ILI9341.c ****             uint8_t pixel[2];
+ 1290              		.loc 1 337 43 discriminator 2 view .LVU222
+ 1291 0064 0134     		adds	r4, r4, #1
+ 1292              	.LVL136:
+ 337:./Application/Src/ILI9341.c ****             uint8_t pixel[2];
+ 1293              		.loc 1 337 43 is_stmt 0 discriminator 2 view .LVU223
+ 1294 0066 E4B2     		uxtb	r4, r4
+ 1295              	.LVL137:
+ 1296              	.L62:
+ 337:./Application/Src/ILI9341.c ****             uint8_t pixel[2];
+ 1297              		.loc 1 337 35 is_stmt 1 discriminator 1 view .LVU224
+ 1298 0068 052C     		cmp	r4, #5
+ 1299 006a 0BD8     		bhi	.L66
+ 1300              	.LBB6:
+ 338:./Application/Src/ILI9341.c ****             if (col < 5 && (glyph[col] & (1 << row))) { // foreground color
+ 1301              		.loc 1 338 13 view .LVU225
+ 339:./Application/Src/ILI9341.c ****                 pixel[0] = color_hi;
+ 1302              		.loc 1 339 13 view .LVU226
+ 339:./Application/Src/ILI9341.c ****                 pixel[0] = color_hi;
+ 1303              		.loc 1 339 16 is_stmt 0 view .LVU227
+ 1304 006c 042C     		cmp	r4, #4
+ 1305 006e EFD8     		bhi	.L59
+ 339:./Application/Src/ILI9341.c ****                 pixel[0] = color_hi;
+ 1306              		.loc 1 339 34 discriminator 1 view .LVU228
+ 1307 0070 3B5D     		ldrb	r3, [r7, r4]	@ zero_extendqisi2
+ 339:./Application/Src/ILI9341.c ****                 pixel[0] = color_hi;
+ 1308              		.loc 1 339 25 discriminator 1 view .LVU229
+ 1309 0072 2B41     		asrs	r3, r3, r5
+ 1310 0074 13F0010F 		tst	r3, #1
+ 1311 0078 EAD0     		beq	.L59
+ 340:./Application/Src/ILI9341.c ****                 pixel[1] = color_lo;
+ 1312              		.loc 1 340 17 is_stmt 1 view .LVU230
+ 340:./Application/Src/ILI9341.c ****                 pixel[1] = color_lo;
+ 1313              		.loc 1 340 26 is_stmt 0 view .LVU231
+ 1314 007a 8DF80CB0 		strb	fp, [sp, #12]
+ 341:./Application/Src/ILI9341.c ****             } else { // background color
+ 1315              		.loc 1 341 17 is_stmt 1 view .LVU232
+ 341:./Application/Src/ILI9341.c ****             } else { // background color
+ 1316              		.loc 1 341 26 is_stmt 0 view .LVU233
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 30
+
+
+ 1317 007e 8DF80DA0 		strb	r10, [sp, #13]
+ 1318 0082 E9E7     		b	.L60
+ 1319              	.L66:
+ 341:./Application/Src/ILI9341.c ****             } else { // background color
+ 1320              		.loc 1 341 26 view .LVU234
+ 1321              	.LBE6:
+ 1322              	.LBE4:
+ 336:./Application/Src/ILI9341.c ****         for (uint8_t col = 0; col < 6; col++) {
+ 1323              		.loc 1 336 39 is_stmt 1 discriminator 2 view .LVU235
+ 1324 0084 0135     		adds	r5, r5, #1
+ 1325              	.LVL138:
+ 336:./Application/Src/ILI9341.c ****         for (uint8_t col = 0; col < 6; col++) {
+ 1326              		.loc 1 336 39 is_stmt 0 discriminator 2 view .LVU236
+ 1327 0086 EDB2     		uxtb	r5, r5
+ 1328              	.LVL139:
+ 1329              	.L58:
+ 336:./Application/Src/ILI9341.c ****         for (uint8_t col = 0; col < 6; col++) {
+ 1330              		.loc 1 336 31 is_stmt 1 discriminator 1 view .LVU237
+ 1331 0088 062D     		cmp	r5, #6
+ 1332 008a 01D8     		bhi	.L67
+ 1333              	.LBB7:
+ 337:./Application/Src/ILI9341.c ****             uint8_t pixel[2];
+ 1334              		.loc 1 337 22 is_stmt 0 view .LVU238
+ 1335 008c 0024     		movs	r4, #0
+ 1336 008e EBE7     		b	.L62
+ 1337              	.L67:
+ 1338              	.LBE7:
+ 1339              	.LBE3:
+ 347:./Application/Src/ILI9341.c ****         }
+ 348:./Application/Src/ILI9341.c ****     }
+ 349:./Application/Src/ILI9341.c ****     LCD_unselect(cfg);
+ 1340              		.loc 1 349 5 is_stmt 1 view .LVU239
+ 1341 0090 3046     		mov	r0, r6
+ 1342 0092 FFF7FEFF 		bl	LCD_unselect
+ 1343              	.LVL140:
+ 350:./Application/Src/ILI9341.c **** }
+ 1344              		.loc 1 350 1 is_stmt 0 view .LVU240
+ 1345 0096 05B0     		add	sp, sp, #20
+ 1346              	.LCFI38:
+ 1347              		.cfi_def_cfa_offset 36
+ 1348              		@ sp needed
+ 1349 0098 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1350              	.LVL141:
+ 1351              	.L69:
+ 1352              		.loc 1 350 1 view .LVU241
+ 1353              		.align	2
+ 1354              	.L68:
+ 1355 009c 00000000 		.word	font5x7
+ 1356              		.cfi_endproc
+ 1357              	.LFE182:
+ 1359              		.section	.text.LCD_draw_string,"ax",%progbits
+ 1360              		.align	1
+ 1361              		.global	LCD_draw_string
+ 1362              		.syntax unified
+ 1363              		.thumb
+ 1364              		.thumb_func
+ 1366              	LCD_draw_string:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 31
+
+
+ 1367              	.LVL142:
+ 1368              	.LFB183:
+ 351:./Application/Src/ILI9341.c **** 
+ 352:./Application/Src/ILI9341.c **** void LCD_draw_string(LCD_Config* cfg, uint16_t x, uint16_t y, const char* str, uint16_t color, uint
+ 1369              		.loc 1 352 109 is_stmt 1 view -0
+ 1370              		.cfi_startproc
+ 1371              		@ args = 8, pretend = 0, frame = 0
+ 1372              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1373              		.loc 1 352 109 is_stmt 0 view .LVU243
+ 1374 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 1375              	.LCFI39:
+ 1376              		.cfi_def_cfa_offset 28
+ 1377              		.cfi_offset 4, -28
+ 1378              		.cfi_offset 5, -24
+ 1379              		.cfi_offset 6, -20
+ 1380              		.cfi_offset 7, -16
+ 1381              		.cfi_offset 8, -12
+ 1382              		.cfi_offset 9, -8
+ 1383              		.cfi_offset 14, -4
+ 1384 0004 83B0     		sub	sp, sp, #12
+ 1385              	.LCFI40:
+ 1386              		.cfi_def_cfa_offset 40
+ 1387 0006 0746     		mov	r7, r0
+ 1388 0008 0C46     		mov	r4, r1
+ 1389 000a 1E46     		mov	r6, r3
+ 1390 000c BDF82890 		ldrh	r9, [sp, #40]
+ 1391 0010 BDF82C80 		ldrh	r8, [sp, #44]
+ 353:./Application/Src/ILI9341.c ****     y *= 8; // convert to pixels - 8 pixels per line
+ 1392              		.loc 1 353 5 is_stmt 1 view .LVU244
+ 1393              		.loc 1 353 7 is_stmt 0 view .LVU245
+ 1394 0014 D200     		lsls	r2, r2, #3
+ 1395              	.LVL143:
+ 1396              		.loc 1 353 7 view .LVU246
+ 1397 0016 95B2     		uxth	r5, r2
+ 1398              	.LVL144:
+ 354:./Application/Src/ILI9341.c ****     while (*str) {
+ 1399              		.loc 1 354 5 is_stmt 1 view .LVU247
+ 1400              		.loc 1 354 11 is_stmt 0 view .LVU248
+ 1401 0018 0EE0     		b	.L71
+ 1402              	.LVL145:
+ 1403              	.L72:
+ 355:./Application/Src/ILI9341.c ****         if (x + 6 > LCD_WIDTH) {
+ 356:./Application/Src/ILI9341.c ****             x = 0;
+ 357:./Application/Src/ILI9341.c ****             y += 8;
+ 358:./Application/Src/ILI9341.c ****         }
+ 359:./Application/Src/ILI9341.c ****         if (y + 7 > LCD_HEIGHT) return;
+ 1404              		.loc 1 359 9 is_stmt 1 view .LVU249
+ 1405              		.loc 1 359 12 is_stmt 0 view .LVU250
+ 1406 001a B5F5F77F 		cmp	r5, #494
+ 1407 001e 13D2     		bcs	.L70
+ 360:./Application/Src/ILI9341.c **** 
+ 361:./Application/Src/ILI9341.c ****         LCD_draw_char(cfg, x, y, *str, color, bg);
+ 1408              		.loc 1 361 9 is_stmt 1 view .LVU251
+ 1409 0020 CDF80480 		str	r8, [sp, #4]
+ 1410 0024 CDF80090 		str	r9, [sp]
+ 1411 0028 2A46     		mov	r2, r5
+ 1412 002a 2146     		mov	r1, r4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 32
+
+
+ 1413 002c 3846     		mov	r0, r7
+ 1414 002e FFF7FEFF 		bl	LCD_draw_char
+ 1415              	.LVL146:
+ 362:./Application/Src/ILI9341.c ****         x += 6;  // 5 pixels + 1 spacing
+ 1416              		.loc 1 362 9 view .LVU252
+ 1417              		.loc 1 362 11 is_stmt 0 view .LVU253
+ 1418 0032 0634     		adds	r4, r4, #6
+ 1419              	.LVL147:
+ 1420              		.loc 1 362 11 view .LVU254
+ 1421 0034 A4B2     		uxth	r4, r4
+ 1422              	.LVL148:
+ 363:./Application/Src/ILI9341.c ****         str++;
+ 1423              		.loc 1 363 9 is_stmt 1 view .LVU255
+ 1424              		.loc 1 363 12 is_stmt 0 view .LVU256
+ 1425 0036 0136     		adds	r6, r6, #1
+ 1426              	.LVL149:
+ 1427              	.L71:
+ 354:./Application/Src/ILI9341.c ****         if (x + 6 > LCD_WIDTH) {
+ 1428              		.loc 1 354 12 is_stmt 1 view .LVU257
+ 1429 0038 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 1430 003a 2BB1     		cbz	r3, .L70
+ 355:./Application/Src/ILI9341.c ****             x = 0;
+ 1431              		.loc 1 355 9 view .LVU258
+ 355:./Application/Src/ILI9341.c ****             x = 0;
+ 1432              		.loc 1 355 12 is_stmt 0 view .LVU259
+ 1433 003c AE2C     		cmp	r4, #174
+ 1434 003e ECD9     		bls	.L72
+ 356:./Application/Src/ILI9341.c ****             y += 8;
+ 1435              		.loc 1 356 13 is_stmt 1 view .LVU260
+ 1436              	.LVL150:
+ 357:./Application/Src/ILI9341.c ****         }
+ 1437              		.loc 1 357 13 view .LVU261
+ 357:./Application/Src/ILI9341.c ****         }
+ 1438              		.loc 1 357 15 is_stmt 0 view .LVU262
+ 1439 0040 0835     		adds	r5, r5, #8
+ 1440              	.LVL151:
+ 357:./Application/Src/ILI9341.c ****         }
+ 1441              		.loc 1 357 15 view .LVU263
+ 1442 0042 ADB2     		uxth	r5, r5
+ 1443              	.LVL152:
+ 356:./Application/Src/ILI9341.c ****             y += 8;
+ 1444              		.loc 1 356 15 view .LVU264
+ 1445 0044 0024     		movs	r4, #0
+ 1446 0046 E8E7     		b	.L72
+ 1447              	.LVL153:
+ 1448              	.L70:
+ 364:./Application/Src/ILI9341.c ****     }
+ 365:./Application/Src/ILI9341.c **** }
+ 1449              		.loc 1 365 1 view .LVU265
+ 1450 0048 03B0     		add	sp, sp, #12
+ 1451              	.LCFI41:
+ 1452              		.cfi_def_cfa_offset 28
+ 1453              		@ sp needed
+ 1454 004a BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 1455              		.loc 1 365 1 view .LVU266
+ 1456              		.cfi_endproc
+ 1457              	.LFE183:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 33
+
+
+ 1459              		.section	.text.LCD_set_cursor,"ax",%progbits
+ 1460              		.align	1
+ 1461              		.global	LCD_set_cursor
+ 1462              		.syntax unified
+ 1463              		.thumb
+ 1464              		.thumb_func
+ 1466              	LCD_set_cursor:
+ 1467              	.LVL154:
+ 1468              	.LFB184:
+ 366:./Application/Src/ILI9341.c **** 
+ 367:./Application/Src/ILI9341.c **** void LCD_set_cursor(uint16_t x, uint16_t y) {
+ 1469              		.loc 1 367 45 is_stmt 1 view -0
+ 1470              		.cfi_startproc
+ 1471              		@ args = 0, pretend = 0, frame = 0
+ 1472              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1473              		@ link register save eliminated.
+ 368:./Application/Src/ILI9341.c ****     cursor_x = x;
+ 1474              		.loc 1 368 5 view .LVU268
+ 1475              		.loc 1 368 14 is_stmt 0 view .LVU269
+ 1476 0000 024B     		ldr	r3, .L77
+ 1477 0002 1880     		strh	r0, [r3]	@ movhi
+ 369:./Application/Src/ILI9341.c ****     cursor_y = y;
+ 1478              		.loc 1 369 5 is_stmt 1 view .LVU270
+ 1479              		.loc 1 369 14 is_stmt 0 view .LVU271
+ 1480 0004 024B     		ldr	r3, .L77+4
+ 1481 0006 1980     		strh	r1, [r3]	@ movhi
+ 370:./Application/Src/ILI9341.c **** }
+ 1482              		.loc 1 370 1 view .LVU272
+ 1483 0008 7047     		bx	lr
+ 1484              	.L78:
+ 1485 000a 00BF     		.align	2
+ 1486              	.L77:
+ 1487 000c 00000000 		.word	cursor_x
+ 1488 0010 00000000 		.word	cursor_y
+ 1489              		.cfi_endproc
+ 1490              	.LFE184:
+ 1492              		.section	.text.LCD_print,"ax",%progbits
+ 1493              		.align	1
+ 1494              		.global	LCD_print
+ 1495              		.syntax unified
+ 1496              		.thumb
+ 1497              		.thumb_func
+ 1499              	LCD_print:
+ 1500              	.LVL155:
+ 1501              	.LFB185:
+ 371:./Application/Src/ILI9341.c **** 
+ 372:./Application/Src/ILI9341.c **** void LCD_print(LCD_Config* cfg, const char* str, uint16_t color, uint16_t bg) {
+ 1502              		.loc 1 372 79 is_stmt 1 view -0
+ 1503              		.cfi_startproc
+ 1504              		@ args = 0, pretend = 0, frame = 0
+ 1505              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1506              		.loc 1 372 79 is_stmt 0 view .LVU274
+ 1507 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 1508              	.LCFI42:
+ 1509              		.cfi_def_cfa_offset 24
+ 1510              		.cfi_offset 4, -24
+ 1511              		.cfi_offset 5, -20
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 34
+
+
+ 1512              		.cfi_offset 6, -16
+ 1513              		.cfi_offset 7, -12
+ 1514              		.cfi_offset 8, -8
+ 1515              		.cfi_offset 14, -4
+ 1516 0004 82B0     		sub	sp, sp, #8
+ 1517              	.LCFI43:
+ 1518              		.cfi_def_cfa_offset 32
+ 1519 0006 8046     		mov	r8, r0
+ 1520 0008 0D46     		mov	r5, r1
+ 1521 000a 1746     		mov	r7, r2
+ 1522 000c 1E46     		mov	r6, r3
+ 373:./Application/Src/ILI9341.c ****     while (*str) {
+ 1523              		.loc 1 373 5 is_stmt 1 view .LVU275
+ 1524              		.loc 1 373 11 is_stmt 0 view .LVU276
+ 1525 000e 0FE0     		b	.L80
+ 1526              	.LVL156:
+ 1527              	.L82:
+ 374:./Application/Src/ILI9341.c ****         if (cursor_x + 6 > LCD_WIDTH) {
+ 375:./Application/Src/ILI9341.c ****             cursor_x = 0;
+ 376:./Application/Src/ILI9341.c ****             cursor_y += 8;
+ 377:./Application/Src/ILI9341.c ****         }
+ 378:./Application/Src/ILI9341.c ****         if (cursor_y + 7 > LCD_HEIGHT) {
+ 379:./Application/Src/ILI9341.c ****             cursor_y = 0;  // wrap to top
+ 380:./Application/Src/ILI9341.c ****         }
+ 381:./Application/Src/ILI9341.c ****         LCD_draw_char(cfg, cursor_x, cursor_y, *str, color, bg);
+ 1528              		.loc 1 381 9 is_stmt 1 view .LVU277
+ 1529 0010 144C     		ldr	r4, .L86
+ 1530 0012 0196     		str	r6, [sp, #4]
+ 1531 0014 0097     		str	r7, [sp]
+ 1532 0016 144A     		ldr	r2, .L86+4
+ 1533 0018 1288     		ldrh	r2, [r2]
+ 1534 001a 2188     		ldrh	r1, [r4]
+ 1535 001c 4046     		mov	r0, r8
+ 1536 001e FFF7FEFF 		bl	LCD_draw_char
+ 1537              	.LVL157:
+ 382:./Application/Src/ILI9341.c ****         cursor_x += 6;
+ 1538              		.loc 1 382 9 view .LVU278
+ 1539              		.loc 1 382 18 is_stmt 0 view .LVU279
+ 1540 0022 B4F800C0 		ldrh	ip, [r4]
+ 1541 0026 0CF1060C 		add	ip, ip, #6
+ 1542 002a A4F800C0 		strh	ip, [r4]	@ movhi
+ 383:./Application/Src/ILI9341.c ****         str++;
+ 1543              		.loc 1 383 9 is_stmt 1 view .LVU280
+ 1544              		.loc 1 383 12 is_stmt 0 view .LVU281
+ 1545 002e 0135     		adds	r5, r5, #1
+ 1546              	.LVL158:
+ 1547              	.L80:
+ 373:./Application/Src/ILI9341.c ****         if (cursor_x + 6 > LCD_WIDTH) {
+ 1548              		.loc 1 373 12 is_stmt 1 view .LVU282
+ 1549 0030 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 1550 0032 9BB1     		cbz	r3, .L85
+ 374:./Application/Src/ILI9341.c ****             cursor_x = 0;
+ 1551              		.loc 1 374 9 view .LVU283
+ 374:./Application/Src/ILI9341.c ****             cursor_x = 0;
+ 1552              		.loc 1 374 26 is_stmt 0 view .LVU284
+ 1553 0034 0B4A     		ldr	r2, .L86
+ 1554 0036 1288     		ldrh	r2, [r2]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 35
+
+
+ 374:./Application/Src/ILI9341.c ****             cursor_x = 0;
+ 1555              		.loc 1 374 12 view .LVU285
+ 1556 0038 AE2A     		cmp	r2, #174
+ 1557 003a 06D9     		bls	.L81
+ 375:./Application/Src/ILI9341.c ****             cursor_y += 8;
+ 1558              		.loc 1 375 13 is_stmt 1 view .LVU286
+ 375:./Application/Src/ILI9341.c ****             cursor_y += 8;
+ 1559              		.loc 1 375 22 is_stmt 0 view .LVU287
+ 1560 003c 094A     		ldr	r2, .L86
+ 1561 003e 0021     		movs	r1, #0
+ 1562 0040 1180     		strh	r1, [r2]	@ movhi
+ 376:./Application/Src/ILI9341.c ****         }
+ 1563              		.loc 1 376 13 is_stmt 1 view .LVU288
+ 376:./Application/Src/ILI9341.c ****         }
+ 1564              		.loc 1 376 22 is_stmt 0 view .LVU289
+ 1565 0042 0949     		ldr	r1, .L86+4
+ 1566 0044 0A88     		ldrh	r2, [r1]
+ 1567 0046 0832     		adds	r2, r2, #8
+ 1568 0048 0A80     		strh	r2, [r1]	@ movhi
+ 1569              	.L81:
+ 378:./Application/Src/ILI9341.c ****             cursor_y = 0;  // wrap to top
+ 1570              		.loc 1 378 9 is_stmt 1 view .LVU290
+ 378:./Application/Src/ILI9341.c ****             cursor_y = 0;  // wrap to top
+ 1571              		.loc 1 378 26 is_stmt 0 view .LVU291
+ 1572 004a 074A     		ldr	r2, .L86+4
+ 1573 004c 1288     		ldrh	r2, [r2]
+ 378:./Application/Src/ILI9341.c ****             cursor_y = 0;  // wrap to top
+ 1574              		.loc 1 378 12 view .LVU292
+ 1575 004e B2F5F77F 		cmp	r2, #494
+ 1576 0052 DDD3     		bcc	.L82
+ 379:./Application/Src/ILI9341.c ****         }
+ 1577              		.loc 1 379 13 is_stmt 1 view .LVU293
+ 379:./Application/Src/ILI9341.c ****         }
+ 1578              		.loc 1 379 22 is_stmt 0 view .LVU294
+ 1579 0054 044A     		ldr	r2, .L86+4
+ 1580 0056 0021     		movs	r1, #0
+ 1581 0058 1180     		strh	r1, [r2]	@ movhi
+ 1582 005a D9E7     		b	.L82
+ 1583              	.L85:
+ 384:./Application/Src/ILI9341.c ****     }
+ 385:./Application/Src/ILI9341.c **** }
+ 1584              		.loc 1 385 1 view .LVU295
+ 1585 005c 02B0     		add	sp, sp, #8
+ 1586              	.LCFI44:
+ 1587              		.cfi_def_cfa_offset 24
+ 1588              		@ sp needed
+ 1589 005e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1590              	.LVL159:
+ 1591              	.L87:
+ 1592              		.loc 1 385 1 view .LVU296
+ 1593 0062 00BF     		.align	2
+ 1594              	.L86:
+ 1595 0064 00000000 		.word	cursor_x
+ 1596 0068 00000000 		.word	cursor_y
+ 1597              		.cfi_endproc
+ 1598              	.LFE185:
+ 1600              		.section	.bss.cursor_y,"aw",%nobits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 36
+
+
+ 1601              		.align	1
+ 1604              	cursor_y:
+ 1605 0000 0000     		.space	2
+ 1606              		.section	.bss.cursor_x,"aw",%nobits
+ 1607              		.align	1
+ 1610              	cursor_x:
+ 1611 0000 0000     		.space	2
+ 1612              		.section	.rodata.font5x7,"a"
+ 1613              		.align	2
+ 1616              	font5x7:
+ 1617 0000 00000000 		.ascii	"\000\000\000\000\000"
+ 1617      00
+ 1618 0005 00005F00 		.ascii	"\000\000_\000\000"
+ 1618      00
+ 1619 000a 00070007 		.ascii	"\000\007\000\007\000"
+ 1619      00
+ 1620 000f 147F147F 		.ascii	"\024\177\024\177\024"
+ 1620      14
+ 1621 0014 242A7F2A 		.ascii	"$*\177*\022"
+ 1621      12
+ 1622 0019 23130864 		.ascii	"#\023\010db"
+ 1622      62
+ 1623 001e 36495522 		.ascii	"6IU\"P"
+ 1623      50
+ 1624 0023 00050300 		.ascii	"\000\005\003\000\000"
+ 1624      00
+ 1625 0028 001C2241 		.ascii	"\000\034\"A\000"
+ 1625      00
+ 1626 002d 0041221C 		.ascii	"\000A\"\034\000"
+ 1626      00
+ 1627 0032 082A1C2A 		.ascii	"\010*\034*\010"
+ 1627      08
+ 1628 0037 08083E08 		.ascii	"\010\010>\010\010"
+ 1628      08
+ 1629 003c 00503000 		.ascii	"\000P0\000\000"
+ 1629      00
+ 1630 0041 08080808 		.ascii	"\010\010\010\010\010"
+ 1630      08
+ 1631 0046 00606000 		.ascii	"\000``\000\000"
+ 1631      00
+ 1632 004b 20100804 		.ascii	" \020\010\004\002"
+ 1632      02
+ 1633 0050 3E514945 		.ascii	">QIE>"
+ 1633      3E
+ 1634 0055 00427F40 		.ascii	"\000B\177@\000"
+ 1634      00
+ 1635 005a 42615149 		.ascii	"BaQIF"
+ 1635      46
+ 1636 005f 2141454B 		.ascii	"!AEK1"
+ 1636      31
+ 1637 0064 1814127F 		.ascii	"\030\024\022\177\020"
+ 1637      10
+ 1638 0069 27454545 		.ascii	"'EEE9"
+ 1638      39
+ 1639 006e 3C4A4949 		.ascii	"<JII0"
+ 1639      30
+ 1640 0073 01710905 		.ascii	"\001q\011\005\003"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 37
+
+
+ 1640      03
+ 1641 0078 36494949 		.ascii	"6III6"
+ 1641      36
+ 1642 007d 06494929 		.ascii	"\006II)\036"
+ 1642      1E
+ 1643 0082 00363600 		.ascii	"\00066\000\000"
+ 1643      00
+ 1644 0087 00563600 		.ascii	"\000V6\000\000"
+ 1644      00
+ 1645 008c 00081422 		.ascii	"\000\010\024\"A"
+ 1645      41
+ 1646 0091 14141414 		.ascii	"\024\024\024\024\024"
+ 1646      14
+ 1647 0096 41221408 		.ascii	"A\"\024\010\000"
+ 1647      00
+ 1648 009b 02015109 		.ascii	"\002\001Q\011\006"
+ 1648      06
+ 1649 00a0 32497941 		.ascii	"2IyA>"
+ 1649      3E
+ 1650 00a5 7E111111 		.ascii	"~\021\021\021~"
+ 1650      7E
+ 1651 00aa 7F494949 		.ascii	"\177III6"
+ 1651      36
+ 1652 00af 3E414141 		.ascii	">AAA\""
+ 1652      22
+ 1653 00b4 7F414122 		.ascii	"\177AA\"\034"
+ 1653      1C
+ 1654 00b9 7F494949 		.ascii	"\177IIIA"
+ 1654      41
+ 1655 00be 7F090901 		.ascii	"\177\011\011\001\001"
+ 1655      01
+ 1656 00c3 3E414151 		.ascii	">AAQ2"
+ 1656      32
+ 1657 00c8 7F080808 		.ascii	"\177\010\010\010\177"
+ 1657      7F
+ 1658 00cd 00417F41 		.ascii	"\000A\177A\000"
+ 1658      00
+ 1659 00d2 2040413F 		.ascii	" @A?\001"
+ 1659      01
+ 1660 00d7 7F081422 		.ascii	"\177\010\024\"A"
+ 1660      41
+ 1661 00dc 7F404040 		.ascii	"\177@@@@"
+ 1661      40
+ 1662 00e1 7F020402 		.ascii	"\177\002\004\002\177"
+ 1662      7F
+ 1663 00e6 7F040810 		.ascii	"\177\004\010\020\177"
+ 1663      7F
+ 1664 00eb 3E414141 		.ascii	">AAA>"
+ 1664      3E
+ 1665 00f0 7F090909 		.ascii	"\177\011\011\011\006"
+ 1665      06
+ 1666 00f5 3E415121 		.ascii	">AQ!^"
+ 1666      5E
+ 1667 00fa 7F091929 		.ascii	"\177\011\031)F"
+ 1667      46
+ 1668 00ff 46494949 		.ascii	"FIII1"
+ 1668      31
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 38
+
+
+ 1669 0104 01017F01 		.ascii	"\001\001\177\001\001"
+ 1669      01
+ 1670 0109 3F404040 		.ascii	"?@@@?"
+ 1670      3F
+ 1671 010e 1F204020 		.ascii	"\037 @ \037"
+ 1671      1F
+ 1672 0113 7F201820 		.ascii	"\177 \030 \177"
+ 1672      7F
+ 1673 0118 63140814 		.ascii	"c\024\010\024c"
+ 1673      63
+ 1674 011d 03047804 		.ascii	"\003\004x\004\003"
+ 1674      03
+ 1675 0122 61514945 		.ascii	"aQIEC"
+ 1675      43
+ 1676 0127 00007F41 		.ascii	"\000\000\177AA"
+ 1676      41
+ 1677 012c 02040810 		.ascii	"\002\004\010\020 "
+ 1677      20
+ 1678 0131 41417F00 		.ascii	"AA\177\000\000"
+ 1678      00
+ 1679 0136 04020102 		.ascii	"\004\002\001\002\004"
+ 1679      04
+ 1680 013b 40404040 		.ascii	"@@@@@"
+ 1680      40
+ 1681 0140 00010204 		.ascii	"\000\001\002\004\000"
+ 1681      00
+ 1682 0145 20545454 		.ascii	" TTTx"
+ 1682      78
+ 1683 014a 7F484444 		.ascii	"\177HDD8"
+ 1683      38
+ 1684 014f 38444444 		.ascii	"8DDD "
+ 1684      20
+ 1685 0154 38444448 		.ascii	"8DDH\177"
+ 1685      7F
+ 1686 0159 38545454 		.ascii	"8TTT\030"
+ 1686      18
+ 1687 015e 087E0901 		.ascii	"\010~\011\001\002"
+ 1687      02
+ 1688 0163 08145454 		.ascii	"\010\024TT<"
+ 1688      3C
+ 1689 0168 7F080404 		.ascii	"\177\010\004\004x"
+ 1689      78
+ 1690 016d 00447D40 		.ascii	"\000D}@\000"
+ 1690      00
+ 1691 0172 2040443D 		.ascii	" @D=\000"
+ 1691      00
+ 1692 0177 007F1028 		.ascii	"\000\177\020(D"
+ 1692      44
+ 1693 017c 00417F40 		.ascii	"\000A\177@\000"
+ 1693      00
+ 1694 0181 7C041804 		.ascii	"|\004\030\004x"
+ 1694      78
+ 1695 0186 7C080404 		.ascii	"|\010\004\004x"
+ 1695      78
+ 1696 018b 38444444 		.ascii	"8DDD8"
+ 1696      38
+ 1697 0190 7C141414 		.ascii	"|\024\024\024\010"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 39
+
+
+ 1697      08
+ 1698 0195 08141418 		.ascii	"\010\024\024\030|"
+ 1698      7C
+ 1699 019a 7C080404 		.ascii	"|\010\004\004\010"
+ 1699      08
+ 1700 019f 48545454 		.ascii	"HTTT "
+ 1700      20
+ 1701 01a4 043F4440 		.ascii	"\004?D@ "
+ 1701      20
+ 1702 01a9 3C404020 		.ascii	"<@@ |"
+ 1702      7C
+ 1703 01ae 1C204020 		.ascii	"\034 @ \034"
+ 1703      1C
+ 1704 01b3 3C403040 		.ascii	"<@0@<"
+ 1704      3C
+ 1705 01b8 44281028 		.ascii	"D(\020(D"
+ 1705      44
+ 1706 01bd 0C505050 		.ascii	"\014PPP<"
+ 1706      3C
+ 1707 01c2 4464544C 		.ascii	"DdTLD"
+ 1707      44
+ 1708 01c7 00083641 		.ascii	"\000\0106A\000"
+ 1708      00
+ 1709 01cc 00007F00 		.ascii	"\000\000\177\000\000"
+ 1709      00
+ 1710 01d1 00413608 		.ascii	"\000A6\010\000"
+ 1710      00
+ 1711 01d6 08082A1C 		.ascii	"\010\010*\034\010"
+ 1711      08
+ 1712              		.text
+ 1713              	.Letext0:
+ 1714              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 1715              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 1716              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 1717              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 1718              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 1719              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 1720              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 1721              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 1722              		.file 10 "Application/Inc/ILI9341.h"
+ 1723              		.file 11 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 40
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 ILI9341.c
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:22     .text.LCD_select:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:28     .text.LCD_select:00000000 LCD_select
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:55     .text.LCD_unselect:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:61     .text.LCD_unselect:00000000 LCD_unselect
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:88     .text.LCD_data_mode:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:94     .text.LCD_data_mode:00000000 LCD_data_mode
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:121    .text.LCD_cmd_mode:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:127    .text.LCD_cmd_mode:00000000 LCD_cmd_mode
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:154    .text.LCD_do_reset:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:160    .text.LCD_do_reset:00000000 LCD_do_reset
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:187    .text.LCD_no_reset:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:193    .text.LCD_no_reset:00000000 LCD_no_reset
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:220    .text.LCD_send_cmd:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:226    .text.LCD_send_cmd:00000000 LCD_send_cmd
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:265    .text.LCD_send_data:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:271    .text.LCD_send_data:00000000 LCD_send_data
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:310    .text.LCD_send_group_data:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:316    .text.LCD_send_group_data:00000000 LCD_send_group_data
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:351    .text.LCD_reset:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:357    .text.LCD_reset:00000000 LCD_reset
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:401    .text.LCD_soft_reset:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:407    .text.LCD_soft_reset:00000000 LCD_soft_reset
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:444    .text.LCD_set_power:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:450    .text.LCD_set_power:00000000 LCD_set_power
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:530    .text.LCD_set_display:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:536    .text.LCD_set_display:00000000 LCD_set_display
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:606    .text.LCD_set_function:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:612    .text.LCD_set_function:00000000 LCD_set_function
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:667    .text.LCD_sleep_out:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:673    .text.LCD_sleep_out:00000000 LCD_sleep_out
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:710    .text.LCD_sleep_in:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:716    .text.LCD_sleep_in:00000000 LCD_sleep_in
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:753    .text.LCD_display_on:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:759    .text.LCD_display_on:00000000 LCD_display_on
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:792    .text.LCD_display_off:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:798    .text.LCD_display_off:00000000 LCD_display_off
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:831    .text.LCD_set_window:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:837    .text.LCD_set_window:00000000 LCD_set_window
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:919    .text.LCD_fill_screen:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:925    .text.LCD_fill_screen:00000000 LCD_fill_screen
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1004   .text.LCD_fill_screen:0000004c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1009   .text.LCD_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1015   .text.LCD_init:00000000 LCD_init
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1098   .text.LCD_draw_pixel:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1104   .text.LCD_draw_pixel:00000000 LCD_draw_pixel
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1179   .text.LCD_draw_char:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1185   .text.LCD_draw_char:00000000 LCD_draw_char
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1355   .text.LCD_draw_char:0000009c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1616   .rodata.font5x7:00000000 font5x7
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1360   .text.LCD_draw_string:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1366   .text.LCD_draw_string:00000000 LCD_draw_string
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1460   .text.LCD_set_cursor:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1466   .text.LCD_set_cursor:00000000 LCD_set_cursor
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1487   .text.LCD_set_cursor:0000000c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1610   .bss.cursor_x:00000000 cursor_x
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s 			page 41
+
+
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1604   .bss.cursor_y:00000000 cursor_y
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1493   .text.LCD_print:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1499   .text.LCD_print:00000000 LCD_print
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1595   .text.LCD_print:00000064 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1601   .bss.cursor_y:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1607   .bss.cursor_x:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccsT2GnX.s:1613   .rodata.font5x7:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+HAL_SPI_Transmit
+HAL_Delay

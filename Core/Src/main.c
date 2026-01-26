@@ -20,6 +20,8 @@
 #include "main.h"
 #include "icache.h"
 #include "memorymap.h"
+#include "spi.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -59,6 +61,16 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// init LCD configuration with SPI2 and GPIOB pins 13, 14, 15
+LCD_Config lcd_config = {
+    .hspi = &hspi2,
+    .cs_port = GPIOB,
+    .cs_pin = GPIO_PIN_15,
+    .rs_port = GPIOB,
+    .rs_pin = GPIO_PIN_13,
+    .rst_port = GPIOB,
+    .rst_pin = GPIO_PIN_14,
+};
 /* USER CODE END 0 */
 
 /**
@@ -91,12 +103,27 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_ICACHE_Init();
+  MX_SPI2_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
+  /* Initialize LCD directly (without LVGL for this demo) */
+  LCD_init(&lcd_config);
 
+  /* Draw some text */
+  LCD_draw_string(&lcd_config, 0, 0, "Hello World", COLOR_BLUE, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 1, "Hello World", COLOR_RED, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 2, "Hello World", COLOR_GREEN, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 3, "Hello World", COLOR_YELLOW, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 4, "Hello World", COLOR_CYAN, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 5, "Hello World", COLOR_MAGENTA, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 6, "Hello World", COLOR_WHITE, COLOR_WHITE);
+  LCD_draw_string(&lcd_config, 0, 7, "Hello World", COLOR_BLACK, COLOR_WHITE);
+  
   /* USER CODE END 2 */
 
   /* Initialize leds */
   BSP_LED_Init(LED_GREEN);
+
   /* Initialize USER push-button, will be used to trigger an interrupt each time it's pressed.*/
   BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
@@ -115,10 +142,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    BSP_LED_Off(LED_GREEN);
-    HAL_Delay(1000);
-    BSP_LED_On(LED_GREEN);
-    HAL_Delay(1000);
+    /* Blink LED to show MCU is running */
+    BSP_LED_Toggle(LED_GREEN);
+    HAL_Delay(500);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

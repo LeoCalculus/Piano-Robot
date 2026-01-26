@@ -12,7 +12,7 @@ ELF = build/$(PROJECT).elf
 
 default: load
 
-load: build_code
+load: 
 	$(OCD) -s $(SCRIPTS_PATH) \
 	 -f interface/$(INTERFACE).cfg \
 	 -c "transport select dapdirect_swd" \
