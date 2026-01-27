@@ -118,20 +118,23 @@ int main(void)
   MX_UART4_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
+  MX_TIM3_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
   /* Initialize LCD directly (without LVGL for this demo) */
   LCD_init(&lcd_config);
   DMA_receive_idle_init(&huart1, DMA_target_location);
-  
-  // test drawings
-  LCD_draw_string(&lcd_config, 0, 0, "Hello World", COLOR_BLUE, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 1, "Hello World", COLOR_RED, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 2, "Hello World", COLOR_GREEN, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 3, "Hello World", COLOR_YELLOW, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 4, "Hello World", COLOR_CYAN, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 5, "Hello World", COLOR_MAGENTA, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 6, "Hello World", COLOR_WHITE, COLOR_WHITE);
-  LCD_draw_string(&lcd_config, 0, 7, "Hello World", COLOR_BLACK, COLOR_WHITE);
+  encoder_start(&htim8);
+  HAL_TIM_Base_Start_IT(&htim2); // interrupt for controller
+  // reset encoder value
+  encoder_old_position_mm = 0.0f;
+  encoder_read_result = 0.0f;
+
+  // begin pwm:
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // using pwm at TIM3_CHANNEL1
+  // set initial duty cycle:
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 50); // here using (99+1)/2 =50 duty cycle
+
 
   // BT_config(&huart1);
   msg = (uint8_t*)"Still alive";
@@ -167,6 +170,7 @@ int main(void)
 
     // only update LCD when new BT data received
     if (rx_complete) {
+      executeCommand(rx_buffer); // execute command only in main loop not in interrupt
       LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
       LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
       rx_complete = 0;

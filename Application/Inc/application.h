@@ -3,11 +3,16 @@
 
 #include <ILI9341.h>
 #include <hc04bt.h>
+#include <encoder.h>
+#include <tim.h>
+#include <command.h>
 
 extern LCD_Config lcd_config; // should be defined in main.c at the beginning of the program
 extern uint8_t rx_buffer[128]; // receive buffer from BT
 extern uint8_t DMA_target_location[128];
-
+extern int32_t encoder_read_result;
+extern float encoder_old_position_mm;
+extern float target_position_mm;
 
 typedef struct {
     const float Kp;
@@ -22,6 +27,8 @@ typedef struct {
 void pid_cycle(PID_t* target_pid, float error, const float dt);
 void controller_init();
 void controller_step(const float dt);
+
+
 
 
 #endif

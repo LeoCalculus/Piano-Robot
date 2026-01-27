@@ -1,0 +1,2 @@
+- [ ] encoder algorithm fix
+- [ ] bt integration check

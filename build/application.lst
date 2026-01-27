@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -31,189 +31,436 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 1
   29              	.LVL0:
   30              	.LFB160:
    1:./Application/Src/application.c **** #include <application.h>
-   2:./Application/Src/application.c **** 
-   3:./Application/Src/application.c **** uint8_t rx_buffer[128];
-   4:./Application/Src/application.c **** uint8_t DMA_target_location[128];
-   5:./Application/Src/application.c **** 
-   6:./Application/Src/application.c **** void pid_cycle(PID_t* target_system, float error, const float dt){
-  31              		.loc 1 6 66 view -0
+   2:./Application/Src/application.c **** #include <encoder.h>
+   3:./Application/Src/application.c **** #include <stdio.h>
+   4:./Application/Src/application.c **** 
+   5:./Application/Src/application.c **** uint8_t rx_buffer[128];
+   6:./Application/Src/application.c **** uint8_t DMA_target_location[128];
+   7:./Application/Src/application.c **** int32_t encoder_read_result;
+   8:./Application/Src/application.c **** float encoder_old_position_mm;
+   9:./Application/Src/application.c **** float target_position_mm;
+  10:./Application/Src/application.c **** 
+  11:./Application/Src/application.c **** void pid_cycle(PID_t* target_system, float error, const float dt){
+  31              		.loc 1 11 66 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
   35              		@ link register save eliminated.
-   7:./Application/Src/application.c ****     float derivative = (error - target_system->last_error) / dt;
-  36              		.loc 1 7 5 view .LVU1
-  37              		.loc 1 7 46 is_stmt 0 view .LVU2
+  12:./Application/Src/application.c ****     float derivative = (error - target_system->last_error) / dt;
+  36              		.loc 1 12 5 view .LVU1
+  37              		.loc 1 12 46 is_stmt 0 view .LVU2
   38 0000 D0ED057A 		vldr.32	s15, [r0, #20]
-  39              		.loc 1 7 31 view .LVU3
+  39              		.loc 1 12 31 view .LVU3
   40 0004 70EE677A 		vsub.f32	s15, s0, s15
-  41              		.loc 1 7 11 view .LVU4
+  41              		.loc 1 12 11 view .LVU4
   42 0008 C7EEA06A 		vdiv.f32	s13, s15, s1
   43              	.LVL1:
-   8:./Application/Src/application.c ****     
-   9:./Application/Src/application.c ****     target_system->Integral = error*dt;
-  44              		.loc 1 9 5 is_stmt 1 view .LVU5
-  45              		.loc 1 9 36 is_stmt 0 view .LVU6
-  46 000c 60EE200A 		vmul.f32	s1, s0, s1
-  47              	.LVL2:
-  48              		.loc 1 9 29 view .LVU7
-  49 0010 C0ED040A 		vstr.32	s1, [r0, #16]
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 2
+  13:./Application/Src/application.c ****     
+  14:./Application/Src/application.c ****     target_system->Integral += error*dt;
+  44              		.loc 1 14 5 is_stmt 1 view .LVU5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 2
 
 
-  10:./Application/Src/application.c ****     // bound the integral
-  11:./Application/Src/application.c ****     if (target_system->Integral > target_system->Integral_max){
-  50              		.loc 1 11 5 is_stmt 1 view .LVU8
-  51              		.loc 1 11 48 is_stmt 0 view .LVU9
-  52 0014 D0ED037A 		vldr.32	s15, [r0, #12]
-  53              		.loc 1 11 8 view .LVU10
-  54 0018 F4EEE70A 		vcmpe.f32	s1, s15
-  55 001c F1EE10FA 		vmrs	APSR_nzcv, FPSCR
-  56 0020 18DD     		ble	.L8
-  12:./Application/Src/application.c ****         target_system->Integral = target_system->Integral_max;
-  57              		.loc 1 12 9 is_stmt 1 view .LVU11
-  58              		.loc 1 12 33 is_stmt 0 view .LVU12
-  59 0022 C0ED047A 		vstr.32	s15, [r0, #16]
-  60              	.L4:
-  13:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  14:./Application/Src/application.c ****         target_system->Integral = -target_system->Integral_max;
-  15:./Application/Src/application.c ****     }
-  16:./Application/Src/application.c ****     // controller output here
-  17:./Application/Src/application.c ****     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral
-  61              		.loc 1 17 5 is_stmt 1 view .LVU13
-  62              		.loc 1 17 42 is_stmt 0 view .LVU14
-  63 0026 D0ED007A 		vldr.32	s15, [r0]
-  64              		.loc 1 17 47 view .LVU15
-  65 002a 67EE807A 		vmul.f32	s15, s15, s0
-  66              		.loc 1 17 70 view .LVU16
-  67 002e 90ED017A 		vldr.32	s14, [r0, #4]
-  68              		.loc 1 17 90 view .LVU17
-  69 0032 90ED046A 		vldr.32	s12, [r0, #16]
-  70              		.loc 1 17 75 view .LVU18
-  71 0036 27EE067A 		vmul.f32	s14, s14, s12
-  72              		.loc 1 17 55 view .LVU19
-  73 003a 77EE877A 		vadd.f32	s15, s15, s14
-  74              		.loc 1 17 116 view .LVU20
-  75 003e 90ED027A 		vldr.32	s14, [r0, #8]
-  76              		.loc 1 17 121 view .LVU21
-  77 0042 27EE267A 		vmul.f32	s14, s14, s13
-  78              		.loc 1 17 101 view .LVU22
-  79 0046 77EE877A 		vadd.f32	s15, s15, s14
-  80              		.loc 1 17 27 view .LVU23
-  81 004a C0ED067A 		vstr.32	s15, [r0, #24]
-  18:./Application/Src/application.c ****     target_system->last_error = error;
-  82              		.loc 1 18 5 is_stmt 1 view .LVU24
-  83              		.loc 1 18 31 is_stmt 0 view .LVU25
-  84 004e 80ED050A 		vstr.32	s0, [r0, #20]
-  19:./Application/Src/application.c **** }
-  85              		.loc 1 19 1 view .LVU26
-  86 0052 7047     		bx	lr
-  87              	.L8:
-  13:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  88              		.loc 1 13 12 is_stmt 1 view .LVU27
-  13:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  89              		.loc 1 13 42 is_stmt 0 view .LVU28
-  90 0054 F1EE677A 		vneg.f32	s15, s15
-  13:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  91              		.loc 1 13 15 view .LVU29
-  92 0058 F4EEE70A 		vcmpe.f32	s1, s15
-  93 005c F1EE10FA 		vmrs	APSR_nzcv, FPSCR
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 3
-
-
-  94 0060 E1D5     		bpl	.L4
-  14:./Application/Src/application.c ****     }
-  95              		.loc 1 14 9 is_stmt 1 view .LVU30
-  14:./Application/Src/application.c ****     }
-  96              		.loc 1 14 33 is_stmt 0 view .LVU31
-  97 0062 C0ED047A 		vstr.32	s15, [r0, #16]
-  98 0066 DEE7     		b	.L4
-  99              		.cfi_endproc
- 100              	.LFE160:
- 102              		.section	.text.controller_init,"ax",%progbits
- 103              		.align	1
- 104              		.global	controller_init
- 105              		.syntax unified
- 106              		.thumb
- 107              		.thumb_func
- 109              	controller_init:
- 110              	.LFB161:
-  20:./Application/Src/application.c **** 
-  21:./Application/Src/application.c **** // do controller here
-  22:./Application/Src/application.c **** void controller_init(void){
- 111              		.loc 1 22 27 is_stmt 1 view -0
- 112              		.cfi_startproc
- 113              		@ args = 0, pretend = 0, frame = 0
- 114              		@ frame_needed = 0, uses_anonymous_args = 0
- 115              		@ link register save eliminated.
-  23:./Application/Src/application.c **** 
+  45              		.loc 1 14 18 is_stmt 0 view .LVU6
+  46 000c D0ED047A 		vldr.32	s15, [r0, #16]
+  47              		.loc 1 14 37 view .LVU7
+  48 0010 60EE200A 		vmul.f32	s1, s0, s1
+  49              	.LVL2:
+  50              		.loc 1 14 29 view .LVU8
+  51 0014 77EEA07A 		vadd.f32	s15, s15, s1
+  52 0018 C0ED047A 		vstr.32	s15, [r0, #16]
+  15:./Application/Src/application.c ****     // bound the integral
+  16:./Application/Src/application.c ****     if (target_system->Integral > target_system->Integral_max){
+  53              		.loc 1 16 5 is_stmt 1 view .LVU9
+  54              		.loc 1 16 48 is_stmt 0 view .LVU10
+  55 001c 90ED037A 		vldr.32	s14, [r0, #12]
+  56              		.loc 1 16 8 view .LVU11
+  57 0020 F4EEC77A 		vcmpe.f32	s15, s14
+  58 0024 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  59 0028 18DD     		ble	.L8
+  17:./Application/Src/application.c ****         target_system->Integral = target_system->Integral_max;
+  60              		.loc 1 17 9 is_stmt 1 view .LVU12
+  61              		.loc 1 17 33 is_stmt 0 view .LVU13
+  62 002a 80ED047A 		vstr.32	s14, [r0, #16]
+  63              	.L4:
+  18:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  19:./Application/Src/application.c ****         target_system->Integral = -target_system->Integral_max;
+  20:./Application/Src/application.c ****     }
+  21:./Application/Src/application.c ****     // controller output here
+  22:./Application/Src/application.c ****     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral
+  64              		.loc 1 22 5 is_stmt 1 view .LVU14
+  65              		.loc 1 22 42 is_stmt 0 view .LVU15
+  66 002e D0ED007A 		vldr.32	s15, [r0]
+  67              		.loc 1 22 47 view .LVU16
+  68 0032 67EE807A 		vmul.f32	s15, s15, s0
+  69              		.loc 1 22 70 view .LVU17
+  70 0036 90ED017A 		vldr.32	s14, [r0, #4]
+  71              		.loc 1 22 90 view .LVU18
+  72 003a 90ED046A 		vldr.32	s12, [r0, #16]
+  73              		.loc 1 22 75 view .LVU19
+  74 003e 27EE067A 		vmul.f32	s14, s14, s12
+  75              		.loc 1 22 55 view .LVU20
+  76 0042 77EE877A 		vadd.f32	s15, s15, s14
+  77              		.loc 1 22 116 view .LVU21
+  78 0046 90ED027A 		vldr.32	s14, [r0, #8]
+  79              		.loc 1 22 121 view .LVU22
+  80 004a 27EE267A 		vmul.f32	s14, s14, s13
+  81              		.loc 1 22 101 view .LVU23
+  82 004e 77EE877A 		vadd.f32	s15, s15, s14
+  83              		.loc 1 22 27 view .LVU24
+  84 0052 C0ED067A 		vstr.32	s15, [r0, #24]
+  23:./Application/Src/application.c ****     target_system->last_error = error;
+  85              		.loc 1 23 5 is_stmt 1 view .LVU25
+  86              		.loc 1 23 31 is_stmt 0 view .LVU26
+  87 0056 80ED050A 		vstr.32	s0, [r0, #20]
   24:./Application/Src/application.c **** }
- 116              		.loc 1 24 1 view .LVU33
- 117 0000 7047     		bx	lr
- 118              		.cfi_endproc
- 119              	.LFE161:
- 121              		.section	.text.controller_step,"ax",%progbits
- 122              		.align	1
- 123              		.global	controller_step
- 124              		.syntax unified
- 125              		.thumb
- 126              		.thumb_func
- 128              	controller_step:
- 129              	.LVL3:
- 130              	.LFB162:
+  88              		.loc 1 24 1 view .LVU27
+  89 005a 7047     		bx	lr
+  90              	.L8:
+  18:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 3
+
+
+  91              		.loc 1 18 12 is_stmt 1 view .LVU28
+  18:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  92              		.loc 1 18 42 is_stmt 0 view .LVU29
+  93 005c B1EE477A 		vneg.f32	s14, s14
+  18:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  94              		.loc 1 18 15 view .LVU30
+  95 0060 F4EEC77A 		vcmpe.f32	s15, s14
+  96 0064 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+  97 0068 E1D5     		bpl	.L4
+  19:./Application/Src/application.c ****     }
+  98              		.loc 1 19 9 is_stmt 1 view .LVU31
+  19:./Application/Src/application.c ****     }
+  99              		.loc 1 19 33 is_stmt 0 view .LVU32
+ 100 006a 80ED047A 		vstr.32	s14, [r0, #16]
+ 101 006e DEE7     		b	.L4
+ 102              		.cfi_endproc
+ 103              	.LFE160:
+ 105              		.section	.text.controller_init,"ax",%progbits
+ 106              		.align	1
+ 107              		.global	controller_init
+ 108              		.syntax unified
+ 109              		.thumb
+ 110              		.thumb_func
+ 112              	controller_init:
+ 113              	.LFB161:
   25:./Application/Src/application.c **** 
-  26:./Application/Src/application.c **** void controller_step(const float dt){
- 131              		.loc 1 26 37 view -0
- 132              		.cfi_startproc
- 133              		@ args = 0, pretend = 0, frame = 0
- 134              		@ frame_needed = 0, uses_anonymous_args = 0
- 135              		@ link register save eliminated.
-  27:./Application/Src/application.c **** 
-  28:./Application/Src/application.c **** }...
- 136              		.loc 1 28 1 view .LVU35
- 137 0000 7047     		bx	lr
- 138              		.cfi_endproc
- 139              	.LFE162:
- 141              		.global	DMA_target_location
- 142              		.section	.bss.DMA_target_location,"aw",%nobits
- 143              		.align	2
- 146              	DMA_target_location:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 4
+  26:./Application/Src/application.c **** // PID struct for the motor
+  27:./Application/Src/application.c **** PID_t debug_motor = {
+  28:./Application/Src/application.c ****     .Kp = 3.0f,
+  29:./Application/Src/application.c ****     .Ki = 1.0f,
+  30:./Application/Src/application.c ****     .Kd = 0.0f,
+  31:./Application/Src/application.c ****     .Integral_max = 0.01f
+  32:./Application/Src/application.c **** };
+  33:./Application/Src/application.c **** 
+  34:./Application/Src/application.c **** // do controller here
+  35:./Application/Src/application.c **** void controller_init(void){
+ 114              		.loc 1 35 27 is_stmt 1 view -0
+ 115              		.cfi_startproc
+ 116              		@ args = 0, pretend = 0, frame = 0
+ 117              		@ frame_needed = 0, uses_anonymous_args = 0
+ 118              		@ link register save eliminated.
+  36:./Application/Src/application.c **** 
+  37:./Application/Src/application.c **** }
+ 119              		.loc 1 37 1 view .LVU34
+ 120 0000 7047     		bx	lr
+ 121              		.cfi_endproc
+ 122              	.LFE161:
+ 124              		.section	.rodata.controller_step.str1.4,"aMS",%progbits,1
+ 125              		.align	2
+ 126              	.LC0:
+ 127 0000 44697374 		.ascii	"Dist: %.2f mm           \000"
+ 127      3A20252E 
+ 127      3266206D 
+ 127      6D202020 
+ 127      20202020 
+ 128 0019 000000   		.align	2
+ 129              	.LC1:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 4
 
 
- 147 0000 00000000 		.space	128
- 147      00000000 
- 147      00000000 
- 147      00000000 
- 147      00000000 
- 148              		.global	rx_buffer
- 149              		.section	.bss.rx_buffer,"aw",%nobits
- 150              		.align	2
- 153              	rx_buffer:
- 154 0000 00000000 		.space	128
- 154      00000000 
- 154      00000000 
- 154      00000000 
- 154      00000000 
- 155              		.text
- 156              	.Letext0:
- 157              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 158              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 159              		.file 4 "Application/Inc/application.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s 			page 5
+ 130 001c 56656C3A 		.ascii	"Vel: %.2f mm/s          \000"
+ 130      20252E32 
+ 130      66206D6D 
+ 130      2F732020 
+ 130      20202020 
+ 131              		.section	.text.controller_step,"ax",%progbits
+ 132              		.align	1
+ 133              		.global	controller_step
+ 134              		.syntax unified
+ 135              		.thumb
+ 136              		.thumb_func
+ 138              	controller_step:
+ 139              	.LVL3:
+ 140              	.LFB162:
+  38:./Application/Src/application.c **** 
+  39:./Application/Src/application.c **** void controller_step(const float dt){
+ 141              		.loc 1 39 37 view -0
+ 142              		.cfi_startproc
+ 143              		@ args = 0, pretend = 0, frame = 40
+ 144              		@ frame_needed = 0, uses_anonymous_args = 0
+ 145              		.loc 1 39 37 is_stmt 0 view .LVU36
+ 146 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 147              	.LCFI0:
+ 148              		.cfi_def_cfa_offset 24
+ 149              		.cfi_offset 4, -24
+ 150              		.cfi_offset 5, -20
+ 151              		.cfi_offset 6, -16
+ 152              		.cfi_offset 7, -12
+ 153              		.cfi_offset 8, -8
+ 154              		.cfi_offset 14, -4
+ 155 0004 2DED028B 		vpush.64	{d8}
+ 156              	.LCFI1:
+ 157              		.cfi_def_cfa_offset 32
+ 158              		.cfi_offset 80, -32
+ 159              		.cfi_offset 81, -28
+ 160 0008 8CB0     		sub	sp, sp, #48
+ 161              	.LCFI2:
+ 162              		.cfi_def_cfa_offset 80
+ 163 000a F0EE408A 		vmov.f32	s17, s0
+  40:./Application/Src/application.c ****     uint32_t direction;
+ 164              		.loc 1 40 5 is_stmt 1 view .LVU37
+  41:./Application/Src/application.c ****     char lcd_buf[32]; // buffer to put string and data
+ 165              		.loc 1 41 5 view .LVU38
+  42:./Application/Src/application.c **** 
+  43:./Application/Src/application.c ****     encoder_read_value(&htim8, &encoder_read_result, &direction);
+ 166              		.loc 1 43 5 view .LVU39
+ 167 000e 284C     		ldr	r4, .L12
+ 168 0010 0BAA     		add	r2, sp, #44
+ 169 0012 2146     		mov	r1, r4
+ 170 0014 2748     		ldr	r0, .L12+4
+ 171 0016 FFF7FEFF 		bl	encoder_read_value
+ 172              	.LVL4:
+  44:./Application/Src/application.c ****     float current_distance_mm = encoder_parse_distance_mm(encoder_read_result);
+ 173              		.loc 1 44 5 view .LVU40
+ 174              		.loc 1 44 33 is_stmt 0 view .LVU41
+ 175 001a 2068     		ldr	r0, [r4]
+ 176 001c FFF7FEFF 		bl	encoder_parse_distance_mm
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 5
+
+
+ 177              	.LVL5:
+ 178 0020 B0EE408A 		vmov.f32	s16, s0
+ 179              	.LVL6:
+  45:./Application/Src/application.c ****     float velocity_mm_s = encoder_calc_speed_mm_s(current_distance_mm, dt);
+ 180              		.loc 1 45 5 is_stmt 1 view .LVU42
+ 181              		.loc 1 45 27 is_stmt 0 view .LVU43
+ 182 0024 F0EE680A 		vmov.f32	s1, s17
+ 183 0028 FFF7FEFF 		bl	encoder_calc_speed_mm_s
+ 184              	.LVL7:
+ 185              		.loc 1 45 27 view .LVU44
+ 186 002c 10EE108A 		vmov	r8, s0
+ 187              	.LVL8:
+  46:./Application/Src/application.c ****     float error = 0.0f;
+ 188              		.loc 1 46 5 is_stmt 1 view .LVU45
+  47:./Application/Src/application.c **** 
+  48:./Application/Src/application.c ****     sprintf(lcd_buf, "Dist: %.2f mm           ", current_distance_mm);
+ 189              		.loc 1 48 5 view .LVU46
+ 190 0030 18EE100A 		vmov	r0, s16
+ 191 0034 FFF7FEFF 		bl	__aeabi_f2d
+ 192              	.LVL9:
+ 193 0038 0246     		mov	r2, r0
+ 194 003a 0B46     		mov	r3, r1
+ 195 003c 03AD     		add	r5, sp, #12
+ 196 003e 1E49     		ldr	r1, .L12+8
+ 197 0040 2846     		mov	r0, r5
+ 198 0042 FFF7FEFF 		bl	sprintf
+ 199              	.LVL10:
+  49:./Application/Src/application.c ****     LCD_draw_string(&lcd_config, 0, 11, lcd_buf, COLOR_BLACK, COLOR_WHITE);
+ 200              		.loc 1 49 5 view .LVU47
+ 201 0046 1D4E     		ldr	r6, .L12+12
+ 202 0048 4FF6FF77 		movw	r7, #65535
+ 203 004c 0197     		str	r7, [sp, #4]
+ 204 004e 0024     		movs	r4, #0
+ 205 0050 0094     		str	r4, [sp]
+ 206 0052 2B46     		mov	r3, r5
+ 207 0054 0B22     		movs	r2, #11
+ 208 0056 2146     		mov	r1, r4
+ 209 0058 3046     		mov	r0, r6
+ 210 005a FFF7FEFF 		bl	LCD_draw_string
+ 211              	.LVL11:
+  50:./Application/Src/application.c **** 
+  51:./Application/Src/application.c ****     sprintf(lcd_buf, "Vel: %.2f mm/s          ", velocity_mm_s);
+ 212              		.loc 1 51 5 view .LVU48
+ 213 005e 4046     		mov	r0, r8	@ float
+ 214 0060 FFF7FEFF 		bl	__aeabi_f2d
+ 215              	.LVL12:
+ 216 0064 0246     		mov	r2, r0
+ 217 0066 0B46     		mov	r3, r1
+ 218 0068 1549     		ldr	r1, .L12+16
+ 219 006a 2846     		mov	r0, r5
+ 220 006c FFF7FEFF 		bl	sprintf
+ 221              	.LVL13:
+  52:./Application/Src/application.c ****     LCD_draw_string(&lcd_config, 0, 12, lcd_buf, COLOR_BLACK, COLOR_WHITE);
+ 222              		.loc 1 52 5 view .LVU49
+ 223 0070 0197     		str	r7, [sp, #4]
+ 224 0072 0094     		str	r4, [sp]
+ 225 0074 2B46     		mov	r3, r5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 6
+
+
+ 226 0076 0C22     		movs	r2, #12
+ 227 0078 2146     		mov	r1, r4
+ 228 007a 3046     		mov	r0, r6
+ 229 007c FFF7FEFF 		bl	LCD_draw_string
+ 230              	.LVL14:
+  53:./Application/Src/application.c **** 
+  54:./Application/Src/application.c ****     // position control - test pid - using step input - input via bluetooth
+  55:./Application/Src/application.c ****     error = target_position_mm - current_distance_mm;
+ 231              		.loc 1 55 5 view .LVU50
+ 232              		.loc 1 55 32 is_stmt 0 view .LVU51
+ 233 0080 104B     		ldr	r3, .L12+20
+ 234 0082 93ED000A 		vldr.32	s0, [r3]
+ 235              	.LVL15:
+  56:./Application/Src/application.c ****     pid_cycle(&debug_motor, error, dt); // new target will be stored in debug_motor->output
+ 236              		.loc 1 56 5 is_stmt 1 view .LVU52
+ 237 0086 104C     		ldr	r4, .L12+24
+ 238 0088 F0EE680A 		vmov.f32	s1, s17
+ 239 008c 30EE480A 		vsub.f32	s0, s0, s16
+ 240              	.LVL16:
+ 241              		.loc 1 56 5 is_stmt 0 view .LVU53
+ 242 0090 2046     		mov	r0, r4
+ 243 0092 FFF7FEFF 		bl	pid_cycle
+ 244              	.LVL17:
+  57:./Application/Src/application.c **** 
+  58:./Application/Src/application.c ****     // convert pid output to the pwm signal, units conversion are included in Kp
+  59:./Application/Src/application.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, debug_motor.output);
+ 245              		.loc 1 59 5 is_stmt 1 view .LVU54
+ 246 0096 D4ED067A 		vldr.32	s15, [r4, #24]
+ 247 009a 0C4B     		ldr	r3, .L12+28
+ 248 009c 1B68     		ldr	r3, [r3]
+ 249 009e FCEEE77A 		vcvt.u32.f32	s15, s15
+ 250 00a2 C3ED0D7A 		vstr.32	s15, [r3, #52]	@ int
+  60:./Application/Src/application.c ****     
+  61:./Application/Src/application.c **** }...
+ 251              		.loc 1 61 1 is_stmt 0 view .LVU55
+ 252 00a6 0CB0     		add	sp, sp, #48
+ 253              	.LCFI3:
+ 254              		.cfi_def_cfa_offset 32
+ 255              		@ sp needed
+ 256 00a8 BDEC028B 		vldm	sp!, {d8}
+ 257              	.LCFI4:
+ 258              		.cfi_restore 80
+ 259              		.cfi_restore 81
+ 260              		.cfi_def_cfa_offset 24
+ 261              	.LVL18:
+ 262              		.loc 1 61 1 view .LVU56
+ 263 00ac BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 264              	.LVL19:
+ 265              	.L13:
+ 266              		.loc 1 61 1 view .LVU57
+ 267              		.align	2
+ 268              	.L12:
+ 269 00b0 00000000 		.word	encoder_read_result
+ 270 00b4 00000000 		.word	htim8
+ 271 00b8 00000000 		.word	.LC0
+ 272 00bc 00000000 		.word	lcd_config
+ 273 00c0 1C000000 		.word	.LC1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 7
+
+
+ 274 00c4 00000000 		.word	target_position_mm
+ 275 00c8 00000000 		.word	debug_motor
+ 276 00cc 00000000 		.word	htim3
+ 277              		.cfi_endproc
+ 278              	.LFE162:
+ 280              		.global	debug_motor
+ 281              		.section	.data.debug_motor,"aw"
+ 282              		.align	2
+ 285              	debug_motor:
+ 286 0000 00004040 		.word	1077936128
+ 287 0004 0000803F 		.word	1065353216
+ 288 0008 00000000 		.word	0
+ 289 000c 0AD7233C 		.word	1008981770
+ 290 0010 00000000 		.space	12
+ 290      00000000 
+ 290      00000000 
+ 291              		.global	target_position_mm
+ 292              		.section	.bss.target_position_mm,"aw",%nobits
+ 293              		.align	2
+ 296              	target_position_mm:
+ 297 0000 00000000 		.space	4
+ 298              		.global	encoder_old_position_mm
+ 299              		.section	.bss.encoder_old_position_mm,"aw",%nobits
+ 300              		.align	2
+ 303              	encoder_old_position_mm:
+ 304 0000 00000000 		.space	4
+ 305              		.global	encoder_read_result
+ 306              		.section	.bss.encoder_read_result,"aw",%nobits
+ 307              		.align	2
+ 310              	encoder_read_result:
+ 311 0000 00000000 		.space	4
+ 312              		.global	DMA_target_location
+ 313              		.section	.bss.DMA_target_location,"aw",%nobits
+ 314              		.align	2
+ 317              	DMA_target_location:
+ 318 0000 00000000 		.space	128
+ 318      00000000 
+ 318      00000000 
+ 318      00000000 
+ 318      00000000 
+ 319              		.global	rx_buffer
+ 320              		.section	.bss.rx_buffer,"aw",%nobits
+ 321              		.align	2
+ 324              	rx_buffer:
+ 325 0000 00000000 		.space	128
+ 325      00000000 
+ 325      00000000 
+ 325      00000000 
+ 325      00000000 
+ 326              		.text
+ 327              	.Letext0:
+ 328              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 329              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 330              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 331              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 332              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 333              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 8
+
+
+ 334              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 335              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ 336              		.file 10 "Application/Inc/ILI9341.h"
+ 337              		.file 11 "Core/Inc/tim.h"
+ 338              		.file 12 "Application/Inc/application.h"
+ 339              		.file 13 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
+ 340              		.file 14 "Application/Inc/encoder.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s 			page 9
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 application.c
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:22     .text.pid_cycle:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:28     .text.pid_cycle:00000000 pid_cycle
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:103    .text.controller_init:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:109    .text.controller_init:00000000 controller_init
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:122    .text.controller_step:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:128    .text.controller_step:00000000 controller_step
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:146    .bss.DMA_target_location:00000000 DMA_target_location
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:143    .bss.DMA_target_location:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:153    .bss.rx_buffer:00000000 rx_buffer
-C:\Users\Xuleo\AppData\Local\Temp\cce6172c.s:150    .bss.rx_buffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:22     .text.pid_cycle:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:28     .text.pid_cycle:00000000 pid_cycle
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:106    .text.controller_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:112    .text.controller_init:00000000 controller_init
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:125    .rodata.controller_step.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:132    .text.controller_step:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:138    .text.controller_step:00000000 controller_step
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:269    .text.controller_step:000000b0 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:310    .bss.encoder_read_result:00000000 encoder_read_result
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:296    .bss.target_position_mm:00000000 target_position_mm
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:285    .data.debug_motor:00000000 debug_motor
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:282    .data.debug_motor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:293    .bss.target_position_mm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:303    .bss.encoder_old_position_mm:00000000 encoder_old_position_mm
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:300    .bss.encoder_old_position_mm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:307    .bss.encoder_read_result:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:317    .bss.DMA_target_location:00000000 DMA_target_location
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:314    .bss.DMA_target_location:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:324    .bss.rx_buffer:00000000 rx_buffer
+C:\Users\Xuleo\AppData\Local\Temp\ccYGiEtj.s:321    .bss.rx_buffer:00000000 $d
 
-NO UNDEFINED SYMBOLS
+UNDEFINED SYMBOLS
+encoder_read_value
+encoder_parse_distance_mm
+encoder_calc_speed_mm_s
+__aeabi_f2d
+sprintf
+LCD_draw_string
+htim8
+lcd_config
+htim3
