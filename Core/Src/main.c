@@ -18,15 +18,18 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "gpdma.h"
 #include "icache.h"
 #include "memorymap.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <application.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,12 +52,19 @@
 COM_InitTypeDef BspCOMInit;
 
 /* USER CODE BEGIN PV */
-
+uint8_t* msg = NULL;
+volatile int rx_complete = 0;  // volatile since modified in ISR
+volatile uint16_t valid_rx = 0;
+volatile uint16_t old_pos = 0; // size record the index in DMA_target_location, need old pos track the new data
+char empty_row[] = "                        ";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
+
+// this function tells where dma data should be on arrival
+void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_target_location);
 
 /* USER CODE END PFP */
 
@@ -102,14 +112,18 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_GPDMA1_Init();
   MX_ICACHE_Init();
   MX_SPI2_Init();
   MX_UART4_Init();
+  MX_TIM2_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   /* Initialize LCD directly (without LVGL for this demo) */
   LCD_init(&lcd_config);
-
-  /* Draw some text */
+  DMA_receive_idle_init(&huart1, DMA_target_location);
+  
+  // test drawings
   LCD_draw_string(&lcd_config, 0, 0, "Hello World", COLOR_BLUE, COLOR_WHITE);
   LCD_draw_string(&lcd_config, 0, 1, "Hello World", COLOR_RED, COLOR_WHITE);
   LCD_draw_string(&lcd_config, 0, 2, "Hello World", COLOR_GREEN, COLOR_WHITE);
@@ -118,6 +132,9 @@ int main(void)
   LCD_draw_string(&lcd_config, 0, 5, "Hello World", COLOR_MAGENTA, COLOR_WHITE);
   LCD_draw_string(&lcd_config, 0, 6, "Hello World", COLOR_WHITE, COLOR_WHITE);
   LCD_draw_string(&lcd_config, 0, 7, "Hello World", COLOR_BLACK, COLOR_WHITE);
+
+  // BT_config(&huart1);
+  msg = (uint8_t*)"Still alive";
   
   /* USER CODE END 2 */
 
@@ -146,6 +163,14 @@ int main(void)
     BSP_LED_Toggle(LED_GREEN);
     HAL_Delay(500);
 
+    BT_send_info(&huart1, msg, strlen((char*)msg));
+
+    // only update LCD when new BT data received
+    if (rx_complete) {
+      LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
+      LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
+      rx_complete = 0;
+    }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -211,6 +236,29 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_target_location){
+  HAL_UARTEx_ReceiveToIdle_DMA(DMA_uart_handle, DMA_target_location, 128); // changable @application.h
+}
+
+// DMA call back function for usart_1_rx
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t size){
+  uint16_t new_bytes; // new received bytes count
+  if (huart == &huart1){
+    if (size > old_pos){
+      new_bytes = size - old_pos;
+      memcpy(rx_buffer, &DMA_target_location[old_pos], new_bytes);
+    } else { // there is warp around
+      new_bytes = sizeof(DMA_target_location) - old_pos + size;
+      memcpy(rx_buffer, &DMA_target_location[old_pos], sizeof(DMA_target_location)-old_pos);
+      memcpy(&rx_buffer[128-old_pos], DMA_target_location, size); // remaining
+    }
+    valid_rx = new_bytes;
+    rx_buffer[new_bytes] = '\0'; // when printing string, other old will be neglected.
+    rx_complete = 1;
+    old_pos = size;
+  }
+}
 
 /* USER CODE END 4 */
 

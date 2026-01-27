@@ -1,0 +1,356 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"hc04bt.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/hc04bt.c"
+  21              		.section	.rodata.BT_config.str1.4,"aMS",%progbits,1
+  22              		.align	2
+  23              	.LC1:
+  24 0000 4F4B00   		.ascii	"OK\000"
+  25 0003 00       		.align	2
+  26              	.LC2:
+  27 0004 48433034 		.ascii	"HC04 Detected!\000"
+  27      20446574 
+  27      65637465 
+  27      642100
+  28 0013 00       		.align	2
+  29              	.LC3:
+  30 0014 48433034 		.ascii	"HC04 cannot find!\000"
+  30      2063616E 
+  30      6E6F7420 
+  30      66696E64 
+  30      2100
+  31 0026 0000     		.align	2
+  32              	.LC0:
+  33 0028 415400   		.ascii	"AT\000"
+  34 002b 00       		.align	2
+  35              	.LC4:
+  36 002c 41542B50 		.ascii	"AT+PIN=6666\000"
+  36      494E3D36 
+  36      36363600 
+  37              		.section	.text.BT_config,"ax",%progbits
+  38              		.align	1
+  39              		.global	BT_config
+  40              		.syntax unified
+  41              		.thumb
+  42              		.thumb_func
+  44              	BT_config:
+  45              	.LVL0:
+  46              	.LFB160:
+   1:./Application/Src/hc04bt.c **** #include <hc04bt.h>
+   2:./Application/Src/hc04bt.c **** #include <application.h>
+   3:./Application/Src/hc04bt.c **** #include <ILI9341.h>
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 2
+
+
+   4:./Application/Src/hc04bt.c **** #include <string.h>
+   5:./Application/Src/hc04bt.c **** 
+   6:./Application/Src/hc04bt.c **** void BT_config(UART_HandleTypeDef* huart){
+  47              		.loc 1 6 42 view -0
+  48              		.cfi_startproc
+  49              		@ args = 0, pretend = 0, frame = 16
+  50              		@ frame_needed = 0, uses_anonymous_args = 0
+  51              		.loc 1 6 42 is_stmt 0 view .LVU1
+  52 0000 70B5     		push	{r4, r5, r6, lr}
+  53              	.LCFI0:
+  54              		.cfi_def_cfa_offset 16
+  55              		.cfi_offset 4, -16
+  56              		.cfi_offset 5, -12
+  57              		.cfi_offset 6, -8
+  58              		.cfi_offset 14, -4
+  59 0002 86B0     		sub	sp, sp, #24
+  60              	.LCFI1:
+  61              		.cfi_def_cfa_offset 40
+  62 0004 0446     		mov	r4, r0
+   7:./Application/Src/hc04bt.c ****     // check existence
+   8:./Application/Src/hc04bt.c ****     uint8_t cmd[] = "AT";
+  63              		.loc 1 8 5 is_stmt 1 view .LVU2
+  64              		.loc 1 8 13 is_stmt 0 view .LVU3
+  65 0006 314B     		ldr	r3, .L6
+  66 0008 1B68     		ldr	r3, [r3]
+  67 000a ADF81430 		strh	r3, [sp, #20]	@ movhi
+  68 000e 1B0C     		lsrs	r3, r3, #16
+  69 0010 8DF81630 		strb	r3, [sp, #22]
+   9:./Application/Src/hc04bt.c ****     HAL_UART_Transmit(huart, cmd, strlen((char*)cmd), 10);
+  70              		.loc 1 9 5 is_stmt 1 view .LVU4
+  71              		.loc 1 9 35 is_stmt 0 view .LVU5
+  72 0014 05AD     		add	r5, sp, #20
+  73 0016 2846     		mov	r0, r5
+  74              	.LVL1:
+  75              		.loc 1 9 35 view .LVU6
+  76 0018 FFF7FEFF 		bl	strlen
+  77              	.LVL2:
+  78              		.loc 1 9 5 discriminator 1 view .LVU7
+  79 001c 0A23     		movs	r3, #10
+  80 001e 82B2     		uxth	r2, r0
+  81 0020 2946     		mov	r1, r5
+  82 0022 2046     		mov	r0, r4
+  83 0024 FFF7FEFF 		bl	HAL_UART_Transmit
+  84              	.LVL3:
+  10:./Application/Src/hc04bt.c ****     HAL_StatusTypeDef status = HAL_UART_Receive(huart, rx_buffer, 4, 1000); // this command will wa
+  85              		.loc 1 10 5 is_stmt 1 view .LVU8
+  86              		.loc 1 10 32 is_stmt 0 view .LVU9
+  87 0028 4FF47A73 		mov	r3, #1000
+  88 002c 0422     		movs	r2, #4
+  89 002e 2849     		ldr	r1, .L6+4
+  90 0030 2046     		mov	r0, r4
+  91 0032 FFF7FEFF 		bl	HAL_UART_Receive
+  92              	.LVL4:
+  11:./Application/Src/hc04bt.c ****     if (status == HAL_OK && strncmp((char*)rx_buffer, "OK", 2) == 0){
+  93              		.loc 1 11 5 is_stmt 1 view .LVU10
+  94              		.loc 1 11 8 is_stmt 0 view .LVU11
+  95 0036 30B9     		cbnz	r0, .L2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 3
+
+
+  96              		.loc 1 11 29 discriminator 1 view .LVU12
+  97 0038 0222     		movs	r2, #2
+  98 003a 2649     		ldr	r1, .L6+8
+  99 003c 2448     		ldr	r0, .L6+4
+ 100              	.LVL5:
+ 101              		.loc 1 11 29 discriminator 1 view .LVU13
+ 102 003e FFF7FEFF 		bl	strncmp
+ 103              	.LVL6:
+ 104              		.loc 1 11 26 discriminator 2 view .LVU14
+ 105 0042 0028     		cmp	r0, #0
+ 106 0044 37D0     		beq	.L5
+ 107              	.L2:
+  12:./Application/Src/hc04bt.c ****         LCD_draw_string(&lcd_config, 0, 8, "HC04 Detected!", COLOR_BLACK, COLOR_WHITE);
+  13:./Application/Src/hc04bt.c ****     } else{
+  14:./Application/Src/hc04bt.c ****         LCD_draw_string(&lcd_config, 0, 8, "HC04 cannot find!", COLOR_BLACK, COLOR_WHITE);
+ 108              		.loc 1 14 9 is_stmt 1 view .LVU15
+ 109 0046 4FF6FF73 		movw	r3, #65535
+ 110 004a 0193     		str	r3, [sp, #4]
+ 111 004c 0021     		movs	r1, #0
+ 112 004e 0091     		str	r1, [sp]
+ 113 0050 214B     		ldr	r3, .L6+12
+ 114 0052 0822     		movs	r2, #8
+ 115 0054 2148     		ldr	r0, .L6+16
+ 116 0056 FFF7FEFF 		bl	LCD_draw_string
+ 117              	.LVL7:
+ 118              	.L3:
+  15:./Application/Src/hc04bt.c ****     }
+  16:./Application/Src/hc04bt.c **** 
+  17:./Application/Src/hc04bt.c ****     HAL_Delay(500);
+ 119              		.loc 1 17 5 view .LVU16
+ 120 005a 4FF4FA70 		mov	r0, #500
+ 121 005e FFF7FEFF 		bl	HAL_Delay
+ 122              	.LVL8:
+  18:./Application/Src/hc04bt.c **** 
+  19:./Application/Src/hc04bt.c ****     memset(rx_buffer, 0, sizeof(rx_buffer));
+ 123              		.loc 1 19 5 view .LVU17
+ 124 0062 1B4E     		ldr	r6, .L6+4
+ 125 0064 8022     		movs	r2, #128
+ 126 0066 0021     		movs	r1, #0
+ 127 0068 3046     		mov	r0, r6
+ 128 006a FFF7FEFF 		bl	memset
+ 129              	.LVL9:
+  20:./Application/Src/hc04bt.c ****     uint8_t cmd2[] = "AT+PIN=6666";
+ 130              		.loc 1 20 5 view .LVU18
+ 131              		.loc 1 20 13 is_stmt 0 view .LVU19
+ 132 006e 1C4B     		ldr	r3, .L6+20
+ 133 0070 02AD     		add	r5, sp, #8
+ 134 0072 93E80700 		ldm	r3, {r0, r1, r2}
+ 135 0076 85E80700 		stm	r5, {r0, r1, r2}
+  21:./Application/Src/hc04bt.c ****     HAL_UART_Transmit(huart, cmd2, strlen((char*)cmd2), 300);
+ 136              		.loc 1 21 5 is_stmt 1 view .LVU20
+ 137              		.loc 1 21 36 is_stmt 0 view .LVU21
+ 138 007a 2846     		mov	r0, r5
+ 139 007c FFF7FEFF 		bl	strlen
+ 140              	.LVL10:
+ 141              		.loc 1 21 5 discriminator 1 view .LVU22
+ 142 0080 4FF49673 		mov	r3, #300
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 4
+
+
+ 143 0084 82B2     		uxth	r2, r0
+ 144 0086 2946     		mov	r1, r5
+ 145 0088 2046     		mov	r0, r4
+ 146 008a FFF7FEFF 		bl	HAL_UART_Transmit
+ 147              	.LVL11:
+  22:./Application/Src/hc04bt.c ****     status = HAL_UART_Receive(huart, rx_buffer, 6, 1000); // this command will wait buffer filled o
+ 148              		.loc 1 22 5 is_stmt 1 view .LVU23
+ 149              		.loc 1 22 14 is_stmt 0 view .LVU24
+ 150 008e 4FF47A73 		mov	r3, #1000
+ 151 0092 0622     		movs	r2, #6
+ 152 0094 3146     		mov	r1, r6
+ 153 0096 2046     		mov	r0, r4
+ 154 0098 FFF7FEFF 		bl	HAL_UART_Receive
+ 155              	.LVL12:
+  23:./Application/Src/hc04bt.c ****     LCD_draw_string(&lcd_config, 5, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);
+ 156              		.loc 1 23 5 is_stmt 1 view .LVU25
+ 157 009c 4FF6FF73 		movw	r3, #65535
+ 158 00a0 0193     		str	r3, [sp, #4]
+ 159 00a2 0023     		movs	r3, #0
+ 160 00a4 0093     		str	r3, [sp]
+ 161 00a6 3346     		mov	r3, r6
+ 162 00a8 0A22     		movs	r2, #10
+ 163 00aa 0521     		movs	r1, #5
+ 164 00ac 0B48     		ldr	r0, .L6+16
+ 165 00ae FFF7FEFF 		bl	LCD_draw_string
+ 166              	.LVL13:
+  24:./Application/Src/hc04bt.c ****     // DO NOT write any code below, they will not work (HAL Time out & cannot receive), change comm
+  25:./Application/Src/hc04bt.c ****     // HC-04 auto restart on such command (NAME, PIN, BAUDRATE)
+  26:./Application/Src/hc04bt.c ****     // The setting's baud rate is same as normal use baud rate, restart will change the setting's b
+  27:./Application/Src/hc04bt.c **** }
+ 167              		.loc 1 27 1 is_stmt 0 view .LVU26
+ 168 00b2 06B0     		add	sp, sp, #24
+ 169              	.LCFI2:
+ 170              		.cfi_remember_state
+ 171              		.cfi_def_cfa_offset 16
+ 172              		@ sp needed
+ 173 00b4 70BD     		pop	{r4, r5, r6, pc}
+ 174              	.LVL14:
+ 175              	.L5:
+ 176              	.LCFI3:
+ 177              		.cfi_restore_state
+  12:./Application/Src/hc04bt.c ****     } else{
+ 178              		.loc 1 12 9 is_stmt 1 view .LVU27
+ 179 00b6 4FF6FF73 		movw	r3, #65535
+ 180 00ba 0193     		str	r3, [sp, #4]
+ 181 00bc 0146     		mov	r1, r0
+ 182 00be 0090     		str	r0, [sp]
+ 183 00c0 084B     		ldr	r3, .L6+24
+ 184 00c2 0822     		movs	r2, #8
+ 185 00c4 0548     		ldr	r0, .L6+16
+ 186 00c6 FFF7FEFF 		bl	LCD_draw_string
+ 187              	.LVL15:
+ 188 00ca C6E7     		b	.L3
+ 189              	.L7:
+ 190              		.align	2
+ 191              	.L6:
+ 192 00cc 28000000 		.word	.LC0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 5
+
+
+ 193 00d0 00000000 		.word	rx_buffer
+ 194 00d4 00000000 		.word	.LC1
+ 195 00d8 14000000 		.word	.LC3
+ 196 00dc 00000000 		.word	lcd_config
+ 197 00e0 2C000000 		.word	.LC4
+ 198 00e4 04000000 		.word	.LC2
+ 199              		.cfi_endproc
+ 200              	.LFE160:
+ 202              		.section	.text.BT_send_info,"ax",%progbits
+ 203              		.align	1
+ 204              		.global	BT_send_info
+ 205              		.syntax unified
+ 206              		.thumb
+ 207              		.thumb_func
+ 209              	BT_send_info:
+ 210              	.LVL16:
+ 211              	.LFB161:
+  28:./Application/Src/hc04bt.c **** 
+  29:./Application/Src/hc04bt.c **** void BT_send_info(UART_HandleTypeDef* huart, uint8_t* info, uint16_t info_size){
+ 212              		.loc 1 29 80 view -0
+ 213              		.cfi_startproc
+ 214              		@ args = 0, pretend = 0, frame = 0
+ 215              		@ frame_needed = 0, uses_anonymous_args = 0
+ 216              		.loc 1 29 80 is_stmt 0 view .LVU29
+ 217 0000 70B5     		push	{r4, r5, r6, lr}
+ 218              	.LCFI4:
+ 219              		.cfi_def_cfa_offset 16
+ 220              		.cfi_offset 4, -16
+ 221              		.cfi_offset 5, -12
+ 222              		.cfi_offset 6, -8
+ 223              		.cfi_offset 14, -4
+ 224 0002 0446     		mov	r4, r0
+ 225 0004 0D46     		mov	r5, r1
+ 226 0006 1646     		mov	r6, r2
+  30:./Application/Src/hc04bt.c ****     HAL_UART_StateTypeDef state = HAL_UART_GetState(huart);
+ 227              		.loc 1 30 5 is_stmt 1 view .LVU30
+ 228              		.loc 1 30 35 is_stmt 0 view .LVU31
+ 229 0008 FFF7FEFF 		bl	HAL_UART_GetState
+ 230              	.LVL17:
+  31:./Application/Src/hc04bt.c ****     if (state == HAL_UART_STATE_READY || state == HAL_UART_STATE_BUSY_RX){
+ 231              		.loc 1 31 5 is_stmt 1 view .LVU32
+ 232              		.loc 1 31 8 is_stmt 0 view .LVU33
+ 233 000c 2028     		cmp	r0, #32
+ 234 000e 02D0     		beq	.L9
+ 235              		.loc 1 31 39 discriminator 1 view .LVU34
+ 236 0010 2228     		cmp	r0, #34
+ 237 0012 00D0     		beq	.L9
+ 238              	.LVL18:
+ 239              	.L8:
+  32:./Application/Src/hc04bt.c ****         HAL_UART_Transmit_IT(huart, info, info_size);
+  33:./Application/Src/hc04bt.c ****     }
+  34:./Application/Src/hc04bt.c **** }
+ 240              		.loc 1 34 1 view .LVU35
+ 241 0014 70BD     		pop	{r4, r5, r6, pc}
+ 242              	.LVL19:
+ 243              	.L9:
+  32:./Application/Src/hc04bt.c ****         HAL_UART_Transmit_IT(huart, info, info_size);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 6
+
+
+ 244              		.loc 1 32 9 is_stmt 1 view .LVU36
+ 245 0016 3246     		mov	r2, r6
+ 246 0018 2946     		mov	r1, r5
+ 247 001a 2046     		mov	r0, r4
+ 248              	.LVL20:
+  32:./Application/Src/hc04bt.c ****         HAL_UART_Transmit_IT(huart, info, info_size);
+ 249              		.loc 1 32 9 is_stmt 0 view .LVU37
+ 250 001c FFF7FEFF 		bl	HAL_UART_Transmit_IT
+ 251              	.LVL21:
+ 252              		.loc 1 34 1 view .LVU38
+ 253 0020 F8E7     		b	.L8
+ 254              		.cfi_endproc
+ 255              	.LFE161:
+ 257              		.text
+ 258              	.Letext0:
+ 259              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 260              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 261              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 262              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 263              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 264              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 265              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 266              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 267              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ 268              		.file 11 "Application/Inc/ILI9341.h"
+ 269              		.file 12 "Application/Inc/application.h"
+ 270              		.file 13 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 271              		.file 14 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ 272              		.file 15 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s 			page 7
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 hc04bt.c
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:22     .rodata.BT_config.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:38     .text.BT_config:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:44     .text.BT_config:00000000 BT_config
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:192    .text.BT_config:000000cc $d
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:203    .text.BT_send_info:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccaIkIve.s:209    .text.BT_send_info:00000000 BT_send_info
+
+UNDEFINED SYMBOLS
+strlen
+HAL_UART_Transmit
+HAL_UART_Receive
+strncmp
+LCD_draw_string
+HAL_Delay
+memset
+rx_buffer
+lcd_config
+HAL_UART_GetState
+HAL_UART_Transmit_IT

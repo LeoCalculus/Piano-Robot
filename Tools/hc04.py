@@ -1,0 +1,1165 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, scrolledtext, filedialog
+import threading
+import time
+import serial
+import serial.tools.list_ports
+import sys
+import os
+import struct
+
+# File Transfer Protocol Constants
+FT_CMD_FILE_START = 0xF0
+FT_CMD_FILE_DATA = 0xF1
+FT_CMD_FILE_END = 0xF2
+FT_CMD_FILE_ABORT = 0xF3
+
+FT_RSP_ACK = 0xA0
+FT_RSP_NAK = 0xA1
+FT_RSP_READY = 0xA2
+FT_RSP_ERROR = 0xA3
+FT_RSP_SUCCESS = 0xA4
+
+FT_CHUNK_SIZE = 64  # Match STM32 FT_MAX_CHUNK_SIZE
+
+
+class HC04SerialGUI:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("HC-04 Bluetooth Serial Tool")
+        self.root.geometry("800x600")
+        self.root.resizable(True, True)
+
+        # Set color scheme
+        self.bg_color = "#f0f0f0"
+        self.header_color = "#3498db"
+        self.button_color = "#2980b9"
+        self.text_color = "#2c3e50"
+        self.highlight_color = "#e74c3c"
+
+        self.root.configure(bg=self.bg_color)
+
+        # Variables
+        self.ports = {}
+        self.selected_port = None
+        self.scanning = False
+        self.connected = False
+        self.ser = None
+        self.reading_thread = None
+        self.keep_reading = False
+        self.connection_timeout = 3  # seconds
+
+        # Create styles
+        self.style = ttk.Style()
+        self.style.configure("TButton", font=("Arial", 10))
+        self.style.configure("Primary.TButton", background=self.button_color, foreground="white")
+        self.style.configure("TLabel", font=("Arial", 10))
+        self.style.configure("Header.TLabel", font=("Arial", 12, "bold"), foreground=self.header_color)
+
+        # Create the main frame
+        self.main_frame = ttk.Frame(self.root, padding=10)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # Create GUI elements
+        self.create_header()
+        self.create_notebook()
+
+        # Populate ports initially
+        self.refresh_ports()
+
+        # Start periodic check for UI updates
+        self.root.after(100, self.check_ui_updates)
+
+    def create_header(self):
+        header_frame = ttk.Frame(self.main_frame)
+        header_frame.pack(fill=tk.X, pady=5)
+
+        title_label = ttk.Label(header_frame, text="HC-04 Bluetooth Serial Tool",
+                               style="Header.TLabel")
+        title_label.pack(side=tk.LEFT)
+
+        self.status_var = tk.StringVar(value="Ready")
+        status_label = ttk.Label(header_frame, textvariable=self.status_var,
+                                foreground=self.text_color)
+        status_label.pack(side=tk.RIGHT)
+
+    def create_notebook(self):
+        """Create tabbed interface"""
+        self.notebook = ttk.Notebook(self.main_frame)
+        self.notebook.pack(fill=tk.BOTH, expand=True, pady=5)
+
+        # Create tabs (no AT Commands tab for HC-04)
+        self.connection_tab = ttk.Frame(self.notebook)
+        self.serial_testing_tab = ttk.Frame(self.notebook)
+        self.file_upload_tab = ttk.Frame(self.notebook)
+
+        # Add tabs to notebook
+        self.notebook.add(self.connection_tab, text="Connection")
+        self.notebook.add(self.serial_testing_tab, text="Serial Testing")
+        self.notebook.add(self.file_upload_tab, text="File Upload")
+
+        # Set up each tab
+        self.setup_connection_tab()
+        self.setup_serial_testing_tab()
+        self.setup_file_upload_tab()
+
+        # Disable tabs until connected
+        self.notebook.tab(1, state="disabled")
+        self.notebook.tab(2, state="disabled")
+
+        # Bind tab change event
+        self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
+
+    def setup_connection_tab(self):
+        """Setup the connection tab"""
+        # Create port list
+        self.create_port_list()
+
+        # Create connection controls
+        control_frame = ttk.Frame(self.connection_tab)
+        control_frame.pack(fill=tk.X, pady=5)
+
+        # Buttons
+        self.connect_button = ttk.Button(control_frame, text="Connect",
+                                       command=self.connect_port, state=tk.DISABLED)
+        self.connect_button.pack(side=tk.LEFT, padx=5)
+
+        self.refresh_button = ttk.Button(control_frame, text="Refresh Ports",
+                                       command=self.refresh_ports)
+        self.refresh_button.pack(side=tk.LEFT, padx=5)
+
+        self.disconnect_button = ttk.Button(control_frame, text="Disconnect",
+                                          command=self.disconnect_port, state=tk.DISABLED)
+        self.disconnect_button.pack(side=tk.LEFT, padx=5)
+
+        quit_button = ttk.Button(control_frame, text="Quit",
+                               command=self.on_closing)
+        quit_button.pack(side=tk.RIGHT, padx=5)
+
+        # Connection settings
+        settings_frame = ttk.LabelFrame(self.connection_tab, text="Connection Settings")
+        settings_frame.pack(fill=tk.X, pady=10, padx=5)
+
+        # Baudrate
+        baud_frame = ttk.Frame(settings_frame)
+        baud_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(baud_frame, text="Baud Rate:").pack(side=tk.LEFT, padx=5)
+        self.baudrate_var = tk.StringVar(value="115200")  # HC-04 default is often 115200
+        baudrate_combo = ttk.Combobox(baud_frame, textvariable=self.baudrate_var,
+                                     values=["9600", "38400", "57600", "115200"], width=10)
+        baudrate_combo.pack(side=tk.LEFT, padx=5)
+
+        # Connection timeout
+        ttk.Label(baud_frame, text="Timeout (s):").pack(side=tk.LEFT, padx=15)
+        self.timeout_var = tk.StringVar(value="3")
+        timeout_spin = ttk.Spinbox(baud_frame, from_=1, to=10, width=5,
+                                   textvariable=self.timeout_var)
+        timeout_spin.pack(side=tk.LEFT, padx=5)
+
+        # Line Endings
+        ending_frame = ttk.Frame(settings_frame)
+        ending_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(ending_frame, text="Line Ending:").pack(side=tk.LEFT, padx=5)
+        self.line_ending_var = tk.StringVar(value="CRLF")
+        ttk.Radiobutton(ending_frame, text="None", variable=self.line_ending_var,
+                       value="NONE").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(ending_frame, text="CR", variable=self.line_ending_var,
+                       value="CR").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(ending_frame, text="LF", variable=self.line_ending_var,
+                       value="LF").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(ending_frame, text="CR+LF", variable=self.line_ending_var,
+                       value="CRLF").pack(side=tk.LEFT, padx=5)
+
+        # Connection info
+        self.conn_info_frame = ttk.LabelFrame(self.connection_tab, text="Connection Info")
+        self.conn_info_frame.pack(fill=tk.X, pady=10, padx=5)
+
+        info_frame = ttk.Frame(self.conn_info_frame)
+        info_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(info_frame, text="Connected Port:").grid(row=0, column=0, sticky=tk.W, padx=5)
+        self.conn_port_var = tk.StringVar(value="None")
+        ttk.Label(info_frame, textvariable=self.conn_port_var).grid(row=0, column=1, sticky=tk.W)
+
+        ttk.Label(info_frame, text="Status:").grid(row=1, column=0, sticky=tk.W, padx=5)
+        self.conn_status_var = tk.StringVar(value="Disconnected")
+        ttk.Label(info_frame, textvariable=self.conn_status_var).grid(row=1, column=1, sticky=tk.W)
+
+        # Create log area
+        log_frame = ttk.LabelFrame(self.connection_tab, text="Status Log")
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        self.log_text = scrolledtext.ScrolledText(log_frame, height=6, width=80, wrap=tk.WORD)
+        self.log_text.pack(fill=tk.BOTH, expand=True)
+        self.log_text.config(state=tk.DISABLED)
+
+        # Add initial log message
+        self.log("HC-04 Bluetooth Serial Tool ready.")
+        self.log("1. Pair your HC-04 with Windows first before connecting")
+        self.log("2. Select the Bluetooth COM port from the list")
+        self.log("3. HC-04 uses transparent serial mode (no AT commands)")
+
+    def create_port_list(self):
+        """Create the port list frame and tree"""
+        list_frame = ttk.LabelFrame(self.connection_tab, text="Available COM Ports (Bluetooth Classic)")
+        list_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        # Create Treeview for port list
+        columns = ("port", "description", "hwid", "device")
+        self.port_tree = ttk.Treeview(list_frame, columns=columns, show="headings", selectmode="browse")
+
+        # Define headings
+        self.port_tree.heading("port", text="Port")
+        self.port_tree.heading("description", text="Description")
+        self.port_tree.heading("hwid", text="Hardware ID")
+        self.port_tree.heading("device", text="Device")
+
+        # Define columns
+        self.port_tree.column("port", width=80)
+        self.port_tree.column("description", width=200)
+        self.port_tree.column("hwid", width=150)
+        self.port_tree.column("device", width=100)
+
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.port_tree.yview)
+        self.port_tree.configure(yscroll=scrollbar.set)
+
+        # Pack widgets
+        self.port_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Bind selection event
+        self.port_tree.bind("<<TreeviewSelect>>", self.on_port_select)
+
+    def setup_serial_testing_tab(self):
+        """Setup the serial testing tab for TX/RX testing"""
+        # Create frames
+        send_frame = ttk.LabelFrame(self.serial_testing_tab, text="Send Data")
+        send_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        # Send text input
+        input_frame = ttk.Frame(send_frame)
+        input_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.data_entry = ttk.Entry(input_frame, width=60)
+        self.data_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        self.data_entry.bind("<Return>", lambda e: self.send_data())
+
+        self.send_button = ttk.Button(input_frame, text="Send", command=self.send_data)
+        self.send_button.pack(side=tk.LEFT, padx=5)
+
+        # Quick send buttons
+        quick_frame = ttk.Frame(send_frame)
+        quick_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(quick_frame, text="Quick Send:").pack(side=tk.LEFT, padx=5)
+
+        test_messages = ["Hello", "Test", "OK", "1234", "ABCD"]
+        for msg in test_messages:
+            btn = ttk.Button(quick_frame, text=msg,
+                           command=lambda m=msg: self.quick_send(m))
+            btn.pack(side=tk.LEFT, padx=2)
+
+        # HEX input option
+        hex_frame = ttk.Frame(send_frame)
+        hex_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(hex_frame, text="Send Hex:").pack(side=tk.LEFT, padx=5)
+        self.hex_entry = ttk.Entry(hex_frame, width=40)
+        self.hex_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
+        self.hex_entry.insert(0, "48 65 6C 6C 6F")  # "Hello" in hex
+
+        hex_send_button = ttk.Button(hex_frame, text="Send Hex",
+                                   command=self.send_hex_data)
+        hex_send_button.pack(side=tk.LEFT, padx=5)
+
+        # Received data display
+        receive_frame = ttk.LabelFrame(self.serial_testing_tab, text="Received Data")
+        receive_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        display_frame = ttk.Frame(receive_frame)
+        display_frame.pack(fill=tk.X, pady=5)
+
+        ttk.Label(display_frame, text="Display As:").pack(side=tk.LEFT, padx=5)
+        self.display_mode_var = tk.StringVar(value="TEXT")
+        ttk.Radiobutton(display_frame, text="Text", variable=self.display_mode_var,
+                       value="TEXT").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(display_frame, text="Hex", variable=self.display_mode_var,
+                       value="HEX").pack(side=tk.LEFT, padx=5)
+        ttk.Radiobutton(display_frame, text="Both", variable=self.display_mode_var,
+                       value="BOTH").pack(side=tk.LEFT, padx=5)
+
+        clear_button = ttk.Button(display_frame, text="Clear",
+                                command=self.clear_receive_text)
+        clear_button.pack(side=tk.RIGHT, padx=5)
+
+        # Received text area
+        self.receive_text = scrolledtext.ScrolledText(receive_frame, height=15, width=80, wrap=tk.WORD)
+        self.receive_text.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+    def setup_file_upload_tab(self):
+        """Setup the file upload tab for MIDI file transfer"""
+        # File selection frame
+        file_frame = ttk.LabelFrame(self.file_upload_tab, text="Select MIDI File")
+        file_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        select_frame = ttk.Frame(file_frame)
+        select_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.file_path_var = tk.StringVar(value="No file selected")
+        ttk.Label(select_frame, textvariable=self.file_path_var, width=60).pack(
+            side=tk.LEFT, padx=5)
+
+        ttk.Button(select_frame, text="Browse...",
+                   command=self.browse_midi_file).pack(side=tk.LEFT, padx=5)
+
+        # File info frame
+        info_frame = ttk.LabelFrame(self.file_upload_tab, text="File Information")
+        info_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.file_info_var = tk.StringVar(value="Select a MIDI file to see details")
+        ttk.Label(info_frame, textvariable=self.file_info_var, justify=tk.LEFT).pack(
+            pady=10, padx=10)
+
+        # Upload controls frame
+        control_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Control")
+        control_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        btn_frame = ttk.Frame(control_frame)
+        btn_frame.pack(fill=tk.X, pady=5)
+
+        self.upload_button = ttk.Button(btn_frame, text="Upload File",
+                                         command=self.start_upload, state=tk.DISABLED)
+        self.upload_button.pack(side=tk.LEFT, padx=5)
+
+        self.abort_button = ttk.Button(btn_frame, text="Abort",
+                                        command=self.abort_upload, state=tk.DISABLED)
+        self.abort_button.pack(side=tk.LEFT, padx=5)
+
+        ttk.Button(btn_frame, text="Refresh File List",
+                   command=self.refresh_device_files).pack(side=tk.LEFT, padx=5)
+
+        # Progress frame
+        progress_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Progress")
+        progress_frame.pack(fill=tk.X, pady=5, padx=5)
+
+        self.progress_var = tk.DoubleVar(value=0)
+        self.progress_bar = ttk.Progressbar(progress_frame, variable=self.progress_var,
+                                             maximum=100, length=400)
+        self.progress_bar.pack(pady=10, padx=10, fill=tk.X)
+
+        self.progress_label_var = tk.StringVar(value="Ready")
+        ttk.Label(progress_frame, textvariable=self.progress_label_var).pack(pady=5)
+
+        # Device files frame
+        device_frame = ttk.LabelFrame(self.file_upload_tab, text="Files on Device")
+        device_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        columns = ("filename", "size")
+        self.device_files_tree = ttk.Treeview(device_frame, columns=columns,
+                                               show="headings", height=6)
+        self.device_files_tree.heading("filename", text="Filename")
+        self.device_files_tree.heading("size", text="Size (bytes)")
+        self.device_files_tree.column("filename", width=200)
+        self.device_files_tree.column("size", width=100)
+        self.device_files_tree.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Upload log
+        log_frame = ttk.LabelFrame(self.file_upload_tab, text="Upload Log")
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
+
+        self.upload_log = scrolledtext.ScrolledText(log_frame, height=5, width=80)
+        self.upload_log.pack(fill=tk.BOTH, expand=True)
+
+        # Initialize upload state
+        self.selected_file_path = None
+        self.upload_abort_flag = False
+
+    def on_tab_change(self, event):
+        """Handle tab change event"""
+        selected_tab = self.notebook.index(self.notebook.select())
+
+        # If changed to Serial Testing tab, focus on data entry
+        if selected_tab == 1 and self.connected:
+            self.data_entry.focus()
+
+    def log(self, message):
+        """Add a message to the log with timestamp"""
+        timestamp = time.strftime("%H:%M:%S", time.localtime())
+        log_message = f"[{timestamp}] {message}\n"
+
+        self.log_text.config(state=tk.NORMAL)
+        self.log_text.insert(tk.END, log_message)
+        self.log_text.see(tk.END)
+        self.log_text.config(state=tk.DISABLED)
+
+    def refresh_ports(self):
+        """Refresh the list of available COM ports - Bluetooth Classic only"""
+        # Clear existing ports
+        for item in self.port_tree.get_children():
+            self.port_tree.delete(item)
+        self.ports = {}
+
+        # Get all COM ports
+        ports = list(serial.tools.list_ports.comports())
+
+        # If no ports found
+        if not ports:
+            self.log("No COM ports found. Make sure your device is connected and paired.")
+            return
+
+        bt_count = 0
+        # Add ports to the list - filter for Bluetooth Classic only
+        for port in ports:
+            port_name = port.device
+            description = port.description.lower()
+            hwid = port.hwid.lower()
+
+            # Identify device type - skip BLE devices
+            device_type = "Unknown"
+            is_bluetooth = False
+
+            # Check for BLE indicators (skip these)
+            if any(x in description for x in ['ble', 'low energy', 'le ']):
+                continue  # Skip BLE devices
+            if any(x in hwid for x in ['ble', 'low energy']):
+                continue  # Skip BLE devices
+
+            # Check for Bluetooth Classic
+            if any(x in description for x in ['bluetooth', 'bt', 'hc-04', 'hc04', 'serial port', 'standard serial']):
+                is_bluetooth = True
+                device_type = "Bluetooth"
+                bt_count += 1
+            elif 'bthenum' in hwid:  # Windows Bluetooth enumeration
+                is_bluetooth = True
+                device_type = "Bluetooth"
+                bt_count += 1
+            elif 'com' in port_name.lower():
+                device_type = "Serial"
+
+            # Store port info
+            self.ports[port_name] = {
+                'name': port_name,
+                'description': port.description,
+                'hwid': port.hwid,
+                'is_bluetooth': is_bluetooth,
+                'device_type': device_type
+            }
+
+            # Add to UI
+            values = (port_name, port.description, port.hwid, device_type)
+
+            # Use tags for Bluetooth devices
+            tags = ("standard",)
+            if is_bluetooth:
+                tags = ("bluetooth",)
+
+            self.port_tree.insert('', tk.END, port_name, values=values, tags=tags)
+
+        # Configure tag for Bluetooth devices
+        self.port_tree.tag_configure('bluetooth', background='#90EE90')  # Light green
+
+        self.log(f"Found {len(self.ports)} COM port(s), {bt_count} Bluetooth Classic")
+
+    def on_port_select(self, event):
+        """Handle port selection from the list"""
+        selection = self.port_tree.selection()
+        if selection:
+            port_name = selection[0]
+            self.selected_port = port_name
+            self.status_var.set(f"Selected: {port_name}")
+            self.connect_button.config(state=tk.NORMAL)
+        else:
+            self.selected_port = None
+            self.connect_button.config(state=tk.DISABLED)
+
+    def connect_port(self):
+        """Connect to the selected serial port"""
+        if not self.selected_port:
+            return
+
+        port_name = self.selected_port
+        baud_rate = int(self.baudrate_var.get())
+
+        try:
+            self.connection_timeout = int(self.timeout_var.get())
+        except:
+            self.connection_timeout = 3
+
+        # Start connection in a separate thread
+        self.log(f"Connecting to {port_name} at {baud_rate} baud (timeout: {self.connection_timeout}s)...")
+        self.status_var.set(f"Connecting...")
+
+        # Disable buttons during connection
+        self.connect_button.config(state=tk.DISABLED)
+        self.refresh_button.config(state=tk.DISABLED)
+
+        conn_thread = threading.Thread(target=self.connect_thread, args=(port_name, baud_rate))
+        conn_thread.daemon = True
+        conn_thread.start()
+
+    def connect_thread(self, port_name, baud_rate):
+        """Handle port connection in a separate thread with timeout"""
+        try:
+            # Try to open the serial port with timeout
+            self.ser = serial.Serial(
+                port=port_name,
+                baudrate=baud_rate,
+                timeout=self.connection_timeout,
+                write_timeout=self.connection_timeout
+            )
+
+            # Give it a moment to establish
+            time.sleep(0.5)
+
+            # Check if port is actually open
+            if not self.ser.is_open:
+                raise serial.SerialException("Port failed to open")
+
+            # If we get here, connection was successful
+            self.connected = True
+
+            # Start reading thread
+            self.keep_reading = True
+            self.reading_thread = threading.Thread(target=self.read_serial)
+            self.reading_thread.daemon = True
+            self.reading_thread.start()
+
+            # Update UI from main thread
+            self.root.after(0, self.connection_successful, port_name, baud_rate)
+
+        except serial.SerialException as e:
+            # Update UI from main thread
+            self.root.after(0, self.connection_failed, str(e))
+            self.cleanup_connection()
+
+        except Exception as e:
+            # Update UI from main thread
+            self.root.after(0, self.connection_failed, str(e))
+            self.cleanup_connection()
+
+    def cleanup_connection(self):
+        """Clean up connection resources"""
+        if self.ser:
+            try:
+                self.ser.close()
+            except:
+                pass
+            self.ser = None
+        self.connected = False
+
+    def connection_successful(self, port_name, baud_rate):
+        """Handle successful connection (called from main thread)"""
+        self.log(f"Successfully connected to {port_name} at {baud_rate} baud")
+        self.status_var.set(f"Connected: {port_name}")
+
+        # Update UI
+        self.conn_port_var.set(f"{port_name} ({baud_rate} baud)")
+        self.conn_status_var.set("Connected")
+
+        # Enable other tabs
+        self.notebook.tab(1, state="normal")
+        self.notebook.tab(2, state="normal")
+
+        # Update button states
+        self.connect_button.config(state=tk.DISABLED)
+        self.refresh_button.config(state=tk.NORMAL)
+        self.disconnect_button.config(state=tk.NORMAL)
+
+        # Highlight connected port in the list
+        self.port_tree.item(port_name, tags=("connected",))
+        self.port_tree.tag_configure("connected", background="#aaffaa")
+
+        # Clear receive areas
+        self.clear_receive_text()
+
+        # Welcome message
+        self.log("Connected! You can now send/receive data in the 'Serial Testing' tab")
+
+    def connection_failed(self, error_msg):
+        """Handle failed connection (called from main thread)"""
+        self.log(f"Connection failed: {error_msg}")
+        self.status_var.set("Connection failed")
+
+        # Reset connection status
+        self.connected = False
+        self.ser = None
+
+        # Update UI
+        self.refresh_button.config(state=tk.NORMAL)
+        if self.selected_port:
+            self.connect_button.config(state=tk.NORMAL)
+
+        messagebox.showerror("Connection Error",
+                           f"Could not connect to the port.\n\nError: {error_msg}\n\n" +
+                           "For HC-04 modules:\n" +
+                           "1. Make sure the module is powered on\n" +
+                           "2. Verify it's paired with your computer\n" +
+                           "3. Try a different baud rate (usually 9600 or 115200)\n" +
+                           "4. Make sure the COM port is not used by another app\n" +
+                           "5. Try disconnecting and re-pairing the device")
+
+    def read_serial(self):
+        """Read data from the serial port in a separate thread"""
+        receive_buffer = bytearray()
+
+        while self.keep_reading and self.ser:
+            try:
+                if not self.ser.is_open:
+                    break
+
+                # Check if there's data available
+                if self.ser.in_waiting > 0:
+                    # Read data
+                    data = self.ser.read(self.ser.in_waiting)
+                    receive_buffer.extend(data)
+
+                    # Process and display data in main thread
+                    if receive_buffer:
+                        # Make a copy of the buffer to send to the main thread
+                        data_to_display = bytes(receive_buffer)
+                        self.root.after(0, lambda d=data_to_display: self.display_received_data(d))
+                        receive_buffer.clear()
+
+                # Small delay to prevent CPU hogging
+                time.sleep(0.05)
+
+            except serial.SerialException as e:
+                if self.connected:
+                    self.root.after(0, lambda err=str(e):
+                                  self.log(f"Serial error: {err}"))
+                    self.root.after(0, self.disconnect_port)
+                break
+            except Exception as e:
+                if self.connected:
+                    self.root.after(0, lambda err=str(e):
+                                  self.log(f"Read error: {err}"))
+                break
+
+    def display_received_data(self, data):
+        """Display received data in the UI (called from main thread)"""
+        if not data:
+            return
+
+        # Get current tab
+        current_tab = self.notebook.index(self.notebook.select())
+
+        # Get display mode
+        display_mode = self.display_mode_var.get()
+
+        # Convert data to string and hex
+        try:
+            text_data = data.decode('utf-8', errors='replace')
+        except:
+            text_data = "<?>"
+
+        hex_data = ' '.join([f'{b:02X}' for b in data])
+
+        # Format according to display mode
+        if display_mode == "TEXT":
+            display_text = text_data
+        elif display_mode == "HEX":
+            display_text = hex_data
+        else:  # BOTH
+            display_text = f"{text_data}\n[HEX: {hex_data}]"
+
+        timestamp = time.strftime("%H:%M:%S", time.localtime())
+
+        # Add to Serial Testing tab
+        if current_tab == 1:
+            self.receive_text.insert(tk.END, f"[{timestamp}] {display_text}\n")
+            self.receive_text.see(tk.END)
+
+        # Also log the data
+        self.log(f"Received: {text_data.strip()}")
+
+    def disconnect_port(self):
+        """Disconnect from current port"""
+        # Stop reading thread
+        self.keep_reading = False
+        if self.reading_thread and self.reading_thread.is_alive():
+            self.reading_thread.join(timeout=1.0)
+
+        # Close serial port
+        if self.ser:
+            try:
+                self.ser.close()
+            except:
+                pass
+
+        self.ser = None
+        self.connected = False
+
+        # Update UI
+        self.log("Disconnected from port")
+        self.status_var.set("Disconnected")
+        self.conn_port_var.set("None")
+        self.conn_status_var.set("Disconnected")
+
+        # Disable tabs
+        self.notebook.tab(1, state="disabled")
+        self.notebook.tab(2, state="disabled")
+
+        # Switch to connection tab
+        self.notebook.select(0)
+
+        # Update button states
+        self.disconnect_button.config(state=tk.DISABLED)
+        self.refresh_button.config(state=tk.NORMAL)
+
+        # Reset port list highlighting
+        if self.selected_port and self.selected_port in self.ports:
+            if self.ports[self.selected_port]['is_bluetooth']:
+                self.port_tree.item(self.selected_port, tags=("bluetooth",))
+            else:
+                self.port_tree.item(self.selected_port, tags=("standard",))
+            self.connect_button.config(state=tk.NORMAL)
+
+    def send_data(self):
+        """Send data from the entry field"""
+        if not self.connected or not self.ser:
+            messagebox.showerror("Error", "Not connected to any port")
+            return
+
+        data = self.data_entry.get()
+        if not data:
+            messagebox.showwarning("Warning", "Please enter data to send")
+            return
+
+        # Send the data
+        self.send_raw_data(data)
+
+        # Clear entry field
+        self.data_entry.delete(0, tk.END)
+
+        # Set focus back to entry field
+        self.data_entry.focus()
+
+    def quick_send(self, message):
+        """Send a predefined message"""
+        if not self.connected or not self.ser:
+            messagebox.showerror("Error", "Not connected to any port")
+            return
+
+        # Send the message
+        self.send_raw_data(message)
+
+    def send_hex_data(self):
+        """Send data from the hex entry field"""
+        if not self.connected or not self.ser:
+            messagebox.showerror("Error", "Not connected to any port")
+            return
+
+        hex_data = self.hex_entry.get()
+        if not hex_data:
+            messagebox.showwarning("Warning", "Please enter hex data to send")
+            return
+
+        try:
+            # Parse hex string
+            hex_bytes = bytearray()
+            for hex_str in hex_data.split():
+                hex_bytes.append(int(hex_str, 16))
+
+            # Send the data
+            self.ser.write(hex_bytes)
+
+            # Log the sent data
+            self.log(f"Sent (hex): {' '.join([f'{b:02X}' for b in hex_bytes])}")
+
+        except Exception as e:
+            self.log(f"Error sending hex data: {str(e)}")
+            messagebox.showerror("Send Error", f"Could not send hex data: {str(e)}")
+
+    def send_raw_data(self, data, ending=None):
+        """Send raw data with specified line ending"""
+        try:
+            # Use specified ending or get from UI
+            if not ending:
+                ending = self.line_ending_var.get()
+
+            # Add appropriate line ending
+            if ending == "CR":
+                data += "\r"
+            elif ending == "LF":
+                data += "\n"
+            elif ending == "CRLF":
+                data += "\r\n"
+
+            # Send data as bytes
+            self.ser.write(data.encode('utf-8'))
+
+            # Log the sent data
+            self.log(f"Sent: {data.strip()}")
+
+        except Exception as e:
+            self.log(f"Send error: {str(e)}")
+            messagebox.showerror("Send Error", f"Could not send data: {str(e)}")
+
+            # Connection might be lost
+            if "device disconnected" in str(e).lower() or "port is closed" in str(e).lower():
+                self.disconnect_port()
+
+    def clear_receive_text(self):
+        """Clear the receive text area"""
+        self.receive_text.delete(1.0, tk.END)
+
+    def check_ui_updates(self):
+        """Periodically check for UI updates"""
+        # Schedule the next check
+        self.root.after(100, self.check_ui_updates)
+
+    def on_closing(self):
+        """Handle window closing"""
+        # Disconnect if connected
+        if self.connected and self.ser:
+            self.disconnect_port()
+
+        # Close window
+        self.root.destroy()
+        sys.exit(0)
+
+    # ========== File Upload Methods ==========
+
+    def browse_midi_file(self):
+        """Open file dialog to select MIDI file"""
+        filepath = filedialog.askopenfilename(
+            title="Select MIDI File",
+            filetypes=[("MIDI files", "*.mid *.MID"), ("All files", "*.*")]
+        )
+        if filepath:
+            self.selected_file_path = filepath
+            self.file_path_var.set(filepath)
+
+            # Get file info
+            file_size = os.path.getsize(filepath)
+            filename = os.path.basename(filepath)
+
+            # Check 8.3 format
+            name, ext = os.path.splitext(filename)
+            total_chunks = (file_size + FT_CHUNK_SIZE - 1) // FT_CHUNK_SIZE
+
+            if len(name) > 8:
+                self.file_info_var.set(
+                    f"WARNING: Filename '{name}' exceeds 8 characters!\n"
+                    f"Will be truncated to: {name[:8]}{ext}\n"
+                    f"Size: {file_size:,} bytes ({total_chunks} chunks)"
+                )
+            else:
+                self.file_info_var.set(
+                    f"Filename: {filename}\n"
+                    f"Size: {file_size:,} bytes\n"
+                    f"Chunks: {total_chunks}"
+                )
+
+            if file_size > 65535:
+                self.upload_button.config(state=tk.DISABLED)
+                self.upload_log_message("ERROR: File too large (max 64KB)")
+            elif self.connected:
+                self.upload_button.config(state=tk.NORMAL)
+
+    def upload_log_message(self, message):
+        """Add message to upload log"""
+        timestamp = time.strftime("%H:%M:%S")
+        self.upload_log.insert(tk.END, f"[{timestamp}] {message}\n")
+        self.upload_log.see(tk.END)
+
+    def calculate_checksum(self, data):
+        """Calculate XOR checksum"""
+        checksum = 0
+        for byte in data:
+            checksum ^= byte
+        return checksum
+
+    def start_upload(self):
+        """Start file upload in a separate thread"""
+        if not self.selected_file_path:
+            messagebox.showerror("Error", "No file selected")
+            return
+
+        self.upload_button.config(state=tk.DISABLED)
+        self.abort_button.config(state=tk.NORMAL)
+        self.upload_abort_flag = False
+        self.progress_var.set(0)
+
+        upload_thread = threading.Thread(target=self.upload_file_thread)
+        upload_thread.daemon = True
+        upload_thread.start()
+
+    def upload_file_thread(self):
+        """Thread function to handle file upload"""
+        try:
+            filepath = self.selected_file_path
+            file_size = os.path.getsize(filepath)
+            filename = os.path.basename(filepath)
+            name, ext = os.path.splitext(filename)
+
+            # Truncate to 8.3 format
+            name = name[:8].upper()
+            ext = ext[:4].upper()
+
+            total_chunks = (file_size + FT_CHUNK_SIZE - 1) // FT_CHUNK_SIZE
+
+            self.root.after(0, lambda: self.upload_log_message(
+                f"Starting upload: {name}{ext} ({file_size} bytes, {total_chunks} chunks)"))
+
+            # Read file data
+            with open(filepath, 'rb') as f:
+                file_data = f.read()
+
+            # Step 1: Send FILE_START
+            start_packet = bytearray([FT_CMD_FILE_START])
+            start_packet.extend(struct.pack('<H', file_size))
+            start_packet.extend(struct.pack('<H', total_chunks))
+            start_packet.extend(name.ljust(8, '\x00').encode('ascii')[:8])
+            start_packet.extend(ext.ljust(4, '\x00').encode('ascii')[:4])
+            start_packet.append(self.calculate_checksum(start_packet))
+
+            self.root.after(0, lambda: self.upload_log_message("Sending FILE_START..."))
+            start_success = False
+            for start_retry in range(10):
+                self.ser.reset_input_buffer()
+                self.ser.write(start_packet)
+
+                response = self.wait_for_response(timeout=2.0)
+
+                if response and response[0] == FT_RSP_READY:
+                    start_success = True
+                    break
+                elif response and response[0] == FT_RSP_ERROR:
+                    err = response[1] if len(response) > 1 else 0
+                    err_msgs = {1: "checksum", 2: "sequence", 3: "SD write", 4: "SD full",
+                               5: "file exists", 6: "bad name", 7: "timeout", 8: "overflow"}
+                    self.root.after(0, lambda e=err: self.upload_log_message(
+                        f"Device error: {err_msgs.get(e, e)}"))
+                    self.root.after(0, self.upload_complete_error)
+                    return
+                else:
+                    self.root.after(0, lambda rt=start_retry: self.upload_log_message(
+                        f"Timeout, retry {rt+1}/10"))
+
+                time.sleep(0.1 * (start_retry + 1))
+
+            if not start_success:
+                self.root.after(0, lambda: self.upload_log_message("Failed to start transfer"))
+                self.root.after(0, self.upload_complete_error)
+                return
+
+            self.root.after(0, lambda: self.upload_log_message("Device ready, sending chunks..."))
+
+            # Step 2: Send chunks
+            start_time = time.time()
+            bytes_sent = 0
+
+            for chunk_idx in range(total_chunks):
+                if self.upload_abort_flag:
+                    self.send_abort()
+                    return
+
+                start = chunk_idx * FT_CHUNK_SIZE
+                end = min(start + FT_CHUNK_SIZE, file_size)
+                chunk_data = file_data[start:end]
+                data_len = len(chunk_data)
+
+                data_packet = bytearray([FT_CMD_FILE_DATA])
+                data_packet.extend(struct.pack('<H', chunk_idx))
+                data_packet.append(data_len)
+                data_packet.extend(chunk_data)
+                data_packet.append(self.calculate_checksum(data_packet))
+
+                max_retries = 10
+                success = False
+                for retry in range(max_retries):
+                    if retry > 0:
+                        self.ser.reset_input_buffer()
+                        time.sleep(min(50 * (retry + 1), 300) / 1000.0)
+
+                    self.ser.write(data_packet)
+
+                    base_timeout = 1.0 if ((chunk_idx + 1) % 8 == 0) else 0.5
+                    timeout = base_timeout + (0.2 * retry)
+                    response = self.wait_for_response(timeout=timeout)
+
+                    if response and response[0] == FT_RSP_ACK:
+                        success = True
+                        bytes_sent += data_len
+                        if (chunk_idx + 1) % 8 == 0:
+                            time.sleep(0.005)
+                        else:
+                            time.sleep(0.001)
+                        break
+                    elif response and response[0] == FT_RSP_ERROR:
+                        err = response[1] if len(response) > 1 else 0
+                        self.root.after(0, lambda e=err: self.upload_log_message(f"Device error: {e}"))
+                        self.root.after(0, self.upload_complete_error)
+                        return
+
+                if not success:
+                    self.root.after(0, lambda c=chunk_idx: self.upload_log_message(
+                        f"FAILED at chunk {c} - aborting"))
+                    self.root.after(0, self.upload_complete_error)
+                    return
+
+                elapsed = time.time() - start_time
+                speed = bytes_sent / elapsed if elapsed > 0 else 0
+                progress = (chunk_idx + 1) / total_chunks * 100
+
+                self.root.after(0, lambda p=progress, c=chunk_idx+1, t=total_chunks, s=speed:
+                              self.update_progress(p, f"{c}/{t} | {s:.0f} B/s"))
+
+            # Step 3: Send FILE_END
+            self.root.after(0, lambda: self.upload_log_message("Finalizing..."))
+            end_packet = bytearray([FT_CMD_FILE_END])
+            end_packet.extend(struct.pack('<H', file_size & 0xFFFF))
+            end_packet.append(self.calculate_checksum(end_packet))
+
+            end_success = False
+            for end_retry in range(10):
+                self.ser.reset_input_buffer()
+                self.ser.write(end_packet)
+
+                response = self.wait_for_response(timeout=2.0 + (0.5 * end_retry))
+
+                if response and response[0] == FT_RSP_SUCCESS:
+                    end_success = True
+                    elapsed = time.time() - start_time
+                    avg_speed = file_size / elapsed if elapsed > 0 else 0
+                    self.root.after(0, lambda s=avg_speed, t=elapsed: self.upload_log_message(
+                        f"Upload complete! {s:.0f} B/s avg, {t:.1f}s total"))
+                    self.root.after(0, self.upload_complete_success)
+                    break
+                else:
+                    time.sleep(0.2 * (end_retry + 1))
+
+            if not end_success:
+                self.root.after(0, lambda: self.upload_log_message("Failed to finalize"))
+                self.root.after(0, self.upload_complete_error)
+
+        except Exception as e:
+            self.root.after(0, lambda: self.upload_log_message(f"Error: {str(e)}"))
+            self.root.after(0, self.upload_complete_error)
+
+    def wait_for_response(self, timeout=2.0):
+        """Wait for binary response from device"""
+        start_time = time.time()
+        response = bytearray()
+        expected_len = 2
+
+        while time.time() - start_time < timeout:
+            waiting = self.ser.in_waiting
+            if waiting > 0:
+                data = self.ser.read(waiting)
+                if data:
+                    response.extend(data)
+
+                    if len(response) >= 1 and response[0] >= 0xA0 and response[0] <= 0xA4:
+                        if response[0] == FT_RSP_ACK:
+                            expected_len = 4
+                        elif response[0] == FT_RSP_NAK:
+                            expected_len = 5
+                        elif response[0] == FT_RSP_SUCCESS:
+                            expected_len = 4
+                        elif response[0] == FT_RSP_ERROR:
+                            expected_len = 3
+                        else:
+                            expected_len = 2
+
+                        if len(response) >= expected_len:
+                            return bytes(response)
+
+            time.sleep(0.001)
+
+        return None if len(response) == 0 else bytes(response)
+
+    def update_progress(self, progress, label):
+        """Update progress bar and label"""
+        self.progress_var.set(progress)
+        self.progress_label_var.set(label)
+
+    def upload_complete_success(self):
+        """Handle successful upload completion"""
+        self.progress_label_var.set("Upload Complete!")
+        self.upload_button.config(state=tk.NORMAL)
+        self.abort_button.config(state=tk.DISABLED)
+        self.refresh_device_files()
+
+    def upload_complete_error(self):
+        """Handle upload error"""
+        self.progress_label_var.set("Upload Failed")
+        self.upload_button.config(state=tk.NORMAL)
+        self.abort_button.config(state=tk.DISABLED)
+
+    def abort_upload(self):
+        """Abort current upload"""
+        self.upload_abort_flag = True
+        self.upload_log_message("Upload aborted by user")
+
+    def send_abort(self):
+        """Send abort command to device"""
+        abort_packet = bytearray([FT_CMD_FILE_ABORT])
+        abort_packet.append(self.calculate_checksum(abort_packet))
+        self.ser.write(abort_packet)
+        self.root.after(0, lambda: self.upload_log_message("Abort sent to device"))
+        self.root.after(0, self.upload_complete_error)
+
+    def refresh_device_files(self):
+        """Request file list from device"""
+        if not self.connected:
+            return
+
+        for item in self.device_files_tree.get_children():
+            self.device_files_tree.delete(item)
+
+        was_reading = self.keep_reading
+        self.keep_reading = False
+        time.sleep(0.1)
+
+        try:
+            self.ser.reset_input_buffer()
+            self.ser.write(b"/listFiles\n")
+
+            lines = []
+            timeout = time.time() + 3.0
+            while time.time() < timeout:
+                if self.ser.in_waiting > 0:
+                    data = self.ser.read(self.ser.in_waiting)
+                    lines.extend(data.decode('utf-8', errors='replace').split('\n'))
+                    if any('END' in line for line in lines):
+                        break
+                time.sleep(0.05)
+
+            for line in lines:
+                line = line.strip()
+                if ',' in line and not line.startswith('FILES:'):
+                    parts = line.split(',')
+                    if len(parts) >= 2:
+                        filename = parts[0]
+                        size = parts[1]
+                        self.device_files_tree.insert('', tk.END, values=(filename, size))
+
+        except Exception as e:
+            self.upload_log_message(f"Error reading file list: {e}")
+        finally:
+            if was_reading:
+                self.keep_reading = True
+                self.reading_thread = threading.Thread(target=self.read_serial)
+                self.reading_thread.daemon = True
+                self.reading_thread.start()
+
+
+if __name__ == "__main__":
+    try:
+        import serial
+    except ImportError:
+        print("ERROR: PySerial library not found. Please install it with:")
+        print("pip install pyserial")
+        sys.exit(1)
+
+    root = tk.Tk()
+    app = HC04SerialGUI(root)
+
+    root.protocol("WM_DELETE_WINDOW", app.on_closing)
+
+    root.mainloop()

@@ -349,7 +349,7 @@ void LCD_draw_char(LCD_Config* cfg, uint16_t x, uint16_t y, char c, uint16_t col
     LCD_unselect(cfg);
 }
 
-void LCD_draw_string(LCD_Config* cfg, uint16_t x, uint16_t y, const char* str, uint16_t color, uint16_t bg) {
+void LCD_draw_string(LCD_Config* cfg, uint16_t x, uint16_t y, char* str, uint16_t color, uint16_t bg) {
     y *= 8; // convert to pixels - 8 pixels per line
     while (*str) {
         if (x + 6 > LCD_WIDTH) {

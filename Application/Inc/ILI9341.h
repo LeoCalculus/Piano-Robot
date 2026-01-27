@@ -80,7 +80,7 @@ void LCD_draw_pixel(LCD_Config* cfg, uint16_t x, uint16_t y, uint16_t color);
 void LCD_draw_char(LCD_Config* cfg, uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg);
 
 // draw string x is row and y is column, y is multiplied by 8 to convert to pixels - 8 pixels per line
-void LCD_draw_string(LCD_Config* cfg, uint16_t x, uint16_t y, const char* str, uint16_t color, uint16_t bg);
+void LCD_draw_string(LCD_Config* cfg, uint16_t x, uint16_t y, char* str, uint16_t color, uint16_t bg);
 
 // set the current cursor
 void LCD_set_cursor(uint16_t x, uint16_t y);

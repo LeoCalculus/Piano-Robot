@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    usart.h
-  * @brief   This file contains all the function prototypes for
-  *          the usart.c file
+  * @file    gpdma.c
+  * @brief   This file provides code for the configuration
+  *          of the GPDMA instances.
   ******************************************************************************
   * @attention
   *
@@ -17,39 +17,37 @@
   ******************************************************************************
   */
 /* USER CODE END Header */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USART_H__
-#define __USART_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "gpdma.h"
 
-/* USER CODE BEGIN Includes */
+/* USER CODE BEGIN 0 */
 
-/* USER CODE END Includes */
+/* USER CODE END 0 */
 
-extern UART_HandleTypeDef huart4;
+/* GPDMA1 init function */
+void MX_GPDMA1_Init(void)
+{
 
-extern UART_HandleTypeDef huart1;
+  /* USER CODE BEGIN GPDMA1_Init 0 */
 
-/* USER CODE BEGIN Private defines */
+  /* USER CODE END GPDMA1_Init 0 */
 
-/* USER CODE END Private defines */
+  /* Peripheral clock enable */
+  __HAL_RCC_GPDMA1_CLK_ENABLE();
 
-void MX_UART4_Init(void);
-void MX_USART1_UART_Init(void);
+  /* GPDMA1 interrupt Init */
+    HAL_NVIC_SetPriority(GPDMA1_Channel0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(GPDMA1_Channel0_IRQn);
 
-/* USER CODE BEGIN Prototypes */
+  /* USER CODE BEGIN GPDMA1_Init 1 */
 
-/* USER CODE END Prototypes */
+  /* USER CODE END GPDMA1_Init 1 */
+  /* USER CODE BEGIN GPDMA1_Init 2 */
 
-#ifdef __cplusplus
+  /* USER CODE END GPDMA1_Init 2 */
+
 }
-#endif
 
-#endif /* __USART_H__ */
+/* USER CODE BEGIN 1 */
 
+/* USER CODE END 1 */
