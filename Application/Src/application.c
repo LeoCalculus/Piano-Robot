@@ -42,7 +42,7 @@ void controller_init(void){
     vofa.vofaTail[2] = 0x80;
     vofa.vofaTail[3] = 0x7f;
 
-    // Initialize PID state and target to 0
+    // initialize PID value
     target_position_cm = 0.0f;
     debug_motor.Integral = 0.0f;
     debug_motor.last_error = 0.0f;
@@ -54,6 +54,7 @@ void controller_init(void){
 }
 
 // DO NOT USE SPRINT, PRINT IN THIS FUNCTION
+// what have done: make some variable global and send
 void controller_step(const float dt){
     uint32_t direction;
 
@@ -66,13 +67,13 @@ void controller_step(const float dt){
     float error = target_position_cm - current_distance_cm;
     vofa.val[1] = target_position_cm;
 
-    // Deadband: if error is within tolerance, stop motor and reset integral
-    const float ERROR_DEADBAND = 0.1f;  // cm - adjust as needed
+    // deadband: if error is within tolerance, stop motor and reset integral
+    const float ERROR_DEADBAND = 0.1f; 
     const float PWM_MIN = 30.0f;        // minimum PWM to actually move motor
     float pwm_output = 0.0f;
 
     if (error > -ERROR_DEADBAND && error < ERROR_DEADBAND) {
-        // Close enough - stop motor
+        // close enough - stop motor
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
         debug_motor.Integral = 0.0f;  // reset integral to prevent windup
@@ -85,7 +86,7 @@ void controller_step(const float dt){
         if (pwm_output > 99.0f) pwm_output = 99.0f;
         if (pwm_output < -99.0f) pwm_output = -99.0f;
 
-        // Apply direction based on error sign, with minimum PWM threshold
+        // direction based on error -> check error so it knows where to move
         if (error > 0.0f) {
             uint32_t pwm = (pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)pwm_output;
             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm);

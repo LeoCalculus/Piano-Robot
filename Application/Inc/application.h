@@ -10,7 +10,7 @@
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 
 typedef struct __attribute__((packed)) VOFA_REPORT{
-    float val[10];  // Only 3 channels for accel X/Y/Z
+    float val[10]; // used + reserved
     unsigned char vofaTail[4];
 }VOFA_REPORT;
 
