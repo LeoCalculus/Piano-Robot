@@ -14,8 +14,8 @@ void executeCommand(uint8_t* command);
 // print text on LCD screen
 void setText(uint8_t* displayedText);
 
-// set the target position
-void setPos(float* targetPos);
+// set the target position (in cm)
+void setPos(float targetPos);
 
 // reset the old position 
 void resetPos();

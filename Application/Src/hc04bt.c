@@ -5,6 +5,7 @@
 
 void BT_config(UART_HandleTypeDef* huart){
     // check existence
+    HAL_Delay(100);
     uint8_t cmd[] = "AT";
     HAL_UART_Transmit(huart, cmd, strlen((char*)cmd), 10);
     HAL_StatusTypeDef status = HAL_UART_Receive(huart, rx_buffer, 4, 1000); // this command will wait buffer filled or timeout
@@ -17,7 +18,7 @@ void BT_config(UART_HandleTypeDef* huart){
     HAL_Delay(500);
 
     memset(rx_buffer, 0, sizeof(rx_buffer));
-    uint8_t cmd2[] = "AT+PIN=6666";
+    uint8_t cmd2[] = "AT+BAUD=921600";
     HAL_UART_Transmit(huart, cmd2, strlen((char*)cmd2), 300);
     status = HAL_UART_Receive(huart, rx_buffer, 6, 1000); // this command will wait buffer filled or timeout
     LCD_draw_string(&lcd_config, 5, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);

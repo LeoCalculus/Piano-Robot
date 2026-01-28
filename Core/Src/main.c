@@ -124,20 +124,29 @@ int main(void)
   /* USER CODE BEGIN 2 */
   /* Initialize LCD directly (without LVGL for this demo) */
   LCD_init(&lcd_config);
+  // BT_config(&huart3);
+  // TEST: Simple blocking transmit before anything else
+  uint8_t test_msg[] = "USART1 OK\r\n";
+  HAL_UART_Transmit(&huart1, test_msg, sizeof(test_msg)-1, 1000);
+
   DMA_receive_idle_init(&huart1, DMA_target_location);
   encoder_start(&htim8);
   HAL_TIM_Base_Start_IT(&htim2); // interrupt for controller
+  controller_init();
   // reset encoder value
   encoder_old_position_cm = 0.0f;
   encoder_read_result = 0.0f;
 
-  // begin pwm:
+  // begin pwm: 10KHz
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // using pwm at TIM3_CHANNEL1
   // set initial duty cycle:
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 50); // here using (99+1)/2 =50 duty cycle
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); // here using (99+1)/2 =50 duty cycle
+  // also for CHANNEL2:
+  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+  // set duty cycle as well:
+  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); 
 
-
-  // BT_config(&huart1);
+  
   msg = (uint8_t*)"Still alive";
   
   /* USER CODE END 2 */
@@ -161,21 +170,21 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char telemetry_buf[64];
+  //char telemetry_buf[64];
   while (1)
   {
     /* Blink LED to show MCU is running */
     BSP_LED_Toggle(LED_GREEN);
 
     // Copy volatile values to local (atomic-ish read)
-    float vel = current_velocity_cm_s;
-    float dist = current_distance_cm;
+    //float vel = current_velocity_cm_s;
+    //float dist = current_distance_cm;
 
     // Send telemetry via BT
-    sprintf(telemetry_buf, "D:%.2f V:%.2f\r\n", dist, vel);
-    BT_send_info(&huart1, (uint8_t*)telemetry_buf, strlen(telemetry_buf));
-
-    HAL_Delay(100);  // Send at ~10Hz - adjust as needed
+    // sprintf(telemetry_buf, "D:%.2f V:%.2f\r\n", dist, vel);
+    // BT_send_info(&huart1, (uint8_t*)telemetry_buf, strlen(telemetry_buf));
+    // BT_send_info(&huart1, (uint8_t*)&vofa, 44);
+    // BT_send_info(&huart1, msg, strlen((char*)msg));
 
     // only update LCD when new BT data received
     if (rx_complete) {

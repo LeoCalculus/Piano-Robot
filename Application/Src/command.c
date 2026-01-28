@@ -1,9 +1,23 @@
 #include <command.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "stm32h5xx_hal.h"
 #include <application.h>
 
 int parseCommand(uint8_t* cmd) {
+    // Check for :p command (position in cm)
+    if (cmd[0] == ':' && cmd[1] == 'p') {
+        char* arg = (char*)cmd + 2;
+        // Skip any leading spaces
+        while (*arg == ' ') arg++;
+        if (*arg == '\0') {
+            return 3; // incomplete command
+        }
+        float pos = strtof(arg, NULL);
+        setPos(pos);
+        return 0;
+    }
+
     if (cmd[0] != '/') {
         return 1; // error command
     }
@@ -27,7 +41,8 @@ int parseCommand(uint8_t* cmd) {
         if (argument1 == NULL) {
             return 3;
         } else {
-            setPos((float*)argument1); // convert to input with float 
+            float pos = strtof(argument1, NULL);
+            setPos(pos);
         }
     } else if (strcmp(command, "resetPos") == 0){
         resetPos();
@@ -53,8 +68,8 @@ void setText(uint8_t* displayedText){
     LCD_draw_string(&lcd_config, 0, 13, (char*)displayedText, COLOR_BLACK, COLOR_WHITE);
 }
 
-void setPos(float* targetPos){
-    target_position_cm = *targetPos;
+void setPos(float targetPos){
+    target_position_cm = targetPos;
 }
 
 void resetPos(){

@@ -147,7 +147,7 @@ class HC04SerialGUI:
         ttk.Label(baud_frame, text="Baud Rate:").pack(side=tk.LEFT, padx=5)
         self.baudrate_var = tk.StringVar(value="115200")  # HC-04 default is often 115200
         baudrate_combo = ttk.Combobox(baud_frame, textvariable=self.baudrate_var,
-                                     values=["9600", "38400", "57600", "115200"], width=10)
+                                     values=["9600", "38400", "57600", "115200", "460800", "921600"], width=10)
         baudrate_combo.pack(side=tk.LEFT, padx=5)
 
         # Connection timeout
