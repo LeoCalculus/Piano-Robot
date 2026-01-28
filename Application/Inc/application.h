@@ -11,8 +11,10 @@ extern LCD_Config lcd_config; // should be defined in main.c at the beginning of
 extern uint8_t rx_buffer[128]; // receive buffer from BT
 extern uint8_t DMA_target_location[128];
 extern int32_t encoder_read_result;
-extern float encoder_old_position_mm;
-extern float target_position_mm;
+extern float encoder_old_position_cm;
+extern float target_position_cm;
+extern volatile float current_velocity_cm_s;  // updated in ISR, read in main loop
+extern volatile float current_distance_cm;    // updated in ISR, read in main loop
 
 typedef struct {
     const float Kp;

@@ -54,10 +54,10 @@ void setText(uint8_t* displayedText){
 }
 
 void setPos(float* targetPos){
-    target_position_mm = *targetPos;
+    target_position_cm = *targetPos;
 }
 
 void resetPos(){
-    encoder_old_position_mm = 0.0f;
+    encoder_old_position_cm = 0.0f;
 }
 

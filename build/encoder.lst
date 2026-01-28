@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -33,211 +33,300 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 1
    1:./Application/Src/encoder.c **** #include <encoder.h>
    2:./Application/Src/encoder.c **** #include <application.h>
    3:./Application/Src/encoder.c **** 
-   4:./Application/Src/encoder.c **** void encoder_start(TIM_HandleTypeDef* htim){
-  31              		.loc 1 4 44 view -0
+   4:./Application/Src/encoder.c **** static uint16_t encoder_last_count = 0;
+   5:./Application/Src/encoder.c **** static int32_t encoder_accumulated = 0;
+   6:./Application/Src/encoder.c **** 
+   7:./Application/Src/encoder.c **** void encoder_start(TIM_HandleTypeDef* htim){
+  31              		.loc 1 7 44 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
-  35              		.loc 1 4 44 is_stmt 0 view .LVU1
-  36 0000 08B5     		push	{r3, lr}
+  35              		.loc 1 7 44 is_stmt 0 view .LVU1
+  36 0000 10B5     		push	{r4, lr}
   37              	.LCFI0:
   38              		.cfi_def_cfa_offset 8
-  39              		.cfi_offset 3, -8
+  39              		.cfi_offset 4, -8
   40              		.cfi_offset 14, -4
-   5:./Application/Src/encoder.c ****     HAL_TIM_Encoder_Start(htim, TIM_CHANNEL_ALL);
-  41              		.loc 1 5 5 is_stmt 1 view .LVU2
-  42 0002 3C21     		movs	r1, #60
-  43 0004 FFF7FEFF 		bl	HAL_TIM_Encoder_Start
-  44              	.LVL1:
-   6:./Application/Src/encoder.c **** }
-  45              		.loc 1 6 1 is_stmt 0 view .LVU3
-  46 0008 08BD     		pop	{r3, pc}
-  47              		.cfi_endproc
-  48              	.LFE160:
-  50              		.section	.text.encoder_read_value,"ax",%progbits
-  51              		.align	1
-  52              		.global	encoder_read_value
-  53              		.syntax unified
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 2
+  41 0002 0446     		mov	r4, r0
+   8:./Application/Src/encoder.c ****     HAL_TIM_Encoder_Start(htim, TIM_CHANNEL_ALL);
+  42              		.loc 1 8 5 is_stmt 1 view .LVU2
+  43 0004 3C21     		movs	r1, #60
+  44 0006 FFF7FEFF 		bl	HAL_TIM_Encoder_Start
+  45              	.LVL1:
+   9:./Application/Src/encoder.c ****     encoder_last_count = __HAL_TIM_GET_COUNTER(htim);
+  46              		.loc 1 9 5 view .LVU3
+  47              		.loc 1 9 26 is_stmt 0 view .LVU4
+  48 000a 2368     		ldr	r3, [r4]
+  49 000c 5A6A     		ldr	r2, [r3, #36]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 2
 
 
-  54              		.thumb
-  55              		.thumb_func
-  57              	encoder_read_value:
-  58              	.LVL2:
-  59              	.LFB161:
-   7:./Application/Src/encoder.c **** 
-   8:./Application/Src/encoder.c **** void encoder_read_value(TIM_HandleTypeDef* htim, int32_t* read_result, uint32_t* direction){
-  60              		.loc 1 8 92 is_stmt 1 view -0
-  61              		.cfi_startproc
-  62              		@ args = 0, pretend = 0, frame = 0
-  63              		@ frame_needed = 0, uses_anonymous_args = 0
-  64              		@ link register save eliminated.
-   9:./Application/Src/encoder.c ****     *read_result = __HAL_TIM_GET_COUNTER(htim);
-  65              		.loc 1 9 5 view .LVU5
-  66              		.loc 1 9 20 is_stmt 0 view .LVU6
-  67 0000 0368     		ldr	r3, [r0]
-  68 0002 5B6A     		ldr	r3, [r3, #36]
-  69              		.loc 1 9 18 view .LVU7
-  70 0004 0B60     		str	r3, [r1]
-  10:./Application/Src/encoder.c ****     // TIM_CR1_DIR is not defined in tim.h file, read from register directly
-  11:./Application/Src/encoder.c ****     *direction = (htim->Instance->CR1 >> 4) & 0x1;  // DIR bit is bit 4 in CR1
-  71              		.loc 1 11 5 is_stmt 1 view .LVU8
-  72              		.loc 1 11 23 is_stmt 0 view .LVU9
-  73 0006 0368     		ldr	r3, [r0]
-  74              		.loc 1 11 33 view .LVU10
-  75 0008 1B68     		ldr	r3, [r3]
-  76              		.loc 1 11 45 view .LVU11
-  77 000a C3F30013 		ubfx	r3, r3, #4, #1
-  78              		.loc 1 11 16 view .LVU12
-  79 000e 1360     		str	r3, [r2]
-  12:./Application/Src/encoder.c **** }
-  80              		.loc 1 12 1 view .LVU13
-  81 0010 7047     		bx	lr
-  82              		.cfi_endproc
-  83              	.LFE161:
-  85              		.section	.text.encoder_parse_distance_mm,"ax",%progbits
-  86              		.align	1
-  87              		.global	encoder_parse_distance_mm
-  88              		.syntax unified
-  89              		.thumb
-  90              		.thumb_func
-  92              	encoder_parse_distance_mm:
-  93              	.LVL3:
-  94              	.LFB162:
-  13:./Application/Src/encoder.c **** 
-  14:./Application/Src/encoder.c **** float encoder_parse_distance_mm(int32_t encoder_count){
-  95              		.loc 1 14 55 is_stmt 1 view -0
-  96              		.cfi_startproc
-  97              		@ args = 0, pretend = 0, frame = 0
-  98              		@ frame_needed = 0, uses_anonymous_args = 0
-  99              		.loc 1 14 55 is_stmt 0 view .LVU15
- 100 0000 08B5     		push	{r3, lr}
- 101              	.LCFI1:
- 102              		.cfi_def_cfa_offset 8
- 103              		.cfi_offset 3, -8
- 104              		.cfi_offset 14, -4
- 105 0002 07EE900A 		vmov	s15, r0	@ int
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 3
+  50              		.loc 1 9 24 view .LVU5
+  51 000e 034B     		ldr	r3, .L3
+  52 0010 1A80     		strh	r2, [r3]	@ movhi
+  10:./Application/Src/encoder.c ****     encoder_accumulated = 0;
+  53              		.loc 1 10 5 is_stmt 1 view .LVU6
+  54              		.loc 1 10 25 is_stmt 0 view .LVU7
+  55 0012 034B     		ldr	r3, .L3+4
+  56 0014 0022     		movs	r2, #0
+  57 0016 1A60     		str	r2, [r3]
+  11:./Application/Src/encoder.c **** }
+  58              		.loc 1 11 1 view .LVU8
+  59 0018 10BD     		pop	{r4, pc}
+  60              	.LVL2:
+  61              	.L4:
+  62              		.loc 1 11 1 view .LVU9
+  63 001a 00BF     		.align	2
+  64              	.L3:
+  65 001c 00000000 		.word	encoder_last_count
+  66 0020 00000000 		.word	encoder_accumulated
+  67              		.cfi_endproc
+  68              	.LFE160:
+  70              		.section	.text.encoder_read_value,"ax",%progbits
+  71              		.align	1
+  72              		.global	encoder_read_value
+  73              		.syntax unified
+  74              		.thumb
+  75              		.thumb_func
+  77              	encoder_read_value:
+  78              	.LVL3:
+  79              	.LFB161:
+  12:./Application/Src/encoder.c **** 
+  13:./Application/Src/encoder.c **** void encoder_read_value(TIM_HandleTypeDef* htim, int32_t* read_result, uint32_t* direction){
+  80              		.loc 1 13 92 is_stmt 1 view -0
+  81              		.cfi_startproc
+  82              		@ args = 0, pretend = 0, frame = 0
+  83              		@ frame_needed = 0, uses_anonymous_args = 0
+  84              		.loc 1 13 92 is_stmt 0 view .LVU11
+  85 0000 30B5     		push	{r4, r5, lr}
+  86              	.LCFI1:
+  87              		.cfi_def_cfa_offset 12
+  88              		.cfi_offset 4, -12
+  89              		.cfi_offset 5, -8
+  90              		.cfi_offset 14, -4
+  91 0002 1546     		mov	r5, r2
+  14:./Application/Src/encoder.c ****     uint16_t current_count = __HAL_TIM_GET_COUNTER(htim);
+  92              		.loc 1 14 5 is_stmt 1 view .LVU12
+  93              		.loc 1 14 30 is_stmt 0 view .LVU13
+  94 0004 0368     		ldr	r3, [r0]
+  95 0006 5B6A     		ldr	r3, [r3, #36]
+  96              		.loc 1 14 14 view .LVU14
+  97 0008 1FFA83FC 		uxth	ip, r3
+  98              	.LVL4:
+  15:./Application/Src/encoder.c ****     // calculate delta as signed 16-bit to handle wraparound correctly
+  16:./Application/Src/encoder.c ****     int16_t delta = (int16_t)(current_count - encoder_last_count);
+  99              		.loc 1 16 5 is_stmt 1 view .LVU15
+ 100              		.loc 1 16 45 is_stmt 0 view .LVU16
+ 101 000c DFF828E0 		ldr	lr, .L7+4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 3
 
 
-  15:./Application/Src/encoder.c ****     float resolution = (float)encoder_count / (ENCODER_CPR * ENCODER_MULTIPLIER);
- 106              		.loc 1 15 5 is_stmt 1 view .LVU16
- 107              		.loc 1 15 24 is_stmt 0 view .LVU17
- 108 0006 F8EEE77A 		vcvt.f32.s32	s15, s15
- 109              	.LVL4:
-  16:./Application/Src/encoder.c ****     float distance = resolution * (PI * WHEEL_DIAMETER_MM);
- 110              		.loc 1 16 5 is_stmt 1 view .LVU18
- 111              		.loc 1 16 33 is_stmt 0 view .LVU19
- 112 000a 9FED0B7A 		vldr.32	s14, .L6+8
- 113 000e C7EE877A 		vdiv.f32	s15, s15, s14
- 114              	.LVL5:
- 115              		.loc 1 16 33 view .LVU20
- 116 0012 17EE900A 		vmov	r0, s15
- 117              	.LVL6:
- 118              		.loc 1 16 33 view .LVU21
- 119 0016 FFF7FEFF 		bl	__aeabi_f2d
- 120              	.LVL7:
- 121              		.loc 1 16 33 view .LVU22
- 122 001a 05A3     		adr	r3, .L6
- 123 001c D3E90023 		ldrd	r2, [r3]
- 124 0020 FFF7FEFF 		bl	__aeabi_dmul
- 125              	.LVL8:
- 126              		.loc 1 16 11 view .LVU23
- 127 0024 FFF7FEFF 		bl	__aeabi_d2f
- 128              	.LVL9:
-  17:./Application/Src/encoder.c ****     return distance;
- 129              		.loc 1 17 5 is_stmt 1 view .LVU24
-  18:./Application/Src/encoder.c **** }
- 130              		.loc 1 18 1 is_stmt 0 view .LVU25
- 131 0028 00EE100A 		vmov	s0, r0
- 132 002c 08BD     		pop	{r3, pc}
- 133              	.L7:
- 134 002e 00BF     		.align	3
- 135              	.L6:
- 136 0030 07CE1951 		.word	1360645639
- 137 0034 DA8F5740 		.word	1079480282
- 138 0038 00002F44 		.word	1143930880
- 139              		.cfi_endproc
- 140              	.LFE162:
- 142              		.section	.text.encoder_calc_speed_mm_s,"ax",%progbits
- 143              		.align	1
- 144              		.global	encoder_calc_speed_mm_s
- 145              		.syntax unified
- 146              		.thumb
- 147              		.thumb_func
- 149              	encoder_calc_speed_mm_s:
- 150              	.LVL10:
- 151              	.LFB163:
+ 102 0010 BEF80030 		ldrh	r3, [lr]
+ 103 0014 ACEB0303 		sub	r3, ip, r3
+ 104              	.LVL5:
+  17:./Application/Src/encoder.c ****     encoder_accumulated += delta;
+ 105              		.loc 1 17 5 is_stmt 1 view .LVU17
+ 106              		.loc 1 17 25 is_stmt 0 view .LVU18
+ 107 0018 064A     		ldr	r2, .L7
+ 108              	.LVL6:
+ 109              		.loc 1 17 25 view .LVU19
+ 110 001a 1468     		ldr	r4, [r2]
+ 111 001c 04FA83F3 		sxtah	r3, r4, r3
+ 112              	.LVL7:
+ 113              		.loc 1 17 25 view .LVU20
+ 114 0020 1360     		str	r3, [r2]
+  18:./Application/Src/encoder.c ****     encoder_last_count = current_count;
+ 115              		.loc 1 18 5 is_stmt 1 view .LVU21
+ 116              		.loc 1 18 24 is_stmt 0 view .LVU22
+ 117 0022 AEF800C0 		strh	ip, [lr]	@ movhi
+ 118              	.LVL8:
   19:./Application/Src/encoder.c **** 
-  20:./Application/Src/encoder.c **** extern float encoder_old_position_mm;  // defined in application.c
-  21:./Application/Src/encoder.c **** 
-  22:./Application/Src/encoder.c **** float encoder_calc_speed_mm_s(float encoder_new_parsed_distance_mm, float dt){
- 152              		.loc 1 22 78 is_stmt 1 view -0
- 153              		.cfi_startproc
- 154              		@ args = 0, pretend = 0, frame = 0
- 155              		@ frame_needed = 0, uses_anonymous_args = 0
- 156              		@ link register save eliminated.
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 4
+  20:./Application/Src/encoder.c ****     *read_result = encoder_accumulated;
+ 119              		.loc 1 20 5 is_stmt 1 view .LVU23
+ 120              		.loc 1 20 18 is_stmt 0 view .LVU24
+ 121 0026 0B60     		str	r3, [r1]
+  21:./Application/Src/encoder.c ****     // TIM_CR1_DIR is not defined in tim.h file, read from register directly
+  22:./Application/Src/encoder.c ****     *direction = (htim->Instance->CR1 >> 4) & 0x1;  // DIR bit is bit 4 in CR1
+ 122              		.loc 1 22 5 is_stmt 1 view .LVU25
+ 123              		.loc 1 22 23 is_stmt 0 view .LVU26
+ 124 0028 0368     		ldr	r3, [r0]
+ 125              		.loc 1 22 33 view .LVU27
+ 126 002a 1B68     		ldr	r3, [r3]
+ 127              		.loc 1 22 45 view .LVU28
+ 128 002c C3F30013 		ubfx	r3, r3, #4, #1
+ 129              		.loc 1 22 16 view .LVU29
+ 130 0030 2B60     		str	r3, [r5]
+  23:./Application/Src/encoder.c **** }
+ 131              		.loc 1 23 1 view .LVU30
+ 132 0032 30BD     		pop	{r4, r5, pc}
+ 133              	.LVL9:
+ 134              	.L8:
+ 135              		.loc 1 23 1 view .LVU31
+ 136              		.align	2
+ 137              	.L7:
+ 138 0034 00000000 		.word	encoder_accumulated
+ 139 0038 00000000 		.word	encoder_last_count
+ 140              		.cfi_endproc
+ 141              	.LFE161:
+ 143              		.section	.text.encoder_parse_distance_cm,"ax",%progbits
+ 144              		.align	1
+ 145              		.global	encoder_parse_distance_cm
+ 146              		.syntax unified
+ 147              		.thumb
+ 148              		.thumb_func
+ 150              	encoder_parse_distance_cm:
+ 151              	.LVL10:
+ 152              	.LFB162:
+  24:./Application/Src/encoder.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 4
 
 
-  23:./Application/Src/encoder.c ****     float change_in_distance = encoder_new_parsed_distance_mm - encoder_old_position_mm;
- 157              		.loc 1 23 5 view .LVU27
- 158              		.loc 1 23 63 is_stmt 0 view .LVU28
- 159 0000 044B     		ldr	r3, .L9
- 160 0002 D3ED007A 		vldr.32	s15, [r3]
- 161              		.loc 1 23 11 view .LVU29
- 162 0006 70EE677A 		vsub.f32	s15, s0, s15
- 163              	.LVL11:
-  24:./Application/Src/encoder.c ****     float velocity = change_in_distance / dt;
- 164              		.loc 1 24 5 is_stmt 1 view .LVU30
-  25:./Application/Src/encoder.c ****     encoder_old_position_mm = encoder_new_parsed_distance_mm;  // update for next call
- 165              		.loc 1 25 5 view .LVU31
- 166              		.loc 1 25 29 is_stmt 0 view .LVU32
- 167 000a 83ED000A 		vstr.32	s0, [r3]
-  26:./Application/Src/encoder.c ****     return velocity;
- 168              		.loc 1 26 5 is_stmt 1 view .LVU33
-  27:./Application/Src/encoder.c **** }...
- 169              		.loc 1 27 1 is_stmt 0 view .LVU34
- 170 000e 87EEA00A 		vdiv.f32	s0, s15, s1
- 171              	.LVL12:
- 172              		.loc 1 27 1 view .LVU35
- 173 0012 7047     		bx	lr
- 174              	.L10:
- 175              		.align	2
- 176              	.L9:
- 177 0014 00000000 		.word	encoder_old_position_mm
- 178              		.cfi_endproc
- 179              	.LFE163:
- 181              		.text
- 182              	.Letext0:
- 183              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 184              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 185              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
- 186              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
- 187              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
- 188              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
- 189              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
- 190              		.file 9 "Application/Inc/application.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s 			page 5
+  25:./Application/Src/encoder.c **** float encoder_parse_distance_cm(int32_t encoder_count){
+ 153              		.loc 1 25 55 is_stmt 1 view -0
+ 154              		.cfi_startproc
+ 155              		@ args = 0, pretend = 0, frame = 0
+ 156              		@ frame_needed = 0, uses_anonymous_args = 0
+ 157              		.loc 1 25 55 is_stmt 0 view .LVU33
+ 158 0000 08B5     		push	{r3, lr}
+ 159              	.LCFI2:
+ 160              		.cfi_def_cfa_offset 8
+ 161              		.cfi_offset 3, -8
+ 162              		.cfi_offset 14, -4
+ 163 0002 07EE900A 		vmov	s15, r0	@ int
+  26:./Application/Src/encoder.c ****     float resolution = (float)encoder_count / (ENCODER_CPR * GEAR_RATIO);
+ 164              		.loc 1 26 5 is_stmt 1 view .LVU34
+ 165              		.loc 1 26 24 is_stmt 0 view .LVU35
+ 166 0006 F8EEE77A 		vcvt.f32.s32	s15, s15
+ 167              	.LVL11:
+  27:./Application/Src/encoder.c ****     float distance = resolution * (PI * WHEEL_DIAMETER_CM);
+ 168              		.loc 1 27 5 is_stmt 1 view .LVU36
+ 169              		.loc 1 27 33 is_stmt 0 view .LVU37
+ 170 000a 9FED0B7A 		vldr.32	s14, .L11+8
+ 171 000e C7EE877A 		vdiv.f32	s15, s15, s14
+ 172              	.LVL12:
+ 173              		.loc 1 27 33 view .LVU38
+ 174 0012 17EE900A 		vmov	r0, s15
+ 175              	.LVL13:
+ 176              		.loc 1 27 33 view .LVU39
+ 177 0016 FFF7FEFF 		bl	__aeabi_f2d
+ 178              	.LVL14:
+ 179              		.loc 1 27 33 view .LVU40
+ 180 001a 05A3     		adr	r3, .L11
+ 181 001c D3E90023 		ldrd	r2, [r3]
+ 182 0020 FFF7FEFF 		bl	__aeabi_dmul
+ 183              	.LVL15:
+ 184              		.loc 1 27 11 view .LVU41
+ 185 0024 FFF7FEFF 		bl	__aeabi_d2f
+ 186              	.LVL16:
+  28:./Application/Src/encoder.c ****     return distance; // in cm
+ 187              		.loc 1 28 5 is_stmt 1 view .LVU42
+  29:./Application/Src/encoder.c **** }
+ 188              		.loc 1 29 1 is_stmt 0 view .LVU43
+ 189 0028 00EE100A 		vmov	s0, r0
+ 190 002c 08BD     		pop	{r3, pc}
+ 191              	.L12:
+ 192 002e 00BF     		.align	3
+ 193              	.L11:
+ 194 0030 0A68226C 		.word	1814194186
+ 195 0034 786A2F40 		.word	1076849272
+ 196 0038 33332F45 		.word	1160721203
+ 197              		.cfi_endproc
+ 198              	.LFE162:
+ 200              		.section	.text.encoder_calc_speed_cm_s,"ax",%progbits
+ 201              		.align	1
+ 202              		.global	encoder_calc_speed_cm_s
+ 203              		.syntax unified
+ 204              		.thumb
+ 205              		.thumb_func
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 5
+
+
+ 207              	encoder_calc_speed_cm_s:
+ 208              	.LVL17:
+ 209              	.LFB163:
+  30:./Application/Src/encoder.c **** 
+  31:./Application/Src/encoder.c **** extern float encoder_old_position_cm;  // defined in application.c
+  32:./Application/Src/encoder.c **** 
+  33:./Application/Src/encoder.c **** float encoder_calc_speed_cm_s(float encoder_new_parsed_distance_cm, float dt){
+ 210              		.loc 1 33 78 is_stmt 1 view -0
+ 211              		.cfi_startproc
+ 212              		@ args = 0, pretend = 0, frame = 0
+ 213              		@ frame_needed = 0, uses_anonymous_args = 0
+ 214              		@ link register save eliminated.
+  34:./Application/Src/encoder.c ****     float change_in_distance = encoder_new_parsed_distance_cm - encoder_old_position_cm;
+ 215              		.loc 1 34 5 view .LVU45
+ 216              		.loc 1 34 63 is_stmt 0 view .LVU46
+ 217 0000 044B     		ldr	r3, .L14
+ 218 0002 D3ED007A 		vldr.32	s15, [r3]
+ 219              		.loc 1 34 11 view .LVU47
+ 220 0006 70EE677A 		vsub.f32	s15, s0, s15
+ 221              	.LVL18:
+  35:./Application/Src/encoder.c ****     float velocity = change_in_distance / dt;
+ 222              		.loc 1 35 5 is_stmt 1 view .LVU48
+  36:./Application/Src/encoder.c ****     encoder_old_position_cm = encoder_new_parsed_distance_cm;  // update for next call
+ 223              		.loc 1 36 5 view .LVU49
+ 224              		.loc 1 36 29 is_stmt 0 view .LVU50
+ 225 000a 83ED000A 		vstr.32	s0, [r3]
+  37:./Application/Src/encoder.c ****     return velocity;
+ 226              		.loc 1 37 5 is_stmt 1 view .LVU51
+  38:./Application/Src/encoder.c **** }...
+ 227              		.loc 1 38 1 is_stmt 0 view .LVU52
+ 228 000e 87EEA00A 		vdiv.f32	s0, s15, s1
+ 229              	.LVL19:
+ 230              		.loc 1 38 1 view .LVU53
+ 231 0012 7047     		bx	lr
+ 232              	.L15:
+ 233              		.align	2
+ 234              	.L14:
+ 235 0014 00000000 		.word	encoder_old_position_cm
+ 236              		.cfi_endproc
+ 237              	.LFE163:
+ 239              		.section	.bss.encoder_accumulated,"aw",%nobits
+ 240              		.align	2
+ 243              	encoder_accumulated:
+ 244 0000 00000000 		.space	4
+ 245              		.section	.bss.encoder_last_count,"aw",%nobits
+ 246              		.align	1
+ 249              	encoder_last_count:
+ 250 0000 0000     		.space	2
+ 251              		.text
+ 252              	.Letext0:
+ 253              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 254              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 255              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 256              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 257              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 258              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 259              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 6
+
+
+ 260              		.file 9 "Application/Inc/application.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s 			page 7
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 encoder.c
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:22     .text.encoder_start:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:28     .text.encoder_start:00000000 encoder_start
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:51     .text.encoder_read_value:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:57     .text.encoder_read_value:00000000 encoder_read_value
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:86     .text.encoder_parse_distance_mm:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:92     .text.encoder_parse_distance_mm:00000000 encoder_parse_distance_mm
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:136    .text.encoder_parse_distance_mm:00000030 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:143    .text.encoder_calc_speed_mm_s:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:149    .text.encoder_calc_speed_mm_s:00000000 encoder_calc_speed_mm_s
-C:\Users\Xuleo\AppData\Local\Temp\ccOnEMpn.s:177    .text.encoder_calc_speed_mm_s:00000014 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:22     .text.encoder_start:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:28     .text.encoder_start:00000000 encoder_start
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:65     .text.encoder_start:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:249    .bss.encoder_last_count:00000000 encoder_last_count
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:243    .bss.encoder_accumulated:00000000 encoder_accumulated
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:71     .text.encoder_read_value:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:77     .text.encoder_read_value:00000000 encoder_read_value
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:138    .text.encoder_read_value:00000034 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:144    .text.encoder_parse_distance_cm:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:150    .text.encoder_parse_distance_cm:00000000 encoder_parse_distance_cm
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:194    .text.encoder_parse_distance_cm:00000030 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:201    .text.encoder_calc_speed_cm_s:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:207    .text.encoder_calc_speed_cm_s:00000000 encoder_calc_speed_cm_s
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:235    .text.encoder_calc_speed_cm_s:00000014 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:240    .bss.encoder_accumulated:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc7lzCMF.s:246    .bss.encoder_last_count:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_TIM_Encoder_Start
 __aeabi_f2d
 __aeabi_dmul
 __aeabi_d2f
-encoder_old_position_mm
+encoder_old_position_cm

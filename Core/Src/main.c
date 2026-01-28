@@ -30,6 +30,7 @@
 /* USER CODE BEGIN Includes */
 #include <application.h>
 #include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -127,7 +128,7 @@ int main(void)
   encoder_start(&htim8);
   HAL_TIM_Base_Start_IT(&htim2); // interrupt for controller
   // reset encoder value
-  encoder_old_position_mm = 0.0f;
+  encoder_old_position_cm = 0.0f;
   encoder_read_result = 0.0f;
 
   // begin pwm:
@@ -160,13 +161,21 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  char telemetry_buf[64];
   while (1)
   {
     /* Blink LED to show MCU is running */
     BSP_LED_Toggle(LED_GREEN);
-    HAL_Delay(500);
 
-    BT_send_info(&huart1, msg, strlen((char*)msg));
+    // Copy volatile values to local (atomic-ish read)
+    float vel = current_velocity_cm_s;
+    float dist = current_distance_cm;
+
+    // Send telemetry via BT
+    sprintf(telemetry_buf, "D:%.2f V:%.2f\r\n", dist, vel);
+    BT_send_info(&huart1, (uint8_t*)telemetry_buf, strlen(telemetry_buf));
+
+    HAL_Delay(100);  // Send at ~10Hz - adjust as needed
 
     // only update LCD when new BT data received
     if (rx_complete) {
