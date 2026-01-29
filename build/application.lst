@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -41,669 +41,769 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 1
    9:./Application/Src/application.c **** volatile float current_velocity_cm_s;  // updated in ISR, read in main loop
   10:./Application/Src/application.c **** volatile float current_distance_cm;    // updated in ISR, read in main loop
   11:./Application/Src/application.c **** VOFA_REPORT vofa; // transmit via usb
-  12:./Application/Src/application.c **** 
-  13:./Application/Src/application.c **** 
-  14:./Application/Src/application.c **** void pid_cycle(PID_t* target_system, float error, const float dt){
-  31              		.loc 1 14 66 view -0
+  12:./Application/Src/application.c **** volatile uint32_t time_counter = 0;
+  13:./Application/Src/application.c **** volatile int is_moving = 0;
+  14:./Application/Src/application.c **** volatile int is_blocked = 0;
+  15:./Application/Src/application.c **** 
+  16:./Application/Src/application.c **** void pid_cycle(PID_t* target_system, float error, const float dt){
+  31              		.loc 1 16 66 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
   35              		@ link register save eliminated.
-  15:./Application/Src/application.c ****     float derivative = (error - target_system->last_error) / dt;
-  36              		.loc 1 15 5 view .LVU1
-  37              		.loc 1 15 46 is_stmt 0 view .LVU2
+  17:./Application/Src/application.c ****     float derivative = (error - target_system->last_error) / dt;
+  36              		.loc 1 17 5 view .LVU1
+  37              		.loc 1 17 46 is_stmt 0 view .LVU2
   38 0000 D0ED057A 		vldr.32	s15, [r0, #20]
-  39              		.loc 1 15 31 view .LVU3
+  39              		.loc 1 17 31 view .LVU3
   40 0004 70EE677A 		vsub.f32	s15, s0, s15
-  41              		.loc 1 15 11 view .LVU4
+  41              		.loc 1 17 11 view .LVU4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 2
+
+
   42 0008 C7EEA06A 		vdiv.f32	s13, s15, s1
   43              	.LVL1:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 2
-
-
-  16:./Application/Src/application.c ****     
-  17:./Application/Src/application.c ****     target_system->Integral += error*dt;
-  44              		.loc 1 17 5 is_stmt 1 view .LVU5
-  45              		.loc 1 17 18 is_stmt 0 view .LVU6
+  18:./Application/Src/application.c ****     
+  19:./Application/Src/application.c ****     target_system->Integral += error*dt;
+  44              		.loc 1 19 5 is_stmt 1 view .LVU5
+  45              		.loc 1 19 18 is_stmt 0 view .LVU6
   46 000c D0ED047A 		vldr.32	s15, [r0, #16]
-  47              		.loc 1 17 37 view .LVU7
+  47              		.loc 1 19 37 view .LVU7
   48 0010 60EE200A 		vmul.f32	s1, s0, s1
   49              	.LVL2:
-  50              		.loc 1 17 29 view .LVU8
+  50              		.loc 1 19 29 view .LVU8
   51 0014 77EEA07A 		vadd.f32	s15, s15, s1
   52 0018 C0ED047A 		vstr.32	s15, [r0, #16]
-  18:./Application/Src/application.c ****     // bound the integral
-  19:./Application/Src/application.c ****     if (target_system->Integral > target_system->Integral_max){
-  53              		.loc 1 19 5 is_stmt 1 view .LVU9
-  54              		.loc 1 19 48 is_stmt 0 view .LVU10
+  20:./Application/Src/application.c ****     // bound the integral
+  21:./Application/Src/application.c ****     if (target_system->Integral > target_system->Integral_max){
+  53              		.loc 1 21 5 is_stmt 1 view .LVU9
+  54              		.loc 1 21 48 is_stmt 0 view .LVU10
   55 001c 90ED037A 		vldr.32	s14, [r0, #12]
-  56              		.loc 1 19 8 view .LVU11
+  56              		.loc 1 21 8 view .LVU11
   57 0020 F4EEC77A 		vcmpe.f32	s15, s14
   58 0024 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
   59 0028 18DD     		ble	.L8
-  20:./Application/Src/application.c ****         target_system->Integral = target_system->Integral_max;
-  60              		.loc 1 20 9 is_stmt 1 view .LVU12
-  61              		.loc 1 20 33 is_stmt 0 view .LVU13
+  22:./Application/Src/application.c ****         target_system->Integral = target_system->Integral_max;
+  60              		.loc 1 22 9 is_stmt 1 view .LVU12
+  61              		.loc 1 22 33 is_stmt 0 view .LVU13
   62 002a 80ED047A 		vstr.32	s14, [r0, #16]
   63              	.L4:
-  21:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  22:./Application/Src/application.c ****         target_system->Integral = -target_system->Integral_max;
-  23:./Application/Src/application.c ****     }
-  24:./Application/Src/application.c ****     // controller output here
-  25:./Application/Src/application.c ****     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral
-  64              		.loc 1 25 5 is_stmt 1 view .LVU14
-  65              		.loc 1 25 42 is_stmt 0 view .LVU15
+  23:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  24:./Application/Src/application.c ****         target_system->Integral = -target_system->Integral_max;
+  25:./Application/Src/application.c ****     }
+  26:./Application/Src/application.c ****     // controller output here
+  27:./Application/Src/application.c ****     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral
+  64              		.loc 1 27 5 is_stmt 1 view .LVU14
+  65              		.loc 1 27 42 is_stmt 0 view .LVU15
   66 002e D0ED007A 		vldr.32	s15, [r0]
-  67              		.loc 1 25 47 view .LVU16
+  67              		.loc 1 27 47 view .LVU16
   68 0032 67EE807A 		vmul.f32	s15, s15, s0
-  69              		.loc 1 25 70 view .LVU17
+  69              		.loc 1 27 70 view .LVU17
   70 0036 90ED017A 		vldr.32	s14, [r0, #4]
-  71              		.loc 1 25 90 view .LVU18
+  71              		.loc 1 27 90 view .LVU18
   72 003a 90ED046A 		vldr.32	s12, [r0, #16]
-  73              		.loc 1 25 75 view .LVU19
+  73              		.loc 1 27 75 view .LVU19
   74 003e 27EE067A 		vmul.f32	s14, s14, s12
-  75              		.loc 1 25 55 view .LVU20
+  75              		.loc 1 27 55 view .LVU20
   76 0042 77EE877A 		vadd.f32	s15, s15, s14
-  77              		.loc 1 25 116 view .LVU21
+  77              		.loc 1 27 116 view .LVU21
   78 0046 90ED027A 		vldr.32	s14, [r0, #8]
-  79              		.loc 1 25 121 view .LVU22
+  79              		.loc 1 27 121 view .LVU22
   80 004a 27EE267A 		vmul.f32	s14, s14, s13
-  81              		.loc 1 25 101 view .LVU23
+  81              		.loc 1 27 101 view .LVU23
   82 004e 77EE877A 		vadd.f32	s15, s15, s14
-  83              		.loc 1 25 27 view .LVU24
+  83              		.loc 1 27 27 view .LVU24
   84 0052 C0ED067A 		vstr.32	s15, [r0, #24]
-  26:./Application/Src/application.c ****     target_system->last_error = error;
-  85              		.loc 1 26 5 is_stmt 1 view .LVU25
-  86              		.loc 1 26 31 is_stmt 0 view .LVU26
+  28:./Application/Src/application.c ****     target_system->last_error = error;
+  85              		.loc 1 28 5 is_stmt 1 view .LVU25
+  86              		.loc 1 28 31 is_stmt 0 view .LVU26
   87 0056 80ED050A 		vstr.32	s0, [r0, #20]
-  27:./Application/Src/application.c **** }
-  88              		.loc 1 27 1 view .LVU27
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 3
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 3
 
 
+  29:./Application/Src/application.c **** }
+  88              		.loc 1 29 1 view .LVU27
   89 005a 7047     		bx	lr
   90              	.L8:
-  21:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  91              		.loc 1 21 12 is_stmt 1 view .LVU28
-  21:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  92              		.loc 1 21 42 is_stmt 0 view .LVU29
+  23:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  91              		.loc 1 23 12 is_stmt 1 view .LVU28
+  23:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  92              		.loc 1 23 42 is_stmt 0 view .LVU29
   93 005c B1EE477A 		vneg.f32	s14, s14
-  21:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
-  94              		.loc 1 21 15 view .LVU30
+  23:./Application/Src/application.c ****     } else if (target_system->Integral < -target_system->Integral_max) {
+  94              		.loc 1 23 15 view .LVU30
   95 0060 F4EEC77A 		vcmpe.f32	s15, s14
   96 0064 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
   97 0068 E1D5     		bpl	.L4
-  22:./Application/Src/application.c ****     }
-  98              		.loc 1 22 9 is_stmt 1 view .LVU31
-  22:./Application/Src/application.c ****     }
-  99              		.loc 1 22 33 is_stmt 0 view .LVU32
+  24:./Application/Src/application.c ****     }
+  98              		.loc 1 24 9 is_stmt 1 view .LVU31
+  24:./Application/Src/application.c ****     }
+  99              		.loc 1 24 33 is_stmt 0 view .LVU32
  100 006a 80ED047A 		vstr.32	s14, [r0, #16]
  101 006e DEE7     		b	.L4
  102              		.cfi_endproc
  103              	.LFE160:
- 105              		.section	.text.controller_init,"ax",%progbits
+ 105              		.section	.text.wait_ms,"ax",%progbits
  106              		.align	1
- 107              		.global	controller_init
+ 107              		.global	wait_ms
  108              		.syntax unified
  109              		.thumb
  110              		.thumb_func
- 112              	controller_init:
- 113              	.LFB161:
-  28:./Application/Src/application.c **** 
-  29:./Application/Src/application.c **** // PID struct for the motor
-  30:./Application/Src/application.c **** PID_t debug_motor = {
-  31:./Application/Src/application.c ****     .Kp = 10.0f,
-  32:./Application/Src/application.c ****     .Ki = 20.0f,
-  33:./Application/Src/application.c ****     .Kd = 0.001f,
-  34:./Application/Src/application.c ****     .Integral_max = 0.01f
-  35:./Application/Src/application.c **** };
-  36:./Application/Src/application.c **** 
-  37:./Application/Src/application.c **** // do controller here
-  38:./Application/Src/application.c **** void controller_init(void){
- 114              		.loc 1 38 27 is_stmt 1 view -0
- 115              		.cfi_startproc
- 116              		@ args = 0, pretend = 0, frame = 0
- 117              		@ frame_needed = 0, uses_anonymous_args = 0
- 118 0000 10B5     		push	{r4, lr}
- 119              	.LCFI0:
- 120              		.cfi_def_cfa_offset 8
- 121              		.cfi_offset 4, -8
- 122              		.cfi_offset 14, -4
-  39:./Application/Src/application.c ****     memset(&vofa, 0, sizeof(vofa));
- 123              		.loc 1 39 5 view .LVU34
- 124 0002 0C4C     		ldr	r4, .L11
- 125 0004 2C22     		movs	r2, #44
- 126 0006 0021     		movs	r1, #0
- 127 0008 2046     		mov	r0, r4
- 128 000a FFF7FEFF 		bl	memset
- 129              	.LVL3:
-  40:./Application/Src/application.c ****     vofa.vofaTail[0] = 0x00;
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 4
+ 112              	wait_ms:
+ 113              	.LVL3:
+ 114              	.LFB161:
+  30:./Application/Src/application.c **** 
+  31:./Application/Src/application.c **** // PID struct for the motor
+  32:./Application/Src/application.c **** PID_t debug_motor = {
+  33:./Application/Src/application.c ****     .Kp = 10.0f,
+  34:./Application/Src/application.c ****     .Ki = 20.0f,
+  35:./Application/Src/application.c ****     .Kd = 0.001f,
+  36:./Application/Src/application.c ****     .Integral_max = 0.01f
+  37:./Application/Src/application.c **** };
+  38:./Application/Src/application.c **** 
+  39:./Application/Src/application.c **** void wait_ms(uint32_t ms){
+ 115              		.loc 1 39 26 is_stmt 1 view -0
+ 116              		.cfi_startproc
+ 117              		@ args = 0, pretend = 0, frame = 0
+ 118              		@ frame_needed = 0, uses_anonymous_args = 0
+ 119              		@ link register save eliminated.
+  40:./Application/Src/application.c ****     uint32_t start = time_counter;
+ 120              		.loc 1 40 5 view .LVU34
+ 121              		.loc 1 40 14 is_stmt 0 view .LVU35
+ 122 0000 034B     		ldr	r3, .L11
+ 123 0002 1A68     		ldr	r2, [r3]
+ 124              	.LVL4:
+  41:./Application/Src/application.c ****     while (time_counter - start < ms);
+ 125              		.loc 1 41 5 is_stmt 1 view .LVU36
+ 126              	.L10:
+ 127              		.loc 1 41 33 discriminator 1 view .LVU37
+ 128              		.loc 1 41 25 is_stmt 0 discriminator 1 view .LVU38
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 4
 
 
- 130              		.loc 1 40 5 view .LVU35
-  41:./Application/Src/application.c ****     vofa.vofaTail[1] = 0x00;
- 131              		.loc 1 41 5 view .LVU36
-  42:./Application/Src/application.c ****     vofa.vofaTail[2] = 0x80;
- 132              		.loc 1 42 5 view .LVU37
- 133              		.loc 1 42 22 is_stmt 0 view .LVU38
- 134 000e 8023     		movs	r3, #128
- 135 0010 84F82A30 		strb	r3, [r4, #42]
-  43:./Application/Src/application.c ****     vofa.vofaTail[3] = 0x7f;
- 136              		.loc 1 43 5 is_stmt 1 view .LVU39
- 137              		.loc 1 43 22 is_stmt 0 view .LVU40
- 138 0014 7F23     		movs	r3, #127
- 139 0016 84F82B30 		strb	r3, [r4, #43]
-  44:./Application/Src/application.c **** 
-  45:./Application/Src/application.c ****     // Initialize PID state and target to 0
-  46:./Application/Src/application.c ****     target_position_cm = 0.0f;
- 140              		.loc 1 46 5 is_stmt 1 view .LVU41
- 141              		.loc 1 46 24 is_stmt 0 view .LVU42
- 142 001a 0023     		movs	r3, #0
- 143 001c 064A     		ldr	r2, .L11+4
- 144 001e 1360     		str	r3, [r2]	@ float
-  47:./Application/Src/application.c ****     debug_motor.Integral = 0.0f;
- 145              		.loc 1 47 5 is_stmt 1 view .LVU43
- 146              		.loc 1 47 26 is_stmt 0 view .LVU44
- 147 0020 064A     		ldr	r2, .L11+8
- 148 0022 1361     		str	r3, [r2, #16]	@ float
-  48:./Application/Src/application.c ****     debug_motor.last_error = 0.0f;
- 149              		.loc 1 48 5 is_stmt 1 view .LVU45
- 150              		.loc 1 48 28 is_stmt 0 view .LVU46
- 151 0024 5361     		str	r3, [r2, #20]	@ float
-  49:./Application/Src/application.c ****     debug_motor.output = 0.0f;
- 152              		.loc 1 49 5 is_stmt 1 view .LVU47
- 153              		.loc 1 49 24 is_stmt 0 view .LVU48
- 154 0026 9361     		str	r3, [r2, #24]	@ float
-  50:./Application/Src/application.c **** 
-  51:./Application/Src/application.c ****     // initialize PWM outputs to 0 - no movement at startup
-  52:./Application/Src/application.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
- 155              		.loc 1 52 5 is_stmt 1 view .LVU49
- 156 0028 054B     		ldr	r3, .L11+12
- 157 002a 1B68     		ldr	r3, [r3]
- 158 002c 0022     		movs	r2, #0
- 159 002e 5A63     		str	r2, [r3, #52]
-  53:./Application/Src/application.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
- 160              		.loc 1 53 5 view .LVU50
- 161 0030 9A63     		str	r2, [r3, #56]
-  54:./Application/Src/application.c **** }
- 162              		.loc 1 54 1 is_stmt 0 view .LVU51
- 163 0032 10BD     		pop	{r4, pc}
- 164              	.L12:
- 165              		.align	2
- 166              	.L11:
- 167 0034 00000000 		.word	vofa
- 168 0038 00000000 		.word	target_position_cm
- 169 003c 00000000 		.word	debug_motor
- 170 0040 00000000 		.word	htim3
- 171              		.cfi_endproc
- 172              	.LFE161:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 5
+ 129 0004 024B     		ldr	r3, .L11
+ 130 0006 1B68     		ldr	r3, [r3]
+ 131 0008 9B1A     		subs	r3, r3, r2
+ 132              		.loc 1 41 33 discriminator 1 view .LVU39
+ 133 000a 8342     		cmp	r3, r0
+ 134 000c FAD3     		bcc	.L10
+  42:./Application/Src/application.c **** }
+ 135              		.loc 1 42 1 view .LVU40
+ 136 000e 7047     		bx	lr
+ 137              	.L12:
+ 138              		.align	2
+ 139              	.L11:
+ 140 0010 00000000 		.word	time_counter
+ 141              		.cfi_endproc
+ 142              	.LFE161:
+ 144              		.section	.text.controller_init,"ax",%progbits
+ 145              		.align	1
+ 146              		.global	controller_init
+ 147              		.syntax unified
+ 148              		.thumb
+ 149              		.thumb_func
+ 151              	controller_init:
+ 152              	.LFB162:
+  43:./Application/Src/application.c **** 
+  44:./Application/Src/application.c **** // do controller here
+  45:./Application/Src/application.c **** void controller_init(void){
+ 153              		.loc 1 45 27 is_stmt 1 view -0
+ 154              		.cfi_startproc
+ 155              		@ args = 0, pretend = 0, frame = 0
+ 156              		@ frame_needed = 0, uses_anonymous_args = 0
+ 157 0000 10B5     		push	{r4, lr}
+ 158              	.LCFI0:
+ 159              		.cfi_def_cfa_offset 8
+ 160              		.cfi_offset 4, -8
+ 161              		.cfi_offset 14, -4
+  46:./Application/Src/application.c ****     memset(&vofa, 0, sizeof(vofa));
+ 162              		.loc 1 46 5 view .LVU42
+ 163 0002 0C4C     		ldr	r4, .L15
+ 164 0004 2C22     		movs	r2, #44
+ 165 0006 0021     		movs	r1, #0
+ 166 0008 2046     		mov	r0, r4
+ 167 000a FFF7FEFF 		bl	memset
+ 168              	.LVL5:
+  47:./Application/Src/application.c ****     vofa.vofaTail[0] = 0x00;
+ 169              		.loc 1 47 5 view .LVU43
+  48:./Application/Src/application.c ****     vofa.vofaTail[1] = 0x00;
+ 170              		.loc 1 48 5 view .LVU44
+  49:./Application/Src/application.c ****     vofa.vofaTail[2] = 0x80;
+ 171              		.loc 1 49 5 view .LVU45
+ 172              		.loc 1 49 22 is_stmt 0 view .LVU46
+ 173 000e 8023     		movs	r3, #128
+ 174 0010 84F82A30 		strb	r3, [r4, #42]
+  50:./Application/Src/application.c ****     vofa.vofaTail[3] = 0x7f;
+ 175              		.loc 1 50 5 is_stmt 1 view .LVU47
+ 176              		.loc 1 50 22 is_stmt 0 view .LVU48
+ 177 0014 7F23     		movs	r3, #127
+ 178 0016 84F82B30 		strb	r3, [r4, #43]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 5
 
 
- 174              		.section	.text.controller_step,"ax",%progbits
- 175              		.align	1
- 176              		.global	controller_step
- 177              		.syntax unified
- 178              		.thumb
- 179              		.thumb_func
- 181              	controller_step:
- 182              	.LVL4:
- 183              	.LFB162:
-  55:./Application/Src/application.c **** 
-  56:./Application/Src/application.c **** // DO NOT USE SPRINT, PRINT IN THIS FUNCTION
-  57:./Application/Src/application.c **** void controller_step(const float dt){
- 184              		.loc 1 57 37 is_stmt 1 view -0
- 185              		.cfi_startproc
- 186              		@ args = 0, pretend = 0, frame = 8
- 187              		@ frame_needed = 0, uses_anonymous_args = 0
- 188              		.loc 1 57 37 is_stmt 0 view .LVU53
- 189 0000 30B5     		push	{r4, r5, lr}
- 190              	.LCFI1:
- 191              		.cfi_def_cfa_offset 12
- 192              		.cfi_offset 4, -12
- 193              		.cfi_offset 5, -8
- 194              		.cfi_offset 14, -4
- 195 0002 2DED028B 		vpush.64	{d8}
- 196              	.LCFI2:
- 197              		.cfi_def_cfa_offset 20
- 198              		.cfi_offset 80, -20
- 199              		.cfi_offset 81, -16
- 200 0006 83B0     		sub	sp, sp, #12
- 201              	.LCFI3:
- 202              		.cfi_def_cfa_offset 32
- 203 0008 B0EE408A 		vmov.f32	s16, s0
- 204 000c F0EE408A 		vmov.f32	s17, s0
-  58:./Application/Src/application.c ****     uint32_t direction;
- 205              		.loc 1 58 5 is_stmt 1 view .LVU54
-  59:./Application/Src/application.c **** 
-  60:./Application/Src/application.c ****     encoder_read_value(&htim8, &encoder_read_result, &direction);
- 206              		.loc 1 60 5 view .LVU55
- 207 0010 4C4C     		ldr	r4, .L34
- 208 0012 01AA     		add	r2, sp, #4
- 209 0014 2146     		mov	r1, r4
- 210 0016 4C48     		ldr	r0, .L34+4
- 211 0018 FFF7FEFF 		bl	encoder_read_value
- 212              	.LVL5:
-  61:./Application/Src/application.c ****     current_distance_cm = encoder_parse_distance_cm(encoder_read_result);
- 213              		.loc 1 61 5 view .LVU56
- 214              		.loc 1 61 27 is_stmt 0 view .LVU57
- 215 001c 2068     		ldr	r0, [r4]
- 216 001e FFF7FEFF 		bl	encoder_parse_distance_cm
- 217              	.LVL6:
- 218              		.loc 1 61 25 discriminator 1 view .LVU58
- 219 0022 4A4C     		ldr	r4, .L34+8
- 220 0024 84ED000A 		vstr.32	s0, [r4]
-  62:./Application/Src/application.c ****     vofa.val[0] = current_distance_cm;
- 221              		.loc 1 62 5 is_stmt 1 view .LVU59
- 222              		.loc 1 62 17 is_stmt 0 view .LVU60
- 223 0028 2368     		ldr	r3, [r4]	@ float
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 6
+  51:./Application/Src/application.c **** 
+  52:./Application/Src/application.c ****     // initialize PID value
+  53:./Application/Src/application.c ****     target_position_cm = 0.0f;
+ 179              		.loc 1 53 5 is_stmt 1 view .LVU49
+ 180              		.loc 1 53 24 is_stmt 0 view .LVU50
+ 181 001a 0023     		movs	r3, #0
+ 182 001c 064A     		ldr	r2, .L15+4
+ 183 001e 1360     		str	r3, [r2]	@ float
+  54:./Application/Src/application.c ****     debug_motor.Integral = 0.0f;
+ 184              		.loc 1 54 5 is_stmt 1 view .LVU51
+ 185              		.loc 1 54 26 is_stmt 0 view .LVU52
+ 186 0020 064A     		ldr	r2, .L15+8
+ 187 0022 1361     		str	r3, [r2, #16]	@ float
+  55:./Application/Src/application.c ****     debug_motor.last_error = 0.0f;
+ 188              		.loc 1 55 5 is_stmt 1 view .LVU53
+ 189              		.loc 1 55 28 is_stmt 0 view .LVU54
+ 190 0024 5361     		str	r3, [r2, #20]	@ float
+  56:./Application/Src/application.c ****     debug_motor.output = 0.0f;
+ 191              		.loc 1 56 5 is_stmt 1 view .LVU55
+ 192              		.loc 1 56 24 is_stmt 0 view .LVU56
+ 193 0026 9361     		str	r3, [r2, #24]	@ float
+  57:./Application/Src/application.c **** 
+  58:./Application/Src/application.c ****     // initialize PWM outputs to 0 - no movement at startup
+  59:./Application/Src/application.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+ 194              		.loc 1 59 5 is_stmt 1 view .LVU57
+ 195 0028 054B     		ldr	r3, .L15+12
+ 196 002a 1B68     		ldr	r3, [r3]
+ 197 002c 0022     		movs	r2, #0
+ 198 002e 5A63     		str	r2, [r3, #52]
+  60:./Application/Src/application.c ****     __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+ 199              		.loc 1 60 5 view .LVU58
+ 200 0030 9A63     		str	r2, [r3, #56]
+  61:./Application/Src/application.c **** }
+ 201              		.loc 1 61 1 is_stmt 0 view .LVU59
+ 202 0032 10BD     		pop	{r4, pc}
+ 203              	.L16:
+ 204              		.align	2
+ 205              	.L15:
+ 206 0034 00000000 		.word	vofa
+ 207 0038 00000000 		.word	target_position_cm
+ 208 003c 00000000 		.word	debug_motor
+ 209 0040 00000000 		.word	htim3
+ 210              		.cfi_endproc
+ 211              	.LFE162:
+ 213              		.section	.text.controller_step,"ax",%progbits
+ 214              		.align	1
+ 215              		.global	controller_step
+ 216              		.syntax unified
+ 217              		.thumb
+ 218              		.thumb_func
+ 220              	controller_step:
+ 221              	.LVL6:
+ 222              	.LFB163:
+  62:./Application/Src/application.c **** 
+  63:./Application/Src/application.c **** // DO NOT USE SPRINT, PRINT IN THIS FUNCTION
+  64:./Application/Src/application.c **** // what have done: make some variable global and send
+  65:./Application/Src/application.c **** void controller_step(const float dt){
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 6
 
 
- 224 002a 494D     		ldr	r5, .L34+12
- 225 002c 2B60     		str	r3, [r5]	@ float
-  63:./Application/Src/application.c ****     current_velocity_cm_s = encoder_calc_speed_cm_s(current_distance_cm, dt);
- 226              		.loc 1 63 5 is_stmt 1 view .LVU61
- 227              		.loc 1 63 29 is_stmt 0 view .LVU62
- 228 002e 94ED000A 		vldr.32	s0, [r4]
- 229 0032 F0EE480A 		vmov.f32	s1, s16
- 230 0036 FFF7FEFF 		bl	encoder_calc_speed_cm_s
- 231              	.LVL7:
- 232              		.loc 1 63 27 discriminator 1 view .LVU63
- 233 003a 464B     		ldr	r3, .L34+16
- 234 003c 83ED000A 		vstr.32	s0, [r3]
-  64:./Application/Src/application.c **** 
-  65:./Application/Src/application.c ****     // position control - test pid - using step input - input via bluetooth
-  66:./Application/Src/application.c ****     float error = target_position_cm - current_distance_cm;
- 235              		.loc 1 66 5 is_stmt 1 view .LVU64
- 236              		.loc 1 66 38 is_stmt 0 view .LVU65
- 237 0040 454B     		ldr	r3, .L34+20
- 238 0042 D3ED007A 		vldr.32	s15, [r3]
- 239 0046 94ED008A 		vldr.32	s16, [r4]
- 240              	.LVL8:
- 241              		.loc 1 66 11 view .LVU66
- 242 004a 37EEC88A 		vsub.f32	s16, s15, s16
- 243              	.LVL9:
-  67:./Application/Src/application.c ****     vofa.val[1] = target_position_cm;
- 244              		.loc 1 67 5 is_stmt 1 view .LVU67
- 245              		.loc 1 67 17 is_stmt 0 view .LVU68
- 246 004e C5ED017A 		vstr.32	s15, [r5, #4]
-  68:./Application/Src/application.c **** 
-  69:./Application/Src/application.c ****     // Deadband: if error is within tolerance, stop motor and reset integral
-  70:./Application/Src/application.c ****     const float ERROR_DEADBAND = 0.1f;  // cm - adjust as needed
- 247              		.loc 1 70 5 is_stmt 1 view .LVU69
- 248              	.LVL10:
-  71:./Application/Src/application.c ****     const float PWM_MIN = 30.0f;        // minimum PWM to actually move motor
- 249              		.loc 1 71 5 view .LVU70
-  72:./Application/Src/application.c ****     float pwm_output = 0.0f;
- 250              		.loc 1 72 5 view .LVU71
-  73:./Application/Src/application.c **** 
-  74:./Application/Src/application.c ****     if (error > -ERROR_DEADBAND && error < ERROR_DEADBAND) {
- 251              		.loc 1 74 5 view .LVU72
- 252              		.loc 1 74 8 is_stmt 0 view .LVU73
- 253 0052 DFED427A 		vldr.32	s15, .L34+24
- 254 0056 B4EEE78A 		vcmpe.f32	s16, s15
- 255 005a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 256 005e 13DD     		ble	.L14
- 257              		.loc 1 74 33 discriminator 1 view .LVU74
- 258 0060 DFED3F7A 		vldr.32	s15, .L34+28
- 259 0064 B4EEE78A 		vcmpe.f32	s16, s15
- 260 0068 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 261 006c 0CD5     		bpl	.L14
-  75:./Application/Src/application.c ****         // Close enough - stop motor
-  76:./Application/Src/application.c ****         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
- 262              		.loc 1 76 9 is_stmt 1 view .LVU75
- 263 006e 3D4B     		ldr	r3, .L34+32
- 264 0070 1B68     		ldr	r3, [r3]
- 265 0072 0022     		movs	r2, #0
- 266 0074 5A63     		str	r2, [r3, #52]
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 7
+ 223              		.loc 1 65 37 is_stmt 1 view -0
+ 224              		.cfi_startproc
+ 225              		@ args = 0, pretend = 0, frame = 8
+ 226              		@ frame_needed = 0, uses_anonymous_args = 0
+ 227              		.loc 1 65 37 is_stmt 0 view .LVU61
+ 228 0000 30B5     		push	{r4, r5, lr}
+ 229              	.LCFI1:
+ 230              		.cfi_def_cfa_offset 12
+ 231              		.cfi_offset 4, -12
+ 232              		.cfi_offset 5, -8
+ 233              		.cfi_offset 14, -4
+ 234 0002 2DED028B 		vpush.64	{d8}
+ 235              	.LCFI2:
+ 236              		.cfi_def_cfa_offset 20
+ 237              		.cfi_offset 80, -20
+ 238              		.cfi_offset 81, -16
+ 239 0006 83B0     		sub	sp, sp, #12
+ 240              	.LCFI3:
+ 241              		.cfi_def_cfa_offset 32
+ 242 0008 B0EE408A 		vmov.f32	s16, s0
+ 243 000c F0EE408A 		vmov.f32	s17, s0
+  66:./Application/Src/application.c ****     uint32_t direction;
+ 244              		.loc 1 66 5 is_stmt 1 view .LVU62
+  67:./Application/Src/application.c **** 
+  68:./Application/Src/application.c ****     encoder_read_value(&htim8, &encoder_read_result, &direction);
+ 245              		.loc 1 68 5 view .LVU63
+ 246 0010 534C     		ldr	r4, .L38
+ 247 0012 01AA     		add	r2, sp, #4
+ 248 0014 2146     		mov	r1, r4
+ 249 0016 5348     		ldr	r0, .L38+4
+ 250 0018 FFF7FEFF 		bl	encoder_read_value
+ 251              	.LVL7:
+  69:./Application/Src/application.c ****     current_distance_cm = encoder_parse_distance_cm(encoder_read_result);
+ 252              		.loc 1 69 5 view .LVU64
+ 253              		.loc 1 69 27 is_stmt 0 view .LVU65
+ 254 001c 2068     		ldr	r0, [r4]
+ 255 001e FFF7FEFF 		bl	encoder_parse_distance_cm
+ 256              	.LVL8:
+ 257              		.loc 1 69 25 discriminator 1 view .LVU66
+ 258 0022 514C     		ldr	r4, .L38+8
+ 259 0024 84ED000A 		vstr.32	s0, [r4]
+  70:./Application/Src/application.c ****     vofa.val[0] = current_distance_cm;
+ 260              		.loc 1 70 5 is_stmt 1 view .LVU67
+ 261              		.loc 1 70 17 is_stmt 0 view .LVU68
+ 262 0028 2368     		ldr	r3, [r4]	@ float
+ 263 002a 504D     		ldr	r5, .L38+12
+ 264 002c 2B60     		str	r3, [r5]	@ float
+  71:./Application/Src/application.c ****     current_velocity_cm_s = encoder_calc_speed_cm_s(current_distance_cm, dt);
+ 265              		.loc 1 71 5 is_stmt 1 view .LVU69
+ 266              		.loc 1 71 29 is_stmt 0 view .LVU70
+ 267 002e 94ED000A 		vldr.32	s0, [r4]
+ 268 0032 F0EE480A 		vmov.f32	s1, s16
+ 269 0036 FFF7FEFF 		bl	encoder_calc_speed_cm_s
+ 270              	.LVL9:
+ 271              		.loc 1 71 27 discriminator 1 view .LVU71
+ 272 003a 4D4B     		ldr	r3, .L38+16
+ 273 003c 83ED000A 		vstr.32	s0, [r3]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 7
 
 
-  77:./Application/Src/application.c ****         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
- 267              		.loc 1 77 9 view .LVU76
- 268 0076 9A63     		str	r2, [r3, #56]
-  78:./Application/Src/application.c ****         debug_motor.Integral = 0.0f;  // reset integral to prevent windup
- 269              		.loc 1 78 9 view .LVU77
- 270              		.loc 1 78 30 is_stmt 0 view .LVU78
- 271 0078 3B4B     		ldr	r3, .L34+36
- 272 007a DFED3C7A 		vldr.32	s15, .L34+40
- 273 007e C3ED047A 		vstr.32	s15, [r3, #16]
-  79:./Application/Src/application.c ****         debug_motor.output = 0.0f;
- 274              		.loc 1 79 9 is_stmt 1 view .LVU79
- 275              		.loc 1 79 28 is_stmt 0 view .LVU80
- 276 0082 C3ED067A 		vstr.32	s15, [r3, #24]
- 277 0086 31E0     		b	.L17
- 278              	.L14:
-  80:./Application/Src/application.c ****     } else {
-  81:./Application/Src/application.c ****         pid_cycle(&debug_motor, error, dt);
- 279              		.loc 1 81 9 is_stmt 1 view .LVU81
- 280 0088 374C     		ldr	r4, .L34+36
- 281 008a F0EE680A 		vmov.f32	s1, s17
- 282 008e B0EE480A 		vmov.f32	s0, s16
- 283 0092 2046     		mov	r0, r4
- 284 0094 FFF7FEFF 		bl	pid_cycle
- 285              	.LVL11:
-  82:./Application/Src/application.c **** 
-  83:./Application/Src/application.c ****         // convert pid output to pwm, clamp to valid range
-  84:./Application/Src/application.c ****         pwm_output = debug_motor.output;
- 286              		.loc 1 84 9 view .LVU82
- 287              		.loc 1 84 20 is_stmt 0 view .LVU83
- 288 0098 D4ED067A 		vldr.32	s15, [r4, #24]
- 289              	.LVL12:
-  85:./Application/Src/application.c ****         if (pwm_output > 99.0f) pwm_output = 99.0f;
- 290              		.loc 1 85 9 is_stmt 1 view .LVU84
- 291              		.loc 1 85 12 is_stmt 0 view .LVU85
- 292 009c 9FED347A 		vldr.32	s14, .L34+44
- 293 00a0 F4EEC77A 		vcmpe.f32	s15, s14
- 294 00a4 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 295 00a8 09DC     		bgt	.L24
-  86:./Application/Src/application.c ****         if (pwm_output < -99.0f) pwm_output = -99.0f;
- 296              		.loc 1 86 9 is_stmt 1 view .LVU86
- 297              		.loc 1 86 12 is_stmt 0 view .LVU87
- 298 00aa 9FED327A 		vldr.32	s14, .L34+48
- 299 00ae F4EEC77A 		vcmpe.f32	s15, s14
- 300 00b2 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 301 00b6 04D5     		bpl	.L18
- 302              		.loc 1 86 45 discriminator 1 view .LVU88
- 303 00b8 DFED2E7A 		vldr.32	s15, .L34+48
- 304              	.LVL13:
- 305              		.loc 1 86 45 discriminator 1 view .LVU89
- 306 00bc 01E0     		b	.L18
- 307              	.LVL14:
- 308              	.L24:
-  85:./Application/Src/application.c ****         if (pwm_output > 99.0f) pwm_output = 99.0f;
- 309              		.loc 1 85 44 discriminator 1 view .LVU90
- 310 00be DFED2C7A 		vldr.32	s15, .L34+44
- 311              	.LVL15:
- 312              	.L18:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 8
+  72:./Application/Src/application.c **** 
+  73:./Application/Src/application.c ****     // position control - test pid - using step input - input via bluetooth
+  74:./Application/Src/application.c ****     float error = target_position_cm - current_distance_cm;
+ 274              		.loc 1 74 5 is_stmt 1 view .LVU72
+ 275              		.loc 1 74 38 is_stmt 0 view .LVU73
+ 276 0040 4C4B     		ldr	r3, .L38+20
+ 277 0042 D3ED007A 		vldr.32	s15, [r3]
+ 278 0046 94ED008A 		vldr.32	s16, [r4]
+ 279              	.LVL10:
+ 280              		.loc 1 74 11 view .LVU74
+ 281 004a 37EEC88A 		vsub.f32	s16, s15, s16
+ 282              	.LVL11:
+  75:./Application/Src/application.c ****     vofa.val[1] = target_position_cm;
+ 283              		.loc 1 75 5 is_stmt 1 view .LVU75
+ 284              		.loc 1 75 17 is_stmt 0 view .LVU76
+ 285 004e C5ED017A 		vstr.32	s15, [r5, #4]
+  76:./Application/Src/application.c **** 
+  77:./Application/Src/application.c ****     // deadband: if error is within tolerance, stop motor and reset integral
+  78:./Application/Src/application.c ****     const float ERROR_DEADBAND = 0.1f; 
+ 286              		.loc 1 78 5 is_stmt 1 view .LVU77
+ 287              	.LVL12:
+  79:./Application/Src/application.c ****     const float PWM_MIN = 30.0f;        // minimum PWM to actually move motor
+ 288              		.loc 1 79 5 view .LVU78
+  80:./Application/Src/application.c ****     float pwm_output = 0.0f;
+ 289              		.loc 1 80 5 view .LVU79
+  81:./Application/Src/application.c **** 
+  82:./Application/Src/application.c ****     if (error > -ERROR_DEADBAND && error < ERROR_DEADBAND) {
+ 290              		.loc 1 82 5 view .LVU80
+ 291              		.loc 1 82 8 is_stmt 0 view .LVU81
+ 292 0052 DFED497A 		vldr.32	s15, .L38+24
+ 293 0056 B4EEE78A 		vcmpe.f32	s16, s15
+ 294 005a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 295 005e 16DD     		ble	.L18
+ 296              		.loc 1 82 33 discriminator 1 view .LVU82
+ 297 0060 DFED467A 		vldr.32	s15, .L38+28
+ 298 0064 B4EEE78A 		vcmpe.f32	s16, s15
+ 299 0068 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 300 006c 0FD5     		bpl	.L18
+  83:./Application/Src/application.c ****         // close enough - stop motor
+  84:./Application/Src/application.c ****         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+ 301              		.loc 1 84 9 is_stmt 1 view .LVU83
+ 302 006e 444B     		ldr	r3, .L38+32
+ 303 0070 1B68     		ldr	r3, [r3]
+ 304 0072 0022     		movs	r2, #0
+ 305 0074 5A63     		str	r2, [r3, #52]
+  85:./Application/Src/application.c ****         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+ 306              		.loc 1 85 9 view .LVU84
+ 307 0076 9A63     		str	r2, [r3, #56]
+  86:./Application/Src/application.c ****         debug_motor.Integral = 0.0f;  // reset integral to prevent windup
+ 308              		.loc 1 86 9 view .LVU85
+ 309              		.loc 1 86 30 is_stmt 0 view .LVU86
+ 310 0078 424B     		ldr	r3, .L38+36
+ 311 007a DFED437A 		vldr.32	s15, .L38+40
+ 312 007e C3ED047A 		vstr.32	s15, [r3, #16]
+  87:./Application/Src/application.c ****         debug_motor.output = 0.0f;
+ 313              		.loc 1 87 9 is_stmt 1 view .LVU87
+ 314              		.loc 1 87 28 is_stmt 0 view .LVU88
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 8
 
 
-  87:./Application/Src/application.c **** 
-  88:./Application/Src/application.c ****         // Apply direction based on error sign, with minimum PWM threshold
-  89:./Application/Src/application.c ****         if (error > 0.0f) {
- 313              		.loc 1 89 9 is_stmt 1 view .LVU91
- 314              		.loc 1 89 12 is_stmt 0 view .LVU92
- 315 00c2 B5EEC08A 		vcmpe.f32	s16, #0
- 316 00c6 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 317 00ca 1FDD     		ble	.L31
- 318              	.LBB2:
-  90:./Application/Src/application.c ****             uint32_t pwm = (pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)pwm_output;
- 319              		.loc 1 90 13 is_stmt 1 view .LVU93
- 320              		.loc 1 90 71 is_stmt 0 view .LVU94
- 321 00cc B3EE0E7A 		vmov.f32	s14, #3.0e+1
- 322 00d0 F4EEC77A 		vcmpe.f32	s15, s14
- 323 00d4 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 324 00d8 16D4     		bmi	.L26
- 325              		.loc 1 90 22 discriminator 2 view .LVU95
- 326 00da BCEEE77A 		vcvt.u32.f32	s14, s15
- 327 00de 17EE102A 		vmov	r2, s14	@ int
- 328              	.LVL16:
- 329              	.L21:
-  91:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm);
- 330              		.loc 1 91 13 is_stmt 1 view .LVU96
- 331 00e2 204B     		ldr	r3, .L34+32
- 332 00e4 1B68     		ldr	r3, [r3]
- 333 00e6 5A63     		str	r2, [r3, #52]
-  92:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
- 334              		.loc 1 92 13 view .LVU97
- 335 00e8 0022     		movs	r2, #0
- 336              	.LVL17:
- 337              		.loc 1 92 13 is_stmt 0 view .LVU98
- 338 00ea 9A63     		str	r2, [r3, #56]
- 339              	.LVL18:
- 340              	.L17:
- 341              		.loc 1 92 13 view .LVU99
- 342              	.LBE2:
-  93:./Application/Src/application.c ****         } else {
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
-  95:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
-  96:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
-  97:./Application/Src/application.c ****         }
-  98:./Application/Src/application.c ****     }
-  99:./Application/Src/application.c **** 
- 100:./Application/Src/application.c ****     vofa.val[2] = pwm_output;
- 343              		.loc 1 100 5 is_stmt 1 view .LVU100
- 344              		.loc 1 100 17 is_stmt 0 view .LVU101
- 345 00ec 184B     		ldr	r3, .L34+12
- 346 00ee C3ED027A 		vstr.32	s15, [r3, #8]
- 101:./Application/Src/application.c ****     vofa.val[3] = error;
- 347              		.loc 1 101 5 is_stmt 1 view .LVU102
- 348              		.loc 1 101 17 is_stmt 0 view .LVU103
- 349 00f2 83ED038A 		vstr.32	s16, [r3, #12]
- 102:./Application/Src/application.c **** 
- 103:./Application/Src/application.c ****     if (huart1.gState == HAL_UART_STATE_READY) {
- 350              		.loc 1 103 5 is_stmt 1 view .LVU104
- 351              		.loc 1 103 15 is_stmt 0 view .LVU105
- 352 00f6 204B     		ldr	r3, .L34+52
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 9
+ 315 0082 C3ED067A 		vstr.32	s15, [r3, #24]
+  88:./Application/Src/application.c ****         is_moving = 1; // have done moving
+ 316              		.loc 1 88 9 is_stmt 1 view .LVU89
+ 317              		.loc 1 88 19 is_stmt 0 view .LVU90
+ 318 0086 414B     		ldr	r3, .L38+44
+ 319 0088 0122     		movs	r2, #1
+ 320 008a 1A60     		str	r2, [r3]
+ 321 008c 31E0     		b	.L21
+ 322              	.L18:
+  89:./Application/Src/application.c ****     } else {
+  90:./Application/Src/application.c ****         pid_cycle(&debug_motor, error, dt);
+ 323              		.loc 1 90 9 is_stmt 1 view .LVU91
+ 324 008e 3D4C     		ldr	r4, .L38+36
+ 325 0090 F0EE680A 		vmov.f32	s1, s17
+ 326 0094 B0EE480A 		vmov.f32	s0, s16
+ 327 0098 2046     		mov	r0, r4
+ 328 009a FFF7FEFF 		bl	pid_cycle
+ 329              	.LVL13:
+  91:./Application/Src/application.c **** 
+  92:./Application/Src/application.c ****         // convert pid output to pwm, clamp to valid range
+  93:./Application/Src/application.c ****         pwm_output = debug_motor.output;
+ 330              		.loc 1 93 9 view .LVU92
+ 331              		.loc 1 93 20 is_stmt 0 view .LVU93
+ 332 009e D4ED067A 		vldr.32	s15, [r4, #24]
+ 333              	.LVL14:
+  94:./Application/Src/application.c ****         if (pwm_output > 99.0f) pwm_output = 99.0f;
+ 334              		.loc 1 94 9 is_stmt 1 view .LVU94
+ 335              		.loc 1 94 12 is_stmt 0 view .LVU95
+ 336 00a2 9FED3B7A 		vldr.32	s14, .L38+48
+ 337 00a6 F4EEC77A 		vcmpe.f32	s15, s14
+ 338 00aa F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 339 00ae 09DC     		bgt	.L28
+  95:./Application/Src/application.c ****         if (pwm_output < -99.0f) pwm_output = -99.0f;
+ 340              		.loc 1 95 9 is_stmt 1 view .LVU96
+ 341              		.loc 1 95 12 is_stmt 0 view .LVU97
+ 342 00b0 9FED387A 		vldr.32	s14, .L38+52
+ 343 00b4 F4EEC77A 		vcmpe.f32	s15, s14
+ 344 00b8 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 345 00bc 04D5     		bpl	.L22
+ 346              		.loc 1 95 45 discriminator 1 view .LVU98
+ 347 00be DFED357A 		vldr.32	s15, .L38+52
+ 348              	.LVL15:
+ 349              		.loc 1 95 45 discriminator 1 view .LVU99
+ 350 00c2 01E0     		b	.L22
+ 351              	.LVL16:
+ 352              	.L28:
+  94:./Application/Src/application.c ****         if (pwm_output > 99.0f) pwm_output = 99.0f;
+ 353              		.loc 1 94 44 discriminator 1 view .LVU100
+ 354 00c4 DFED327A 		vldr.32	s15, .L38+48
+ 355              	.LVL17:
+ 356              	.L22:
+  96:./Application/Src/application.c **** 
+  97:./Application/Src/application.c ****         // direction based on error -> check error so it knows where to move
+  98:./Application/Src/application.c ****         if (error > 0.0f) {
+ 357              		.loc 1 98 9 is_stmt 1 view .LVU101
+ 358              		.loc 1 98 12 is_stmt 0 view .LVU102
+ 359 00c8 B5EEC08A 		vcmpe.f32	s16, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 9
 
 
- 353 00f8 D3F88830 		ldr	r3, [r3, #136]
- 354              		.loc 1 103 8 view .LVU106
- 355 00fc 202B     		cmp	r3, #32
- 356 00fe 1AD0     		beq	.L33
- 357              	.LVL19:
- 358              	.L13:
- 104:./Application/Src/application.c ****         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
- 105:./Application/Src/application.c ****     }
- 106:./Application/Src/application.c **** }...
- 359              		.loc 1 106 1 view .LVU107
- 360 0100 03B0     		add	sp, sp, #12
- 361              	.LCFI4:
- 362              		.cfi_remember_state
- 363              		.cfi_def_cfa_offset 20
- 364              		@ sp needed
- 365 0102 BDEC028B 		vldm	sp!, {d8}
- 366              	.LCFI5:
- 367              		.cfi_restore 80
- 368              		.cfi_restore 81
- 369              		.cfi_def_cfa_offset 12
- 370              	.LVL20:
- 371              		.loc 1 106 1 view .LVU108
- 372 0106 30BD     		pop	{r4, r5, pc}
- 373              	.LVL21:
- 374              	.L26:
- 375              	.LCFI6:
- 376              		.cfi_restore_state
- 377              	.LBB3:
-  90:./Application/Src/application.c ****             uint32_t pwm = (pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)pwm_output;
- 378              		.loc 1 90 22 discriminator 1 view .LVU109
- 379 0108 1E22     		movs	r2, #30
- 380 010a EAE7     		b	.L21
- 381              	.L31:
- 382              	.LBE3:
- 383              	.LBB4:
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
- 384              		.loc 1 94 13 is_stmt 1 view .LVU110
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
- 385              		.loc 1 94 72 is_stmt 0 view .LVU111
- 386 010c BBEE0E7A 		vmov.f32	s14, #-3.0e+1
- 387 0110 F4EEC77A 		vcmpe.f32	s15, s14
- 388 0114 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
- 389 0118 06DC     		bgt	.L27
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
- 390              		.loc 1 94 85 discriminator 2 view .LVU112
- 391 011a B1EE677A 		vneg.f32	s14, s15
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
- 392              		.loc 1 94 22 discriminator 2 view .LVU113
- 393 011e BCEEC77A 		vcvt.u32.f32	s14, s14
- 394 0122 17EE102A 		vmov	r2, s14	@ int
- 395              	.LVL22:
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
- 396              		.loc 1 94 22 discriminator 2 view .LVU114
- 397 0126 00E0     		b	.L22
- 398              	.LVL23:
- 399              	.L27:
-  94:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 10
+ 360 00cc F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 361 00d0 2ADD     		ble	.L35
+ 362              	.LBB2:
+  99:./Application/Src/application.c ****             uint32_t pwm = (pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)pwm_output;
+ 363              		.loc 1 99 13 is_stmt 1 view .LVU103
+ 364              		.loc 1 99 71 is_stmt 0 view .LVU104
+ 365 00d2 B3EE0E7A 		vmov.f32	s14, #3.0e+1
+ 366 00d6 F4EEC77A 		vcmpe.f32	s15, s14
+ 367 00da F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 368 00de 21D4     		bmi	.L30
+ 369              		.loc 1 99 22 discriminator 2 view .LVU105
+ 370 00e0 BCEEE77A 		vcvt.u32.f32	s14, s15
+ 371 00e4 17EE102A 		vmov	r2, s14	@ int
+ 372              	.LVL18:
+ 373              	.L25:
+ 100:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, pwm);
+ 374              		.loc 1 100 13 is_stmt 1 view .LVU106
+ 375 00e8 254B     		ldr	r3, .L38+32
+ 376 00ea 1B68     		ldr	r3, [r3]
+ 377 00ec 5A63     		str	r2, [r3, #52]
+ 101:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
+ 378              		.loc 1 101 13 view .LVU107
+ 379 00ee 0022     		movs	r2, #0
+ 380              	.LVL19:
+ 381              		.loc 1 101 13 is_stmt 0 view .LVU108
+ 382 00f0 9A63     		str	r2, [r3, #56]
+ 383              	.LVL20:
+ 384              	.L21:
+ 385              		.loc 1 101 13 view .LVU109
+ 386              	.LBE2:
+ 102:./Application/Src/application.c ****         } else {
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 104:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+ 105:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
+ 106:./Application/Src/application.c ****         }
+ 107:./Application/Src/application.c ****     }
+ 108:./Application/Src/application.c **** 
+ 109:./Application/Src/application.c ****     vofa.val[2] = pwm_output;
+ 387              		.loc 1 109 5 is_stmt 1 view .LVU110
+ 388              		.loc 1 109 17 is_stmt 0 view .LVU111
+ 389 00f2 1E4B     		ldr	r3, .L38+12
+ 390 00f4 C3ED027A 		vstr.32	s15, [r3, #8]
+ 110:./Application/Src/application.c ****     vofa.val[3] = error;
+ 391              		.loc 1 110 5 is_stmt 1 view .LVU112
+ 392              		.loc 1 110 17 is_stmt 0 view .LVU113
+ 393 00f8 83ED038A 		vstr.32	s16, [r3, #12]
+ 111:./Application/Src/application.c **** 
+ 112:./Application/Src/application.c ****     if (huart1.gState == HAL_UART_STATE_READY) {
+ 394              		.loc 1 112 5 is_stmt 1 view .LVU114
+ 395              		.loc 1 112 15 is_stmt 0 view .LVU115
+ 396 00fc 264B     		ldr	r3, .L38+56
+ 397 00fe D3F88830 		ldr	r3, [r3, #136]
+ 398              		.loc 1 112 8 view .LVU116
+ 399 0102 202B     		cmp	r3, #32
+ 400 0104 25D0     		beq	.L37
+ 401              	.LVL21:
+ 402              	.L27:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 10
 
 
- 400              		.loc 1 94 22 discriminator 1 view .LVU115
- 401 0128 1E22     		movs	r2, #30
- 402              	.L22:
- 403              	.LVL24:
-  95:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
- 404              		.loc 1 95 13 is_stmt 1 view .LVU116
- 405 012a 0E4B     		ldr	r3, .L34+32
- 406 012c 1B68     		ldr	r3, [r3]
- 407 012e 0021     		movs	r1, #0
- 408 0130 5963     		str	r1, [r3, #52]
-  96:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
- 409              		.loc 1 96 13 view .LVU117
- 410 0132 9A63     		str	r2, [r3, #56]
- 411 0134 DAE7     		b	.L17
- 412              	.LVL25:
- 413              	.L33:
-  96:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
- 414              		.loc 1 96 13 is_stmt 0 view .LVU118
- 415              	.LBE4:
- 104:./Application/Src/application.c ****         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
- 416              		.loc 1 104 9 is_stmt 1 view .LVU119
- 417 0136 2C22     		movs	r2, #44
- 418 0138 0549     		ldr	r1, .L34+12
- 419 013a 0F48     		ldr	r0, .L34+52
- 420 013c FFF7FEFF 		bl	HAL_UART_Transmit_IT
- 421              	.LVL26:
- 422              		.loc 1 106 1 is_stmt 0 view .LVU120
- 423 0140 DEE7     		b	.L13
- 424              	.L35:
- 425 0142 00BF     		.align	2
- 426              	.L34:
- 427 0144 00000000 		.word	encoder_read_result
- 428 0148 00000000 		.word	htim8
- 429 014c 00000000 		.word	current_distance_cm
- 430 0150 00000000 		.word	vofa
- 431 0154 00000000 		.word	current_velocity_cm_s
- 432 0158 00000000 		.word	target_position_cm
- 433 015c CDCCCCBD 		.word	-1110651699
- 434 0160 CDCCCC3D 		.word	1036831949
- 435 0164 00000000 		.word	htim3
- 436 0168 00000000 		.word	debug_motor
- 437 016c 00000000 		.word	0
- 438 0170 0000C642 		.word	1120272384
- 439 0174 0000C6C2 		.word	-1027211264
- 440 0178 00000000 		.word	huart1
- 441              		.cfi_endproc
- 442              	.LFE162:
- 444              		.global	debug_motor
- 445              		.section	.data.debug_motor,"aw"
- 446              		.align	2
- 449              	debug_motor:
- 450 0000 00002041 		.word	1092616192
- 451 0004 0000A041 		.word	1101004800
- 452 0008 6F12833A 		.word	981668463
- 453 000c 0AD7233C 		.word	1008981770
- 454 0010 00000000 		.space	12
- 454      00000000 
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 11
+ 113:./Application/Src/application.c ****         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
+ 114:./Application/Src/application.c ****     }
+ 115:./Application/Src/application.c **** 
+ 116:./Application/Src/application.c ****     // check for pin state (EE-SX1041: HIGH when blocked, LOW when light passes through)
+ 117:./Application/Src/application.c ****     is_blocked = (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_SET) ? 1 : 0;
+ 403              		.loc 1 117 5 is_stmt 1 view .LVU117
+ 404              		.loc 1 117 19 is_stmt 0 view .LVU118
+ 405 0106 4FF48061 		mov	r1, #1024
+ 406 010a 2448     		ldr	r0, .L38+60
+ 407 010c FFF7FEFF 		bl	HAL_GPIO_ReadPin
+ 408              	.LVL22:
+ 409              		.loc 1 117 77 discriminator 1 view .LVU119
+ 410 0110 0128     		cmp	r0, #1
+ 411 0112 14BF     		ite	ne
+ 412 0114 0020     		movne	r0, #0
+ 413 0116 0120     		moveq	r0, #1
+ 414              		.loc 1 117 16 discriminator 1 view .LVU120
+ 415 0118 214B     		ldr	r3, .L38+64
+ 416 011a 1860     		str	r0, [r3]
+ 118:./Application/Src/application.c **** }...
+ 417              		.loc 1 118 1 view .LVU121
+ 418 011c 03B0     		add	sp, sp, #12
+ 419              	.LCFI4:
+ 420              		.cfi_remember_state
+ 421              		.cfi_def_cfa_offset 20
+ 422              		@ sp needed
+ 423 011e BDEC028B 		vldm	sp!, {d8}
+ 424              	.LCFI5:
+ 425              		.cfi_restore 80
+ 426              		.cfi_restore 81
+ 427              		.cfi_def_cfa_offset 12
+ 428              	.LVL23:
+ 429              		.loc 1 118 1 view .LVU122
+ 430 0122 30BD     		pop	{r4, r5, pc}
+ 431              	.LVL24:
+ 432              	.L30:
+ 433              	.LCFI6:
+ 434              		.cfi_restore_state
+ 435              	.LBB3:
+  99:./Application/Src/application.c ****             uint32_t pwm = (pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)pwm_output;
+ 436              		.loc 1 99 22 discriminator 1 view .LVU123
+ 437 0124 1E22     		movs	r2, #30
+ 438 0126 DFE7     		b	.L25
+ 439              	.L35:
+ 440              	.LBE3:
+ 441              	.LBB4:
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 442              		.loc 1 103 13 is_stmt 1 view .LVU124
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 443              		.loc 1 103 72 is_stmt 0 view .LVU125
+ 444 0128 BBEE0E7A 		vmov.f32	s14, #-3.0e+1
+ 445 012c F4EEC77A 		vcmpe.f32	s15, s14
+ 446 0130 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 447 0134 06DC     		bgt	.L31
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 448              		.loc 1 103 85 discriminator 2 view .LVU126
+ 449 0136 B1EE677A 		vneg.f32	s14, s15
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 11
 
 
- 454      00000000 
- 455              		.global	vofa
- 456              		.section	.bss.vofa,"aw",%nobits
- 457              		.align	2
- 460              	vofa:
- 461 0000 00000000 		.space	44
- 461      00000000 
- 461      00000000 
- 461      00000000 
- 461      00000000 
- 462              		.global	current_distance_cm
- 463              		.section	.bss.current_distance_cm,"aw",%nobits
- 464              		.align	2
- 467              	current_distance_cm:
- 468 0000 00000000 		.space	4
- 469              		.global	current_velocity_cm_s
- 470              		.section	.bss.current_velocity_cm_s,"aw",%nobits
- 471              		.align	2
- 474              	current_velocity_cm_s:
- 475 0000 00000000 		.space	4
- 476              		.global	target_position_cm
- 477              		.section	.bss.target_position_cm,"aw",%nobits
- 478              		.align	2
- 481              	target_position_cm:
- 482 0000 00000000 		.space	4
- 483              		.global	encoder_old_position_cm
- 484              		.section	.bss.encoder_old_position_cm,"aw",%nobits
- 485              		.align	2
- 488              	encoder_old_position_cm:
- 489 0000 00000000 		.space	4
- 490              		.global	encoder_read_result
- 491              		.section	.bss.encoder_read_result,"aw",%nobits
- 492              		.align	2
- 495              	encoder_read_result:
- 496 0000 00000000 		.space	4
- 497              		.global	DMA_target_location
- 498              		.section	.bss.DMA_target_location,"aw",%nobits
- 499              		.align	2
- 502              	DMA_target_location:
- 503 0000 00000000 		.space	128
- 503      00000000 
- 503      00000000 
- 503      00000000 
- 503      00000000 
- 504              		.global	rx_buffer
- 505              		.section	.bss.rx_buffer,"aw",%nobits
- 506              		.align	2
- 509              	rx_buffer:
- 510 0000 00000000 		.space	128
- 510      00000000 
- 510      00000000 
- 510      00000000 
- 510      00000000 
- 511              		.text
- 512              	.Letext0:
- 513              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 514              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 12
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 450              		.loc 1 103 22 discriminator 2 view .LVU127
+ 451 013a BCEEC77A 		vcvt.u32.f32	s14, s14
+ 452 013e 17EE102A 		vmov	r2, s14	@ int
+ 453              	.LVL25:
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 454              		.loc 1 103 22 discriminator 2 view .LVU128
+ 455 0142 00E0     		b	.L26
+ 456              	.LVL26:
+ 457              	.L31:
+ 103:./Application/Src/application.c ****             uint32_t pwm = (-pwm_output < PWM_MIN) ? (uint32_t)PWM_MIN : (uint32_t)(-pwm_output);
+ 458              		.loc 1 103 22 discriminator 1 view .LVU129
+ 459 0144 1E22     		movs	r2, #30
+ 460              	.L26:
+ 461              	.LVL27:
+ 104:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0);
+ 462              		.loc 1 104 13 is_stmt 1 view .LVU130
+ 463 0146 0E4B     		ldr	r3, .L38+32
+ 464 0148 1B68     		ldr	r3, [r3]
+ 465 014a 0021     		movs	r1, #0
+ 466 014c 5963     		str	r1, [r3, #52]
+ 105:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
+ 467              		.loc 1 105 13 view .LVU131
+ 468 014e 9A63     		str	r2, [r3, #56]
+ 469 0150 CFE7     		b	.L21
+ 470              	.LVL28:
+ 471              	.L37:
+ 105:./Application/Src/application.c ****             __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, pwm);
+ 472              		.loc 1 105 13 is_stmt 0 view .LVU132
+ 473              	.LBE4:
+ 113:./Application/Src/application.c ****         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
+ 474              		.loc 1 113 9 is_stmt 1 view .LVU133
+ 475 0152 2C22     		movs	r2, #44
+ 476 0154 0549     		ldr	r1, .L38+12
+ 477 0156 1048     		ldr	r0, .L38+56
+ 478 0158 FFF7FEFF 		bl	HAL_UART_Transmit_IT
+ 479              	.LVL29:
+ 113:./Application/Src/application.c ****         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
+ 480              		.loc 1 113 9 is_stmt 0 view .LVU134
+ 481 015c D3E7     		b	.L27
+ 482              	.L39:
+ 483 015e 00BF     		.align	2
+ 484              	.L38:
+ 485 0160 00000000 		.word	encoder_read_result
+ 486 0164 00000000 		.word	htim8
+ 487 0168 00000000 		.word	current_distance_cm
+ 488 016c 00000000 		.word	vofa
+ 489 0170 00000000 		.word	current_velocity_cm_s
+ 490 0174 00000000 		.word	target_position_cm
+ 491 0178 CDCCCCBD 		.word	-1110651699
+ 492 017c CDCCCC3D 		.word	1036831949
+ 493 0180 00000000 		.word	htim3
+ 494 0184 00000000 		.word	debug_motor
+ 495 0188 00000000 		.word	0
+ 496 018c 00000000 		.word	is_moving
+ 497 0190 0000C642 		.word	1120272384
+ 498 0194 0000C6C2 		.word	-1027211264
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 12
 
 
- 515              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
- 516              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
- 517              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
- 518              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
- 519              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
- 520              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
- 521              		.file 10 "Core/Inc/usart.h"
- 522              		.file 11 "Core/Inc/tim.h"
- 523              		.file 12 "Application/Inc/application.h"
- 524              		.file 13 "Application/Inc/encoder.h"
- 525              		.file 14 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
- 526              		.file 15 "<built-in>"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s 			page 13
+ 499 0198 00000000 		.word	huart1
+ 500 019c 00080242 		.word	1107429376
+ 501 01a0 00000000 		.word	is_blocked
+ 502              		.cfi_endproc
+ 503              	.LFE163:
+ 505              		.global	debug_motor
+ 506              		.section	.data.debug_motor,"aw"
+ 507              		.align	2
+ 510              	debug_motor:
+ 511 0000 00002041 		.word	1092616192
+ 512 0004 0000A041 		.word	1101004800
+ 513 0008 6F12833A 		.word	981668463
+ 514 000c 0AD7233C 		.word	1008981770
+ 515 0010 00000000 		.space	12
+ 515      00000000 
+ 515      00000000 
+ 516              		.global	is_blocked
+ 517              		.section	.bss.is_blocked,"aw",%nobits
+ 518              		.align	2
+ 521              	is_blocked:
+ 522 0000 00000000 		.space	4
+ 523              		.global	is_moving
+ 524              		.section	.bss.is_moving,"aw",%nobits
+ 525              		.align	2
+ 528              	is_moving:
+ 529 0000 00000000 		.space	4
+ 530              		.global	time_counter
+ 531              		.section	.bss.time_counter,"aw",%nobits
+ 532              		.align	2
+ 535              	time_counter:
+ 536 0000 00000000 		.space	4
+ 537              		.global	vofa
+ 538              		.section	.bss.vofa,"aw",%nobits
+ 539              		.align	2
+ 542              	vofa:
+ 543 0000 00000000 		.space	44
+ 543      00000000 
+ 543      00000000 
+ 543      00000000 
+ 543      00000000 
+ 544              		.global	current_distance_cm
+ 545              		.section	.bss.current_distance_cm,"aw",%nobits
+ 546              		.align	2
+ 549              	current_distance_cm:
+ 550 0000 00000000 		.space	4
+ 551              		.global	current_velocity_cm_s
+ 552              		.section	.bss.current_velocity_cm_s,"aw",%nobits
+ 553              		.align	2
+ 556              	current_velocity_cm_s:
+ 557 0000 00000000 		.space	4
+ 558              		.global	target_position_cm
+ 559              		.section	.bss.target_position_cm,"aw",%nobits
+ 560              		.align	2
+ 563              	target_position_cm:
+ 564 0000 00000000 		.space	4
+ 565              		.global	encoder_old_position_cm
+ 566              		.section	.bss.encoder_old_position_cm,"aw",%nobits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 13
+
+
+ 567              		.align	2
+ 570              	encoder_old_position_cm:
+ 571 0000 00000000 		.space	4
+ 572              		.global	encoder_read_result
+ 573              		.section	.bss.encoder_read_result,"aw",%nobits
+ 574              		.align	2
+ 577              	encoder_read_result:
+ 578 0000 00000000 		.space	4
+ 579              		.global	DMA_target_location
+ 580              		.section	.bss.DMA_target_location,"aw",%nobits
+ 581              		.align	2
+ 584              	DMA_target_location:
+ 585 0000 00000000 		.space	128
+ 585      00000000 
+ 585      00000000 
+ 585      00000000 
+ 585      00000000 
+ 586              		.global	rx_buffer
+ 587              		.section	.bss.rx_buffer,"aw",%nobits
+ 588              		.align	2
+ 591              	rx_buffer:
+ 592 0000 00000000 		.space	128
+ 592      00000000 
+ 592      00000000 
+ 592      00000000 
+ 592      00000000 
+ 593              		.text
+ 594              	.Letext0:
+ 595              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 596              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 597              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 598              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 599              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 600              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 601              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 602              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ 603              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ 604              		.file 11 "Core/Inc/usart.h"
+ 605              		.file 12 "Core/Inc/tim.h"
+ 606              		.file 13 "Application/Inc/application.h"
+ 607              		.file 14 "Application/Inc/encoder.h"
+ 608              		.file 15 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 609              		.file 16 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s 			page 14
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 application.c
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:22     .text.pid_cycle:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:28     .text.pid_cycle:00000000 pid_cycle
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:106    .text.controller_init:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:112    .text.controller_init:00000000 controller_init
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:167    .text.controller_init:00000034 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:460    .bss.vofa:00000000 vofa
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:481    .bss.target_position_cm:00000000 target_position_cm
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:449    .data.debug_motor:00000000 debug_motor
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:175    .text.controller_step:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:181    .text.controller_step:00000000 controller_step
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:427    .text.controller_step:00000144 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:495    .bss.encoder_read_result:00000000 encoder_read_result
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:467    .bss.current_distance_cm:00000000 current_distance_cm
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:474    .bss.current_velocity_cm_s:00000000 current_velocity_cm_s
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:446    .data.debug_motor:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:457    .bss.vofa:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:464    .bss.current_distance_cm:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:471    .bss.current_velocity_cm_s:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:478    .bss.target_position_cm:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:488    .bss.encoder_old_position_cm:00000000 encoder_old_position_cm
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:485    .bss.encoder_old_position_cm:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:492    .bss.encoder_read_result:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:502    .bss.DMA_target_location:00000000 DMA_target_location
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:499    .bss.DMA_target_location:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:509    .bss.rx_buffer:00000000 rx_buffer
-C:\Users\Xuleo\AppData\Local\Temp\cc3M9KMD.s:506    .bss.rx_buffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:22     .text.pid_cycle:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:28     .text.pid_cycle:00000000 pid_cycle
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:106    .text.wait_ms:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:112    .text.wait_ms:00000000 wait_ms
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:140    .text.wait_ms:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:535    .bss.time_counter:00000000 time_counter
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:145    .text.controller_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:151    .text.controller_init:00000000 controller_init
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:206    .text.controller_init:00000034 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:542    .bss.vofa:00000000 vofa
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:563    .bss.target_position_cm:00000000 target_position_cm
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:510    .data.debug_motor:00000000 debug_motor
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:214    .text.controller_step:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:220    .text.controller_step:00000000 controller_step
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:485    .text.controller_step:00000160 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:577    .bss.encoder_read_result:00000000 encoder_read_result
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:549    .bss.current_distance_cm:00000000 current_distance_cm
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:556    .bss.current_velocity_cm_s:00000000 current_velocity_cm_s
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:528    .bss.is_moving:00000000 is_moving
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:521    .bss.is_blocked:00000000 is_blocked
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:507    .data.debug_motor:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:518    .bss.is_blocked:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:525    .bss.is_moving:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:532    .bss.time_counter:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:539    .bss.vofa:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:546    .bss.current_distance_cm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:553    .bss.current_velocity_cm_s:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:560    .bss.target_position_cm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:570    .bss.encoder_old_position_cm:00000000 encoder_old_position_cm
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:567    .bss.encoder_old_position_cm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:574    .bss.encoder_read_result:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:584    .bss.DMA_target_location:00000000 DMA_target_location
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:581    .bss.DMA_target_location:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:591    .bss.rx_buffer:00000000 rx_buffer
+C:\Users\Xuleo\AppData\Local\Temp\ccIqb1P3.s:588    .bss.rx_buffer:00000000 $d
 
 UNDEFINED SYMBOLS
 memset
@@ -711,6 +811,7 @@ htim3
 encoder_read_value
 encoder_parse_distance_cm
 encoder_calc_speed_cm_s
+HAL_GPIO_ReadPin
 HAL_UART_Transmit_IT
 htim8
 huart1

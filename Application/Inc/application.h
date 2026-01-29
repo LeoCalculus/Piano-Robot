@@ -23,6 +23,9 @@ extern float target_position_cm;
 extern volatile float current_velocity_cm_s;  // updated in ISR, read in main loop
 extern volatile float current_distance_cm;    // updated in ISR, read in main loop
 extern VOFA_REPORT vofa; // transmit via usb
+extern volatile uint32_t time_counter;
+extern volatile int is_moving; // 0 not moving and 1 is moving
+extern volatile int is_blocked;
 
 typedef struct {
     const float Kp;
@@ -37,7 +40,7 @@ typedef struct {
 void pid_cycle(PID_t* target_pid, float error, const float dt);
 void controller_init();
 void controller_step(const float dt);
-
+void wait_ms(uint32_t ms);
 
 
 

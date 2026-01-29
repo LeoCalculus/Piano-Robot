@@ -58,6 +58,8 @@ volatile int rx_complete = 0;  // volatile since modified in ISR
 volatile uint16_t valid_rx = 0;
 volatile uint16_t old_pos = 0; // size record the index in DMA_target_location, need old pos track the new data
 char empty_row[] = "                        ";
+float pos_number[] = {50.0f, 20.0f, 10.0f, -69.0f, 62.0f, 90.0f, 0.0f, -30.0f, 20.0f, 55.0f};
+int pos_index = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -121,9 +123,11 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM3_Init();
   MX_TIM8_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   /* Initialize LCD directly (without LVGL for this demo) */
   LCD_init(&lcd_config);
+  HAL_TIM_Base_Start_IT(&htim4);
   // BT_config(&huart3);
   // TEST: Simple blocking transmit before anything else
   uint8_t test_msg[] = "USART1 OK\r\n";
@@ -192,6 +196,21 @@ int main(void)
       LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
       LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
       rx_complete = 0;
+    }
+
+    // test for index traversal - ok
+    // while (pos_index < sizeof(pos_number)/sizeof(pos_number[0])){
+    //     target_position_cm = pos_number[pos_index];
+    //     is_moving = 0; // wait for controller update it to 0
+    //     while (!is_moving); //move ok
+    //     wait_ms(500); // simulate next note delay
+    //     pos_index++;
+    // }
+
+    if (is_blocked){
+      LCD_draw_string(&lcd_config, 0, 5, "Sensor detected!  ", COLOR_BLACK, COLOR_WHITE);
+    } else {
+      LCD_draw_string(&lcd_config, 0, 5, "Nothing in sensor!", COLOR_BLACK, COLOR_WHITE);
     }
     /* USER CODE END WHILE */
 

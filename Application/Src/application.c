@@ -9,7 +9,9 @@ float target_position_cm;
 volatile float current_velocity_cm_s;  // updated in ISR, read in main loop
 volatile float current_distance_cm;    // updated in ISR, read in main loop
 VOFA_REPORT vofa; // transmit via usb
-
+volatile uint32_t time_counter = 0;
+volatile int is_moving = 0;
+volatile int is_blocked = 0;
 
 void pid_cycle(PID_t* target_system, float error, const float dt){
     float derivative = (error - target_system->last_error) / dt;
@@ -33,6 +35,11 @@ PID_t debug_motor = {
     .Kd = 0.001f,
     .Integral_max = 0.01f
 };
+
+void wait_ms(uint32_t ms){
+    uint32_t start = time_counter;
+    while (time_counter - start < ms);
+}
 
 // do controller here
 void controller_init(void){
@@ -78,6 +85,7 @@ void controller_step(const float dt){
         __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
         debug_motor.Integral = 0.0f;  // reset integral to prevent windup
         debug_motor.output = 0.0f;
+        is_moving = 1; // have done moving
     } else {
         pid_cycle(&debug_motor, error, dt);
 
@@ -104,4 +112,7 @@ void controller_step(const float dt){
     if (huart1.gState == HAL_UART_STATE_READY) {
         HAL_UART_Transmit_IT(&huart1, (uint8_t*)&vofa, sizeof(vofa));
     }
+
+    // check for pin state (EE-SX1041: HIGH when blocked, LOW when light passes through)
+    is_blocked = (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_SET) ? 1 : 0;
 }
