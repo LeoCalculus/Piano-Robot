@@ -13,6 +13,120 @@ volatile uint32_t time_counter = 0;
 volatile int is_moving = 0;
 volatile int is_blocked = 0;
 
+// make a song that has chord nodes:
+// test song: 15 chords, left hand only with varying positions and durations
+// left hand range: ~5cm to ~49cm (after adding LEFT_HAND_SIZE/2)
+Song_t piano_song[MAX_CHORD_EVENTS] = {
+    // {{num_notes, {positions...}, duration_ms, delay_to_next}}
+    {{1, {10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 15cm
+    {{1, {20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 25cm
+    {{1, {30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 35cm
+    {{1, {40.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 45cm
+    {{1, {44.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 300, 100}},  // target: 49cm
+    {{1, {35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 40cm
+    {{1, {25.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 30cm
+    {{1, {15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 20cm
+    {{1, { 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 300, 100}},  // target: 10cm
+    {{2, {10.0f, 20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 250, 100}}, // target: 15cm
+    {{2, {25.0f, 35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 250, 100}}, // target: 30cm
+    {{3, {15.0f, 25.0f, 35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},// target: 20cm
+    {{1, {40.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 400, 100}},  // target: 45cm
+    {{1, {20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 400, 100}},  // target: 25cm
+    {{1, {10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 500, 100}}   // target: 15cm
+    // remaining entries are zero-initialized
+};
+
+
+int which_hand(ChordEvent_t* this_note){
+    // check the array whether it has 
+    int left_flag = 0;
+    int right_flag = 0;
+    for (int i=0; i < 5; i++){
+        if (this_note->positions[i]!=0){
+            left_flag = 1;
+        }
+    }
+
+    for (int i=5; i < 10; i++){
+        if (this_note->positions[i]!=0){
+            right_flag = 1;
+        }
+    }
+
+    if (left_flag == 1 && right_flag == 0){
+        return 0;
+    } else if (left_flag == 0 && right_flag == 1){
+        return 1;
+    } else if (left_flag & right_flag) {
+        return 2;
+    } else { // no hands
+        return 3;
+    }
+}
+
+// all value should expected larger than 0, left should have range: PIANO_THRESHOLD - LEFT_HAND_SIZE/2
+// homing algo
+void locate_hand(ChordEvent_t* this_note, float hand_pos[2], int which_hand) {
+    hand_pos[0] = 0.0f;
+    hand_pos[1] = 0.0f;
+
+    // index 3 means
+    if (which_hand == 3) {
+        return;
+    }
+
+    // left hand: index 0 to 4
+    if (which_hand == 0 || which_hand == 2) {
+        float min_value = 1e9f;
+        for (int i = 0; i < 5; i++) {
+            if (this_note->positions[i] != 0.0f && this_note->positions[i] < min_value) {
+                min_value = this_note->positions[i];
+            }
+        }
+        float left_pos = min_value;
+        // clamp to avoid collision at threshold
+        hand_pos[0] = (left_pos + LEFT_HAND_SIZE / 2.0f > PIANO_THRESHOLD) ? PIANO_THRESHOLD - LEFT_HAND_SIZE / 2.0f : left_pos + LEFT_HAND_SIZE / 2.0f;
+    }
+
+    // right hand: index 5 to 9
+    if (which_hand == 1 || which_hand == 2) {
+        float max_value = -1e9f;
+        for (int i = 5; i < 10; i++) {
+            if (this_note->positions[i] != 0.0f && this_note->positions[i] > max_value) {
+                max_value = this_note->positions[i];
+            }
+        }
+        float right_pos = max_value;
+        // clamp to avoid collision at threshold
+        hand_pos[1] = (right_pos - RIGHT_HAND_SIZE / 2.0f < PIANO_THRESHOLD) ? PIANO_THRESHOLD + RIGHT_HAND_SIZE / 2.0f : right_pos - RIGHT_HAND_SIZE / 2.0f;
+    }
+}
+
+// using the for loop to traversal, call function to start playing the song
+void traversal_song(Song_t* entire_song){
+    // the entire song chords might be smaller than given length
+    for (int i = 0; i < MAX_CHORD_EVENTS; i++){
+        // if detect empty notes - means end - break loop 
+        if (entire_song[i].event.num_notes == 0) {
+            break;
+        }
+        // otherwise, we deal with the song
+        float hand_pos[2];
+        int hand = which_hand(&entire_song[i].event);
+        locate_hand(&entire_song[i].event, hand_pos, hand);
+        // set target position from parsed data:
+        target_position_cm = hand_pos[0];
+        // solenoid logic:
+        /*
+        if (is_moving == 0) { // means stop
+            push_solenoid();
+        }
+        
+        */
+        wait_ms(entire_song[i].event.duration_ms);
+    }
+}
+
 void pid_cycle(PID_t* target_system, float error, const float dt){
     float derivative = (error - target_system->last_error) / dt;
     
@@ -24,16 +138,22 @@ void pid_cycle(PID_t* target_system, float error, const float dt){
         target_system->Integral = -target_system->Integral_max;
     }
     // controller output here
+    // if (error > 5.0f || error < -5.0f) {
+    //     target_system->output = target_system->Kp * error + target_system->Kd * derivative;
+    //     target_system->Integral = 0.0f;
+    // } else {
+    //     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral + target_system->Kd * derivative;
+    // }
     target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral + target_system->Kd * derivative;
     target_system->last_error = error;
 }
 
 // PID struct for the motor
 PID_t debug_motor = {
-    .Kp = 10.0f,
-    .Ki = 20.0f,
-    .Kd = 0.001f,
-    .Integral_max = 0.01f
+    .Kp = 8.0f,
+    .Ki = 1.0f,
+    .Kd = 0.0f, //0.001
+    .Integral_max = 200000000.0f // 0.5
 };
 
 void wait_ms(uint32_t ms){

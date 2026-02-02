@@ -152,6 +152,8 @@ int main(void)
 
   
   msg = (uint8_t*)"Still alive";
+  // traversal begin
+  traversal_song(piano_song);
   
   /* USER CODE END 2 */
 
