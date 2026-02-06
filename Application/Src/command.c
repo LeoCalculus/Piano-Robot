@@ -16,6 +16,14 @@ int parseCommand(uint8_t* cmd) {
         float pos = strtof(arg, NULL);
         setPos(pos);
         return 0;
+    } else if (cmd[0] == ':' && cmd[1] == 'w') {
+        menu_move_up = 1;
+        memset(cmd, 0, 10); // set the first 10 bytes to 0
+        return 0;
+    } else if (cmd[0] == ':' && cmd[1] == 's') {
+        menu_move_down = 1;
+        memset(cmd, 0, 10); // set the first 10 bytes to 0
+        return 0;
     }
 
     if (cmd[0] != '/') {

@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -48,88 +48,96 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
   16:./Application/Src/command.c ****         float pos = strtof(arg, NULL);
   17:./Application/Src/command.c ****         setPos(pos);
   18:./Application/Src/command.c ****         return 0;
-  19:./Application/Src/command.c ****     }
-  20:./Application/Src/command.c **** 
-  21:./Application/Src/command.c ****     if (cmd[0] != '/') {
-  22:./Application/Src/command.c ****         return 1; // error command
-  23:./Application/Src/command.c ****     }
-  24:./Application/Src/command.c **** 
-  25:./Application/Src/command.c ****     // available commands:
-  26:./Application/Src/command.c ****     char* command = strtok((char*)cmd+1, " ");
-  27:./Application/Src/command.c **** 
-  28:./Application/Src/command.c ****     if (command == NULL) {
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 2
+  19:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 'w') {
+  20:./Application/Src/command.c ****         menu_move_up = 1;
+  21:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+  22:./Application/Src/command.c ****         return 0;
+  23:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 's') {
+  24:./Application/Src/command.c ****         menu_move_down = 1;
+  25:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+  26:./Application/Src/command.c ****         return 0;
+  27:./Application/Src/command.c ****     }
+  28:./Application/Src/command.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 2
 
 
-  29:./Application/Src/command.c ****         return 2; // empty command
-  30:./Application/Src/command.c ****     }
-  31:./Application/Src/command.c **** 
-  32:./Application/Src/command.c ****     char* argument1 = strtok(NULL, " ");
-  33:./Application/Src/command.c **** 
-  34:./Application/Src/command.c ****     if (strcmp(command, "setText") == 0) {
-  35:./Application/Src/command.c ****         if (argument1 == NULL) {
-  36:./Application/Src/command.c ****             return 3; // incomplete command
-  37:./Application/Src/command.c ****         } else {
-  38:./Application/Src/command.c ****             setText((uint8_t*)argument1);
-  39:./Application/Src/command.c ****         }
-  40:./Application/Src/command.c ****     } else if (strcmp(command, "setPos") == 0) {
-  41:./Application/Src/command.c ****         if (argument1 == NULL) {
-  42:./Application/Src/command.c ****             return 3;
-  43:./Application/Src/command.c ****         } else {
-  44:./Application/Src/command.c ****             float pos = strtof(argument1, NULL);
-  45:./Application/Src/command.c ****             setPos(pos);
-  46:./Application/Src/command.c ****         }
-  47:./Application/Src/command.c ****     } else if (strcmp(command, "resetPos") == 0){
-  48:./Application/Src/command.c ****         resetPos();
-  49:./Application/Src/command.c ****     }
-  50:./Application/Src/command.c **** 
-  51:./Application/Src/command.c ****     return 0;
-  52:./Application/Src/command.c **** }
-  53:./Application/Src/command.c **** 
-  54:./Application/Src/command.c **** void executeCommand(uint8_t* command){
-  55:./Application/Src/command.c ****     int result = parseCommand(command);
-  56:./Application/Src/command.c ****     if (result == 0) {
-  57:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
-  58:./Application/Src/command.c ****     } else if (result == 1){
-  59:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
-  60:./Application/Src/command.c ****     } else if (result == 2){
-  61:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
-  62:./Application/Src/command.c ****     } else if (result == 3){
-  63:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
-  64:./Application/Src/command.c ****     }
-  65:./Application/Src/command.c **** }
-  66:./Application/Src/command.c **** 
-  67:./Application/Src/command.c **** void setText(uint8_t* displayedText){
-  31              		.loc 1 67 37 view -0
+  29:./Application/Src/command.c ****     if (cmd[0] != '/') {
+  30:./Application/Src/command.c ****         return 1; // error command
+  31:./Application/Src/command.c ****     }
+  32:./Application/Src/command.c **** 
+  33:./Application/Src/command.c ****     // available commands:
+  34:./Application/Src/command.c ****     char* command = strtok((char*)cmd+1, " ");
+  35:./Application/Src/command.c **** 
+  36:./Application/Src/command.c ****     if (command == NULL) {
+  37:./Application/Src/command.c ****         return 2; // empty command
+  38:./Application/Src/command.c ****     }
+  39:./Application/Src/command.c **** 
+  40:./Application/Src/command.c ****     char* argument1 = strtok(NULL, " ");
+  41:./Application/Src/command.c **** 
+  42:./Application/Src/command.c ****     if (strcmp(command, "setText") == 0) {
+  43:./Application/Src/command.c ****         if (argument1 == NULL) {
+  44:./Application/Src/command.c ****             return 3; // incomplete command
+  45:./Application/Src/command.c ****         } else {
+  46:./Application/Src/command.c ****             setText((uint8_t*)argument1);
+  47:./Application/Src/command.c ****         }
+  48:./Application/Src/command.c ****     } else if (strcmp(command, "setPos") == 0) {
+  49:./Application/Src/command.c ****         if (argument1 == NULL) {
+  50:./Application/Src/command.c ****             return 3;
+  51:./Application/Src/command.c ****         } else {
+  52:./Application/Src/command.c ****             float pos = strtof(argument1, NULL);
+  53:./Application/Src/command.c ****             setPos(pos);
+  54:./Application/Src/command.c ****         }
+  55:./Application/Src/command.c ****     } else if (strcmp(command, "resetPos") == 0){
+  56:./Application/Src/command.c ****         resetPos();
+  57:./Application/Src/command.c ****     }
+  58:./Application/Src/command.c **** 
+  59:./Application/Src/command.c ****     return 0;
+  60:./Application/Src/command.c **** }
+  61:./Application/Src/command.c **** 
+  62:./Application/Src/command.c **** void executeCommand(uint8_t* command){
+  63:./Application/Src/command.c ****     int result = parseCommand(command);
+  64:./Application/Src/command.c ****     if (result == 0) {
+  65:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
+  66:./Application/Src/command.c ****     } else if (result == 1){
+  67:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
+  68:./Application/Src/command.c ****     } else if (result == 2){
+  69:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
+  70:./Application/Src/command.c ****     } else if (result == 3){
+  71:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
+  72:./Application/Src/command.c ****     }
+  73:./Application/Src/command.c **** }
+  74:./Application/Src/command.c **** 
+  75:./Application/Src/command.c **** void setText(uint8_t* displayedText){
+  31              		.loc 1 75 37 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
-  35              		.loc 1 67 37 is_stmt 0 view .LVU1
+  35              		.loc 1 75 37 is_stmt 0 view .LVU1
   36 0000 00B5     		push	{lr}
   37              	.LCFI0:
   38              		.cfi_def_cfa_offset 4
   39              		.cfi_offset 14, -4
   40 0002 83B0     		sub	sp, sp, #12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 3
+
+
   41              	.LCFI1:
   42              		.cfi_def_cfa_offset 16
   43 0004 0346     		mov	r3, r0
-  68:./Application/Src/command.c ****     LCD_draw_string(&lcd_config, 0, 13, (char*)displayedText, COLOR_BLACK, COLOR_WHITE);
-  44              		.loc 1 68 5 is_stmt 1 view .LVU2
+  76:./Application/Src/command.c ****     LCD_draw_string(&lcd_config, 0, 13, (char*)displayedText, COLOR_BLACK, COLOR_WHITE);
+  44              		.loc 1 76 5 is_stmt 1 view .LVU2
   45 0006 4FF6FF72 		movw	r2, #65535
   46 000a 0192     		str	r2, [sp, #4]
   47 000c 0021     		movs	r1, #0
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 3
-
-
   48 000e 0091     		str	r1, [sp]
   49 0010 0D22     		movs	r2, #13
   50 0012 0248     		ldr	r0, .L3
   51              	.LVL1:
-  52              		.loc 1 68 5 is_stmt 0 view .LVU3
+  52              		.loc 1 76 5 is_stmt 0 view .LVU3
   53 0014 FFF7FEFF 		bl	LCD_draw_string
   54              	.LVL2:
-  69:./Application/Src/command.c **** }
-  55              		.loc 1 69 1 view .LVU4
+  77:./Application/Src/command.c **** }
+  55              		.loc 1 77 1 view .LVU4
   56 0018 03B0     		add	sp, sp, #12
   57              	.LCFI2:
   58              		.cfi_def_cfa_offset 4
@@ -150,26 +158,29 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
   75              	setPos:
   76              	.LVL3:
   77              	.LFB163:
-  70:./Application/Src/command.c **** 
-  71:./Application/Src/command.c **** void setPos(float targetPos){
-  78              		.loc 1 71 29 is_stmt 1 view -0
+  78:./Application/Src/command.c **** 
+  79:./Application/Src/command.c **** void setPos(float targetPos){
+  78              		.loc 1 79 29 is_stmt 1 view -0
   79              		.cfi_startproc
   80              		@ args = 0, pretend = 0, frame = 0
   81              		@ frame_needed = 0, uses_anonymous_args = 0
   82              		@ link register save eliminated.
-  72:./Application/Src/command.c ****     target_position_cm = targetPos;
-  83              		.loc 1 72 5 view .LVU6
-  84              		.loc 1 72 24 is_stmt 0 view .LVU7
+  80:./Application/Src/command.c ****     target_position_cm = targetPos;
+  83              		.loc 1 80 5 view .LVU6
+  84              		.loc 1 80 24 is_stmt 0 view .LVU7
   85 0000 014B     		ldr	r3, .L6
   86 0002 83ED000A 		vstr.32	s0, [r3]
-  73:./Application/Src/command.c **** }
-  87              		.loc 1 73 1 view .LVU8
+  81:./Application/Src/command.c **** }
+  87              		.loc 1 81 1 view .LVU8
   88 0006 7047     		bx	lr
   89              	.L7:
   90              		.align	2
   91              	.L6:
   92 0008 00000000 		.word	target_position_cm
   93              		.cfi_endproc
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 4
+
+
   94              	.LFE163:
   96              		.section	.text.resetPos,"ax",%progbits
   97              		.align	1
@@ -178,25 +189,22 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
  100              		.thumb
  101              		.thumb_func
  103              	resetPos:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 4
-
-
  104              	.LFB164:
-  74:./Application/Src/command.c **** 
-  75:./Application/Src/command.c **** void resetPos(){
- 105              		.loc 1 75 16 is_stmt 1 view -0
+  82:./Application/Src/command.c **** 
+  83:./Application/Src/command.c **** void resetPos(){
+ 105              		.loc 1 83 16 is_stmt 1 view -0
  106              		.cfi_startproc
  107              		@ args = 0, pretend = 0, frame = 0
  108              		@ frame_needed = 0, uses_anonymous_args = 0
  109              		@ link register save eliminated.
-  76:./Application/Src/command.c ****     encoder_old_position_cm = 0.0f;
- 110              		.loc 1 76 5 view .LVU10
- 111              		.loc 1 76 29 is_stmt 0 view .LVU11
+  84:./Application/Src/command.c ****     encoder_old_position_cm = 0.0f;
+ 110              		.loc 1 84 5 view .LVU10
+ 111              		.loc 1 84 29 is_stmt 0 view .LVU11
  112 0000 014B     		ldr	r3, .L9
  113 0002 0022     		movs	r2, #0
  114 0004 1A60     		str	r2, [r3]	@ float
-  77:./Application/Src/command.c **** }
- 115              		.loc 1 77 1 view .LVU12
+  85:./Application/Src/command.c **** }
+ 115              		.loc 1 85 1 view .LVU12
  116 0006 7047     		bx	lr
  117              	.L10:
  118              		.align	2
@@ -230,6 +238,9 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
  144              	parseCommand:
  145              	.LVL4:
  146              	.LFB160:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 5
+
+
    7:./Application/Src/command.c ****     // Check for :p command (position in cm)
  147              		.loc 1 7 32 is_stmt 1 view -0
  148              		.cfi_startproc
@@ -238,9 +249,6 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
    7:./Application/Src/command.c ****     // Check for :p command (position in cm)
  151              		.loc 1 7 32 is_stmt 0 view .LVU14
  152 0000 70B5     		push	{r4, r5, r6, lr}
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 5
-
-
  153              	.LCFI3:
  154              		.cfi_def_cfa_offset 16
  155              		.cfi_offset 4, -16
@@ -255,478 +263,555 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 1
    9:./Application/Src/command.c ****         char* arg = (char*)cmd + 2;
  162              		.loc 1 9 8 view .LVU17
  163 0004 3A2B     		cmp	r3, #58
- 164 0006 05D0     		beq	.L25
+ 164 0006 09D0     		beq	.L27
  165              	.L12:
-  21:./Application/Src/command.c ****         return 1; // error command
- 166              		.loc 1 21 5 is_stmt 1 view .LVU18
-  21:./Application/Src/command.c ****         return 1; // error command
- 167              		.loc 1 21 8 is_stmt 0 view .LVU19
- 168 0008 2F2B     		cmp	r3, #47
- 169 000a 18D0     		beq	.L26
-  22:./Application/Src/command.c ****     }
- 170              		.loc 1 22 16 view .LVU20
- 171 000c 0123     		movs	r3, #1
- 172 000e 1C46     		mov	r4, r3
- 173              	.LVL5:
- 174              	.L11:
-  52:./Application/Src/command.c **** 
- 175              		.loc 1 52 1 view .LVU21
- 176 0010 2046     		mov	r0, r4
- 177 0012 70BD     		pop	{r4, r5, r6, pc}
- 178              	.LVL6:
- 179              	.L25:
+  19:./Application/Src/command.c ****         menu_move_up = 1;
+ 166              		.loc 1 19 12 is_stmt 1 view .LVU18
+  19:./Application/Src/command.c ****         menu_move_up = 1;
+ 167              		.loc 1 19 15 is_stmt 0 view .LVU19
+ 168 0008 3A2B     		cmp	r3, #58
+ 169 000a 1CD0     		beq	.L28
+ 170              	.L16:
+  23:./Application/Src/command.c ****         menu_move_down = 1;
+ 171              		.loc 1 23 12 is_stmt 1 view .LVU20
+  23:./Application/Src/command.c ****         menu_move_down = 1;
+ 172              		.loc 1 23 15 is_stmt 0 view .LVU21
+ 173 000c 3A2B     		cmp	r3, #58
+ 174 000e 26D0     		beq	.L29
+ 175              	.L17:
+  29:./Application/Src/command.c ****         return 1; // error command
+ 176              		.loc 1 29 5 is_stmt 1 view .LVU22
+  29:./Application/Src/command.c ****         return 1; // error command
+ 177              		.loc 1 29 8 is_stmt 0 view .LVU23
+ 178 0010 2F2B     		cmp	r3, #47
+ 179 0012 30D0     		beq	.L30
+  30:./Application/Src/command.c ****     }
+ 180              		.loc 1 30 16 view .LVU24
+ 181 0014 0123     		movs	r3, #1
+ 182 0016 1C46     		mov	r4, r3
+ 183              	.LVL5:
+ 184              	.L11:
+  60:./Application/Src/command.c **** 
+ 185              		.loc 1 60 1 view .LVU25
+ 186 0018 2046     		mov	r0, r4
+ 187 001a 70BD     		pop	{r4, r5, r6, pc}
+ 188              	.LVL6:
+ 189              	.L27:
    9:./Application/Src/command.c ****         char* arg = (char*)cmd + 2;
- 180              		.loc 1 9 29 discriminator 1 view .LVU22
- 181 0014 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
-   9:./Application/Src/command.c ****         char* arg = (char*)cmd + 2;
- 182              		.loc 1 9 23 discriminator 1 view .LVU23
- 183 0016 702A     		cmp	r2, #112
- 184 0018 F6D1     		bne	.L12
- 185              	.LBB2:
-  10:./Application/Src/command.c ****         // Skip any leading spaces
- 186              		.loc 1 10 9 is_stmt 1 view .LVU24
-  10:./Application/Src/command.c ****         // Skip any leading spaces
- 187              		.loc 1 10 15 is_stmt 0 view .LVU25
- 188 001a 0230     		adds	r0, r0, #2
- 189              	.LVL7:
-  12:./Application/Src/command.c ****         if (*arg == '\0') {
- 190              		.loc 1 12 9 is_stmt 1 view .LVU26
-  12:./Application/Src/command.c ****         if (*arg == '\0') {
- 191              		.loc 1 12 15 is_stmt 0 view .LVU27
- 192 001c 00E0     		b	.L13
- 193              	.LVL8:
- 194              	.L14:
-  12:./Application/Src/command.c ****         if (*arg == '\0') {
- 195              		.loc 1 12 29 is_stmt 1 discriminator 2 view .LVU28
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 6
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 6
 
 
+ 190              		.loc 1 9 29 discriminator 1 view .LVU26
+ 191 001c 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+   9:./Application/Src/command.c ****         char* arg = (char*)cmd + 2;
+ 192              		.loc 1 9 23 discriminator 1 view .LVU27
+ 193 001e 702A     		cmp	r2, #112
+ 194 0020 F2D1     		bne	.L12
+ 195              	.LBB2:
+  10:./Application/Src/command.c ****         // Skip any leading spaces
+ 196              		.loc 1 10 9 is_stmt 1 view .LVU28
+  10:./Application/Src/command.c ****         // Skip any leading spaces
+ 197              		.loc 1 10 15 is_stmt 0 view .LVU29
+ 198 0022 0230     		adds	r0, r0, #2
+ 199              	.LVL7:
   12:./Application/Src/command.c ****         if (*arg == '\0') {
- 196              		.loc 1 12 32 is_stmt 0 discriminator 2 view .LVU29
- 197 001e 0130     		adds	r0, r0, #1
- 198              	.LVL9:
- 199              	.L13:
+ 200              		.loc 1 12 9 is_stmt 1 view .LVU30
   12:./Application/Src/command.c ****         if (*arg == '\0') {
- 200              		.loc 1 12 21 is_stmt 1 discriminator 1 view .LVU30
+ 201              		.loc 1 12 15 is_stmt 0 view .LVU31
+ 202 0024 00E0     		b	.L13
+ 203              	.LVL8:
+ 204              	.L14:
   12:./Application/Src/command.c ****         if (*arg == '\0') {
- 201              		.loc 1 12 16 is_stmt 0 discriminator 1 view .LVU31
- 202 0020 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 205              		.loc 1 12 29 is_stmt 1 discriminator 2 view .LVU32
   12:./Application/Src/command.c ****         if (*arg == '\0') {
- 203              		.loc 1 12 21 discriminator 1 view .LVU32
- 204 0022 202B     		cmp	r3, #32
- 205 0024 FBD0     		beq	.L14
+ 206              		.loc 1 12 32 is_stmt 0 discriminator 2 view .LVU33
+ 207 0026 0130     		adds	r0, r0, #1
+ 208              	.LVL9:
+ 209              	.L13:
+  12:./Application/Src/command.c ****         if (*arg == '\0') {
+ 210              		.loc 1 12 21 is_stmt 1 discriminator 1 view .LVU34
+  12:./Application/Src/command.c ****         if (*arg == '\0') {
+ 211              		.loc 1 12 16 is_stmt 0 discriminator 1 view .LVU35
+ 212 0028 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+  12:./Application/Src/command.c ****         if (*arg == '\0') {
+ 213              		.loc 1 12 21 discriminator 1 view .LVU36
+ 214 002a 202B     		cmp	r3, #32
+ 215 002c FBD0     		beq	.L14
   13:./Application/Src/command.c ****             return 3; // incomplete command
- 206              		.loc 1 13 9 is_stmt 1 view .LVU33
+ 216              		.loc 1 13 9 is_stmt 1 view .LVU37
   13:./Application/Src/command.c ****             return 3; // incomplete command
- 207              		.loc 1 13 12 is_stmt 0 view .LVU34
- 208 0026 13B9     		cbnz	r3, .L27
+ 217              		.loc 1 13 12 is_stmt 0 view .LVU38
+ 218 002e 13B9     		cbnz	r3, .L31
   14:./Application/Src/command.c ****         }
- 209              		.loc 1 14 20 view .LVU35
- 210 0028 0323     		movs	r3, #3
- 211 002a 1C46     		mov	r4, r3
- 212 002c F0E7     		b	.L11
- 213              	.L27:
+ 219              		.loc 1 14 20 view .LVU39
+ 220 0030 0323     		movs	r3, #3
+ 221 0032 1C46     		mov	r4, r3
+ 222 0034 F0E7     		b	.L11
+ 223              	.L31:
   16:./Application/Src/command.c ****         setPos(pos);
- 214              		.loc 1 16 9 is_stmt 1 view .LVU36
+ 224              		.loc 1 16 9 is_stmt 1 view .LVU40
   16:./Application/Src/command.c ****         setPos(pos);
- 215              		.loc 1 16 21 is_stmt 0 view .LVU37
- 216 002e 0021     		movs	r1, #0
- 217 0030 FFF7FEFF 		bl	strtof
- 218              	.LVL10:
+ 225              		.loc 1 16 21 is_stmt 0 view .LVU41
+ 226 0036 0021     		movs	r1, #0
+ 227 0038 FFF7FEFF 		bl	strtof
+ 228              	.LVL10:
   17:./Application/Src/command.c ****         return 0;
- 219              		.loc 1 17 9 is_stmt 1 view .LVU38
- 220 0034 FFF7FEFF 		bl	setPos
- 221              	.LVL11:
-  18:./Application/Src/command.c ****     }
- 222              		.loc 1 18 9 view .LVU39
-  18:./Application/Src/command.c ****     }
- 223              		.loc 1 18 16 is_stmt 0 view .LVU40
- 224 0038 0023     		movs	r3, #0
- 225 003a 1C46     		mov	r4, r3
- 226 003c E8E7     		b	.L11
- 227              	.LVL12:
- 228              	.L26:
-  18:./Application/Src/command.c ****     }
- 229              		.loc 1 18 16 view .LVU41
- 230              	.LBE2:
-  26:./Application/Src/command.c **** 
- 231              		.loc 1 26 5 is_stmt 1 view .LVU42
-  26:./Application/Src/command.c **** 
- 232              		.loc 1 26 21 is_stmt 0 view .LVU43
- 233 003e 1D49     		ldr	r1, .L29
- 234 0040 0130     		adds	r0, r0, #1
- 235              	.LVL13:
-  26:./Application/Src/command.c **** 
- 236              		.loc 1 26 21 view .LVU44
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 7
+ 229              		.loc 1 17 9 is_stmt 1 view .LVU42
+ 230 003c FFF7FEFF 		bl	setPos
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 7
 
 
- 237 0042 FFF7FEFF 		bl	strtok
- 238              	.LVL14:
-  28:./Application/Src/command.c ****         return 2; // empty command
- 239              		.loc 1 28 5 is_stmt 1 view .LVU45
-  28:./Application/Src/command.c ****         return 2; // empty command
- 240              		.loc 1 28 8 is_stmt 0 view .LVU46
- 241 0046 0446     		mov	r4, r0
- 242 0048 0646     		mov	r6, r0
- 243 004a 48B3     		cbz	r0, .L20
-  32:./Application/Src/command.c **** 
- 244              		.loc 1 32 5 is_stmt 1 view .LVU47
-  32:./Application/Src/command.c **** 
- 245              		.loc 1 32 23 is_stmt 0 view .LVU48
- 246 004c 1949     		ldr	r1, .L29
- 247 004e 0020     		movs	r0, #0
- 248              	.LVL15:
-  32:./Application/Src/command.c **** 
- 249              		.loc 1 32 23 view .LVU49
- 250 0050 FFF7FEFF 		bl	strtok
- 251              	.LVL16:
- 252 0054 0546     		mov	r5, r0
- 253              	.LVL17:
-  34:./Application/Src/command.c ****         if (argument1 == NULL) {
- 254              		.loc 1 34 5 is_stmt 1 view .LVU50
-  34:./Application/Src/command.c ****         if (argument1 == NULL) {
- 255              		.loc 1 34 9 is_stmt 0 view .LVU51
- 256 0056 1849     		ldr	r1, .L29+4
- 257 0058 2046     		mov	r0, r4
- 258              	.LVL18:
-  34:./Application/Src/command.c ****         if (argument1 == NULL) {
- 259              		.loc 1 34 9 view .LVU52
- 260 005a FFF7FEFF 		bl	strcmp
- 261              	.LVL19:
-  34:./Application/Src/command.c ****         if (argument1 == NULL) {
- 262              		.loc 1 34 8 discriminator 1 view .LVU53
- 263 005e 0446     		mov	r4, r0
- 264              	.LVL20:
-  34:./Application/Src/command.c ****         if (argument1 == NULL) {
- 265              		.loc 1 34 8 discriminator 1 view .LVU54
- 266 0060 20B9     		cbnz	r0, .L16
-  35:./Application/Src/command.c ****             return 3; // incomplete command
- 267              		.loc 1 35 9 is_stmt 1 view .LVU55
-  35:./Application/Src/command.c ****             return 3; // incomplete command
- 268              		.loc 1 35 12 is_stmt 0 view .LVU56
- 269 0062 2846     		mov	r0, r5
- 270 0064 FDB1     		cbz	r5, .L21
-  38:./Application/Src/command.c ****         }
- 271              		.loc 1 38 13 is_stmt 1 view .LVU57
- 272 0066 FFF7FEFF 		bl	setText
- 273              	.LVL21:
- 274 006a D1E7     		b	.L11
- 275              	.L16:
-  40:./Application/Src/command.c ****         if (argument1 == NULL) {
- 276              		.loc 1 40 12 view .LVU58
-  40:./Application/Src/command.c ****         if (argument1 == NULL) {
- 277              		.loc 1 40 16 is_stmt 0 view .LVU59
- 278 006c 1349     		ldr	r1, .L29+8
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 8
+ 231              	.LVL11:
+  18:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 'w') {
+ 232              		.loc 1 18 9 view .LVU43
+  18:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 'w') {
+ 233              		.loc 1 18 16 is_stmt 0 view .LVU44
+ 234 0040 0023     		movs	r3, #0
+ 235 0042 1C46     		mov	r4, r3
+ 236 0044 E8E7     		b	.L11
+ 237              	.LVL12:
+ 238              	.L28:
+  18:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 'w') {
+ 239              		.loc 1 18 16 view .LVU45
+ 240              	.LBE2:
+  19:./Application/Src/command.c ****         menu_move_up = 1;
+ 241              		.loc 1 19 36 discriminator 1 view .LVU46
+ 242 0046 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+  19:./Application/Src/command.c ****         menu_move_up = 1;
+ 243              		.loc 1 19 30 discriminator 1 view .LVU47
+ 244 0048 772A     		cmp	r2, #119
+ 245 004a DFD1     		bne	.L16
+  20:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+ 246              		.loc 1 20 9 is_stmt 1 view .LVU48
+  20:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+ 247              		.loc 1 20 22 is_stmt 0 view .LVU49
+ 248 004c 274B     		ldr	r3, .L33
+ 249 004e 0122     		movs	r2, #1
+ 250 0050 1A60     		str	r2, [r3]
+  21:./Application/Src/command.c ****         return 0;
+ 251              		.loc 1 21 9 is_stmt 1 view .LVU50
+ 252 0052 0023     		movs	r3, #0
+ 253 0054 0360     		str	r3, [r0]	@ unaligned
+ 254 0056 4360     		str	r3, [r0, #4]	@ unaligned
+ 255 0058 0381     		strh	r3, [r0, #8]	@ unaligned
+  22:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 's') {
+ 256              		.loc 1 22 9 view .LVU51
+  22:./Application/Src/command.c ****     } else if (cmd[0] == ':' && cmd[1] == 's') {
+ 257              		.loc 1 22 16 is_stmt 0 view .LVU52
+ 258 005a 1C46     		mov	r4, r3
+ 259 005c DCE7     		b	.L11
+ 260              	.L29:
+  23:./Application/Src/command.c ****         menu_move_down = 1;
+ 261              		.loc 1 23 36 discriminator 1 view .LVU53
+ 262 005e 4278     		ldrb	r2, [r0, #1]	@ zero_extendqisi2
+  23:./Application/Src/command.c ****         menu_move_down = 1;
+ 263              		.loc 1 23 30 discriminator 1 view .LVU54
+ 264 0060 732A     		cmp	r2, #115
+ 265 0062 D5D1     		bne	.L17
+  24:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+ 266              		.loc 1 24 9 is_stmt 1 view .LVU55
+  24:./Application/Src/command.c ****         memset(cmd, 0, 10); // set the first 10 bytes to 0
+ 267              		.loc 1 24 24 is_stmt 0 view .LVU56
+ 268 0064 224B     		ldr	r3, .L33+4
+ 269 0066 0122     		movs	r2, #1
+ 270 0068 1A60     		str	r2, [r3]
+  25:./Application/Src/command.c ****         return 0;
+ 271              		.loc 1 25 9 is_stmt 1 view .LVU57
+ 272 006a 0023     		movs	r3, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 8
 
 
- 279 006e 3046     		mov	r0, r6
- 280 0070 FFF7FEFF 		bl	strcmp
- 281              	.LVL22:
-  40:./Application/Src/command.c ****         if (argument1 == NULL) {
- 282              		.loc 1 40 15 discriminator 1 view .LVU60
- 283 0074 0446     		mov	r4, r0
- 284 0076 38B9     		cbnz	r0, .L17
-  41:./Application/Src/command.c ****             return 3;
- 285              		.loc 1 41 9 is_stmt 1 view .LVU61
-  41:./Application/Src/command.c ****             return 3;
- 286              		.loc 1 41 12 is_stmt 0 view .LVU62
- 287 0078 C5B1     		cbz	r5, .L22
- 288              	.LBB3:
-  44:./Application/Src/command.c ****             setPos(pos);
- 289              		.loc 1 44 13 is_stmt 1 view .LVU63
-  44:./Application/Src/command.c ****             setPos(pos);
- 290              		.loc 1 44 25 is_stmt 0 view .LVU64
- 291 007a 0146     		mov	r1, r0
- 292 007c 2846     		mov	r0, r5
- 293 007e FFF7FEFF 		bl	strtof
- 294              	.LVL23:
-  45:./Application/Src/command.c ****         }
- 295              		.loc 1 45 13 is_stmt 1 view .LVU65
- 296 0082 FFF7FEFF 		bl	setPos
- 297              	.LVL24:
-  45:./Application/Src/command.c ****         }
- 298              		.loc 1 45 13 is_stmt 0 view .LVU66
- 299              	.LBE3:
- 300 0086 C3E7     		b	.L11
- 301              	.LVL25:
- 302              	.L17:
-  47:./Application/Src/command.c ****         resetPos();
- 303              		.loc 1 47 12 is_stmt 1 view .LVU67
-  47:./Application/Src/command.c ****         resetPos();
- 304              		.loc 1 47 16 is_stmt 0 view .LVU68
- 305 0088 0D49     		ldr	r1, .L29+12
- 306 008a 3046     		mov	r0, r6
- 307 008c FFF7FEFF 		bl	strcmp
- 308              	.LVL26:
-  47:./Application/Src/command.c ****         resetPos();
- 309              		.loc 1 47 15 discriminator 1 view .LVU69
- 310 0090 0446     		mov	r4, r0
- 311 0092 10B1     		cbz	r0, .L28
-  51:./Application/Src/command.c **** }
- 312              		.loc 1 51 12 view .LVU70
- 313 0094 0023     		movs	r3, #0
- 314 0096 1C46     		mov	r4, r3
- 315 0098 BAE7     		b	.L11
- 316              	.L28:
-  48:./Application/Src/command.c ****     }
- 317              		.loc 1 48 9 is_stmt 1 view .LVU71
- 318 009a FFF7FEFF 		bl	resetPos
- 319              	.LVL27:
- 320 009e B7E7     		b	.L11
- 321              	.LVL28:
- 322              	.L20:
-  29:./Application/Src/command.c ****     }
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 9
+ 273 006c 0360     		str	r3, [r0]	@ unaligned
+ 274 006e 4360     		str	r3, [r0, #4]	@ unaligned
+ 275 0070 0381     		strh	r3, [r0, #8]	@ unaligned
+  26:./Application/Src/command.c ****     }
+ 276              		.loc 1 26 9 view .LVU58
+  26:./Application/Src/command.c ****     }
+ 277              		.loc 1 26 16 is_stmt 0 view .LVU59
+ 278 0072 1C46     		mov	r4, r3
+ 279 0074 D0E7     		b	.L11
+ 280              	.L30:
+  34:./Application/Src/command.c **** 
+ 281              		.loc 1 34 5 is_stmt 1 view .LVU60
+  34:./Application/Src/command.c **** 
+ 282              		.loc 1 34 21 is_stmt 0 view .LVU61
+ 283 0076 1F49     		ldr	r1, .L33+8
+ 284 0078 0130     		adds	r0, r0, #1
+ 285              	.LVL13:
+  34:./Application/Src/command.c **** 
+ 286              		.loc 1 34 21 view .LVU62
+ 287 007a FFF7FEFF 		bl	strtok
+ 288              	.LVL14:
+  36:./Application/Src/command.c ****         return 2; // empty command
+ 289              		.loc 1 36 5 is_stmt 1 view .LVU63
+  36:./Application/Src/command.c ****         return 2; // empty command
+ 290              		.loc 1 36 8 is_stmt 0 view .LVU64
+ 291 007e 0446     		mov	r4, r0
+ 292 0080 0646     		mov	r6, r0
+ 293 0082 48B3     		cbz	r0, .L22
+  40:./Application/Src/command.c **** 
+ 294              		.loc 1 40 5 is_stmt 1 view .LVU65
+  40:./Application/Src/command.c **** 
+ 295              		.loc 1 40 23 is_stmt 0 view .LVU66
+ 296 0084 1B49     		ldr	r1, .L33+8
+ 297 0086 0020     		movs	r0, #0
+ 298              	.LVL15:
+  40:./Application/Src/command.c **** 
+ 299              		.loc 1 40 23 view .LVU67
+ 300 0088 FFF7FEFF 		bl	strtok
+ 301              	.LVL16:
+ 302 008c 0546     		mov	r5, r0
+ 303              	.LVL17:
+  42:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 304              		.loc 1 42 5 is_stmt 1 view .LVU68
+  42:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 305              		.loc 1 42 9 is_stmt 0 view .LVU69
+ 306 008e 1A49     		ldr	r1, .L33+12
+ 307 0090 2046     		mov	r0, r4
+ 308              	.LVL18:
+  42:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 309              		.loc 1 42 9 view .LVU70
+ 310 0092 FFF7FEFF 		bl	strcmp
+ 311              	.LVL19:
+  42:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 312              		.loc 1 42 8 discriminator 1 view .LVU71
+ 313 0096 0446     		mov	r4, r0
+ 314              	.LVL20:
+  42:./Application/Src/command.c ****         if (argument1 == NULL) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 9
 
 
- 323              		.loc 1 29 16 is_stmt 0 view .LVU72
- 324 00a0 0223     		movs	r3, #2
- 325 00a2 1C46     		mov	r4, r3
- 326 00a4 B4E7     		b	.L11
- 327              	.LVL29:
- 328              	.L21:
-  36:./Application/Src/command.c ****         } else {
- 329              		.loc 1 36 20 view .LVU73
- 330 00a6 0323     		movs	r3, #3
- 331 00a8 1C46     		mov	r4, r3
- 332 00aa B1E7     		b	.L11
- 333              	.LVL30:
- 334              	.L22:
-  42:./Application/Src/command.c ****         } else {
- 335              		.loc 1 42 20 view .LVU74
- 336 00ac 0323     		movs	r3, #3
- 337 00ae 1C46     		mov	r4, r3
- 338 00b0 AEE7     		b	.L11
- 339              	.L30:
- 340 00b2 00BF     		.align	2
- 341              	.L29:
- 342 00b4 00000000 		.word	.LC0
- 343 00b8 04000000 		.word	.LC1
- 344 00bc 0C000000 		.word	.LC2
- 345 00c0 14000000 		.word	.LC3
- 346              		.cfi_endproc
- 347              	.LFE160:
- 349              		.section	.rodata.executeCommand.str1.4,"aMS",%progbits,1
- 350              		.align	2
- 351              	.LC4:
- 352 0000 4F4B2E20 		.ascii	"OK.                      \000"
- 352      20202020 
- 352      20202020 
- 352      20202020 
- 352      20202020 
- 353 001a 0000     		.align	2
- 354              	.LC5:
- 355 001c 43616E6E 		.ascii	"Cannot parse!            \000"
- 355      6F742070 
- 355      61727365 
- 355      21202020 
- 355      20202020 
- 356 0036 0000     		.align	2
- 357              	.LC6:
- 358 0038 456D7074 		.ascii	"Empty command!           \000"
- 358      7920636F 
- 358      6D6D616E 
- 358      64212020 
- 358      20202020 
- 359 0052 0000     		.align	2
- 360              	.LC7:
- 361 0054 496E636F 		.ascii	"Incomplete command!      \000"
- 361      6D706C65 
- 361      74652063 
- 361      6F6D6D61 
- 361      6E642120 
- 362              		.section	.text.executeCommand,"ax",%progbits
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 10
+ 315              		.loc 1 42 8 discriminator 1 view .LVU72
+ 316 0098 20B9     		cbnz	r0, .L18
+  43:./Application/Src/command.c ****             return 3; // incomplete command
+ 317              		.loc 1 43 9 is_stmt 1 view .LVU73
+  43:./Application/Src/command.c ****             return 3; // incomplete command
+ 318              		.loc 1 43 12 is_stmt 0 view .LVU74
+ 319 009a 2846     		mov	r0, r5
+ 320 009c FDB1     		cbz	r5, .L23
+  46:./Application/Src/command.c ****         }
+ 321              		.loc 1 46 13 is_stmt 1 view .LVU75
+ 322 009e FFF7FEFF 		bl	setText
+ 323              	.LVL21:
+ 324 00a2 B9E7     		b	.L11
+ 325              	.L18:
+  48:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 326              		.loc 1 48 12 view .LVU76
+  48:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 327              		.loc 1 48 16 is_stmt 0 view .LVU77
+ 328 00a4 1549     		ldr	r1, .L33+16
+ 329 00a6 3046     		mov	r0, r6
+ 330 00a8 FFF7FEFF 		bl	strcmp
+ 331              	.LVL22:
+  48:./Application/Src/command.c ****         if (argument1 == NULL) {
+ 332              		.loc 1 48 15 discriminator 1 view .LVU78
+ 333 00ac 0446     		mov	r4, r0
+ 334 00ae 38B9     		cbnz	r0, .L19
+  49:./Application/Src/command.c ****             return 3;
+ 335              		.loc 1 49 9 is_stmt 1 view .LVU79
+  49:./Application/Src/command.c ****             return 3;
+ 336              		.loc 1 49 12 is_stmt 0 view .LVU80
+ 337 00b0 C5B1     		cbz	r5, .L24
+ 338              	.LBB3:
+  52:./Application/Src/command.c ****             setPos(pos);
+ 339              		.loc 1 52 13 is_stmt 1 view .LVU81
+  52:./Application/Src/command.c ****             setPos(pos);
+ 340              		.loc 1 52 25 is_stmt 0 view .LVU82
+ 341 00b2 0146     		mov	r1, r0
+ 342 00b4 2846     		mov	r0, r5
+ 343 00b6 FFF7FEFF 		bl	strtof
+ 344              	.LVL23:
+  53:./Application/Src/command.c ****         }
+ 345              		.loc 1 53 13 is_stmt 1 view .LVU83
+ 346 00ba FFF7FEFF 		bl	setPos
+ 347              	.LVL24:
+  53:./Application/Src/command.c ****         }
+ 348              		.loc 1 53 13 is_stmt 0 view .LVU84
+ 349              	.LBE3:
+ 350 00be ABE7     		b	.L11
+ 351              	.LVL25:
+ 352              	.L19:
+  55:./Application/Src/command.c ****         resetPos();
+ 353              		.loc 1 55 12 is_stmt 1 view .LVU85
+  55:./Application/Src/command.c ****         resetPos();
+ 354              		.loc 1 55 16 is_stmt 0 view .LVU86
+ 355 00c0 0F49     		ldr	r1, .L33+20
+ 356 00c2 3046     		mov	r0, r6
+ 357 00c4 FFF7FEFF 		bl	strcmp
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 10
 
 
- 363              		.align	1
- 364              		.global	executeCommand
- 365              		.syntax unified
- 366              		.thumb
- 367              		.thumb_func
- 369              	executeCommand:
- 370              	.LVL31:
- 371              	.LFB161:
-  54:./Application/Src/command.c ****     int result = parseCommand(command);
- 372              		.loc 1 54 38 is_stmt 1 view -0
- 373              		.cfi_startproc
- 374              		@ args = 0, pretend = 0, frame = 0
- 375              		@ frame_needed = 0, uses_anonymous_args = 0
-  54:./Application/Src/command.c ****     int result = parseCommand(command);
- 376              		.loc 1 54 38 is_stmt 0 view .LVU76
- 377 0000 00B5     		push	{lr}
- 378              	.LCFI4:
- 379              		.cfi_def_cfa_offset 4
- 380              		.cfi_offset 14, -4
- 381 0002 83B0     		sub	sp, sp, #12
- 382              	.LCFI5:
- 383              		.cfi_def_cfa_offset 16
-  55:./Application/Src/command.c ****     if (result == 0) {
- 384              		.loc 1 55 5 is_stmt 1 view .LVU77
-  55:./Application/Src/command.c ****     if (result == 0) {
- 385              		.loc 1 55 18 is_stmt 0 view .LVU78
- 386 0004 FFF7FEFF 		bl	parseCommand
- 387              	.LVL32:
-  56:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
- 388              		.loc 1 56 5 is_stmt 1 view .LVU79
-  56:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
- 389              		.loc 1 56 8 is_stmt 0 view .LVU80
- 390 0008 38B1     		cbz	r0, .L37
-  58:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
- 391              		.loc 1 58 12 is_stmt 1 view .LVU81
-  58:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
- 392              		.loc 1 58 15 is_stmt 0 view .LVU82
- 393 000a 0128     		cmp	r0, #1
- 394 000c 10D0     		beq	.L38
-  60:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
- 395              		.loc 1 60 12 is_stmt 1 view .LVU83
-  60:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
- 396              		.loc 1 60 15 is_stmt 0 view .LVU84
- 397 000e 0228     		cmp	r0, #2
- 398 0010 19D0     		beq	.L39
-  62:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
- 399              		.loc 1 62 12 is_stmt 1 view .LVU85
-  62:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
- 400              		.loc 1 62 15 is_stmt 0 view .LVU86
- 401 0012 0328     		cmp	r0, #3
- 402 0014 22D0     		beq	.L40
- 403              	.LVL33:
- 404              	.L31:
-  65:./Application/Src/command.c **** 
- 405              		.loc 1 65 1 view .LVU87
- 406 0016 03B0     		add	sp, sp, #12
- 407              	.LCFI6:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 11
+ 358              	.LVL26:
+  55:./Application/Src/command.c ****         resetPos();
+ 359              		.loc 1 55 15 discriminator 1 view .LVU87
+ 360 00c8 0446     		mov	r4, r0
+ 361 00ca 10B1     		cbz	r0, .L32
+  59:./Application/Src/command.c **** }
+ 362              		.loc 1 59 12 view .LVU88
+ 363 00cc 0023     		movs	r3, #0
+ 364 00ce 1C46     		mov	r4, r3
+ 365 00d0 A2E7     		b	.L11
+ 366              	.L32:
+  56:./Application/Src/command.c ****     }
+ 367              		.loc 1 56 9 is_stmt 1 view .LVU89
+ 368 00d2 FFF7FEFF 		bl	resetPos
+ 369              	.LVL27:
+ 370 00d6 9FE7     		b	.L11
+ 371              	.LVL28:
+ 372              	.L22:
+  37:./Application/Src/command.c ****     }
+ 373              		.loc 1 37 16 is_stmt 0 view .LVU90
+ 374 00d8 0223     		movs	r3, #2
+ 375 00da 1C46     		mov	r4, r3
+ 376 00dc 9CE7     		b	.L11
+ 377              	.LVL29:
+ 378              	.L23:
+  44:./Application/Src/command.c ****         } else {
+ 379              		.loc 1 44 20 view .LVU91
+ 380 00de 0323     		movs	r3, #3
+ 381 00e0 1C46     		mov	r4, r3
+ 382 00e2 99E7     		b	.L11
+ 383              	.LVL30:
+ 384              	.L24:
+  50:./Application/Src/command.c ****         } else {
+ 385              		.loc 1 50 20 view .LVU92
+ 386 00e4 0323     		movs	r3, #3
+ 387 00e6 1C46     		mov	r4, r3
+ 388 00e8 96E7     		b	.L11
+ 389              	.L34:
+ 390 00ea 00BF     		.align	2
+ 391              	.L33:
+ 392 00ec 00000000 		.word	menu_move_up
+ 393 00f0 00000000 		.word	menu_move_down
+ 394 00f4 00000000 		.word	.LC0
+ 395 00f8 04000000 		.word	.LC1
+ 396 00fc 0C000000 		.word	.LC2
+ 397 0100 14000000 		.word	.LC3
+ 398              		.cfi_endproc
+ 399              	.LFE160:
+ 401              		.section	.rodata.executeCommand.str1.4,"aMS",%progbits,1
+ 402              		.align	2
+ 403              	.LC4:
+ 404 0000 4F4B2E20 		.ascii	"OK.                      \000"
+ 404      20202020 
+ 404      20202020 
+ 404      20202020 
+ 404      20202020 
+ 405 001a 0000     		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 11
 
 
- 408              		.cfi_remember_state
- 409              		.cfi_def_cfa_offset 4
- 410              		@ sp needed
- 411 0018 00BD     		pop	{pc}
- 412              	.LVL34:
- 413              	.L37:
- 414              	.LCFI7:
- 415              		.cfi_restore_state
-  57:./Application/Src/command.c ****     } else if (result == 1){
- 416              		.loc 1 57 9 is_stmt 1 view .LVU88
- 417 001a 4FF6FF73 		movw	r3, #65535
- 418 001e 0193     		str	r3, [sp, #4]
- 419 0020 0146     		mov	r1, r0
- 420 0022 0090     		str	r0, [sp]
- 421 0024 134B     		ldr	r3, .L41
- 422 0026 0E22     		movs	r2, #14
- 423 0028 1348     		ldr	r0, .L41+4
- 424              	.LVL35:
-  57:./Application/Src/command.c ****     } else if (result == 1){
- 425              		.loc 1 57 9 is_stmt 0 view .LVU89
- 426 002a FFF7FEFF 		bl	LCD_draw_string
- 427              	.LVL36:
-  57:./Application/Src/command.c ****     } else if (result == 1){
- 428              		.loc 1 57 9 view .LVU90
- 429 002e F2E7     		b	.L31
- 430              	.LVL37:
- 431              	.L38:
-  59:./Application/Src/command.c ****     } else if (result == 2){
- 432              		.loc 1 59 9 is_stmt 1 view .LVU91
- 433 0030 4FF6FF73 		movw	r3, #65535
- 434 0034 0193     		str	r3, [sp, #4]
- 435 0036 0021     		movs	r1, #0
- 436 0038 0091     		str	r1, [sp]
- 437 003a 104B     		ldr	r3, .L41+8
- 438 003c 0E22     		movs	r2, #14
- 439 003e 0E48     		ldr	r0, .L41+4
- 440              	.LVL38:
-  59:./Application/Src/command.c ****     } else if (result == 2){
- 441              		.loc 1 59 9 is_stmt 0 view .LVU92
- 442 0040 FFF7FEFF 		bl	LCD_draw_string
- 443              	.LVL39:
- 444 0044 E7E7     		b	.L31
- 445              	.LVL40:
- 446              	.L39:
-  61:./Application/Src/command.c ****     } else if (result == 3){
- 447              		.loc 1 61 9 is_stmt 1 view .LVU93
- 448 0046 4FF6FF73 		movw	r3, #65535
- 449 004a 0193     		str	r3, [sp, #4]
- 450 004c 0021     		movs	r1, #0
- 451 004e 0091     		str	r1, [sp]
- 452 0050 0B4B     		ldr	r3, .L41+12
- 453 0052 0E22     		movs	r2, #14
- 454 0054 0848     		ldr	r0, .L41+4
- 455              	.LVL41:
-  61:./Application/Src/command.c ****     } else if (result == 3){
- 456              		.loc 1 61 9 is_stmt 0 view .LVU94
- 457 0056 FFF7FEFF 		bl	LCD_draw_string
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 12
+ 406              	.LC5:
+ 407 001c 43616E6E 		.ascii	"Cannot parse!            \000"
+ 407      6F742070 
+ 407      61727365 
+ 407      21202020 
+ 407      20202020 
+ 408 0036 0000     		.align	2
+ 409              	.LC6:
+ 410 0038 456D7074 		.ascii	"Empty command!           \000"
+ 410      7920636F 
+ 410      6D6D616E 
+ 410      64212020 
+ 410      20202020 
+ 411 0052 0000     		.align	2
+ 412              	.LC7:
+ 413 0054 496E636F 		.ascii	"Incomplete command!      \000"
+ 413      6D706C65 
+ 413      74652063 
+ 413      6F6D6D61 
+ 413      6E642120 
+ 414              		.section	.text.executeCommand,"ax",%progbits
+ 415              		.align	1
+ 416              		.global	executeCommand
+ 417              		.syntax unified
+ 418              		.thumb
+ 419              		.thumb_func
+ 421              	executeCommand:
+ 422              	.LVL31:
+ 423              	.LFB161:
+  62:./Application/Src/command.c ****     int result = parseCommand(command);
+ 424              		.loc 1 62 38 is_stmt 1 view -0
+ 425              		.cfi_startproc
+ 426              		@ args = 0, pretend = 0, frame = 0
+ 427              		@ frame_needed = 0, uses_anonymous_args = 0
+  62:./Application/Src/command.c ****     int result = parseCommand(command);
+ 428              		.loc 1 62 38 is_stmt 0 view .LVU94
+ 429 0000 00B5     		push	{lr}
+ 430              	.LCFI4:
+ 431              		.cfi_def_cfa_offset 4
+ 432              		.cfi_offset 14, -4
+ 433 0002 83B0     		sub	sp, sp, #12
+ 434              	.LCFI5:
+ 435              		.cfi_def_cfa_offset 16
+  63:./Application/Src/command.c ****     if (result == 0) {
+ 436              		.loc 1 63 5 is_stmt 1 view .LVU95
+  63:./Application/Src/command.c ****     if (result == 0) {
+ 437              		.loc 1 63 18 is_stmt 0 view .LVU96
+ 438 0004 FFF7FEFF 		bl	parseCommand
+ 439              	.LVL32:
+  64:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
+ 440              		.loc 1 64 5 is_stmt 1 view .LVU97
+  64:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
+ 441              		.loc 1 64 8 is_stmt 0 view .LVU98
+ 442 0008 38B1     		cbz	r0, .L41
+  66:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
+ 443              		.loc 1 66 12 is_stmt 1 view .LVU99
+  66:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 12
 
 
- 458              	.LVL42:
- 459 005a DCE7     		b	.L31
- 460              	.LVL43:
- 461              	.L40:
-  63:./Application/Src/command.c ****     }
- 462              		.loc 1 63 9 is_stmt 1 view .LVU95
- 463 005c 4FF6FF73 		movw	r3, #65535
- 464 0060 0193     		str	r3, [sp, #4]
- 465 0062 0021     		movs	r1, #0
- 466 0064 0091     		str	r1, [sp]
- 467 0066 074B     		ldr	r3, .L41+16
- 468 0068 0E22     		movs	r2, #14
- 469 006a 0348     		ldr	r0, .L41+4
- 470              	.LVL44:
-  63:./Application/Src/command.c ****     }
- 471              		.loc 1 63 9 is_stmt 0 view .LVU96
- 472 006c FFF7FEFF 		bl	LCD_draw_string
- 473              	.LVL45:
-  65:./Application/Src/command.c **** 
- 474              		.loc 1 65 1 view .LVU97
- 475 0070 D1E7     		b	.L31
- 476              	.L42:
- 477 0072 00BF     		.align	2
- 478              	.L41:
- 479 0074 00000000 		.word	.LC4
- 480 0078 00000000 		.word	lcd_config
- 481 007c 1C000000 		.word	.LC5
- 482 0080 38000000 		.word	.LC6
- 483 0084 54000000 		.word	.LC7
- 484              		.cfi_endproc
- 485              	.LFE161:
- 487              		.text
- 488              	.Letext0:
- 489              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 490              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 491              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
- 492              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
- 493              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
- 494              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
- 495              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
- 496              		.file 9 "Application/Inc/ILI9341.h"
- 497              		.file 10 "Application/Inc/application.h"
- 498              		.file 11 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
- 499              		.file 12 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdlib.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s 			page 13
+ 444              		.loc 1 66 15 is_stmt 0 view .LVU100
+ 445 000a 0128     		cmp	r0, #1
+ 446 000c 10D0     		beq	.L42
+  68:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
+ 447              		.loc 1 68 12 is_stmt 1 view .LVU101
+  68:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Empty command!           ", COLOR_BLACK, COLOR_WHITE);
+ 448              		.loc 1 68 15 is_stmt 0 view .LVU102
+ 449 000e 0228     		cmp	r0, #2
+ 450 0010 19D0     		beq	.L43
+  70:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
+ 451              		.loc 1 70 12 is_stmt 1 view .LVU103
+  70:./Application/Src/command.c ****         LCD_draw_string(&lcd_config, 0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
+ 452              		.loc 1 70 15 is_stmt 0 view .LVU104
+ 453 0012 0328     		cmp	r0, #3
+ 454 0014 22D0     		beq	.L44
+ 455              	.LVL33:
+ 456              	.L35:
+  73:./Application/Src/command.c **** 
+ 457              		.loc 1 73 1 view .LVU105
+ 458 0016 03B0     		add	sp, sp, #12
+ 459              	.LCFI6:
+ 460              		.cfi_remember_state
+ 461              		.cfi_def_cfa_offset 4
+ 462              		@ sp needed
+ 463 0018 00BD     		pop	{pc}
+ 464              	.LVL34:
+ 465              	.L41:
+ 466              	.LCFI7:
+ 467              		.cfi_restore_state
+  65:./Application/Src/command.c ****     } else if (result == 1){
+ 468              		.loc 1 65 9 is_stmt 1 view .LVU106
+ 469 001a 4FF6FF73 		movw	r3, #65535
+ 470 001e 0193     		str	r3, [sp, #4]
+ 471 0020 0146     		mov	r1, r0
+ 472 0022 0090     		str	r0, [sp]
+ 473 0024 134B     		ldr	r3, .L45
+ 474 0026 0E22     		movs	r2, #14
+ 475 0028 1348     		ldr	r0, .L45+4
+ 476              	.LVL35:
+  65:./Application/Src/command.c ****     } else if (result == 1){
+ 477              		.loc 1 65 9 is_stmt 0 view .LVU107
+ 478 002a FFF7FEFF 		bl	LCD_draw_string
+ 479              	.LVL36:
+  65:./Application/Src/command.c ****     } else if (result == 1){
+ 480              		.loc 1 65 9 view .LVU108
+ 481 002e F2E7     		b	.L35
+ 482              	.LVL37:
+ 483              	.L42:
+  67:./Application/Src/command.c ****     } else if (result == 2){
+ 484              		.loc 1 67 9 is_stmt 1 view .LVU109
+ 485 0030 4FF6FF73 		movw	r3, #65535
+ 486 0034 0193     		str	r3, [sp, #4]
+ 487 0036 0021     		movs	r1, #0
+ 488 0038 0091     		str	r1, [sp]
+ 489 003a 104B     		ldr	r3, .L45+8
+ 490 003c 0E22     		movs	r2, #14
+ 491 003e 0E48     		ldr	r0, .L45+4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 13
+
+
+ 492              	.LVL38:
+  67:./Application/Src/command.c ****     } else if (result == 2){
+ 493              		.loc 1 67 9 is_stmt 0 view .LVU110
+ 494 0040 FFF7FEFF 		bl	LCD_draw_string
+ 495              	.LVL39:
+ 496 0044 E7E7     		b	.L35
+ 497              	.LVL40:
+ 498              	.L43:
+  69:./Application/Src/command.c ****     } else if (result == 3){
+ 499              		.loc 1 69 9 is_stmt 1 view .LVU111
+ 500 0046 4FF6FF73 		movw	r3, #65535
+ 501 004a 0193     		str	r3, [sp, #4]
+ 502 004c 0021     		movs	r1, #0
+ 503 004e 0091     		str	r1, [sp]
+ 504 0050 0B4B     		ldr	r3, .L45+12
+ 505 0052 0E22     		movs	r2, #14
+ 506 0054 0848     		ldr	r0, .L45+4
+ 507              	.LVL41:
+  69:./Application/Src/command.c ****     } else if (result == 3){
+ 508              		.loc 1 69 9 is_stmt 0 view .LVU112
+ 509 0056 FFF7FEFF 		bl	LCD_draw_string
+ 510              	.LVL42:
+ 511 005a DCE7     		b	.L35
+ 512              	.LVL43:
+ 513              	.L44:
+  71:./Application/Src/command.c ****     }
+ 514              		.loc 1 71 9 is_stmt 1 view .LVU113
+ 515 005c 4FF6FF73 		movw	r3, #65535
+ 516 0060 0193     		str	r3, [sp, #4]
+ 517 0062 0021     		movs	r1, #0
+ 518 0064 0091     		str	r1, [sp]
+ 519 0066 074B     		ldr	r3, .L45+16
+ 520 0068 0E22     		movs	r2, #14
+ 521 006a 0348     		ldr	r0, .L45+4
+ 522              	.LVL44:
+  71:./Application/Src/command.c ****     }
+ 523              		.loc 1 71 9 is_stmt 0 view .LVU114
+ 524 006c FFF7FEFF 		bl	LCD_draw_string
+ 525              	.LVL45:
+  73:./Application/Src/command.c **** 
+ 526              		.loc 1 73 1 view .LVU115
+ 527 0070 D1E7     		b	.L35
+ 528              	.L46:
+ 529 0072 00BF     		.align	2
+ 530              	.L45:
+ 531 0074 00000000 		.word	.LC4
+ 532 0078 00000000 		.word	lcd_config
+ 533 007c 1C000000 		.word	.LC5
+ 534 0080 38000000 		.word	.LC6
+ 535 0084 54000000 		.word	.LC7
+ 536              		.cfi_endproc
+ 537              	.LFE161:
+ 539              		.text
+ 540              	.Letext0:
+ 541              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 542              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 543              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 14
+
+
+ 544              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 545              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 546              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 547              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 548              		.file 9 "Application/Inc/ILI9341.h"
+ 549              		.file 10 "Application/Inc/menu.h"
+ 550              		.file 11 "Application/Inc/application.h"
+ 551              		.file 12 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 552              		.file 13 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdlib.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s 			page 15
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 command.c
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:22     .text.setText:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:28     .text.setText:00000000 setText
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:64     .text.setText:0000001c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:69     .text.setPos:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:75     .text.setPos:00000000 setPos
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:92     .text.setPos:00000008 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:97     .text.resetPos:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:103    .text.resetPos:00000000 resetPos
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:120    .text.resetPos:00000008 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:125    .rodata.parseCommand.str1.4:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:138    .text.parseCommand:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:144    .text.parseCommand:00000000 parseCommand
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:342    .text.parseCommand:000000b4 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:350    .rodata.executeCommand.str1.4:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:363    .text.executeCommand:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:369    .text.executeCommand:00000000 executeCommand
-C:\Users\Xuleo\AppData\Local\Temp\ccDkEbBO.s:479    .text.executeCommand:00000074 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:22     .text.setText:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:28     .text.setText:00000000 setText
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:64     .text.setText:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:69     .text.setPos:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:75     .text.setPos:00000000 setPos
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:92     .text.setPos:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:97     .text.resetPos:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:103    .text.resetPos:00000000 resetPos
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:120    .text.resetPos:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:125    .rodata.parseCommand.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:138    .text.parseCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:144    .text.parseCommand:00000000 parseCommand
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:392    .text.parseCommand:000000ec $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:402    .rodata.executeCommand.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:415    .text.executeCommand:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:421    .text.executeCommand:00000000 executeCommand
+C:\Users\Xuleo\AppData\Local\Temp\cc9LQqlK.s:531    .text.executeCommand:00000074 $d
 
 UNDEFINED SYMBOLS
 LCD_draw_string
@@ -736,3 +821,5 @@ encoder_old_position_cm
 strtof
 strtok
 strcmp
+menu_move_up
+menu_move_down

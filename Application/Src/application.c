@@ -17,22 +17,22 @@ volatile int is_blocked = 0;
 // test song: 15 chords, left hand only with varying positions and durations
 // left hand range: ~5cm to ~49cm (after adding LEFT_HAND_SIZE/2)
 Song_t piano_song[MAX_CHORD_EVENTS] = {
-    // {{num_notes, {positions...}, duration_ms, delay_to_next}}
-    {{1, {10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 15cm
-    {{1, {20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 25cm
-    {{1, {30.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 35cm
-    {{1, {40.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},  // target: 45cm
-    {{1, {44.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 300, 100}},  // target: 49cm
-    {{1, {35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 40cm
-    {{1, {25.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 30cm
-    {{1, {15.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 150, 100}},  // target: 20cm
-    {{1, { 5.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 300, 100}},  // target: 10cm
-    {{2, {10.0f, 20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 250, 100}}, // target: 15cm
-    {{2, {25.0f, 35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 250, 100}}, // target: 30cm
-    {{3, {15.0f, 25.0f, 35.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 200, 100}},// target: 20cm
-    {{1, {40.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 400, 100}},  // target: 45cm
-    {{1, {20.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 400, 100}},  // target: 25cm
-    {{1, {10.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f}, 500, 100}}   // target: 15cm
+    // {{{left_pos, right_pos}, {pressed[10]}, duration_ms, delay_to_next_ms}}
+    {{{12.0f, 60.0f}, {true, false, false, false, false, true, false, false, false, false}, 300, 150}},
+    {{{25.0f, 0.0f},  {false, true, false, false, false, false, false, false, false, false}, 200, 100}},
+    {{{18.0f, 72.0f}, {true, true, false, false, false, false, true, false, false, false}, 350, 120}},
+    {{{35.0f, 0.0f}, {false, false, true, false, false, false, false, false, false, false}, 180, 80}},
+    {{{8.0f, 65.0f}, {true, false, true, false, false, true, false, true, false, false}, 400, 200}},
+    {{{42.0f, 0.0f}, {false, false, false, true, false, false, false, false, false, false}, 250, 100}},
+    {{{0.0f, 58.0f}, {false, false, false, false, false, true, true, false, false, false}, 280, 150}},
+    {{{30.0f, 70.0f}, {true, false, false, false, true, false, false, true, false, true}, 500, 180}},
+    {{{15.0f, 0.0f}, {false, true, true, false, false, false, false, false, false, false}, 220, 100}},
+    {{{0.0f, 62.0f}, {false, false, false, false, false, false, true, false, true, false}, 300, 120}},
+    {{{38.0f, 75.0f}, {true, false, false, true, false, true, false, false, false, true}, 450, 200}},
+    {{{22.0f, 0.0f}, {false, false, true, false, true, false, false, false, false, false}, 180, 80}},
+    {{{10.0f, 68.0f}, {true, true, false, false, false, false, true, true, false, false}, 380, 150}},
+    {{{45.0f, 0.0f}, {false, false, false, false, true, false, false, false, false, false}, 320, 100}},
+    {{{20.0f, 55.0f}, {true, false, true, false, false, true, false, false, true, false}, 600, 200}}
     // remaining entries are zero-initialized
 };
 
@@ -42,13 +42,13 @@ int which_hand(ChordEvent_t* this_note){
     int left_flag = 0;
     int right_flag = 0;
     for (int i=0; i < 5; i++){
-        if (this_note->positions[i]!=0){
+        if (this_note->positions[0]!=0.0f){ // check whether non-zero
             left_flag = 1;
         }
     }
 
     for (int i=5; i < 10; i++){
-        if (this_note->positions[i]!=0){
+        if (this_note->positions[1]!=0.0f){ // non zero means there is target
             right_flag = 1;
         }
     }
@@ -66,57 +66,37 @@ int which_hand(ChordEvent_t* this_note){
 
 // all value should expected larger than 0, left should have range: PIANO_THRESHOLD - LEFT_HAND_SIZE/2
 // homing algo
-void locate_hand(ChordEvent_t* this_note, float hand_pos[2], int which_hand) {
-    hand_pos[0] = 0.0f;
-    hand_pos[1] = 0.0f;
-
+void locate_hand(ChordEvent_t* this_note, int which_hand) {
     // index 3 means
     if (which_hand == 3) {
         return;
     }
 
-    // left hand: index 0 to 4
-    if (which_hand == 0 || which_hand == 2) {
-        float min_value = 1e9f;
-        for (int i = 0; i < 5; i++) {
-            if (this_note->positions[i] != 0.0f && this_note->positions[i] < min_value) {
-                min_value = this_note->positions[i];
-            }
-        }
-        float left_pos = min_value;
-        // clamp to avoid collision at threshold
-        hand_pos[0] = (left_pos + LEFT_HAND_SIZE / 2.0f > PIANO_THRESHOLD) ? PIANO_THRESHOLD - LEFT_HAND_SIZE / 2.0f : left_pos + LEFT_HAND_SIZE / 2.0f;
+    // handle left hand for current version
+    if (which_hand == 1 && which_hand == 2){
+        target_position_cm = this_note->positions[0];
     }
 
-    // right hand: index 5 to 9
-    if (which_hand == 1 || which_hand == 2) {
-        float max_value = -1e9f;
-        for (int i = 5; i < 10; i++) {
-            if (this_note->positions[i] != 0.0f && this_note->positions[i] > max_value) {
-                max_value = this_note->positions[i];
-            }
-        }
-        float right_pos = max_value;
-        // clamp to avoid collision at threshold
-        hand_pos[1] = (right_pos - RIGHT_HAND_SIZE / 2.0f < PIANO_THRESHOLD) ? PIANO_THRESHOLD + RIGHT_HAND_SIZE / 2.0f : right_pos - RIGHT_HAND_SIZE / 2.0f;
+    if (which_hand == 0 && which_hand == 2) {
+    
     }
+
+
 }
 
 // using the for loop to traversal, call function to start playing the song
 void traversal_song(Song_t* entire_song){
     // the entire song chords might be smaller than given length
     for (int i = 0; i < MAX_CHORD_EVENTS; i++){
-        // if detect empty notes - means end - break loop 
-        if (entire_song[i].event.num_notes == 0) {
+        // if detect empty notes for both of target position - means end - break loop 
+        if (entire_song[i].event.positions[0] == 0.0f && entire_song[i].event.positions[1] == 0.0f) {
             break;
         }
         // otherwise, we deal with the song
-        float hand_pos[2];
         int hand = which_hand(&entire_song[i].event);
-        locate_hand(&entire_song[i].event, hand_pos, hand);
-        // set target position from parsed data:
-        target_position_cm = hand_pos[0];
-        // solenoid logic:
+        locate_hand(&entire_song[i].event, hand); // target was set inside the function
+        // solenoid logic: According to the play map of boolean numbers
+        // how to: traversal the boolean array to toggle corresponding GPIO pins
         /*
         if (is_moving == 0) { // means stop
             push_solenoid();
@@ -125,6 +105,15 @@ void traversal_song(Song_t* entire_song){
         */
         wait_ms(entire_song[i].event.duration_ms);
     }
+}
+
+void homing_procedure() {
+    /*
+    WARNING, if moving some speed by cannot move might lead to too much current and burn down the circuit
+    M1: move with certain speed, e.g. max speed, then use maximum movement distance / max speed for timing to reach the boundary
+    M2: add sensor check at 0 and 100 positions if reached sensor -> gpio read to reset distance
+    M3: move at low speed and check the distance, if no more distance it can move (stuck) -> stop, homing ok
+    */
 }
 
 void pid_cycle(PID_t* target_system, float error, const float dt){
@@ -156,6 +145,17 @@ PID_t debug_motor = {
     .Integral_max = 200000000.0f // 0.5
 };
 
+// init LCD configuration with SPI2 and GPIOB pins 13, 14, 15
+LCD_Config lcd_config = {
+    .hspi = &hspi2,
+    .cs_port = GPIOB,
+    .cs_pin = GPIO_PIN_15,
+    .rs_port = GPIOB,
+    .rs_pin = GPIO_PIN_13,
+    .rst_port = GPIOB,
+    .rst_pin = GPIO_PIN_14,
+};
+
 void wait_ms(uint32_t ms){
     uint32_t start = time_counter;
     while (time_counter - start < ms);
@@ -182,7 +182,11 @@ void controller_init(void){
 
 // DO NOT USE SPRINT, PRINT IN THIS FUNCTION
 // what have done: make some variable global and send
+// measured duty cycle: 1.254 us per cycle @ 1kHz 
 void controller_step(const float dt){
+    // measure the duty cycle with LED
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+
     uint32_t direction;
 
     encoder_read_value(&htim8, &encoder_read_result, &direction);
@@ -235,4 +239,7 @@ void controller_step(const float dt){
 
     // check for pin state (EE-SX1041: HIGH when blocked, LOW when light passes through)
     is_blocked = (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_10) == GPIO_PIN_SET) ? 1 : 0;
+
+    // during these stage the LED will keep on, on oscilloscope will be high.
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); 
 }

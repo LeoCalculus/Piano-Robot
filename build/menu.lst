@@ -1,0 +1,756 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"menu.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/menu.c"
+  21              		.section	.rodata.menu_index_0.str1.4,"aMS",%progbits,1
+  22              		.align	2
+  23              	.LC0:
+  24 0000 3E20312E 		.ascii	"> 1. Play Song\000"
+  24      20506C61 
+  24      7920536F 
+  24      6E6700
+  25 000f 00       		.align	2
+  26              	.LC1:
+  27 0010 2020322E 		.ascii	"  2. Transmit Song\000"
+  27      20547261 
+  27      6E736D69 
+  27      7420536F 
+  27      6E6700
+  28 0023 00       		.align	2
+  29              	.LC2:
+  30 0024 2020332E 		.ascii	"  3. Select Song\000"
+  30      2053656C 
+  30      65637420 
+  30      536F6E67 
+  30      00
+  31 0035 000000   		.align	2
+  32              	.LC3:
+  33 0038 2020342E 		.ascii	"  4. Homing\000"
+  33      20486F6D 
+  33      696E6700 
+  34              		.section	.text.menu_index_0,"ax",%progbits
+  35              		.align	1
+  36              		.global	menu_index_0
+  37              		.syntax unified
+  38              		.thumb
+  39              		.thumb_func
+  41              	menu_index_0:
+  42              	.LFB162:
+   1:./Application/Src/menu.c **** #include <menu.h>
+   2:./Application/Src/menu.c **** 
+   3:./Application/Src/menu.c **** int menu_index = 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 2
+
+
+   4:./Application/Src/menu.c **** int menu_move_down = 0; // should update in bluetooth command
+   5:./Application/Src/menu.c **** int menu_move_up = 0;
+   6:./Application/Src/menu.c **** 
+   7:./Application/Src/menu.c **** // initialize menu after LCD is initialized
+   8:./Application/Src/menu.c **** void menu_init(){
+   9:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 0, "ELEC391 Piano Bot", COLOR_BLACK, COLOR_WHITE);
+  10:./Application/Src/menu.c ****     menu_index_0();
+  11:./Application/Src/menu.c **** }
+  12:./Application/Src/menu.c **** 
+  13:./Application/Src/menu.c **** void menu_update(){
+  14:./Application/Src/menu.c ****     if (menu_move_down == 1){
+  15:./Application/Src/menu.c ****         menu_index++;
+  16:./Application/Src/menu.c ****         if (menu_index > 3) menu_index = 0;
+  17:./Application/Src/menu.c ****     } else if (menu_move_up == 1){
+  18:./Application/Src/menu.c ****         menu_index--;
+  19:./Application/Src/menu.c ****         if (menu_index < 0) menu_index = 3;
+  20:./Application/Src/menu.c ****     }
+  21:./Application/Src/menu.c ****     switch (menu_index){
+  22:./Application/Src/menu.c ****         case 0: menu_index_0(); break;
+  23:./Application/Src/menu.c ****         case 1: menu_index_1(); break;
+  24:./Application/Src/menu.c ****         case 2: menu_index_2(); break;
+  25:./Application/Src/menu.c ****         case 3: menu_index_3(); break;
+  26:./Application/Src/menu.c ****         default: break;
+  27:./Application/Src/menu.c ****     }
+  28:./Application/Src/menu.c ****     // reset all flags:
+  29:./Application/Src/menu.c ****     menu_move_down = 0;
+  30:./Application/Src/menu.c ****     menu_move_up = 0;
+  31:./Application/Src/menu.c **** }
+  32:./Application/Src/menu.c **** 
+  33:./Application/Src/menu.c **** void menu_index_0(){
+  43              		.loc 1 33 20 view -0
+  44              		.cfi_startproc
+  45              		@ args = 0, pretend = 0, frame = 0
+  46              		@ frame_needed = 0, uses_anonymous_args = 0
+  47 0000 70B5     		push	{r4, r5, r6, lr}
+  48              	.LCFI0:
+  49              		.cfi_def_cfa_offset 16
+  50              		.cfi_offset 4, -16
+  51              		.cfi_offset 5, -12
+  52              		.cfi_offset 6, -8
+  53              		.cfi_offset 14, -4
+  54 0002 82B0     		sub	sp, sp, #8
+  55              	.LCFI1:
+  56              		.cfi_def_cfa_offset 24
+  34:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 1, "> 1. Play Song", COLOR_BLACK, COLOR_WHITE);
+  57              		.loc 1 34 5 view .LVU1
+  58 0004 124D     		ldr	r5, .L3
+  59 0006 4FF6FF76 		movw	r6, #65535
+  60 000a 0196     		str	r6, [sp, #4]
+  61 000c 0024     		movs	r4, #0
+  62 000e 0094     		str	r4, [sp]
+  63 0010 104B     		ldr	r3, .L3+4
+  64 0012 0122     		movs	r2, #1
+  65 0014 2146     		mov	r1, r4
+  66 0016 2846     		mov	r0, r5
+  67 0018 FFF7FEFF 		bl	LCD_draw_string
+  68              	.LVL0:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 3
+
+
+  35:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 2, "  2. Transmit Song", COLOR_BLACK, COLOR_WHITE); 
+  69              		.loc 1 35 5 view .LVU2
+  70 001c 0196     		str	r6, [sp, #4]
+  71 001e 0094     		str	r4, [sp]
+  72 0020 0D4B     		ldr	r3, .L3+8
+  73 0022 0222     		movs	r2, #2
+  74 0024 2146     		mov	r1, r4
+  75 0026 2846     		mov	r0, r5
+  76 0028 FFF7FEFF 		bl	LCD_draw_string
+  77              	.LVL1:
+  36:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 3, "  3. Select Song", COLOR_BLACK, COLOR_WHITE); 
+  78              		.loc 1 36 5 view .LVU3
+  79 002c 0196     		str	r6, [sp, #4]
+  80 002e 0094     		str	r4, [sp]
+  81 0030 0A4B     		ldr	r3, .L3+12
+  82 0032 0322     		movs	r2, #3
+  83 0034 2146     		mov	r1, r4
+  84 0036 2846     		mov	r0, r5
+  85 0038 FFF7FEFF 		bl	LCD_draw_string
+  86              	.LVL2:
+  37:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 4, "  4. Homing", COLOR_BLACK, COLOR_WHITE);
+  87              		.loc 1 37 5 view .LVU4
+  88 003c 0196     		str	r6, [sp, #4]
+  89 003e 0094     		str	r4, [sp]
+  90 0040 074B     		ldr	r3, .L3+16
+  91 0042 0422     		movs	r2, #4
+  92 0044 2146     		mov	r1, r4
+  93 0046 2846     		mov	r0, r5
+  94 0048 FFF7FEFF 		bl	LCD_draw_string
+  95              	.LVL3:
+  38:./Application/Src/menu.c **** }
+  96              		.loc 1 38 1 is_stmt 0 view .LVU5
+  97 004c 02B0     		add	sp, sp, #8
+  98              	.LCFI2:
+  99              		.cfi_def_cfa_offset 16
+ 100              		@ sp needed
+ 101 004e 70BD     		pop	{r4, r5, r6, pc}
+ 102              	.L4:
+ 103              		.align	2
+ 104              	.L3:
+ 105 0050 00000000 		.word	lcd_config
+ 106 0054 00000000 		.word	.LC0
+ 107 0058 10000000 		.word	.LC1
+ 108 005c 24000000 		.word	.LC2
+ 109 0060 38000000 		.word	.LC3
+ 110              		.cfi_endproc
+ 111              	.LFE162:
+ 113              		.section	.rodata.menu_init.str1.4,"aMS",%progbits,1
+ 114              		.align	2
+ 115              	.LC4:
+ 116 0000 454C4543 		.ascii	"ELEC391 Piano Bot\000"
+ 116      33393120 
+ 116      5069616E 
+ 116      6F20426F 
+ 116      7400
+ 117              		.section	.text.menu_init,"ax",%progbits
+ 118              		.align	1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 4
+
+
+ 119              		.global	menu_init
+ 120              		.syntax unified
+ 121              		.thumb
+ 122              		.thumb_func
+ 124              	menu_init:
+ 125              	.LFB160:
+   8:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 0, "ELEC391 Piano Bot", COLOR_BLACK, COLOR_WHITE);
+ 126              		.loc 1 8 17 is_stmt 1 view -0
+ 127              		.cfi_startproc
+ 128              		@ args = 0, pretend = 0, frame = 0
+ 129              		@ frame_needed = 0, uses_anonymous_args = 0
+ 130 0000 00B5     		push	{lr}
+ 131              	.LCFI3:
+ 132              		.cfi_def_cfa_offset 4
+ 133              		.cfi_offset 14, -4
+ 134 0002 83B0     		sub	sp, sp, #12
+ 135              	.LCFI4:
+ 136              		.cfi_def_cfa_offset 16
+   9:./Application/Src/menu.c ****     menu_index_0();
+ 137              		.loc 1 9 5 view .LVU7
+ 138 0004 4FF6FF73 		movw	r3, #65535
+ 139 0008 0193     		str	r3, [sp, #4]
+ 140 000a 0021     		movs	r1, #0
+ 141 000c 0091     		str	r1, [sp]
+ 142 000e 044B     		ldr	r3, .L7
+ 143 0010 0A46     		mov	r2, r1
+ 144 0012 0448     		ldr	r0, .L7+4
+ 145 0014 FFF7FEFF 		bl	LCD_draw_string
+ 146              	.LVL4:
+  10:./Application/Src/menu.c **** }
+ 147              		.loc 1 10 5 view .LVU8
+ 148 0018 FFF7FEFF 		bl	menu_index_0
+ 149              	.LVL5:
+  11:./Application/Src/menu.c **** 
+ 150              		.loc 1 11 1 is_stmt 0 view .LVU9
+ 151 001c 03B0     		add	sp, sp, #12
+ 152              	.LCFI5:
+ 153              		.cfi_def_cfa_offset 4
+ 154              		@ sp needed
+ 155 001e 00BD     		pop	{pc}
+ 156              	.L8:
+ 157              		.align	2
+ 158              	.L7:
+ 159 0020 00000000 		.word	.LC4
+ 160 0024 00000000 		.word	lcd_config
+ 161              		.cfi_endproc
+ 162              	.LFE160:
+ 164              		.section	.rodata.menu_index_1.str1.4,"aMS",%progbits,1
+ 165              		.align	2
+ 166              	.LC5:
+ 167 0000 2020312E 		.ascii	"  1. Play Song\000"
+ 167      20506C61 
+ 167      7920536F 
+ 167      6E6700
+ 168 000f 00       		.align	2
+ 169              	.LC6:
+ 170 0010 3E20322E 		.ascii	"> 2. Transmit Song\000"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 5
+
+
+ 170      20547261 
+ 170      6E736D69 
+ 170      7420536F 
+ 170      6E6700
+ 171              		.section	.text.menu_index_1,"ax",%progbits
+ 172              		.align	1
+ 173              		.global	menu_index_1
+ 174              		.syntax unified
+ 175              		.thumb
+ 176              		.thumb_func
+ 178              	menu_index_1:
+ 179              	.LFB163:
+  39:./Application/Src/menu.c **** void menu_index_1(){
+ 180              		.loc 1 39 20 is_stmt 1 view -0
+ 181              		.cfi_startproc
+ 182              		@ args = 0, pretend = 0, frame = 0
+ 183              		@ frame_needed = 0, uses_anonymous_args = 0
+ 184 0000 70B5     		push	{r4, r5, r6, lr}
+ 185              	.LCFI6:
+ 186              		.cfi_def_cfa_offset 16
+ 187              		.cfi_offset 4, -16
+ 188              		.cfi_offset 5, -12
+ 189              		.cfi_offset 6, -8
+ 190              		.cfi_offset 14, -4
+ 191 0002 82B0     		sub	sp, sp, #8
+ 192              	.LCFI7:
+ 193              		.cfi_def_cfa_offset 24
+  40:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 1, "  1. Play Song", COLOR_BLACK, COLOR_WHITE);
+ 194              		.loc 1 40 5 view .LVU11
+ 195 0004 124D     		ldr	r5, .L11
+ 196 0006 4FF6FF76 		movw	r6, #65535
+ 197 000a 0196     		str	r6, [sp, #4]
+ 198 000c 0024     		movs	r4, #0
+ 199 000e 0094     		str	r4, [sp]
+ 200 0010 104B     		ldr	r3, .L11+4
+ 201 0012 0122     		movs	r2, #1
+ 202 0014 2146     		mov	r1, r4
+ 203 0016 2846     		mov	r0, r5
+ 204 0018 FFF7FEFF 		bl	LCD_draw_string
+ 205              	.LVL6:
+  41:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 2, "> 2. Transmit Song", COLOR_BLACK, COLOR_WHITE); 
+ 206              		.loc 1 41 5 view .LVU12
+ 207 001c 0196     		str	r6, [sp, #4]
+ 208 001e 0094     		str	r4, [sp]
+ 209 0020 0D4B     		ldr	r3, .L11+8
+ 210 0022 0222     		movs	r2, #2
+ 211 0024 2146     		mov	r1, r4
+ 212 0026 2846     		mov	r0, r5
+ 213 0028 FFF7FEFF 		bl	LCD_draw_string
+ 214              	.LVL7:
+  42:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 3, "  3. Select Song", COLOR_BLACK, COLOR_WHITE); 
+ 215              		.loc 1 42 5 view .LVU13
+ 216 002c 0196     		str	r6, [sp, #4]
+ 217 002e 0094     		str	r4, [sp]
+ 218 0030 0A4B     		ldr	r3, .L11+12
+ 219 0032 0322     		movs	r2, #3
+ 220 0034 2146     		mov	r1, r4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 6
+
+
+ 221 0036 2846     		mov	r0, r5
+ 222 0038 FFF7FEFF 		bl	LCD_draw_string
+ 223              	.LVL8:
+  43:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 4, "  4. Homing", COLOR_BLACK, COLOR_WHITE);
+ 224              		.loc 1 43 5 view .LVU14
+ 225 003c 0196     		str	r6, [sp, #4]
+ 226 003e 0094     		str	r4, [sp]
+ 227 0040 074B     		ldr	r3, .L11+16
+ 228 0042 0422     		movs	r2, #4
+ 229 0044 2146     		mov	r1, r4
+ 230 0046 2846     		mov	r0, r5
+ 231 0048 FFF7FEFF 		bl	LCD_draw_string
+ 232              	.LVL9:
+  44:./Application/Src/menu.c **** }
+ 233              		.loc 1 44 1 is_stmt 0 view .LVU15
+ 234 004c 02B0     		add	sp, sp, #8
+ 235              	.LCFI8:
+ 236              		.cfi_def_cfa_offset 16
+ 237              		@ sp needed
+ 238 004e 70BD     		pop	{r4, r5, r6, pc}
+ 239              	.L12:
+ 240              		.align	2
+ 241              	.L11:
+ 242 0050 00000000 		.word	lcd_config
+ 243 0054 00000000 		.word	.LC5
+ 244 0058 10000000 		.word	.LC6
+ 245 005c 24000000 		.word	.LC2
+ 246 0060 38000000 		.word	.LC3
+ 247              		.cfi_endproc
+ 248              	.LFE163:
+ 250              		.section	.rodata.menu_index_2.str1.4,"aMS",%progbits,1
+ 251              		.align	2
+ 252              	.LC7:
+ 253 0000 3E20332E 		.ascii	"> 3. Select Song\000"
+ 253      2053656C 
+ 253      65637420 
+ 253      536F6E67 
+ 253      00
+ 254              		.section	.text.menu_index_2,"ax",%progbits
+ 255              		.align	1
+ 256              		.global	menu_index_2
+ 257              		.syntax unified
+ 258              		.thumb
+ 259              		.thumb_func
+ 261              	menu_index_2:
+ 262              	.LFB164:
+  45:./Application/Src/menu.c **** void menu_index_2(){
+ 263              		.loc 1 45 20 is_stmt 1 view -0
+ 264              		.cfi_startproc
+ 265              		@ args = 0, pretend = 0, frame = 0
+ 266              		@ frame_needed = 0, uses_anonymous_args = 0
+ 267 0000 70B5     		push	{r4, r5, r6, lr}
+ 268              	.LCFI9:
+ 269              		.cfi_def_cfa_offset 16
+ 270              		.cfi_offset 4, -16
+ 271              		.cfi_offset 5, -12
+ 272              		.cfi_offset 6, -8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 7
+
+
+ 273              		.cfi_offset 14, -4
+ 274 0002 82B0     		sub	sp, sp, #8
+ 275              	.LCFI10:
+ 276              		.cfi_def_cfa_offset 24
+  46:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 1, "  1. Play Song", COLOR_BLACK, COLOR_WHITE);
+ 277              		.loc 1 46 5 view .LVU17
+ 278 0004 124D     		ldr	r5, .L15
+ 279 0006 4FF6FF76 		movw	r6, #65535
+ 280 000a 0196     		str	r6, [sp, #4]
+ 281 000c 0024     		movs	r4, #0
+ 282 000e 0094     		str	r4, [sp]
+ 283 0010 104B     		ldr	r3, .L15+4
+ 284 0012 0122     		movs	r2, #1
+ 285 0014 2146     		mov	r1, r4
+ 286 0016 2846     		mov	r0, r5
+ 287 0018 FFF7FEFF 		bl	LCD_draw_string
+ 288              	.LVL10:
+  47:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 2, "  2. Transmit Song", COLOR_BLACK, COLOR_WHITE); 
+ 289              		.loc 1 47 5 view .LVU18
+ 290 001c 0196     		str	r6, [sp, #4]
+ 291 001e 0094     		str	r4, [sp]
+ 292 0020 0D4B     		ldr	r3, .L15+8
+ 293 0022 0222     		movs	r2, #2
+ 294 0024 2146     		mov	r1, r4
+ 295 0026 2846     		mov	r0, r5
+ 296 0028 FFF7FEFF 		bl	LCD_draw_string
+ 297              	.LVL11:
+  48:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 3, "> 3. Select Song", COLOR_BLACK, COLOR_WHITE); 
+ 298              		.loc 1 48 5 view .LVU19
+ 299 002c 0196     		str	r6, [sp, #4]
+ 300 002e 0094     		str	r4, [sp]
+ 301 0030 0A4B     		ldr	r3, .L15+12
+ 302 0032 0322     		movs	r2, #3
+ 303 0034 2146     		mov	r1, r4
+ 304 0036 2846     		mov	r0, r5
+ 305 0038 FFF7FEFF 		bl	LCD_draw_string
+ 306              	.LVL12:
+  49:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 4, "  4. Homing", COLOR_BLACK, COLOR_WHITE);
+ 307              		.loc 1 49 5 view .LVU20
+ 308 003c 0196     		str	r6, [sp, #4]
+ 309 003e 0094     		str	r4, [sp]
+ 310 0040 074B     		ldr	r3, .L15+16
+ 311 0042 0422     		movs	r2, #4
+ 312 0044 2146     		mov	r1, r4
+ 313 0046 2846     		mov	r0, r5
+ 314 0048 FFF7FEFF 		bl	LCD_draw_string
+ 315              	.LVL13:
+  50:./Application/Src/menu.c **** }
+ 316              		.loc 1 50 1 is_stmt 0 view .LVU21
+ 317 004c 02B0     		add	sp, sp, #8
+ 318              	.LCFI11:
+ 319              		.cfi_def_cfa_offset 16
+ 320              		@ sp needed
+ 321 004e 70BD     		pop	{r4, r5, r6, pc}
+ 322              	.L16:
+ 323              		.align	2
+ 324              	.L15:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 8
+
+
+ 325 0050 00000000 		.word	lcd_config
+ 326 0054 00000000 		.word	.LC5
+ 327 0058 10000000 		.word	.LC1
+ 328 005c 00000000 		.word	.LC7
+ 329 0060 38000000 		.word	.LC3
+ 330              		.cfi_endproc
+ 331              	.LFE164:
+ 333              		.section	.rodata.menu_index_3.str1.4,"aMS",%progbits,1
+ 334              		.align	2
+ 335              	.LC8:
+ 336 0000 3E20342E 		.ascii	"> 4. Homing\000"
+ 336      20486F6D 
+ 336      696E6700 
+ 337              		.section	.text.menu_index_3,"ax",%progbits
+ 338              		.align	1
+ 339              		.global	menu_index_3
+ 340              		.syntax unified
+ 341              		.thumb
+ 342              		.thumb_func
+ 344              	menu_index_3:
+ 345              	.LFB165:
+  51:./Application/Src/menu.c **** void menu_index_3(){
+ 346              		.loc 1 51 20 is_stmt 1 view -0
+ 347              		.cfi_startproc
+ 348              		@ args = 0, pretend = 0, frame = 0
+ 349              		@ frame_needed = 0, uses_anonymous_args = 0
+ 350 0000 70B5     		push	{r4, r5, r6, lr}
+ 351              	.LCFI12:
+ 352              		.cfi_def_cfa_offset 16
+ 353              		.cfi_offset 4, -16
+ 354              		.cfi_offset 5, -12
+ 355              		.cfi_offset 6, -8
+ 356              		.cfi_offset 14, -4
+ 357 0002 82B0     		sub	sp, sp, #8
+ 358              	.LCFI13:
+ 359              		.cfi_def_cfa_offset 24
+  52:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 1, "  1. Play Song", COLOR_BLACK, COLOR_WHITE);
+ 360              		.loc 1 52 5 view .LVU23
+ 361 0004 124D     		ldr	r5, .L19
+ 362 0006 4FF6FF76 		movw	r6, #65535
+ 363 000a 0196     		str	r6, [sp, #4]
+ 364 000c 0024     		movs	r4, #0
+ 365 000e 0094     		str	r4, [sp]
+ 366 0010 104B     		ldr	r3, .L19+4
+ 367 0012 0122     		movs	r2, #1
+ 368 0014 2146     		mov	r1, r4
+ 369 0016 2846     		mov	r0, r5
+ 370 0018 FFF7FEFF 		bl	LCD_draw_string
+ 371              	.LVL14:
+  53:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 2, "  2. Transmit Song", COLOR_BLACK, COLOR_WHITE); 
+ 372              		.loc 1 53 5 view .LVU24
+ 373 001c 0196     		str	r6, [sp, #4]
+ 374 001e 0094     		str	r4, [sp]
+ 375 0020 0D4B     		ldr	r3, .L19+8
+ 376 0022 0222     		movs	r2, #2
+ 377 0024 2146     		mov	r1, r4
+ 378 0026 2846     		mov	r0, r5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 9
+
+
+ 379 0028 FFF7FEFF 		bl	LCD_draw_string
+ 380              	.LVL15:
+  54:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 3, "  3. Select Song", COLOR_BLACK, COLOR_WHITE); 
+ 381              		.loc 1 54 5 view .LVU25
+ 382 002c 0196     		str	r6, [sp, #4]
+ 383 002e 0094     		str	r4, [sp]
+ 384 0030 0A4B     		ldr	r3, .L19+12
+ 385 0032 0322     		movs	r2, #3
+ 386 0034 2146     		mov	r1, r4
+ 387 0036 2846     		mov	r0, r5
+ 388 0038 FFF7FEFF 		bl	LCD_draw_string
+ 389              	.LVL16:
+  55:./Application/Src/menu.c ****     LCD_draw_string(&lcd_config, 0, 4, "> 4. Homing", COLOR_BLACK, COLOR_WHITE);
+ 390              		.loc 1 55 5 view .LVU26
+ 391 003c 0196     		str	r6, [sp, #4]
+ 392 003e 0094     		str	r4, [sp]
+ 393 0040 074B     		ldr	r3, .L19+16
+ 394 0042 0422     		movs	r2, #4
+ 395 0044 2146     		mov	r1, r4
+ 396 0046 2846     		mov	r0, r5
+ 397 0048 FFF7FEFF 		bl	LCD_draw_string
+ 398              	.LVL17:
+  56:./Application/Src/menu.c **** }...
+ 399              		.loc 1 56 1 is_stmt 0 view .LVU27
+ 400 004c 02B0     		add	sp, sp, #8
+ 401              	.LCFI14:
+ 402              		.cfi_def_cfa_offset 16
+ 403              		@ sp needed
+ 404 004e 70BD     		pop	{r4, r5, r6, pc}
+ 405              	.L20:
+ 406              		.align	2
+ 407              	.L19:
+ 408 0050 00000000 		.word	lcd_config
+ 409 0054 00000000 		.word	.LC5
+ 410 0058 10000000 		.word	.LC1
+ 411 005c 24000000 		.word	.LC2
+ 412 0060 00000000 		.word	.LC8
+ 413              		.cfi_endproc
+ 414              	.LFE165:
+ 416              		.section	.text.menu_update,"ax",%progbits
+ 417              		.align	1
+ 418              		.global	menu_update
+ 419              		.syntax unified
+ 420              		.thumb
+ 421              		.thumb_func
+ 423              	menu_update:
+ 424              	.LFB161:
+  13:./Application/Src/menu.c **** void menu_update(){
+ 425              		.loc 1 13 19 is_stmt 1 view -0
+ 426              		.cfi_startproc
+ 427              		@ args = 0, pretend = 0, frame = 0
+ 428              		@ frame_needed = 0, uses_anonymous_args = 0
+ 429 0000 08B5     		push	{r3, lr}
+ 430              	.LCFI15:
+ 431              		.cfi_def_cfa_offset 8
+ 432              		.cfi_offset 3, -8
+ 433              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 10
+
+
+  14:./Application/Src/menu.c ****     if (menu_move_down == 1){
+ 434              		.loc 1 14 5 view .LVU29
+  14:./Application/Src/menu.c ****     if (menu_move_down == 1){
+ 435              		.loc 1 14 24 is_stmt 0 view .LVU30
+ 436 0002 1B4B     		ldr	r3, .L33
+ 437 0004 1B68     		ldr	r3, [r3]
+  14:./Application/Src/menu.c ****     if (menu_move_down == 1){
+ 438              		.loc 1 14 8 view .LVU31
+ 439 0006 012B     		cmp	r3, #1
+ 440 0008 0ED0     		beq	.L31
+  17:./Application/Src/menu.c ****     } else if (menu_move_up == 1){
+ 441              		.loc 1 17 12 is_stmt 1 view .LVU32
+  17:./Application/Src/menu.c ****     } else if (menu_move_up == 1){
+ 442              		.loc 1 17 29 is_stmt 0 view .LVU33
+ 443 000a 1A4B     		ldr	r3, .L33+4
+ 444 000c 1B68     		ldr	r3, [r3]
+  17:./Application/Src/menu.c ****     } else if (menu_move_up == 1){
+ 445              		.loc 1 17 15 view .LVU34
+ 446 000e 012B     		cmp	r3, #1
+ 447 0010 14D0     		beq	.L32
+ 448              	.L23:
+  21:./Application/Src/menu.c ****     switch (menu_index){
+ 449              		.loc 1 21 5 is_stmt 1 view .LVU35
+ 450 0012 194B     		ldr	r3, .L33+8
+ 451 0014 1B68     		ldr	r3, [r3]
+ 452 0016 022B     		cmp	r3, #2
+ 453 0018 27D0     		beq	.L24
+ 454 001a 19DC     		bgt	.L25
+ 455 001c EBB1     		cbz	r3, .L26
+ 456 001e 012B     		cmp	r3, #1
+ 457 0020 1DD1     		bne	.L28
+  23:./Application/Src/menu.c ****         case 1: menu_index_1(); break;
+ 458              		.loc 1 23 17 view .LVU36
+ 459 0022 FFF7FEFF 		bl	menu_index_1
+ 460              	.LVL18:
+  23:./Application/Src/menu.c ****         case 1: menu_index_1(); break;
+ 461              		.loc 1 23 33 discriminator 1 view .LVU37
+  23:./Application/Src/menu.c ****         case 1: menu_index_1(); break;
+ 462              		.loc 1 23 33 is_stmt 0 view .LVU38
+ 463 0026 1AE0     		b	.L28
+ 464              	.L31:
+  15:./Application/Src/menu.c ****         menu_index++;
+ 465              		.loc 1 15 9 is_stmt 1 view .LVU39
+  15:./Application/Src/menu.c ****         menu_index++;
+ 466              		.loc 1 15 19 is_stmt 0 view .LVU40
+ 467 0028 134A     		ldr	r2, .L33+8
+ 468 002a 1368     		ldr	r3, [r2]
+ 469 002c 0133     		adds	r3, r3, #1
+ 470 002e 1360     		str	r3, [r2]
+  16:./Application/Src/menu.c ****         if (menu_index > 3) menu_index = 0;
+ 471              		.loc 1 16 9 is_stmt 1 view .LVU41
+  16:./Application/Src/menu.c ****         if (menu_index > 3) menu_index = 0;
+ 472              		.loc 1 16 12 is_stmt 0 view .LVU42
+ 473 0030 032B     		cmp	r3, #3
+ 474 0032 EEDD     		ble	.L23
+  16:./Application/Src/menu.c ****         if (menu_index > 3) menu_index = 0;
+ 475              		.loc 1 16 29 is_stmt 1 discriminator 1 view .LVU43
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 11
+
+
+  16:./Application/Src/menu.c ****         if (menu_index > 3) menu_index = 0;
+ 476              		.loc 1 16 40 is_stmt 0 discriminator 1 view .LVU44
+ 477 0034 1346     		mov	r3, r2
+ 478 0036 0022     		movs	r2, #0
+ 479 0038 1A60     		str	r2, [r3]
+ 480 003a EAE7     		b	.L23
+ 481              	.L32:
+  18:./Application/Src/menu.c ****         menu_index--;
+ 482              		.loc 1 18 9 is_stmt 1 view .LVU45
+  18:./Application/Src/menu.c ****         menu_index--;
+ 483              		.loc 1 18 19 is_stmt 0 view .LVU46
+ 484 003c 0E4A     		ldr	r2, .L33+8
+ 485 003e 1368     		ldr	r3, [r2]
+ 486 0040 013B     		subs	r3, r3, #1
+ 487 0042 1360     		str	r3, [r2]
+  19:./Application/Src/menu.c ****         if (menu_index < 0) menu_index = 3;
+ 488              		.loc 1 19 9 is_stmt 1 view .LVU47
+  19:./Application/Src/menu.c ****         if (menu_index < 0) menu_index = 3;
+ 489              		.loc 1 19 12 is_stmt 0 view .LVU48
+ 490 0044 002B     		cmp	r3, #0
+ 491 0046 E4DA     		bge	.L23
+  19:./Application/Src/menu.c ****         if (menu_index < 0) menu_index = 3;
+ 492              		.loc 1 19 29 is_stmt 1 discriminator 1 view .LVU49
+  19:./Application/Src/menu.c ****         if (menu_index < 0) menu_index = 3;
+ 493              		.loc 1 19 40 is_stmt 0 discriminator 1 view .LVU50
+ 494 0048 1346     		mov	r3, r2
+ 495 004a 0322     		movs	r2, #3
+ 496 004c 1A60     		str	r2, [r3]
+ 497 004e E0E7     		b	.L23
+ 498              	.L25:
+  21:./Application/Src/menu.c ****     switch (menu_index){
+ 499              		.loc 1 21 5 view .LVU51
+ 500 0050 032B     		cmp	r3, #3
+ 501 0052 04D1     		bne	.L28
+  25:./Application/Src/menu.c ****         case 3: menu_index_3(); break;
+ 502              		.loc 1 25 17 is_stmt 1 view .LVU52
+ 503 0054 FFF7FEFF 		bl	menu_index_3
+ 504              	.LVL19:
+  25:./Application/Src/menu.c ****         case 3: menu_index_3(); break;
+ 505              		.loc 1 25 33 discriminator 1 view .LVU53
+  25:./Application/Src/menu.c ****         case 3: menu_index_3(); break;
+ 506              		.loc 1 25 33 is_stmt 0 view .LVU54
+ 507 0058 01E0     		b	.L28
+ 508              	.L26:
+  22:./Application/Src/menu.c ****         case 0: menu_index_0(); break;
+ 509              		.loc 1 22 17 is_stmt 1 view .LVU55
+ 510 005a FFF7FEFF 		bl	menu_index_0
+ 511              	.LVL20:
+  22:./Application/Src/menu.c ****         case 0: menu_index_0(); break;
+ 512              		.loc 1 22 33 discriminator 1 view .LVU56
+ 513              	.L28:
+  29:./Application/Src/menu.c ****     menu_move_down = 0;
+ 514              		.loc 1 29 5 view .LVU57
+  29:./Application/Src/menu.c ****     menu_move_down = 0;
+ 515              		.loc 1 29 20 is_stmt 0 view .LVU58
+ 516 005e 0023     		movs	r3, #0
+ 517 0060 034A     		ldr	r2, .L33
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 12
+
+
+ 518 0062 1360     		str	r3, [r2]
+  30:./Application/Src/menu.c ****     menu_move_up = 0;
+ 519              		.loc 1 30 5 is_stmt 1 view .LVU59
+  30:./Application/Src/menu.c ****     menu_move_up = 0;
+ 520              		.loc 1 30 18 is_stmt 0 view .LVU60
+ 521 0064 034A     		ldr	r2, .L33+4
+ 522 0066 1360     		str	r3, [r2]
+  31:./Application/Src/menu.c **** }
+ 523              		.loc 1 31 1 view .LVU61
+ 524 0068 08BD     		pop	{r3, pc}
+ 525              	.L24:
+  24:./Application/Src/menu.c ****         case 2: menu_index_2(); break;
+ 526              		.loc 1 24 17 is_stmt 1 view .LVU62
+ 527 006a FFF7FEFF 		bl	menu_index_2
+ 528              	.LVL21:
+  24:./Application/Src/menu.c ****         case 2: menu_index_2(); break;
+ 529              		.loc 1 24 33 discriminator 1 view .LVU63
+  24:./Application/Src/menu.c ****         case 2: menu_index_2(); break;
+ 530              		.loc 1 24 33 is_stmt 0 view .LVU64
+ 531 006e F6E7     		b	.L28
+ 532              	.L34:
+ 533              		.align	2
+ 534              	.L33:
+ 535 0070 00000000 		.word	menu_move_down
+ 536 0074 00000000 		.word	menu_move_up
+ 537 0078 00000000 		.word	menu_index
+ 538              		.cfi_endproc
+ 539              	.LFE161:
+ 541              		.global	menu_move_up
+ 542              		.section	.bss.menu_move_up,"aw",%nobits
+ 543              		.align	2
+ 546              	menu_move_up:
+ 547 0000 00000000 		.space	4
+ 548              		.global	menu_move_down
+ 549              		.section	.bss.menu_move_down,"aw",%nobits
+ 550              		.align	2
+ 553              	menu_move_down:
+ 554 0000 00000000 		.space	4
+ 555              		.global	menu_index
+ 556              		.section	.bss.menu_index,"aw",%nobits
+ 557              		.align	2
+ 560              	menu_index:
+ 561 0000 00000000 		.space	4
+ 562              		.text
+ 563              	.Letext0:
+ 564              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 565              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 566              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 567              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 568              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 569              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 570              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 571              		.file 9 "Application/Inc/ILI9341.h"
+ 572              		.file 10 "Application/Inc/application.h"
+ 573              		.file 11 "Application/Inc/menu.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s 			page 13
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 menu.c
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:22     .rodata.menu_index_0.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:35     .text.menu_index_0:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:41     .text.menu_index_0:00000000 menu_index_0
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:105    .text.menu_index_0:00000050 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:114    .rodata.menu_init.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:118    .text.menu_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:124    .text.menu_init:00000000 menu_init
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:159    .text.menu_init:00000020 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:165    .rodata.menu_index_1.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:172    .text.menu_index_1:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:178    .text.menu_index_1:00000000 menu_index_1
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:242    .text.menu_index_1:00000050 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:251    .rodata.menu_index_2.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:255    .text.menu_index_2:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:261    .text.menu_index_2:00000000 menu_index_2
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:325    .text.menu_index_2:00000050 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:334    .rodata.menu_index_3.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:338    .text.menu_index_3:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:344    .text.menu_index_3:00000000 menu_index_3
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:408    .text.menu_index_3:00000050 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:417    .text.menu_update:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:423    .text.menu_update:00000000 menu_update
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:535    .text.menu_update:00000070 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:553    .bss.menu_move_down:00000000 menu_move_down
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:546    .bss.menu_move_up:00000000 menu_move_up
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:560    .bss.menu_index:00000000 menu_index
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:543    .bss.menu_move_up:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:550    .bss.menu_move_down:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccBxfXYi.s:557    .bss.menu_index:00000000 $d
+
+UNDEFINED SYMBOLS
+LCD_draw_string
+lcd_config

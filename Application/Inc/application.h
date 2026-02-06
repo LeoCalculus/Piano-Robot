@@ -6,6 +6,10 @@
 #include <encoder.h>
 #include <tim.h>
 #include <command.h>
+#include <stdbool.h>
+#include <gpio.h>
+#include <menu.h>
+#include <string.h>
 
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 #define MAX_CHORD_NOTES   10 // number of notes to play at one time, fixed value, 5 for left hand and 5 for right hand
@@ -44,12 +48,12 @@ typedef struct {
     float output;
 } PID_t;
 
-// chord struct - used to store the song, note, this part of memory might need to be modified, so DO NOT USE CONST 
+// chord struct - used to store how the song is played
 typedef struct ChordEvent {
-    uint8_t num_notes; // tells how many notes will be used
-    float positions[MAX_CHORD_NOTES]; // an array contain position value used for solenoid control, POSITION SHOULD BE NONE ZEROS
+    float positions[2]; // target position for both left hand and right hand
+    bool pressed[MAX_CHORD_NOTES]; // True -> pressed, False -> not pressed
     uint16_t duration_ms; // how long it needs to be pressed
-    uint16_t delay_to_next_ms; // to next postions how many time left, used for determine how fast I need to move to next position
+    uint16_t delay_to_next_ms; // to next postions how many time left
 } ChordEvent_t;
 
 typedef struct Song {
@@ -62,7 +66,7 @@ extern Song_t piano_song[MAX_CHORD_EVENTS];
 int which_hand(ChordEvent_t* this_note);
 
 // locate hand: return the hand position -> set as target position, we need to return both hand position
-void locate_hand(ChordEvent_t* this_note, float hand_pos[2], int which_hand);
+void locate_hand(ChordEvent_t* this_note, int which_hand);
 
 // traversal the song
 void traversal_song(Song_t* entire_song);
@@ -79,6 +83,7 @@ void controller_step(const float dt);
 // non-block wait function (using interrupt)
 void wait_ms(uint32_t ms);
 
-
+// homing procudure: on launch automatically move each hand to leftmost or rightmost
+void homing_procedure();
 
 #endif

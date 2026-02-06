@@ -74,16 +74,6 @@ void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_tar
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// init LCD configuration with SPI2 and GPIOB pins 13, 14, 15
-LCD_Config lcd_config = {
-    .hspi = &hspi2,
-    .cs_port = GPIOB,
-    .cs_pin = GPIO_PIN_15,
-    .rs_port = GPIOB,
-    .rs_pin = GPIO_PIN_13,
-    .rst_port = GPIOB,
-    .rst_pin = GPIO_PIN_14,
-};
 /* USER CODE END 0 */
 
 /**
@@ -152,8 +142,12 @@ int main(void)
 
   
   msg = (uint8_t*)"Still alive";
+  
   // traversal begin
-  traversal_song(piano_song);
+  //traversal_song(piano_song);
+  menu_init();
+
+  // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
   
   /* USER CODE END 2 */
 
@@ -179,6 +173,7 @@ int main(void)
   //char telemetry_buf[64];
   while (1)
   {
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
     /* Blink LED to show MCU is running */
     BSP_LED_Toggle(LED_GREEN);
 
@@ -195,8 +190,8 @@ int main(void)
     // only update LCD when new BT data received
     if (rx_complete) {
       executeCommand(rx_buffer); // execute command only in main loop not in interrupt
-      LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
-      LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
+      //LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
+      //LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
       rx_complete = 0;
     }
 
@@ -209,11 +204,13 @@ int main(void)
     //     pos_index++;
     // }
 
-    if (is_blocked){
-      LCD_draw_string(&lcd_config, 0, 5, "Sensor detected!  ", COLOR_BLACK, COLOR_WHITE);
-    } else {
-      LCD_draw_string(&lcd_config, 0, 5, "Nothing in sensor!", COLOR_BLACK, COLOR_WHITE);
-    }
+    // if (is_blocked){
+    //   LCD_draw_string(&lcd_config, 0, 5, "Sensor detected!  ", COLOR_BLACK, COLOR_WHITE);
+    // } else {
+    //   LCD_draw_string(&lcd_config, 0, 5, "Nothing in sensor!", COLOR_BLACK, COLOR_WHITE);
+    // }
+    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+    menu_update();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -288,6 +285,7 @@ void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_tar
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t size){
   uint16_t new_bytes; // new received bytes count
   if (huart == &huart1){
+    if (size == old_pos) return; // duplicate callback (HT/TC + IDLE at same position), no new data
     if (size > old_pos){
       new_bytes = size - old_pos;
       memcpy(rx_buffer, &DMA_target_location[old_pos], new_bytes);

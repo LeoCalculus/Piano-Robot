@@ -92,20 +92,24 @@ class HC04SerialGUI:
         self.connection_tab = ttk.Frame(self.notebook)
         self.serial_testing_tab = ttk.Frame(self.notebook)
         self.file_upload_tab = ttk.Frame(self.notebook)
+        self.control_tab = ttk.Frame(self.notebook)
 
         # Add tabs to notebook
         self.notebook.add(self.connection_tab, text="Connection")
         self.notebook.add(self.serial_testing_tab, text="Serial Testing")
         self.notebook.add(self.file_upload_tab, text="File Upload")
+        self.notebook.add(self.control_tab, text="Control")
 
         # Set up each tab
         self.setup_connection_tab()
         self.setup_serial_testing_tab()
         self.setup_file_upload_tab()
+        self.setup_control_tab()
 
         # Disable tabs until connected
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
+        self.notebook.tab(3, state="disabled")
 
         # Bind tab change event
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_change)
@@ -377,6 +381,86 @@ class HC04SerialGUI:
         self.selected_file_path = None
         self.upload_abort_flag = False
 
+    def setup_control_tab(self):
+        """Setup the control tab for menu navigation via W/S keys"""
+        # Track which keys are currently held to prevent repeat
+        self.control_keys_held = set()
+
+        # Instructions
+        info_frame = ttk.LabelFrame(self.control_tab, text="Menu Control")
+        info_frame.pack(fill=tk.X, pady=10, padx=10)
+
+        ttk.Label(info_frame, text="Press W to move menu up, S to move menu down.",
+                  font=("Arial", 11)).pack(pady=10, padx=10)
+        ttk.Label(info_frame, text="Click this area first to capture keyboard input.",
+                  foreground="gray").pack(pady=(0, 10), padx=10)
+
+        # Status display
+        self.control_status_var = tk.StringVar(value="Waiting for input...")
+        status_label = ttk.Label(info_frame, textvariable=self.control_status_var,
+                                 font=("Arial", 14, "bold"), foreground=self.header_color)
+        status_label.pack(pady=10)
+
+        # Visual buttons (also clickable)
+        btn_frame = ttk.Frame(info_frame)
+        btn_frame.pack(pady=10)
+
+        up_btn = ttk.Button(btn_frame, text="W  Up", width=15,
+                            command=lambda: self.control_send(":w", "Up"))
+        up_btn.pack(pady=5)
+
+        down_btn = ttk.Button(btn_frame, text="S  Down", width=15,
+                              command=lambda: self.control_send(":s", "Down"))
+        down_btn.pack(pady=5)
+
+        # Log for control actions
+        log_frame = ttk.LabelFrame(self.control_tab, text="Control Log")
+        log_frame.pack(fill=tk.BOTH, expand=True, pady=5, padx=10)
+
+        self.control_log = scrolledtext.ScrolledText(log_frame, height=10, width=80)
+        self.control_log.pack(fill=tk.BOTH, expand=True)
+
+        # Bind key events to the root window; handler checks active tab
+        self.root.bind("<KeyPress>", self.control_key_press)
+        self.root.bind("<KeyRelease>", self.control_key_release)
+
+    def control_send(self, cmd, direction):
+        """Send a control command over serial"""
+        if not self.connected or not self.ser:
+            return
+        try:
+            self.send_raw_data(cmd)
+            self.control_status_var.set(f"Sent: {direction}")
+            timestamp = time.strftime("%H:%M:%S")
+            self.control_log.insert(tk.END, f"[{timestamp}] {direction} ({cmd})\n")
+            self.control_log.see(tk.END)
+        except Exception as e:
+            self.control_status_var.set(f"Error: {e}")
+
+    def control_key_press(self, event):
+        """Handle key press — only fire once per physical press"""
+        # Only respond when the Control tab is active
+        if self.notebook.index(self.notebook.select()) != 3:
+            return
+        if not self.connected:
+            return
+
+        key = event.keysym.lower()
+        if key in self.control_keys_held:
+            return  # already held, ignore auto-repeat
+
+        self.control_keys_held.add(key)
+
+        if key == 'w':
+            self.control_send(":w", "Up")
+        elif key == 's':
+            self.control_send(":s", "Down")
+
+    def control_key_release(self, event):
+        """Handle key release — re-enable the key for next press"""
+        key = event.keysym.lower()
+        self.control_keys_held.discard(key)
+
     def on_tab_change(self, event):
         """Handle tab change event"""
         selected_tab = self.notebook.index(self.notebook.select())
@@ -384,6 +468,10 @@ class HC04SerialGUI:
         # If changed to Serial Testing tab, focus on data entry
         if selected_tab == 1 and self.connected:
             self.data_entry.focus()
+
+        # If changed to Control tab, focus root to capture keys
+        if selected_tab == 3 and self.connected:
+            self.root.focus_set()
 
     def log(self, message):
         """Add a message to the log with timestamp"""
@@ -562,6 +650,7 @@ class HC04SerialGUI:
         # Enable other tabs
         self.notebook.tab(1, state="normal")
         self.notebook.tab(2, state="normal")
+        self.notebook.tab(3, state="normal")
 
         # Update button states
         self.connect_button.config(state=tk.DISABLED)
@@ -701,6 +790,7 @@ class HC04SerialGUI:
         # Disable tabs
         self.notebook.tab(1, state="disabled")
         self.notebook.tab(2, state="disabled")
+        self.notebook.tab(3, state="disabled")
 
         # Switch to connection tab
         self.notebook.select(0)
