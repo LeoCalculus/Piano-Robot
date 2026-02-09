@@ -139,10 +139,10 @@ void pid_cycle(PID_t* target_system, float error, const float dt){
 
 // PID struct for the motor
 PID_t debug_motor = {
-    .Kp = 8.0f,
-    .Ki = 1.0f,
-    .Kd = 0.0f, //0.001
-    .Integral_max = 200000000.0f // 0.5
+    .Kp = 5.0f,
+    .Ki = 0.0f,
+    .Kd = 3.0f, //0.001
+    .Integral_max = 0.01f // 0.5
 };
 
 // init LCD configuration with SPI2 and GPIOB pins 13, 14, 15
@@ -196,6 +196,7 @@ void controller_step(const float dt){
 
     // position control - test pid - using step input - input via bluetooth
     float error = target_position_cm - current_distance_cm;
+    // error = 0.0f; // debug 
     vofa.val[1] = target_position_cm;
 
     // deadband: if error is within tolerance, stop motor and reset integral

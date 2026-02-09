@@ -6,7 +6,7 @@
 
 int parseCommand(uint8_t* cmd) {
     // Check for :p command (position in cm)
-    if (cmd[0] == ':' && cmd[1] == 'p') {
+    if (cmd[0] == ':' && cmd[1] == 'p') { // :p means set position to target value in mm
         char* arg = (char*)cmd + 2;
         // Skip any leading spaces
         while (*arg == ' ') arg++;
@@ -16,13 +16,16 @@ int parseCommand(uint8_t* cmd) {
         float pos = strtof(arg, NULL);
         setPos(pos);
         return 0;
-    } else if (cmd[0] == ':' && cmd[1] == 'w') {
+    } else if (cmd[0] == ':' && cmd[1] == 'w') { // :w means move up in menu
         menu_move_up = 1;
-        memset(cmd, 0, 10); // set the first 10 bytes to 0
+        //memset(cmd, 0, 10); // set the first 10 bytes to 0
         return 0;
-    } else if (cmd[0] == ':' && cmd[1] == 's') {
+    } else if (cmd[0] == ':' && cmd[1] == 's') { // :s means move down in menu
         menu_move_down = 1;
-        memset(cmd, 0, 10); // set the first 10 bytes to 0
+        //memset(cmd, 0, 10); // set the first 10 bytes to 0
+        return 0;
+    } else if (cmd[0] == ':' && cmd[1] == 'r') { // :r means reset the position to 0
+        resetPos(&htim8);
         return 0;
     }
 
@@ -30,6 +33,7 @@ int parseCommand(uint8_t* cmd) {
         return 1; // error command
     }
 
+    // other uitlity commands that start with /
     // available commands:
     char* command = strtok((char*)cmd+1, " ");
 
@@ -53,7 +57,8 @@ int parseCommand(uint8_t* cmd) {
             setPos(pos);
         }
     } else if (strcmp(command, "resetPos") == 0){
-        resetPos();
+        // in this case we are using timer 8 for the encoder
+        resetPos(&htim8);
     }
 
     return 0;
@@ -80,7 +85,9 @@ void setPos(float targetPos){
     target_position_cm = targetPos;
 }
 
-void resetPos(){
+void resetPos(TIM_HandleTypeDef* htim){
     encoder_old_position_cm = 0.0f;
+    // reset the encoder reading to 0
+    __HAL_TIM_SET_COUNTER(htim, 0);
 }
 

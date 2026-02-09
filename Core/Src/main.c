@@ -60,6 +60,7 @@ volatile uint16_t old_pos = 0; // size record the index in DMA_target_location, 
 char empty_row[] = "                        ";
 float pos_number[] = {50.0f, 20.0f, 10.0f, -69.0f, 62.0f, 90.0f, 0.0f, -30.0f, 20.0f, 55.0f};
 int pos_index = 0;
+char LCD_Send_buf[32];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -148,6 +149,8 @@ int main(void)
   menu_init();
 
   // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+  //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 80);
+  //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 40);
   
   /* USER CODE END 2 */
 
@@ -211,6 +214,18 @@ int main(void)
     // }
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
     menu_update();
+
+    // menu now showing debug info:
+    // print current distance
+    memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
+    sprintf(LCD_Send_buf, "Pos: %.2f mm      ", current_distance_cm);
+    LCD_draw_string(&lcd_config, 0, 10, (char*)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
+    memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
+    // print current velocity
+    sprintf(LCD_Send_buf, "Vel: %.2f mm/s    ", current_velocity_cm_s);
+    LCD_draw_string(&lcd_config, 0, 11, (char*)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
+
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

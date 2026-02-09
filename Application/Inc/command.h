@@ -18,6 +18,6 @@ void setText(uint8_t* displayedText);
 void setPos(float targetPos);
 
 // reset the old position 
-void resetPos();
+void resetPos(TIM_HandleTypeDef* htim);
 
 #endif

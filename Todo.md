@@ -12,3 +12,5 @@
 After PCB has arrived:
 - [x] Sensor filter parameters -> mainly for encoder, adjusted in CubeMX page
 
+REMEMBER H-BRIDGE SHOULD HAVE THE SAME GROUND WITH MCU
+
