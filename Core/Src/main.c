@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2026 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * Copyright (c) 2026 STMicroelectronics.
+ * All rights reserved.
+ *
+ * This software is licensed under terms that can be found in the LICENSE file
+ * in the root directory of this software component.
+ * If no LICENSE file comes with this software, it is provided AS-IS.
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -29,6 +29,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <application.h>
+#include <file_transfer.h>
+#include <menu.h>
 #include <string.h>
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -53,8 +55,8 @@
 COM_InitTypeDef BspCOMInit;
 
 /* USER CODE BEGIN PV */
-uint8_t* msg = NULL;
-volatile int rx_complete = 0;  // volatile since modified in ISR
+uint8_t *msg = NULL;
+volatile int rx_complete = 0; // volatile since modified in ISR
 volatile uint16_t valid_rx = 0;
 volatile uint16_t old_pos = 0; // size record the index in DMA_target_location, need old pos track the new data
 char empty_row[] = "                        ";
@@ -69,7 +71,7 @@ void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 // this function tells where dma data should be on arrival
-void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_target_location);
+void DMA_receive_idle_init(UART_HandleTypeDef *DMA_uart_handle, uint8_t *DMA_target_location);
 
 /* USER CODE END PFP */
 
@@ -79,322 +81,355 @@ void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_tar
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
-  /* USER CODE BEGIN 1 */
+    /* USER CODE BEGIN 1 */
 
-  /* USER CODE END 1 */
+    /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+    /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+    /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+    HAL_Init();
 
-  /* USER CODE BEGIN Init */
+    /* USER CODE BEGIN Init */
 
-  /* USER CODE END Init */
+    /* USER CODE END Init */
 
-  /* Configure the system clock */
-  SystemClock_Config();
+    /* Configure the system clock */
+    SystemClock_Config();
 
-  /* Configure the peripherals common clocks */
-  PeriphCommonClock_Config();
+    /* Configure the peripherals common clocks */
+    PeriphCommonClock_Config();
 
-  /* USER CODE BEGIN SysInit */
+    /* USER CODE BEGIN SysInit */
 
-  /* USER CODE END SysInit */
+    /* USER CODE END SysInit */
 
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
-  MX_GPDMA1_Init();
-  MX_ICACHE_Init();
-  MX_SPI2_Init();
-  MX_UART4_Init();
-  MX_TIM2_Init();
-  MX_USART1_UART_Init();
-  MX_TIM3_Init();
-  MX_TIM8_Init();
-  MX_TIM4_Init();
-  MX_SPI3_Init();
-  /* USER CODE BEGIN 2 */
-  /* Initialize LCD directly (without LVGL for this demo) */
-  LCD_init(&lcd_config);
-  HAL_TIM_Base_Start_IT(&htim4);
-  // BT_config(&huart3);
-  // TEST: Simple blocking transmit before anything else
-  uint8_t test_msg[] = "USART1 OK\r\n";
-  HAL_UART_Transmit(&huart1, test_msg, sizeof(test_msg)-1, 1000);
+    /* Initialize all configured peripherals */
+    MX_GPIO_Init();
+    MX_GPDMA1_Init();
+    MX_ICACHE_Init();
+    MX_SPI2_Init();
+    MX_UART4_Init();
+    MX_TIM2_Init();
+    MX_USART1_UART_Init();
+    MX_TIM3_Init();
+    MX_TIM8_Init();
+    MX_TIM4_Init();
+    MX_SPI3_Init();
+    /* USER CODE BEGIN 2 */
+    /* Initialize LCD directly (without LVGL for this demo) */
+    LCD_init(&lcd_config);
+    HAL_TIM_Base_Start_IT(&htim4);
+    // BT_config(&huart3);
+    // TEST: Simple blocking transmit before anything else
+    uint8_t test_msg[] = "USART1 OK\r\n";
+    HAL_UART_Transmit(&huart1, test_msg, sizeof(test_msg) - 1, 1000);
 
-  DMA_receive_idle_init(&huart1, DMA_target_location);
-  encoder_start(&htim8);
-  HAL_TIM_Base_Start_IT(&htim2); // interrupt for controller
-  controller_init();
-  // reset encoder value
-  encoder_old_position_cm = 0.0f;
-  encoder_read_result = 0.0f;
+    DMA_receive_idle_init(&huart1, DMA_target_location);
+    encoder_start(&htim8);
+    HAL_TIM_Base_Start_IT(&htim2); // interrupt for controller
+    controller_init();
+    // reset encoder value
+    encoder_old_position_cm = 0.0f;
+    encoder_read_result = 0.0f;
 
-  // begin pwm: 10KHz
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // using pwm at TIM3_CHANNEL1
-  // set initial duty cycle:
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); // here using (99+1)/2 =50 duty cycle
-  // also for CHANNEL2:
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  // set duty cycle as well:
-  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0); 
+    // begin pwm: 10KHz
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // using pwm at TIM3_CHANNEL1
+    // set initial duty cycle:
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 0); // here using (99+1)/2 =50 duty cycle
+    // also for CHANNEL2:
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
+    // set duty cycle as well:
+    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 0);
 
-  
-  msg = (uint8_t*)"Still alive";
-  
-  // traversal begin
-  //traversal_song(piano_song);
-  menu_init();
+    msg = (uint8_t *)"Still alive";
 
-  // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-  //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 80);
-  //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 40);
+    // traversal begin
+    // traversal_song(piano_song);
+    menu_init();
+    FT_Init(); /* Initialize file transfer module */
 
-  HAL_Delay(3000);
-  {
-    char dbg[40];
-    FRESULT sd_res = SD_Init();
-    if (sd_res == FR_OK) {
-      LCD_draw_string(&lcd_config, 0, 5, "SD card init OK!   ", COLOR_BLACK, COLOR_WHITE);
-    } else {
-      sprintf(dbg, "SD FAIL fr=%d       ", (int)sd_res);
-      LCD_draw_string(&lcd_config, 0, 5, dbg, COLOR_BLACK, COLOR_WHITE);
-    }
-    sprintf(dbg, "pw:%02X c0:%02X c8:%02X", sd_dbg_poweron_resp, sd_dbg_cmd0, sd_dbg_cmd8);
-    LCD_draw_string(&lcd_config, 0, 6, dbg, COLOR_BLACK, COLOR_WHITE);
-    sprintf(dbg, "a41:%02X ty:%d er:%lu", sd_dbg_acmd41, sd_dbg_type, (unsigned long)sd_dbg_spi_errs);
-    LCD_draw_string(&lcd_config, 0, 7, dbg, COLOR_BLACK, COLOR_WHITE);
-  }
-
-  HAL_Delay(1000);
-  if (SD_IsCardPresent(&hspi3, GPIOC, GPIO_PIN_3)) {
-    LCD_draw_string(&lcd_config, 0, 8, "SD card present!   ", COLOR_BLACK, COLOR_WHITE);
-  } else {
-    LCD_draw_string(&lcd_config, 0, 8, "No SD card detected!", COLOR_BLACK, COLOR_WHITE);
-  }
-
-  /* USER CODE END 2 */
-
-  /* Initialize leds */
-  BSP_LED_Init(LED_GREEN);
-
-  /* Initialize USER push-button, will be used to trigger an interrupt each time it's pressed.*/
-  BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
-
-  /* Initialize COM1 port (115200, 8 bits (7-bit data + 1 stop bit), no parity */
-  BspCOMInit.BaudRate   = 115200;
-  BspCOMInit.WordLength = COM_WORDLENGTH_8B;
-  BspCOMInit.StopBits   = COM_STOPBITS_1;
-  BspCOMInit.Parity     = COM_PARITY_NONE;
-  BspCOMInit.HwFlowCtl  = COM_HWCONTROL_NONE;
-  if (BSP_COM_Init(COM1, &BspCOMInit) != BSP_ERROR_NONE)
-  {
-    Error_Handler();
-  }
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
-  //char telemetry_buf[64];
-  while (1)
-  {
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
-    /* Blink LED to show MCU is running */
-    BSP_LED_Toggle(LED_GREEN);
+    //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 80);
+    //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 40);
 
-    // Copy volatile values to local (atomic-ish read)
-    //float vel = current_velocity_cm_s;
-    //float dist = current_distance_cm;
+    HAL_Delay(3000);
 
-    // Send telemetry via BT
-    // sprintf(telemetry_buf, "D:%.2f V:%.2f\r\n", dist, vel);
-    // BT_send_info(&huart1, (uint8_t*)telemetry_buf, strlen(telemetry_buf));
-    // BT_send_info(&huart1, (uint8_t*)&vofa, 44);
-    // BT_send_info(&huart1, msg, strlen((char*)msg));
-
-    // only update LCD when new BT data received
-    if (rx_complete) {
-      executeCommand(rx_buffer); // execute command only in main loop not in interrupt
-      //LCD_draw_string(&lcd_config, 0, 10, empty_row, COLOR_BLACK, COLOR_WHITE);  // Clear old text
-      //LCD_draw_string(&lcd_config, 0, 10, (char*)rx_buffer, COLOR_BLACK, COLOR_WHITE);  // Draw new
-      rx_complete = 0;
+    /* Card-presence check FIRST (sends CMD0 which resets the card) */
+    if (SD_IsCardPresent(&hspi3, GPIOC, GPIO_PIN_3))
+    {
+        LCD_draw_string(&lcd_config, 0, 8, "SD card present!   ", COLOR_BLACK, COLOR_WHITE);
+    }
+    else
+    {
+        LCD_draw_string(&lcd_config, 0, 8, "No SD card detected!", COLOR_BLACK, COLOR_WHITE);
     }
 
-    // test for index traversal - ok
-    // while (pos_index < sizeof(pos_number)/sizeof(pos_number[0])){
-    //     target_position_cm = pos_number[pos_index];
-    //     is_moving = 0; // wait for controller update it to 0
-    //     while (!is_moving); //move ok
-    //     wait_ms(500); // simulate next note delay
-    //     pos_index++;
-    // }
+    HAL_Delay(100);
 
-    // if (is_blocked){
-    //   LCD_draw_string(&lcd_config, 0, 5, "Sensor detected!  ", COLOR_BLACK, COLOR_WHITE);
-    // } else {
-    //   LCD_draw_string(&lcd_config, 0, 5, "Nothing in sensor!", COLOR_BLACK, COLOR_WHITE);
-    // }
-    // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-    menu_update();
+    /* Mount filesystem AFTER the card-presence check so the mount stays valid */
+    {
+        char dbg[40];
+        FRESULT sd_res = SD_Init();
+        if (sd_res == FR_OK)
+        {
+            LCD_draw_string(&lcd_config, 0, 5, "SD card init OK!   ", COLOR_BLACK, COLOR_WHITE);
+        }
+        else
+        {
+            sprintf(dbg, "SD FAIL fr=%d       ", (int)sd_res);
+            LCD_draw_string(&lcd_config, 0, 5, dbg, COLOR_BLACK, COLOR_WHITE);
+        }
+        sprintf(dbg, "pw:%02X c0:%02X c8:%02X", sd_dbg_poweron_resp, sd_dbg_cmd0, sd_dbg_cmd8);
+        LCD_draw_string(&lcd_config, 0, 6, dbg, COLOR_BLACK, COLOR_WHITE);
+        sprintf(dbg, "a41:%02X ty:%d er:%lu", sd_dbg_acmd41, sd_dbg_type, (unsigned long)sd_dbg_spi_errs);
+        LCD_draw_string(&lcd_config, 0, 7, dbg, COLOR_BLACK, COLOR_WHITE);
+    }
 
-    // menu now showing debug info:
-    // print current distance
-    memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
-    sprintf(LCD_Send_buf, "Pos: %.2f mm      ", current_distance_cm);
-    LCD_draw_string(&lcd_config, 0, 10, (char*)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
-    memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
-    // print current velocity
-    sprintf(LCD_Send_buf, "Vel: %.2f mm/s    ", current_velocity_cm_s);
-    LCD_draw_string(&lcd_config, 0, 11, (char*)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
+    /* USER CODE END 2 */
 
+    /* Initialize leds */
+    BSP_LED_Init(LED_GREEN);
 
-    /* USER CODE END WHILE */
+    /* Initialize USER push-button, will be used to trigger an interrupt each time it's pressed.*/
+    BSP_PB_Init(BUTTON_USER, BUTTON_MODE_EXTI);
 
-    /* USER CODE BEGIN 3 */
-  }
-  /* USER CODE END 3 */
+    /* Initialize COM1 port (115200, 8 bits (7-bit data + 1 stop bit), no parity */
+    BspCOMInit.BaudRate = 115200;
+    BspCOMInit.WordLength = COM_WORDLENGTH_8B;
+    BspCOMInit.StopBits = COM_STOPBITS_1;
+    BspCOMInit.Parity = COM_PARITY_NONE;
+    BspCOMInit.HwFlowCtl = COM_HWCONTROL_NONE;
+    if (BSP_COM_Init(COM1, &BspCOMInit) != BSP_ERROR_NONE)
+    {
+        Error_Handler();
+    }
+
+    /* Infinite loop */
+    /* USER CODE BEGIN WHILE */
+    // char telemetry_buf[64];
+    while (1)
+    {
+        // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
+        /* Blink LED to show MCU is running */
+        BSP_LED_Toggle(LED_GREEN);
+
+        // Copy volatile values to local (atomic-ish read)
+        // float vel = current_velocity_cm_s;
+        // float dist = current_distance_cm;
+
+        // Send telemetry via BT
+        // sprintf(telemetry_buf, "D:%.2f V:%.2f\r\n", dist, vel);
+        // BT_send_info(&huart1, (uint8_t*)telemetry_buf, strlen(telemetry_buf));
+        // BT_send_info(&huart1, (uint8_t*)&vofa, 44);
+        // BT_send_info(&huart1, msg, strlen((char*)msg));
+
+        // only update LCD when new BT data received
+        if (rx_complete)
+        {
+            /* Debug: show received data info on LCD row 12 */
+            {
+                char dbg[32];
+                snprintf(dbg, sizeof(dbg), "RX b0=%02X n=%d m=%d  ",
+                         rx_buffer[0], (int)valid_rx, (int)menu_get_state());
+                LCD_draw_string(&lcd_config, 0, 12, dbg, COLOR_BLACK, COLOR_WHITE);
+            }
+
+            /* Route binary file-transfer packets when in Transmit Song page */
+            if (menu_get_state() == MENU_STATE_TRANSMIT &&
+                valid_rx > 0 &&
+                rx_buffer[0] >= 0xF0 && rx_buffer[0] <= 0xF3)
+            {
+                FT_ProcessPacket(rx_buffer, valid_rx);
+            }
+            else
+            {
+                executeCommand(rx_buffer); // text command
+            }
+            rx_complete = 0;
+        }
+
+        // test for index traversal - ok
+        // while (pos_index < sizeof(pos_number)/sizeof(pos_number[0])){
+        //     target_position_cm = pos_number[pos_index];
+        //     is_moving = 0; // wait for controller update it to 0
+        //     while (!is_moving); //move ok
+        //     wait_ms(500); // simulate next note delay
+        //     pos_index++;
+        // }
+
+        // if (is_blocked){
+        //   LCD_draw_string(&lcd_config, 0, 5, "Sensor detected!  ", COLOR_BLACK, COLOR_WHITE);
+        // } else {
+        //   LCD_draw_string(&lcd_config, 0, 5, "Nothing in sensor!", COLOR_BLACK, COLOR_WHITE);
+        // }
+        // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
+        menu_update();
+
+        // menu now showing debug info:
+        // print current distance
+        memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
+        sprintf(LCD_Send_buf, "Pos: %.2f mm      ", current_distance_cm);
+        LCD_draw_string(&lcd_config, 0, 10, (char *)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
+        memset(LCD_Send_buf, 0, sizeof(LCD_Send_buf));
+        // print current velocity
+        sprintf(LCD_Send_buf, "Vel: %.2f mm/s    ", current_velocity_cm_s);
+        LCD_draw_string(&lcd_config, 0, 11, (char *)LCD_Send_buf, COLOR_BLACK, COLOR_WHITE);
+
+        /* USER CODE END WHILE */
+
+        /* USER CODE BEGIN 3 */
+    }
+    /* USER CODE END 3 */
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /** Configure the main internal regulator output voltage
-  */
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
+    /** Configure the main internal regulator output voltage
+     */
+    __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+    while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
+    {
+    }
 
-  /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_CSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.CSIState = RCC_CSI_ON;
-  RCC_OscInitStruct.CSICalibrationValue = RCC_CSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_CSI;
-  RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 125;
-  RCC_OscInitStruct.PLL.PLLP = 2;
-  RCC_OscInitStruct.PLL.PLLQ = 2;
-  RCC_OscInitStruct.PLL.PLLR = 2;
-  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_2;
-  RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1_VCORANGE_WIDE;
-  RCC_OscInitStruct.PLL.PLLFRACN = 0;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    /** Initializes the RCC Oscillators according to the specified parameters
+     * in the RCC_OscInitTypeDef structure.
+     */
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_CSI;
+    RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+    RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;
+    RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.CSIState = RCC_CSI_ON;
+    RCC_OscInitStruct.CSICalibrationValue = RCC_CSICALIBRATION_DEFAULT;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_CSI;
+    RCC_OscInitStruct.PLL.PLLM = 1;
+    RCC_OscInitStruct.PLL.PLLN = 125;
+    RCC_OscInitStruct.PLL.PLLP = 2;
+    RCC_OscInitStruct.PLL.PLLQ = 2;
+    RCC_OscInitStruct.PLL.PLLR = 2;
+    RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_2;
+    RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1_VCORANGE_WIDE;
+    RCC_OscInitStruct.PLL.PLLFRACN = 0;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-  /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
-                              |RCC_CLOCKTYPE_PCLK3;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;
+    /** Initializes the CPU, AHB and APB buses clocks
+     */
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_PCLK3;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+    RCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
-  /** Configure the programming delay
-  */
-  __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
+    /** Configure the programming delay
+     */
+    __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
 }
 
 /**
-  * @brief Peripherals Common Clock Configuration
-  * @retval None
-  */
+ * @brief Peripherals Common Clock Configuration
+ * @retval None
+ */
 void PeriphCommonClock_Config(void)
 {
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+    RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-  /** Initializes the peripherals clock
-  */
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
-  PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
-  {
-    Error_Handler();
-  }
+    /** Initializes the peripherals clock
+     */
+    PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
+    PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
 }
 
 /* USER CODE BEGIN 4 */
 
-void DMA_receive_idle_init(UART_HandleTypeDef* DMA_uart_handle, uint8_t* DMA_target_location){
-  HAL_UARTEx_ReceiveToIdle_DMA(DMA_uart_handle, DMA_target_location, 128); // changable @application.h
+void DMA_receive_idle_init(UART_HandleTypeDef *DMA_uart_handle, uint8_t *DMA_target_location)
+{
+    HAL_UARTEx_ReceiveToIdle_DMA(DMA_uart_handle, DMA_target_location, 128); // changable @application.h
 }
 
 // DMA call back function for usart_1_rx
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t size){
-  uint16_t new_bytes; // new received bytes count
-  if (huart == &huart1){
-    if (size == old_pos) return; // duplicate callback (HT/TC + IDLE at same position), no new data
-    if (size > old_pos){
-      new_bytes = size - old_pos;
-      memcpy(rx_buffer, &DMA_target_location[old_pos], new_bytes);
-    } else { // there is warp around
-      new_bytes = sizeof(DMA_target_location) - old_pos + size;
-      memcpy(rx_buffer, &DMA_target_location[old_pos], sizeof(DMA_target_location)-old_pos);
-      memcpy(&rx_buffer[128-old_pos], DMA_target_location, size); // remaining
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size)
+{
+    uint16_t new_bytes; // new received bytes count
+    if (huart == &huart1)
+    {
+        if (size == old_pos)
+            return; // duplicate callback (HT/TC + IDLE at same position), no new data
+        if (size > old_pos)
+        {
+            new_bytes = size - old_pos;
+            memcpy(rx_buffer, &DMA_target_location[old_pos], new_bytes);
+        }
+        else
+        { // there is warp around
+            new_bytes = sizeof(DMA_target_location) - old_pos + size;
+            memcpy(rx_buffer, &DMA_target_location[old_pos], sizeof(DMA_target_location) - old_pos);
+            memcpy(&rx_buffer[128 - old_pos], DMA_target_location, size); // remaining
+        }
+        valid_rx = new_bytes;
+        rx_buffer[new_bytes] = '\0'; // when printing string, other old will be neglected.
+        rx_complete = 1;
+        old_pos = size;
     }
-    valid_rx = new_bytes;
-    rx_buffer[new_bytes] = '\0'; // when printing string, other old will be neglected.
-    rx_complete = 1;
-    old_pos = size;
-  }
 }
 
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-  __disable_irq();
-  while (1)
-  {
-  }
-  /* USER CODE END Error_Handler_Debug */
+    /* USER CODE BEGIN Error_Handler_Debug */
+    /* User can add his own implementation to report the HAL error return state */
+    __disable_irq();
+    while (1)
+    {
+    }
+    /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    /* USER CODE BEGIN 6 */
+    /* User can add his own implementation to report the file name and line number,
+       ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+    /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

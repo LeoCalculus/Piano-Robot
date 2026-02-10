@@ -304,9 +304,9 @@ class HC04SerialGUI:
         self.receive_text.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
 
     def setup_file_upload_tab(self):
-        """Setup the file upload tab for MIDI file transfer"""
+        """Setup the file upload tab for TXT file transfer"""
         # File selection frame
-        file_frame = ttk.LabelFrame(self.file_upload_tab, text="Select MIDI File")
+        file_frame = ttk.LabelFrame(self.file_upload_tab, text="Select TXT File")
         file_frame.pack(fill=tk.X, pady=5, padx=5)
 
         select_frame = ttk.Frame(file_frame)
@@ -317,13 +317,13 @@ class HC04SerialGUI:
             side=tk.LEFT, padx=5)
 
         ttk.Button(select_frame, text="Browse...",
-                   command=self.browse_midi_file).pack(side=tk.LEFT, padx=5)
+                   command=self.browse_txt_file).pack(side=tk.LEFT, padx=5)
 
         # File info frame
         info_frame = ttk.LabelFrame(self.file_upload_tab, text="File Information")
         info_frame.pack(fill=tk.X, pady=5, padx=5)
 
-        self.file_info_var = tk.StringVar(value="Select a MIDI file to see details")
+        self.file_info_var = tk.StringVar(value="Select a TXT file to see details")
         ttk.Label(info_frame, textvariable=self.file_info_var, justify=tk.LEFT).pack(
             pady=10, padx=10)
 
@@ -382,7 +382,7 @@ class HC04SerialGUI:
         self.upload_abort_flag = False
 
     def setup_control_tab(self):
-        """Setup the control tab for menu navigation via W/S keys"""
+        """Setup the control tab for menu navigation via W/S/D/A keys"""
         # Track which keys are currently held to prevent repeat
         self.control_keys_held = set()
 
@@ -390,7 +390,7 @@ class HC04SerialGUI:
         info_frame = ttk.LabelFrame(self.control_tab, text="Menu Control")
         info_frame.pack(fill=tk.X, pady=10, padx=10)
 
-        ttk.Label(info_frame, text="Press W to move menu up, S to move menu down.",
+        ttk.Label(info_frame, text="W = Up, S = Down, D = Enter/Select, A = Back",
                   font=("Arial", 11)).pack(pady=10, padx=10)
         ttk.Label(info_frame, text="Click this area first to capture keyboard input.",
                   foreground="gray").pack(pady=(0, 10), padx=10)
@@ -412,6 +412,14 @@ class HC04SerialGUI:
         down_btn = ttk.Button(btn_frame, text="S  Down", width=15,
                               command=lambda: self.control_send(":s", "Down"))
         down_btn.pack(pady=5)
+
+        enter_btn = ttk.Button(btn_frame, text="D  Enter/Select", width=15,
+                               command=lambda: self.control_send(":d", "Enter"))
+        enter_btn.pack(pady=5)
+
+        back_btn = ttk.Button(btn_frame, text="A  Back", width=15,
+                              command=lambda: self.control_send(":a", "Back"))
+        back_btn.pack(pady=5)
 
         # Log for control actions
         log_frame = ttk.LabelFrame(self.control_tab, text="Control Log")
@@ -455,6 +463,10 @@ class HC04SerialGUI:
             self.control_send(":w", "Up")
         elif key == 's':
             self.control_send(":s", "Down")
+        elif key == 'd':
+            self.control_send(":d", "Enter")
+        elif key == 'a':
+            self.control_send(":a", "Back")
 
     def control_key_release(self, event):
         """Handle key release — re-enable the key for next press"""
@@ -913,11 +925,11 @@ class HC04SerialGUI:
 
     # ========== File Upload Methods ==========
 
-    def browse_midi_file(self):
-        """Open file dialog to select MIDI file"""
+    def browse_txt_file(self):
+        """Open file dialog to select TXT file"""
         filepath = filedialog.askopenfilename(
-            title="Select MIDI File",
-            filetypes=[("MIDI files", "*.mid *.MID"), ("All files", "*.*")]
+            title="Select TXT File",
+            filetypes=[("Text files", "*.txt *.TXT"), ("All files", "*.*")]
         )
         if filepath:
             self.selected_file_path = filepath
@@ -963,6 +975,20 @@ class HC04SerialGUI:
             checksum ^= byte
         return checksum
 
+    def _stop_reading_thread(self):
+        """Stop the background serial reading thread"""
+        self.keep_reading = False
+        if self.reading_thread and self.reading_thread.is_alive():
+            self.reading_thread.join(timeout=1.0)
+
+    def _restart_reading_thread(self):
+        """Restart the background serial reading thread"""
+        if self.connected and self.ser and not self.keep_reading:
+            self.keep_reading = True
+            self.reading_thread = threading.Thread(target=self.read_serial)
+            self.reading_thread.daemon = True
+            self.reading_thread.start()
+
     def start_upload(self):
         """Start file upload in a separate thread"""
         if not self.selected_file_path:
@@ -973,6 +999,9 @@ class HC04SerialGUI:
         self.abort_button.config(state=tk.NORMAL)
         self.upload_abort_flag = False
         self.progress_var.set(0)
+
+        # Stop reading thread so it doesn't steal binary responses
+        self._stop_reading_thread()
 
         upload_thread = threading.Thread(target=self.upload_file_thread)
         upload_thread.daemon = True
@@ -1008,27 +1037,34 @@ class HC04SerialGUI:
             start_packet.append(self.calculate_checksum(start_packet))
 
             self.root.after(0, lambda: self.upload_log_message("Sending FILE_START..."))
+            print(f"[DBG] FILE_START packet ({len(start_packet)} bytes): "
+                  f"{' '.join(f'{b:02X}' for b in start_packet)}")
             start_success = False
             for start_retry in range(10):
                 self.ser.reset_input_buffer()
                 self.ser.write(start_packet)
+                print(f"[DBG] Sent FILE_START, attempt {start_retry+1}/10, waiting for response...")
 
                 response = self.wait_for_response(timeout=2.0)
 
                 if response and response[0] == FT_RSP_READY:
+                    print(f"[DBG] Got READY response!")
                     start_success = True
                     break
                 elif response and response[0] == FT_RSP_ERROR:
                     err = response[1] if len(response) > 1 else 0
                     err_msgs = {1: "checksum", 2: "sequence", 3: "SD write", 4: "SD full",
                                5: "file exists", 6: "bad name", 7: "timeout", 8: "overflow"}
+                    print(f"[DBG] Got ERROR response: {err_msgs.get(err, err)}")
                     self.root.after(0, lambda e=err: self.upload_log_message(
                         f"Device error: {err_msgs.get(e, e)}"))
                     self.root.after(0, self.upload_complete_error)
                     return
                 else:
-                    self.root.after(0, lambda rt=start_retry: self.upload_log_message(
-                        f"Timeout, retry {rt+1}/10"))
+                    rsp_hex = ' '.join(f'{b:02X}' for b in response) if response else "None"
+                    print(f"[DBG] No valid response (got: {rsp_hex}), retry {start_retry+1}/10")
+                    self.root.after(0, lambda rt=start_retry, rh=rsp_hex: self.upload_log_message(
+                        f"Retry {rt+1}/10 got:[{rh}]"))
 
                 time.sleep(0.1 * (start_retry + 1))
 
@@ -1036,6 +1072,14 @@ class HC04SerialGUI:
                 self.root.after(0, lambda: self.upload_log_message("Failed to start transfer"))
                 self.root.after(0, self.upload_complete_error)
                 return
+
+            # Drain any stale responses left in the buffer from FILE_START retries
+            time.sleep(0.15)
+            stale = self.ser.in_waiting
+            if stale:
+                self.ser.read(stale)
+                print(f"[DBG] Flushed {stale} stale bytes before sending chunks")
+            self.ser.reset_input_buffer()
 
             self.root.after(0, lambda: self.upload_log_message("Device ready, sending chunks..."))
 
@@ -1063,8 +1107,8 @@ class HC04SerialGUI:
                 success = False
                 for retry in range(max_retries):
                     if retry > 0:
-                        self.ser.reset_input_buffer()
                         time.sleep(min(50 * (retry + 1), 300) / 1000.0)
+                    self.ser.reset_input_buffer()
 
                     self.ser.write(data_packet)
 
@@ -1082,7 +1126,11 @@ class HC04SerialGUI:
                         break
                     elif response and response[0] == FT_RSP_ERROR:
                         err = response[1] if len(response) > 1 else 0
-                        self.root.after(0, lambda e=err: self.upload_log_message(f"Device error: {e}"))
+                        err_msgs = {1: "checksum", 2: "sequence", 3: "SD write", 4: "SD full",
+                                   5: "file exists", 6: "bad name", 7: "timeout", 8: "overflow"}
+                        print(f"[DBG] DATA phase ERROR: {err_msgs.get(err, err)}")
+                        self.root.after(0, lambda e=err: self.upload_log_message(
+                            f"Device error: {err_msgs.get(e, e)}"))
                         self.root.after(0, self.upload_complete_error)
                         return
 
@@ -1132,36 +1180,73 @@ class HC04SerialGUI:
             self.root.after(0, self.upload_complete_error)
 
     def wait_for_response(self, timeout=2.0):
-        """Wait for binary response from device"""
-        start_time = time.time()
-        response = bytearray()
-        expected_len = 2
+        """Wait for binary response from device.
+        Reads bytes in BULK, scans for a valid protocol header (0xA0-0xA4),
+        skips null/junk bytes (common on Windows BT SPP)."""
+        old_timeout = self.ser.timeout
+        try:
+            deadline = time.time() + timeout
+            skipped = 0
+            leftover = bytearray()   # bytes read past the header
 
-        while time.time() - start_time < timeout:
-            waiting = self.ser.in_waiting
-            if waiting > 0:
-                data = self.ser.read(waiting)
-                if data:
-                    response.extend(data)
+            # Phase 1: bulk-read and scan for a valid response header
+            first_byte = None
+            while time.time() < deadline:
+                # Grab everything the OS has buffered
+                waiting = self.ser.in_waiting
+                if waiting > 0:
+                    chunk = self.ser.read(waiting)
+                    for i, b in enumerate(chunk):
+                        if 0xA0 <= b <= 0xA4:
+                            first_byte = b
+                            leftover = bytearray(chunk[i + 1:])  # keep tail
+                            skipped += i  # bytes before header = junk
+                            break
+                        # everything else (0x00, 0x7F, 0x80, ...) is junk
+                        # no per-byte print — just count
+                    else:
+                        skipped += len(chunk)
 
-                    if len(response) >= 1 and response[0] >= 0xA0 and response[0] <= 0xA4:
-                        if response[0] == FT_RSP_ACK:
-                            expected_len = 4
-                        elif response[0] == FT_RSP_NAK:
-                            expected_len = 5
-                        elif response[0] == FT_RSP_SUCCESS:
-                            expected_len = 4
-                        elif response[0] == FT_RSP_ERROR:
-                            expected_len = 3
-                        else:
-                            expected_len = 2
+                    if first_byte is not None:
+                        break
+                else:
+                    # Nothing buffered — tiny sleep so we don't spin at 100 % CPU
+                    time.sleep(0.002)
 
-                        if len(response) >= expected_len:
-                            return bytes(response)
+            if first_byte is None:
+                print(f"[DBG] wait_for_response: no header after {timeout}s (skipped {skipped} junk bytes)")
+                return None
 
-            time.sleep(0.001)
+            if skipped:
+                print(f"[DBG] skipped {skipped} junk bytes before header")
 
-        return None if len(response) == 0 else bytes(response)
+            # Determine total packet length from header byte
+            pkt_lens = {
+                FT_RSP_ACK: 4, FT_RSP_NAK: 5, FT_RSP_SUCCESS: 4,
+                FT_RSP_ERROR: 3,
+            }
+            expected_len = pkt_lens.get(first_byte, 2)
+            remaining = expected_len - 1  # already have the header
+
+            # Phase 2: assemble response from leftover + serial read
+            response = bytearray([first_byte])
+            if remaining <= len(leftover):
+                response.extend(leftover[:remaining])
+            else:
+                response.extend(leftover)
+                still_need = remaining - len(leftover)
+                self.ser.timeout = 0.5
+                rest = self.ser.read(still_need)
+                response.extend(rest)
+
+            print(f"[DBG] response: {' '.join(f'0x{b:02X}' for b in response)}")
+            return bytes(response)
+
+        except Exception as e:
+            print(f"[DBG] wait_for_response exception: {e}")
+            return None
+        finally:
+            self.ser.timeout = old_timeout
 
     def update_progress(self, progress, label):
         """Update progress bar and label"""
@@ -1173,6 +1258,7 @@ class HC04SerialGUI:
         self.progress_label_var.set("Upload Complete!")
         self.upload_button.config(state=tk.NORMAL)
         self.abort_button.config(state=tk.DISABLED)
+        self._restart_reading_thread()
         self.refresh_device_files()
 
     def upload_complete_error(self):
@@ -1180,6 +1266,7 @@ class HC04SerialGUI:
         self.progress_label_var.set("Upload Failed")
         self.upload_button.config(state=tk.NORMAL)
         self.abort_button.config(state=tk.DISABLED)
+        self._restart_reading_thread()
 
     def abort_upload(self):
         """Abort current upload"""
