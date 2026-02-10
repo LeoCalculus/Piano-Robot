@@ -4,8 +4,11 @@
 #include <ILI9341.h>
 #include <hc04bt.h>
 #include <encoder.h>
+#include <sdcard.h>
+#include <fatfs_sd.h>
 #include <tim.h>
 #include <command.h>
+#include <encoder.h>
 #include <stdbool.h>
 #include <gpio.h>
 #include <menu.h>

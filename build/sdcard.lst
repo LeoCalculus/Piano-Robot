@@ -1,0 +1,1461 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"sdcard.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/sdcard.c"
+  21              		.section	.text.isTxtFile,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	isTxtFile:
+  28              	.LVL0:
+  29              	.LFB168:
+   1:./Application/Src/sdcard.c **** /*
+   2:./Application/Src/sdcard.c ****  * sdcard.c - SD Card operations using FatFs
+   3:./Application/Src/sdcard.c ****  */
+   4:./Application/Src/sdcard.c **** 
+   5:./Application/Src/sdcard.c **** #include <sdcard.h>
+   6:./Application/Src/sdcard.c **** #include <ILI9341.h>
+   7:./Application/Src/sdcard.c **** #include <string.h>
+   8:./Application/Src/sdcard.c **** #include <stdio.h>
+   9:./Application/Src/sdcard.c **** 
+  10:./Application/Src/sdcard.c **** /* Global variables */
+  11:./Application/Src/sdcard.c **** FATFS fatFs;
+  12:./Application/Src/sdcard.c **** FileEntry fileList[MAX_FILES];
+  13:./Application/Src/sdcard.c **** uint8_t fileCount = 0;
+  14:./Application/Src/sdcard.c **** 
+  15:./Application/Src/sdcard.c **** int SD_IsCardPresent(SPI_HandleTypeDef* hspi, GPIO_TypeDef* detectPort, uint16_t detectPin){
+  16:./Application/Src/sdcard.c ****     uint8_t tx, rx;
+  17:./Application/Src/sdcard.c **** 
+  18:./Application/Src/sdcard.c ****     // give SD card time to power up
+  19:./Application/Src/sdcard.c ****     HAL_Delay(100);
+  20:./Application/Src/sdcard.c **** 
+  21:./Application/Src/sdcard.c ****     // start with deselect
+  22:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(detectPort, detectPin, GPIO_PIN_SET);
+  23:./Application/Src/sdcard.c **** 
+  24:./Application/Src/sdcard.c ****     // wake up sd card by sending 80+ dummy clock cycles (10 bytes) with CS high
+  25:./Application/Src/sdcard.c ****     tx = 0xFF;
+  26:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+  27:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  28:./Application/Src/sdcard.c ****     }
+  29:./Application/Src/sdcard.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 2
+
+
+  30:./Application/Src/sdcard.c ****     // select SD card
+  31:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(detectPort, detectPin, GPIO_PIN_RESET);
+  32:./Application/Src/sdcard.c ****     HAL_Delay(1);
+  33:./Application/Src/sdcard.c **** 
+  34:./Application/Src/sdcard.c ****     // send CMD0 (GO_IDLE_STATE)
+  35:./Application/Src/sdcard.c ****     tx = 0x40 | 0;
+  36:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  37:./Application/Src/sdcard.c **** 
+  38:./Application/Src/sdcard.c ****     tx = 0x00;
+  39:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  40:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  41:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  42:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  43:./Application/Src/sdcard.c ****     tx = 0x95;
+  44:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  45:./Application/Src/sdcard.c **** 
+  46:./Application/Src/sdcard.c ****     // wait for response (0x01 = idle state)
+  47:./Application/Src/sdcard.c ****     tx = 0xFF;
+  48:./Application/Src/sdcard.c ****     uint8_t response = 0xFF;
+  49:./Application/Src/sdcard.c ****     for (int i = 0; i < 100; i++) {
+  50:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+  51:./Application/Src/sdcard.c ****         if (response != 0xFF) {
+  52:./Application/Src/sdcard.c **** 
+  53:./Application/Src/sdcard.c ****         }
+  54:./Application/Src/sdcard.c ****         if (response == 0x01) {
+  55:./Application/Src/sdcard.c ****             break;
+  56:./Application/Src/sdcard.c ****         }
+  57:./Application/Src/sdcard.c ****     }
+  58:./Application/Src/sdcard.c **** 
+  59:./Application/Src/sdcard.c ****     // deselect the card
+  60:./Application/Src/sdcard.c ****     HAL_GPIO_WritePin(detectPort, detectPin, GPIO_PIN_SET);
+  61:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+  62:./Application/Src/sdcard.c **** 
+  63:./Application/Src/sdcard.c ****     return (response == 0x01) ? 1 : 0;
+  64:./Application/Src/sdcard.c **** }
+  65:./Application/Src/sdcard.c **** 
+  66:./Application/Src/sdcard.c **** /* Initialize SD card and mount filesystem */
+  67:./Application/Src/sdcard.c **** FRESULT SD_Init(void) {
+  68:./Application/Src/sdcard.c ****     FRESULT res;
+  69:./Application/Src/sdcard.c **** 
+  70:./Application/Src/sdcard.c ****     /* Mount the filesystem */
+  71:./Application/Src/sdcard.c ****     res = f_mount(&fatFs, "", 1);  /* 1 = mount now */
+  72:./Application/Src/sdcard.c **** 
+  73:./Application/Src/sdcard.c ****     return res;
+  74:./Application/Src/sdcard.c **** }
+  75:./Application/Src/sdcard.c **** 
+  76:./Application/Src/sdcard.c **** /* Mount SD card */
+  77:./Application/Src/sdcard.c **** FRESULT SD_Mount(void) {
+  78:./Application/Src/sdcard.c ****     return f_mount(&fatFs, "", 1);
+  79:./Application/Src/sdcard.c **** }
+  80:./Application/Src/sdcard.c **** 
+  81:./Application/Src/sdcard.c **** /* Unmount SD card */
+  82:./Application/Src/sdcard.c **** FRESULT SD_Unmount(void) {
+  83:./Application/Src/sdcard.c ****     return f_mount(NULL, "", 0);
+  84:./Application/Src/sdcard.c **** }
+  85:./Application/Src/sdcard.c **** 
+  86:./Application/Src/sdcard.c **** /* Open file */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 3
+
+
+  87:./Application/Src/sdcard.c **** FRESULT SD_OpenFile(FIL* file, const char* path, BYTE mode) {
+  88:./Application/Src/sdcard.c ****     return f_open(file, path, mode);
+  89:./Application/Src/sdcard.c **** }
+  90:./Application/Src/sdcard.c **** 
+  91:./Application/Src/sdcard.c **** /* Close file */
+  92:./Application/Src/sdcard.c **** FRESULT SD_CloseFile(FIL* file) {
+  93:./Application/Src/sdcard.c ****     return f_close(file);
+  94:./Application/Src/sdcard.c **** }
+  95:./Application/Src/sdcard.c **** 
+  96:./Application/Src/sdcard.c **** /* Read from file */
+  97:./Application/Src/sdcard.c **** FRESULT SD_ReadFile(FIL* file, void* buff, UINT btr, UINT* br) {
+  98:./Application/Src/sdcard.c ****     return f_read(file, buff, btr, br);
+  99:./Application/Src/sdcard.c **** }
+ 100:./Application/Src/sdcard.c **** 
+ 101:./Application/Src/sdcard.c **** /* Write to file */
+ 102:./Application/Src/sdcard.c **** FRESULT SD_WriteFile(FIL* file, const void* buff, UINT btw, UINT* bw) {
+ 103:./Application/Src/sdcard.c ****     return f_write(file, buff, btw, bw);
+ 104:./Application/Src/sdcard.c **** }
+ 105:./Application/Src/sdcard.c **** 
+ 106:./Application/Src/sdcard.c **** /* Helper: Check if filename has .TXT extension */
+ 107:./Application/Src/sdcard.c **** static int isTxtFile(const char* name) {
+  30              		.loc 1 107 40 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		.loc 1 107 40 is_stmt 0 view .LVU1
+  35 0000 10B5     		push	{r4, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+  40 0002 0446     		mov	r4, r0
+ 108:./Application/Src/sdcard.c ****     size_t len = strlen(name);
+  41              		.loc 1 108 5 is_stmt 1 view .LVU2
+  42              		.loc 1 108 18 is_stmt 0 view .LVU3
+  43 0004 FFF7FEFF 		bl	strlen
+  44              	.LVL1:
+ 109:./Application/Src/sdcard.c ****     if (len < 4) return 0;
+  45              		.loc 1 109 5 is_stmt 1 view .LVU4
+  46              		.loc 1 109 8 is_stmt 0 view .LVU5
+  47 0008 0328     		cmp	r0, #3
+  48 000a 1BD9     		bls	.L5
+ 110:./Application/Src/sdcard.c **** 
+ 111:./Application/Src/sdcard.c ****     const char* ext = name + len - 4;
+  49              		.loc 1 111 5 is_stmt 1 view .LVU6
+  50              		.loc 1 111 34 is_stmt 0 view .LVU7
+  51 000c 031F     		subs	r3, r0, #4
+  52              		.loc 1 111 17 view .LVU8
+  53 000e E218     		adds	r2, r4, r3
+  54              	.LVL2:
+ 112:./Application/Src/sdcard.c ****     return (ext[0] == '.' &&
+  55              		.loc 1 112 5 is_stmt 1 view .LVU9
+  56              		.loc 1 112 16 is_stmt 0 view .LVU10
+  57 0010 E35C     		ldrb	r3, [r4, r3]	@ zero_extendqisi2
+ 113:./Application/Src/sdcard.c ****             (ext[1] == 'T' || ext[1] == 't') &&
+ 114:./Application/Src/sdcard.c ****             (ext[2] == 'X' || ext[2] == 'x') &&
+  58              		.loc 1 114 46 view .LVU11
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 4
+
+
+  59 0012 2E2B     		cmp	r3, #46
+  60 0014 01D0     		beq	.L12
+  61              		.loc 1 114 46 discriminator 1 view .LVU12
+  62 0016 0020     		movs	r0, #0
+  63              	.LVL3:
+  64              	.L1:
+ 115:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 116:./Application/Src/sdcard.c **** }
+  65              		.loc 1 116 1 view .LVU13
+  66 0018 10BD     		pop	{r4, pc}
+  67              	.LVL4:
+  68              	.L12:
+ 113:./Application/Src/sdcard.c ****             (ext[1] == 'T' || ext[1] == 't') &&
+  69              		.loc 1 113 17 view .LVU14
+  70 001a 5378     		ldrb	r3, [r2, #1]	@ zero_extendqisi2
+ 112:./Application/Src/sdcard.c ****             (ext[1] == 'T' || ext[1] == 't') &&
+  71              		.loc 1 112 27 view .LVU15
+  72 001c 542B     		cmp	r3, #84
+  73 001e 03D0     		beq	.L3
+ 113:./Application/Src/sdcard.c ****             (ext[1] == 'T' || ext[1] == 't') &&
+  74              		.loc 1 113 28 view .LVU16
+  75 0020 742B     		cmp	r3, #116
+  76 0022 01D0     		beq	.L3
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  77              		.loc 1 114 46 discriminator 1 view .LVU17
+  78 0024 0020     		movs	r0, #0
+  79              	.LVL5:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  80              		.loc 1 114 46 discriminator 1 view .LVU18
+  81 0026 F7E7     		b	.L1
+  82              	.LVL6:
+  83              	.L3:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  84              		.loc 1 114 17 view .LVU19
+  85 0028 9378     		ldrb	r3, [r2, #2]	@ zero_extendqisi2
+ 113:./Application/Src/sdcard.c ****             (ext[2] == 'X' || ext[2] == 'x') &&
+  86              		.loc 1 113 46 discriminator 1 view .LVU20
+  87 002a 582B     		cmp	r3, #88
+  88 002c 03D0     		beq	.L4
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  89              		.loc 1 114 28 discriminator 3 view .LVU21
+  90 002e 782B     		cmp	r3, #120
+  91 0030 01D0     		beq	.L4
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  92              		.loc 1 114 46 discriminator 1 view .LVU22
+  93 0032 0020     		movs	r0, #0
+  94              	.LVL7:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+  95              		.loc 1 114 46 discriminator 1 view .LVU23
+  96 0034 F0E7     		b	.L1
+  97              	.LVL8:
+  98              	.L4:
+ 115:./Application/Src/sdcard.c **** }
+  99              		.loc 1 115 17 view .LVU24
+ 100 0036 D378     		ldrb	r3, [r2, #3]	@ zero_extendqisi2
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 101              		.loc 1 114 46 discriminator 2 view .LVU25
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 5
+
+
+ 102 0038 542B     		cmp	r3, #84
+ 103 003a 05D0     		beq	.L9
+ 115:./Application/Src/sdcard.c **** }
+ 104              		.loc 1 115 28 view .LVU26
+ 105 003c 742B     		cmp	r3, #116
+ 106 003e 05D0     		beq	.L10
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 107              		.loc 1 114 46 discriminator 1 view .LVU27
+ 108 0040 0020     		movs	r0, #0
+ 109              	.LVL9:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 110              		.loc 1 114 46 discriminator 1 view .LVU28
+ 111 0042 E9E7     		b	.L1
+ 112              	.LVL10:
+ 113              	.L5:
+ 109:./Application/Src/sdcard.c **** 
+ 114              		.loc 1 109 25 discriminator 1 view .LVU29
+ 115 0044 0020     		movs	r0, #0
+ 116              	.LVL11:
+ 109:./Application/Src/sdcard.c **** 
+ 117              		.loc 1 109 25 discriminator 1 view .LVU30
+ 118 0046 E7E7     		b	.L1
+ 119              	.LVL12:
+ 120              	.L9:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 121              		.loc 1 114 46 discriminator 4 view .LVU31
+ 122 0048 0120     		movs	r0, #1
+ 123              	.LVL13:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 124              		.loc 1 114 46 discriminator 4 view .LVU32
+ 125 004a E5E7     		b	.L1
+ 126              	.LVL14:
+ 127              	.L10:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 128              		.loc 1 114 46 discriminator 4 view .LVU33
+ 129 004c 0120     		movs	r0, #1
+ 130              	.LVL15:
+ 114:./Application/Src/sdcard.c ****             (ext[3] == 'T' || ext[3] == 't'));
+ 131              		.loc 1 114 46 discriminator 4 view .LVU34
+ 132 004e E3E7     		b	.L1
+ 133              		.cfi_endproc
+ 134              	.LFE168:
+ 136              		.section	.text.SD_IsCardPresent,"ax",%progbits
+ 137              		.align	1
+ 138              		.global	SD_IsCardPresent
+ 139              		.syntax unified
+ 140              		.thumb
+ 141              		.thumb_func
+ 143              	SD_IsCardPresent:
+ 144              	.LVL16:
+ 145              	.LFB160:
+  15:./Application/Src/sdcard.c ****     uint8_t tx, rx;
+ 146              		.loc 1 15 92 is_stmt 1 view -0
+ 147              		.cfi_startproc
+ 148              		@ args = 0, pretend = 0, frame = 8
+ 149              		@ frame_needed = 0, uses_anonymous_args = 0
+  15:./Application/Src/sdcard.c ****     uint8_t tx, rx;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 6
+
+
+ 150              		.loc 1 15 92 is_stmt 0 view .LVU36
+ 151 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 152              	.LCFI1:
+ 153              		.cfi_def_cfa_offset 32
+ 154              		.cfi_offset 4, -32
+ 155              		.cfi_offset 5, -28
+ 156              		.cfi_offset 6, -24
+ 157              		.cfi_offset 7, -20
+ 158              		.cfi_offset 8, -16
+ 159              		.cfi_offset 9, -12
+ 160              		.cfi_offset 10, -8
+ 161              		.cfi_offset 14, -4
+ 162 0004 84B0     		sub	sp, sp, #16
+ 163              	.LCFI2:
+ 164              		.cfi_def_cfa_offset 48
+ 165 0006 0546     		mov	r5, r0
+ 166 0008 0E46     		mov	r6, r1
+ 167 000a 1746     		mov	r7, r2
+  16:./Application/Src/sdcard.c **** 
+ 168              		.loc 1 16 5 is_stmt 1 view .LVU37
+  19:./Application/Src/sdcard.c **** 
+ 169              		.loc 1 19 5 view .LVU38
+ 170 000c 6420     		movs	r0, #100
+ 171              	.LVL17:
+  19:./Application/Src/sdcard.c **** 
+ 172              		.loc 1 19 5 is_stmt 0 view .LVU39
+ 173 000e FFF7FEFF 		bl	HAL_Delay
+ 174              	.LVL18:
+  22:./Application/Src/sdcard.c **** 
+ 175              		.loc 1 22 5 is_stmt 1 view .LVU40
+ 176 0012 0122     		movs	r2, #1
+ 177 0014 3946     		mov	r1, r7
+ 178 0016 3046     		mov	r0, r6
+ 179 0018 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 180              	.LVL19:
+  25:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+ 181              		.loc 1 25 5 view .LVU41
+  25:./Application/Src/sdcard.c ****     for (int i = 0; i < 10; i++) {
+ 182              		.loc 1 25 8 is_stmt 0 view .LVU42
+ 183 001c FF23     		movs	r3, #255
+ 184 001e 8DF80F30 		strb	r3, [sp, #15]
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 185              		.loc 1 26 5 is_stmt 1 view .LVU43
+ 186              	.LBB2:
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 187              		.loc 1 26 10 view .LVU44
+ 188              	.LVL20:
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 189              		.loc 1 26 14 is_stmt 0 view .LVU45
+ 190 0022 0024     		movs	r4, #0
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 191              		.loc 1 26 5 view .LVU46
+ 192 0024 0AE0     		b	.L14
+ 193              	.LVL21:
+ 194              	.L15:
+  27:./Application/Src/sdcard.c ****     }
+ 195              		.loc 1 27 9 is_stmt 1 view .LVU47
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 7
+
+
+ 196 0026 6423     		movs	r3, #100
+ 197 0028 0093     		str	r3, [sp]
+ 198 002a 0123     		movs	r3, #1
+ 199 002c 0DF10E02 		add	r2, sp, #14
+ 200 0030 0DF10F01 		add	r1, sp, #15
+ 201 0034 2846     		mov	r0, r5
+ 202 0036 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 203              	.LVL22:
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 204              		.loc 1 26 30 discriminator 3 view .LVU48
+ 205 003a 0134     		adds	r4, r4, #1
+ 206              	.LVL23:
+ 207              	.L14:
+  26:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 208              		.loc 1 26 23 discriminator 1 view .LVU49
+ 209 003c 092C     		cmp	r4, #9
+ 210 003e F2DD     		ble	.L15
+ 211              	.LBE2:
+  31:./Application/Src/sdcard.c ****     HAL_Delay(1);
+ 212              		.loc 1 31 5 view .LVU50
+ 213 0040 0022     		movs	r2, #0
+ 214 0042 3946     		mov	r1, r7
+ 215 0044 3046     		mov	r0, r6
+ 216 0046 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 217              	.LVL24:
+  32:./Application/Src/sdcard.c **** 
+ 218              		.loc 1 32 5 view .LVU51
+ 219 004a 0120     		movs	r0, #1
+ 220 004c FFF7FEFF 		bl	HAL_Delay
+ 221              	.LVL25:
+  35:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 222              		.loc 1 35 5 view .LVU52
+  35:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 223              		.loc 1 35 8 is_stmt 0 view .LVU53
+ 224 0050 4023     		movs	r3, #64
+ 225 0052 8DF80F30 		strb	r3, [sp, #15]
+  36:./Application/Src/sdcard.c **** 
+ 226              		.loc 1 36 5 is_stmt 1 view .LVU54
+ 227 0056 0DF10E09 		add	r9, sp, #14
+ 228 005a 0DF10F08 		add	r8, sp, #15
+ 229 005e 4FF0640A 		mov	r10, #100
+ 230 0062 CDF800A0 		str	r10, [sp]
+ 231 0066 0123     		movs	r3, #1
+ 232 0068 4A46     		mov	r2, r9
+ 233 006a 4146     		mov	r1, r8
+ 234 006c 2846     		mov	r0, r5
+ 235 006e FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 236              	.LVL26:
+  38:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 237              		.loc 1 38 5 view .LVU55
+  38:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 238              		.loc 1 38 8 is_stmt 0 view .LVU56
+ 239 0072 0024     		movs	r4, #0
+ 240              	.LVL27:
+  38:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 241              		.loc 1 38 8 view .LVU57
+ 242 0074 8DF80F40 		strb	r4, [sp, #15]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 8
+
+
+  39:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 243              		.loc 1 39 5 is_stmt 1 view .LVU58
+ 244 0078 CDF800A0 		str	r10, [sp]
+ 245 007c 0123     		movs	r3, #1
+ 246 007e 4A46     		mov	r2, r9
+ 247 0080 4146     		mov	r1, r8
+ 248 0082 2846     		mov	r0, r5
+ 249 0084 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 250              	.LVL28:
+  40:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 251              		.loc 1 40 5 view .LVU59
+ 252 0088 CDF800A0 		str	r10, [sp]
+ 253 008c 0123     		movs	r3, #1
+ 254 008e 4A46     		mov	r2, r9
+ 255 0090 4146     		mov	r1, r8
+ 256 0092 2846     		mov	r0, r5
+ 257 0094 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 258              	.LVL29:
+  41:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 259              		.loc 1 41 5 view .LVU60
+ 260 0098 CDF800A0 		str	r10, [sp]
+ 261 009c 0123     		movs	r3, #1
+ 262 009e 4A46     		mov	r2, r9
+ 263 00a0 4146     		mov	r1, r8
+ 264 00a2 2846     		mov	r0, r5
+ 265 00a4 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 266              	.LVL30:
+  42:./Application/Src/sdcard.c ****     tx = 0x95;
+ 267              		.loc 1 42 5 view .LVU61
+ 268 00a8 CDF800A0 		str	r10, [sp]
+ 269 00ac 0123     		movs	r3, #1
+ 270 00ae 4A46     		mov	r2, r9
+ 271 00b0 4146     		mov	r1, r8
+ 272 00b2 2846     		mov	r0, r5
+ 273 00b4 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 274              	.LVL31:
+  43:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 275              		.loc 1 43 5 view .LVU62
+  43:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 276              		.loc 1 43 8 is_stmt 0 view .LVU63
+ 277 00b8 9523     		movs	r3, #149
+ 278 00ba 8DF80F30 		strb	r3, [sp, #15]
+  44:./Application/Src/sdcard.c **** 
+ 279              		.loc 1 44 5 is_stmt 1 view .LVU64
+ 280 00be CDF800A0 		str	r10, [sp]
+ 281 00c2 0123     		movs	r3, #1
+ 282 00c4 4A46     		mov	r2, r9
+ 283 00c6 4146     		mov	r1, r8
+ 284 00c8 2846     		mov	r0, r5
+ 285 00ca FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 286              	.LVL32:
+  47:./Application/Src/sdcard.c ****     uint8_t response = 0xFF;
+ 287              		.loc 1 47 5 view .LVU65
+  47:./Application/Src/sdcard.c ****     uint8_t response = 0xFF;
+ 288              		.loc 1 47 8 is_stmt 0 view .LVU66
+ 289 00ce FF23     		movs	r3, #255
+ 290 00d0 8DF80F30 		strb	r3, [sp, #15]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 9
+
+
+  48:./Application/Src/sdcard.c ****     for (int i = 0; i < 100; i++) {
+ 291              		.loc 1 48 5 is_stmt 1 view .LVU67
+  48:./Application/Src/sdcard.c ****     for (int i = 0; i < 100; i++) {
+ 292              		.loc 1 48 13 is_stmt 0 view .LVU68
+ 293 00d4 8DF80D30 		strb	r3, [sp, #13]
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 294              		.loc 1 49 5 is_stmt 1 view .LVU69
+ 295              	.LBB3:
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 296              		.loc 1 49 10 view .LVU70
+ 297              	.LVL33:
+ 298              	.L16:
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 299              		.loc 1 49 23 discriminator 1 view .LVU71
+ 300 00d8 632C     		cmp	r4, #99
+ 301 00da 0FDC     		bgt	.L17
+  50:./Application/Src/sdcard.c ****         if (response != 0xFF) {
+ 302              		.loc 1 50 9 view .LVU72
+ 303 00dc 6423     		movs	r3, #100
+ 304 00de 0093     		str	r3, [sp]
+ 305 00e0 0123     		movs	r3, #1
+ 306 00e2 0DF10D02 		add	r2, sp, #13
+ 307 00e6 0DF10F01 		add	r1, sp, #15
+ 308 00ea 2846     		mov	r0, r5
+ 309 00ec FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 310              	.LVL34:
+  51:./Application/Src/sdcard.c **** 
+ 311              		.loc 1 51 9 view .LVU73
+  53:./Application/Src/sdcard.c ****         if (response == 0x01) {
+ 312              		.loc 1 53 9 view .LVU74
+  54:./Application/Src/sdcard.c ****             break;
+ 313              		.loc 1 54 9 view .LVU75
+  54:./Application/Src/sdcard.c ****             break;
+ 314              		.loc 1 54 22 is_stmt 0 view .LVU76
+ 315 00f0 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+  54:./Application/Src/sdcard.c ****             break;
+ 316              		.loc 1 54 12 view .LVU77
+ 317 00f4 012B     		cmp	r3, #1
+ 318 00f6 01D0     		beq	.L17
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 319              		.loc 1 49 31 is_stmt 1 discriminator 2 view .LVU78
+ 320 00f8 0134     		adds	r4, r4, #1
+ 321              	.LVL35:
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 322              		.loc 1 49 31 is_stmt 0 discriminator 2 view .LVU79
+ 323 00fa EDE7     		b	.L16
+ 324              	.LVL36:
+ 325              	.L17:
+  49:./Application/Src/sdcard.c ****         HAL_SPI_TransmitReceive(hspi, &tx, &response, 1, 100);
+ 326              		.loc 1 49 31 discriminator 2 view .LVU80
+ 327              	.LBE3:
+  60:./Application/Src/sdcard.c ****     HAL_SPI_TransmitReceive(hspi, &tx, &rx, 1, 100);
+ 328              		.loc 1 60 5 is_stmt 1 view .LVU81
+ 329 00fc 0122     		movs	r2, #1
+ 330 00fe 3946     		mov	r1, r7
+ 331 0100 3046     		mov	r0, r6
+ 332 0102 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 10
+
+
+ 333              	.LVL37:
+  61:./Application/Src/sdcard.c **** 
+ 334              		.loc 1 61 5 view .LVU82
+ 335 0106 6423     		movs	r3, #100
+ 336 0108 0093     		str	r3, [sp]
+ 337 010a 0123     		movs	r3, #1
+ 338 010c 0DF10E02 		add	r2, sp, #14
+ 339 0110 0DF10F01 		add	r1, sp, #15
+ 340 0114 2846     		mov	r0, r5
+ 341 0116 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 342              	.LVL38:
+  63:./Application/Src/sdcard.c **** }
+ 343              		.loc 1 63 5 view .LVU83
+  63:./Application/Src/sdcard.c **** }
+ 344              		.loc 1 63 35 is_stmt 0 view .LVU84
+ 345 011a 9DF80D00 		ldrb	r0, [sp, #13]	@ zero_extendqisi2
+  64:./Application/Src/sdcard.c **** 
+ 346              		.loc 1 64 1 view .LVU85
+ 347 011e 0128     		cmp	r0, #1
+ 348 0120 14BF     		ite	ne
+ 349 0122 0020     		movne	r0, #0
+ 350 0124 0120     		moveq	r0, #1
+ 351 0126 04B0     		add	sp, sp, #16
+ 352              	.LCFI3:
+ 353              		.cfi_def_cfa_offset 32
+ 354              		@ sp needed
+ 355 0128 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+  64:./Application/Src/sdcard.c **** 
+ 356              		.loc 1 64 1 view .LVU86
+ 357              		.cfi_endproc
+ 358              	.LFE160:
+ 360              		.section	.rodata.SD_Init.str1.4,"aMS",%progbits,1
+ 361              		.align	2
+ 362              	.LC0:
+ 363 0000 00       		.ascii	"\000"
+ 364              		.section	.text.SD_Init,"ax",%progbits
+ 365              		.align	1
+ 366              		.global	SD_Init
+ 367              		.syntax unified
+ 368              		.thumb
+ 369              		.thumb_func
+ 371              	SD_Init:
+ 372              	.LFB161:
+  67:./Application/Src/sdcard.c ****     FRESULT res;
+ 373              		.loc 1 67 23 is_stmt 1 view -0
+ 374              		.cfi_startproc
+ 375              		@ args = 0, pretend = 0, frame = 0
+ 376              		@ frame_needed = 0, uses_anonymous_args = 0
+ 377 0000 08B5     		push	{r3, lr}
+ 378              	.LCFI4:
+ 379              		.cfi_def_cfa_offset 8
+ 380              		.cfi_offset 3, -8
+ 381              		.cfi_offset 14, -4
+  68:./Application/Src/sdcard.c **** 
+ 382              		.loc 1 68 5 view .LVU88
+  71:./Application/Src/sdcard.c **** 
+ 383              		.loc 1 71 5 view .LVU89
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 11
+
+
+  71:./Application/Src/sdcard.c **** 
+ 384              		.loc 1 71 11 is_stmt 0 view .LVU90
+ 385 0002 0122     		movs	r2, #1
+ 386 0004 0249     		ldr	r1, .L22
+ 387 0006 0348     		ldr	r0, .L22+4
+ 388 0008 FFF7FEFF 		bl	f_mount
+ 389              	.LVL39:
+  73:./Application/Src/sdcard.c **** }
+ 390              		.loc 1 73 5 is_stmt 1 view .LVU91
+  74:./Application/Src/sdcard.c **** 
+ 391              		.loc 1 74 1 is_stmt 0 view .LVU92
+ 392 000c 08BD     		pop	{r3, pc}
+ 393              	.L23:
+ 394 000e 00BF     		.align	2
+ 395              	.L22:
+ 396 0010 00000000 		.word	.LC0
+ 397 0014 00000000 		.word	fatFs
+ 398              		.cfi_endproc
+ 399              	.LFE161:
+ 401              		.section	.text.SD_Mount,"ax",%progbits
+ 402              		.align	1
+ 403              		.global	SD_Mount
+ 404              		.syntax unified
+ 405              		.thumb
+ 406              		.thumb_func
+ 408              	SD_Mount:
+ 409              	.LFB162:
+  77:./Application/Src/sdcard.c ****     return f_mount(&fatFs, "", 1);
+ 410              		.loc 1 77 24 is_stmt 1 view -0
+ 411              		.cfi_startproc
+ 412              		@ args = 0, pretend = 0, frame = 0
+ 413              		@ frame_needed = 0, uses_anonymous_args = 0
+ 414 0000 08B5     		push	{r3, lr}
+ 415              	.LCFI5:
+ 416              		.cfi_def_cfa_offset 8
+ 417              		.cfi_offset 3, -8
+ 418              		.cfi_offset 14, -4
+  78:./Application/Src/sdcard.c **** }
+ 419              		.loc 1 78 5 view .LVU94
+  78:./Application/Src/sdcard.c **** }
+ 420              		.loc 1 78 12 is_stmt 0 view .LVU95
+ 421 0002 0122     		movs	r2, #1
+ 422 0004 0249     		ldr	r1, .L26
+ 423 0006 0348     		ldr	r0, .L26+4
+ 424 0008 FFF7FEFF 		bl	f_mount
+ 425              	.LVL40:
+  79:./Application/Src/sdcard.c **** 
+ 426              		.loc 1 79 1 view .LVU96
+ 427 000c 08BD     		pop	{r3, pc}
+ 428              	.L27:
+ 429 000e 00BF     		.align	2
+ 430              	.L26:
+ 431 0010 00000000 		.word	.LC0
+ 432 0014 00000000 		.word	fatFs
+ 433              		.cfi_endproc
+ 434              	.LFE162:
+ 436              		.section	.text.SD_Unmount,"ax",%progbits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 12
+
+
+ 437              		.align	1
+ 438              		.global	SD_Unmount
+ 439              		.syntax unified
+ 440              		.thumb
+ 441              		.thumb_func
+ 443              	SD_Unmount:
+ 444              	.LFB163:
+  82:./Application/Src/sdcard.c ****     return f_mount(NULL, "", 0);
+ 445              		.loc 1 82 26 is_stmt 1 view -0
+ 446              		.cfi_startproc
+ 447              		@ args = 0, pretend = 0, frame = 0
+ 448              		@ frame_needed = 0, uses_anonymous_args = 0
+ 449 0000 08B5     		push	{r3, lr}
+ 450              	.LCFI6:
+ 451              		.cfi_def_cfa_offset 8
+ 452              		.cfi_offset 3, -8
+ 453              		.cfi_offset 14, -4
+  83:./Application/Src/sdcard.c **** }
+ 454              		.loc 1 83 5 view .LVU98
+  83:./Application/Src/sdcard.c **** }
+ 455              		.loc 1 83 12 is_stmt 0 view .LVU99
+ 456 0002 0022     		movs	r2, #0
+ 457 0004 0249     		ldr	r1, .L30
+ 458 0006 1046     		mov	r0, r2
+ 459 0008 FFF7FEFF 		bl	f_mount
+ 460              	.LVL41:
+  84:./Application/Src/sdcard.c **** 
+ 461              		.loc 1 84 1 view .LVU100
+ 462 000c 08BD     		pop	{r3, pc}
+ 463              	.L31:
+ 464 000e 00BF     		.align	2
+ 465              	.L30:
+ 466 0010 00000000 		.word	.LC0
+ 467              		.cfi_endproc
+ 468              	.LFE163:
+ 470              		.section	.text.SD_OpenFile,"ax",%progbits
+ 471              		.align	1
+ 472              		.global	SD_OpenFile
+ 473              		.syntax unified
+ 474              		.thumb
+ 475              		.thumb_func
+ 477              	SD_OpenFile:
+ 478              	.LVL42:
+ 479              	.LFB164:
+  87:./Application/Src/sdcard.c ****     return f_open(file, path, mode);
+ 480              		.loc 1 87 61 is_stmt 1 view -0
+ 481              		.cfi_startproc
+ 482              		@ args = 0, pretend = 0, frame = 0
+ 483              		@ frame_needed = 0, uses_anonymous_args = 0
+  87:./Application/Src/sdcard.c ****     return f_open(file, path, mode);
+ 484              		.loc 1 87 61 is_stmt 0 view .LVU102
+ 485 0000 08B5     		push	{r3, lr}
+ 486              	.LCFI7:
+ 487              		.cfi_def_cfa_offset 8
+ 488              		.cfi_offset 3, -8
+ 489              		.cfi_offset 14, -4
+  88:./Application/Src/sdcard.c **** }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 13
+
+
+ 490              		.loc 1 88 5 is_stmt 1 view .LVU103
+  88:./Application/Src/sdcard.c **** }
+ 491              		.loc 1 88 12 is_stmt 0 view .LVU104
+ 492 0002 FFF7FEFF 		bl	f_open
+ 493              	.LVL43:
+  89:./Application/Src/sdcard.c **** 
+ 494              		.loc 1 89 1 view .LVU105
+ 495 0006 08BD     		pop	{r3, pc}
+ 496              		.cfi_endproc
+ 497              	.LFE164:
+ 499              		.section	.text.SD_CloseFile,"ax",%progbits
+ 500              		.align	1
+ 501              		.global	SD_CloseFile
+ 502              		.syntax unified
+ 503              		.thumb
+ 504              		.thumb_func
+ 506              	SD_CloseFile:
+ 507              	.LVL44:
+ 508              	.LFB165:
+  92:./Application/Src/sdcard.c ****     return f_close(file);
+ 509              		.loc 1 92 33 is_stmt 1 view -0
+ 510              		.cfi_startproc
+ 511              		@ args = 0, pretend = 0, frame = 0
+ 512              		@ frame_needed = 0, uses_anonymous_args = 0
+  92:./Application/Src/sdcard.c ****     return f_close(file);
+ 513              		.loc 1 92 33 is_stmt 0 view .LVU107
+ 514 0000 08B5     		push	{r3, lr}
+ 515              	.LCFI8:
+ 516              		.cfi_def_cfa_offset 8
+ 517              		.cfi_offset 3, -8
+ 518              		.cfi_offset 14, -4
+  93:./Application/Src/sdcard.c **** }
+ 519              		.loc 1 93 5 is_stmt 1 view .LVU108
+  93:./Application/Src/sdcard.c **** }
+ 520              		.loc 1 93 12 is_stmt 0 view .LVU109
+ 521 0002 FFF7FEFF 		bl	f_close
+ 522              	.LVL45:
+  94:./Application/Src/sdcard.c **** 
+ 523              		.loc 1 94 1 view .LVU110
+ 524 0006 08BD     		pop	{r3, pc}
+ 525              		.cfi_endproc
+ 526              	.LFE165:
+ 528              		.section	.text.SD_ReadFile,"ax",%progbits
+ 529              		.align	1
+ 530              		.global	SD_ReadFile
+ 531              		.syntax unified
+ 532              		.thumb
+ 533              		.thumb_func
+ 535              	SD_ReadFile:
+ 536              	.LVL46:
+ 537              	.LFB166:
+  97:./Application/Src/sdcard.c ****     return f_read(file, buff, btr, br);
+ 538              		.loc 1 97 64 is_stmt 1 view -0
+ 539              		.cfi_startproc
+ 540              		@ args = 0, pretend = 0, frame = 0
+ 541              		@ frame_needed = 0, uses_anonymous_args = 0
+  97:./Application/Src/sdcard.c ****     return f_read(file, buff, btr, br);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 14
+
+
+ 542              		.loc 1 97 64 is_stmt 0 view .LVU112
+ 543 0000 08B5     		push	{r3, lr}
+ 544              	.LCFI9:
+ 545              		.cfi_def_cfa_offset 8
+ 546              		.cfi_offset 3, -8
+ 547              		.cfi_offset 14, -4
+  98:./Application/Src/sdcard.c **** }
+ 548              		.loc 1 98 5 is_stmt 1 view .LVU113
+  98:./Application/Src/sdcard.c **** }
+ 549              		.loc 1 98 12 is_stmt 0 view .LVU114
+ 550 0002 FFF7FEFF 		bl	f_read
+ 551              	.LVL47:
+  99:./Application/Src/sdcard.c **** 
+ 552              		.loc 1 99 1 view .LVU115
+ 553 0006 08BD     		pop	{r3, pc}
+ 554              		.cfi_endproc
+ 555              	.LFE166:
+ 557              		.section	.text.SD_WriteFile,"ax",%progbits
+ 558              		.align	1
+ 559              		.global	SD_WriteFile
+ 560              		.syntax unified
+ 561              		.thumb
+ 562              		.thumb_func
+ 564              	SD_WriteFile:
+ 565              	.LVL48:
+ 566              	.LFB167:
+ 102:./Application/Src/sdcard.c ****     return f_write(file, buff, btw, bw);
+ 567              		.loc 1 102 71 is_stmt 1 view -0
+ 568              		.cfi_startproc
+ 569              		@ args = 0, pretend = 0, frame = 0
+ 570              		@ frame_needed = 0, uses_anonymous_args = 0
+ 102:./Application/Src/sdcard.c ****     return f_write(file, buff, btw, bw);
+ 571              		.loc 1 102 71 is_stmt 0 view .LVU117
+ 572 0000 08B5     		push	{r3, lr}
+ 573              	.LCFI10:
+ 574              		.cfi_def_cfa_offset 8
+ 575              		.cfi_offset 3, -8
+ 576              		.cfi_offset 14, -4
+ 103:./Application/Src/sdcard.c **** }
+ 577              		.loc 1 103 5 is_stmt 1 view .LVU118
+ 103:./Application/Src/sdcard.c **** }
+ 578              		.loc 1 103 12 is_stmt 0 view .LVU119
+ 579 0002 FFF7FEFF 		bl	f_write
+ 580              	.LVL49:
+ 104:./Application/Src/sdcard.c **** 
+ 581              		.loc 1 104 1 view .LVU120
+ 582 0006 08BD     		pop	{r3, pc}
+ 583              		.cfi_endproc
+ 584              	.LFE167:
+ 586              		.section	.rodata.SD_ListTxtFiles.str1.4,"aMS",%progbits,1
+ 587              		.align	2
+ 588              	.LC1:
+ 589 0000 2F00     		.ascii	"/\000"
+ 590              		.section	.text.SD_ListTxtFiles,"ax",%progbits
+ 591              		.align	1
+ 592              		.global	SD_ListTxtFiles
+ 593              		.syntax unified
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 15
+
+
+ 594              		.thumb
+ 595              		.thumb_func
+ 597              	SD_ListTxtFiles:
+ 598              	.LFB169:
+ 117:./Application/Src/sdcard.c **** 
+ 118:./Application/Src/sdcard.c **** /* List all text files in root directory */
+ 119:./Application/Src/sdcard.c **** int SD_ListTxtFiles(void) {
+ 599              		.loc 1 119 27 is_stmt 1 view -0
+ 600              		.cfi_startproc
+ 601              		@ args = 0, pretend = 0, frame = 568
+ 602              		@ frame_needed = 0, uses_anonymous_args = 0
+ 603 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 604              	.LCFI11:
+ 605              		.cfi_def_cfa_offset 24
+ 606              		.cfi_offset 4, -24
+ 607              		.cfi_offset 5, -20
+ 608              		.cfi_offset 6, -16
+ 609              		.cfi_offset 7, -12
+ 610              		.cfi_offset 8, -8
+ 611              		.cfi_offset 14, -4
+ 612 0004 ADF50E7D 		sub	sp, sp, #568
+ 613              	.LCFI12:
+ 614              		.cfi_def_cfa_offset 592
+ 120:./Application/Src/sdcard.c ****     FRESULT res;
+ 615              		.loc 1 120 5 view .LVU122
+ 121:./Application/Src/sdcard.c ****     DIR dir;
+ 616              		.loc 1 121 5 view .LVU123
+ 122:./Application/Src/sdcard.c ****     FILINFO fno;
+ 617              		.loc 1 122 5 view .LVU124
+ 123:./Application/Src/sdcard.c **** 
+ 124:./Application/Src/sdcard.c ****     fileCount = 0;
+ 618              		.loc 1 124 5 view .LVU125
+ 619              		.loc 1 124 15 is_stmt 0 view .LVU126
+ 620 0008 204B     		ldr	r3, .L49
+ 621 000a 0022     		movs	r2, #0
+ 622 000c 1A70     		strb	r2, [r3]
+ 125:./Application/Src/sdcard.c **** 
+ 126:./Application/Src/sdcard.c ****     res = f_opendir(&dir, "/");
+ 623              		.loc 1 126 5 is_stmt 1 view .LVU127
+ 624              		.loc 1 126 11 is_stmt 0 view .LVU128
+ 625 000e 2049     		ldr	r1, .L49+4
+ 626 0010 07A8     		add	r0, sp, #28
+ 627 0012 FFF7FEFF 		bl	f_opendir
+ 628              	.LVL50:
+ 127:./Application/Src/sdcard.c ****     if (res != FR_OK) {
+ 629              		.loc 1 127 5 is_stmt 1 view .LVU129
+ 630              		.loc 1 127 8 is_stmt 0 view .LVU130
+ 631 0016 0028     		cmp	r0, #0
+ 632 0018 36D1     		bne	.L48
+ 633              	.LVL51:
+ 634              	.L42:
+ 128:./Application/Src/sdcard.c ****         return 0;
+ 129:./Application/Src/sdcard.c ****     }
+ 130:./Application/Src/sdcard.c **** 
+ 131:./Application/Src/sdcard.c ****     while (fileCount < MAX_FILES) {
+ 635              		.loc 1 131 22 is_stmt 1 view .LVU131
+ 636 001a 1C4B     		ldr	r3, .L49
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 16
+
+
+ 637 001c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 638 001e 632B     		cmp	r3, #99
+ 639 0020 29D8     		bhi	.L43
+ 132:./Application/Src/sdcard.c ****         res = f_readdir(&dir, &fno);
+ 640              		.loc 1 132 9 view .LVU132
+ 641              		.loc 1 132 15 is_stmt 0 view .LVU133
+ 642 0022 01A9     		add	r1, sp, #4
+ 643 0024 07A8     		add	r0, sp, #28
+ 644 0026 FFF7FEFF 		bl	f_readdir
+ 645              	.LVL52:
+ 133:./Application/Src/sdcard.c ****         if (res != FR_OK || fno.fname[0] == 0) {
+ 646              		.loc 1 133 9 is_stmt 1 view .LVU134
+ 647              		.loc 1 133 12 is_stmt 0 view .LVU135
+ 648 002a 20BB     		cbnz	r0, .L43
+ 649              		.loc 1 133 38 discriminator 1 view .LVU136
+ 650 002c 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 651              		.loc 1 133 26 discriminator 1 view .LVU137
+ 652 0030 0BB3     		cbz	r3, .L43
+ 134:./Application/Src/sdcard.c ****             break;  /* Error or end of directory */
+ 135:./Application/Src/sdcard.c ****         }
+ 136:./Application/Src/sdcard.c **** 
+ 137:./Application/Src/sdcard.c ****         /* Skip directories and hidden/system files */
+ 138:./Application/Src/sdcard.c ****         if (fno.fattrib & (AM_DIR | AM_HID | AM_SYS)) {
+ 653              		.loc 1 138 9 is_stmt 1 view .LVU138
+ 654              		.loc 1 138 16 is_stmt 0 view .LVU139
+ 655 0032 9DF80C30 		ldrb	r3, [sp, #12]	@ zero_extendqisi2
+ 656              		.loc 1 138 12 view .LVU140
+ 657 0036 13F0160F 		tst	r3, #22
+ 658 003a EED1     		bne	.L42
+ 139:./Application/Src/sdcard.c ****             continue;
+ 140:./Application/Src/sdcard.c ****         }
+ 141:./Application/Src/sdcard.c **** 
+ 142:./Application/Src/sdcard.c ****         /* Check if it's a .TXT file */
+ 143:./Application/Src/sdcard.c ****         if (isTxtFile(fno.fname)) {
+ 659              		.loc 1 143 9 is_stmt 1 view .LVU141
+ 660              		.loc 1 143 13 is_stmt 0 view .LVU142
+ 661 003c 0DF10D00 		add	r0, sp, #13
+ 662              	.LVL53:
+ 663              		.loc 1 143 13 view .LVU143
+ 664 0040 FFF7FEFF 		bl	isTxtFile
+ 665              	.LVL54:
+ 666              		.loc 1 143 12 discriminator 1 view .LVU144
+ 667 0044 0028     		cmp	r0, #0
+ 668 0046 E8D0     		beq	.L42
+ 144:./Application/Src/sdcard.c ****             /* Copy filename (truncate if needed) */
+ 145:./Application/Src/sdcard.c ****             strncpy(fileList[fileCount].name, fno.fname, MAX_FILENAME_LEN - 1);
+ 669              		.loc 1 145 13 is_stmt 1 view .LVU145
+ 670              		.loc 1 145 40 is_stmt 0 view .LVU146
+ 671 0048 DFF84080 		ldr	r8, .L49
+ 672 004c 98F80040 		ldrb	r4, [r8]	@ zero_extendqisi2
+ 673 0050 04EB8406 		add	r6, r4, r4, lsl #2
+ 674 0054 0F4D     		ldr	r5, .L49+8
+ 675 0056 05EB8606 		add	r6, r5, r6, lsl #2
+ 676              		.loc 1 145 13 view .LVU147
+ 677 005a 0C22     		movs	r2, #12
+ 678 005c 0DF10D01 		add	r1, sp, #13
+ 679 0060 3046     		mov	r0, r6
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 17
+
+
+ 680 0062 FFF7FEFF 		bl	strncpy
+ 681              	.LVL55:
+ 146:./Application/Src/sdcard.c ****             fileList[fileCount].name[MAX_FILENAME_LEN - 1] = '\0';
+ 682              		.loc 1 146 13 is_stmt 1 view .LVU148
+ 683              		.loc 1 146 60 is_stmt 0 view .LVU149
+ 684 0066 0023     		movs	r3, #0
+ 685 0068 3373     		strb	r3, [r6, #12]
+ 147:./Application/Src/sdcard.c ****             fileList[fileCount].size = fno.fsize;
+ 686              		.loc 1 147 13 is_stmt 1 view .LVU150
+ 687              		.loc 1 147 43 is_stmt 0 view .LVU151
+ 688 006a 019B     		ldr	r3, [sp, #4]
+ 689              		.loc 1 147 38 view .LVU152
+ 690 006c 3361     		str	r3, [r6, #16]
+ 148:./Application/Src/sdcard.c ****             fileCount++;
+ 691              		.loc 1 148 13 is_stmt 1 view .LVU153
+ 692              		.loc 1 148 22 is_stmt 0 view .LVU154
+ 693 006e 0134     		adds	r4, r4, #1
+ 694 0070 88F80040 		strb	r4, [r8]
+ 695 0074 D1E7     		b	.L42
+ 696              	.LVL56:
+ 697              	.L43:
+ 149:./Application/Src/sdcard.c ****         }
+ 150:./Application/Src/sdcard.c ****     }
+ 151:./Application/Src/sdcard.c **** 
+ 152:./Application/Src/sdcard.c ****     f_closedir(&dir);
+ 698              		.loc 1 152 5 is_stmt 1 view .LVU155
+ 699 0076 07A8     		add	r0, sp, #28
+ 700 0078 FFF7FEFF 		bl	f_closedir
+ 701              	.LVL57:
+ 153:./Application/Src/sdcard.c ****     return fileCount;
+ 702              		.loc 1 153 5 view .LVU156
+ 703              		.loc 1 153 12 is_stmt 0 view .LVU157
+ 704 007c 034B     		ldr	r3, .L49
+ 705 007e 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 706              	.L40:
+ 154:./Application/Src/sdcard.c **** }
+ 707              		.loc 1 154 1 view .LVU158
+ 708 0080 0DF50E7D 		add	sp, sp, #568
+ 709              	.LCFI13:
+ 710              		.cfi_remember_state
+ 711              		.cfi_def_cfa_offset 24
+ 712              		@ sp needed
+ 713 0084 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 714              	.LVL58:
+ 715              	.L48:
+ 716              	.LCFI14:
+ 717              		.cfi_restore_state
+ 128:./Application/Src/sdcard.c ****     }
+ 718              		.loc 1 128 16 view .LVU159
+ 719 0088 0020     		movs	r0, #0
+ 720              	.LVL59:
+ 128:./Application/Src/sdcard.c ****     }
+ 721              		.loc 1 128 16 view .LVU160
+ 722 008a F9E7     		b	.L40
+ 723              	.L50:
+ 724              		.align	2
+ 725              	.L49:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 18
+
+
+ 726 008c 00000000 		.word	fileCount
+ 727 0090 00000000 		.word	.LC1
+ 728 0094 00000000 		.word	fileList
+ 729              		.cfi_endproc
+ 730              	.LFE169:
+ 732              		.section	.text.SD_ReadTxtFile,"ax",%progbits
+ 733              		.align	1
+ 734              		.global	SD_ReadTxtFile
+ 735              		.syntax unified
+ 736              		.thumb
+ 737              		.thumb_func
+ 739              	SD_ReadTxtFile:
+ 740              	.LVL60:
+ 741              	.LFB170:
+ 155:./Application/Src/sdcard.c **** 
+ 156:./Application/Src/sdcard.c **** /* Read text file into buffer */
+ 157:./Application/Src/sdcard.c **** int SD_ReadTxtFile(uint8_t fileIndex, uint8_t* buffer, uint32_t maxSize) {
+ 742              		.loc 1 157 74 is_stmt 1 view -0
+ 743              		.cfi_startproc
+ 744              		@ args = 0, pretend = 0, frame = 552
+ 745              		@ frame_needed = 0, uses_anonymous_args = 0
+ 158:./Application/Src/sdcard.c ****     if (fileIndex >= fileCount) {
+ 746              		.loc 1 158 5 view .LVU162
+ 747              		.loc 1 158 19 is_stmt 0 view .LVU163
+ 748 0000 1A4B     		ldr	r3, .L60
+ 749 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 750              		.loc 1 158 8 view .LVU164
+ 751 0004 8342     		cmp	r3, r0
+ 752 0006 27D9     		bls	.L53
+ 157:./Application/Src/sdcard.c ****     if (fileIndex >= fileCount) {
+ 753              		.loc 1 157 74 view .LVU165
+ 754 0008 F0B5     		push	{r4, r5, r6, r7, lr}
+ 755              	.LCFI15:
+ 756              		.cfi_def_cfa_offset 20
+ 757              		.cfi_offset 4, -20
+ 758              		.cfi_offset 5, -16
+ 759              		.cfi_offset 6, -12
+ 760              		.cfi_offset 7, -8
+ 761              		.cfi_offset 14, -4
+ 762 000a ADF50B7D 		sub	sp, sp, #556
+ 763              	.LCFI16:
+ 764              		.cfi_def_cfa_offset 576
+ 765 000e 0446     		mov	r4, r0
+ 766 0010 0F46     		mov	r7, r1
+ 767 0012 1646     		mov	r6, r2
+ 159:./Application/Src/sdcard.c ****         return -1;
+ 160:./Application/Src/sdcard.c ****     }
+ 161:./Application/Src/sdcard.c **** 
+ 162:./Application/Src/sdcard.c ****     FIL file;
+ 768              		.loc 1 162 5 is_stmt 1 view .LVU166
+ 163:./Application/Src/sdcard.c ****     FRESULT res;
+ 769              		.loc 1 163 5 view .LVU167
+ 164:./Application/Src/sdcard.c ****     UINT bytesRead;
+ 770              		.loc 1 164 5 view .LVU168
+ 165:./Application/Src/sdcard.c **** 
+ 166:./Application/Src/sdcard.c ****     res = f_open(&file, fileList[fileIndex].name, FA_READ);
+ 771              		.loc 1 166 5 view .LVU169
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 19
+
+
+ 772              		.loc 1 166 44 is_stmt 0 view .LVU170
+ 773 0014 00EB8001 		add	r1, r0, r0, lsl #2
+ 774              	.LVL61:
+ 775              		.loc 1 166 11 view .LVU171
+ 776 0018 0122     		movs	r2, #1
+ 777              	.LVL62:
+ 778              		.loc 1 166 11 view .LVU172
+ 779 001a 154B     		ldr	r3, .L60+4
+ 780 001c 03EB8101 		add	r1, r3, r1, lsl #2
+ 781 0020 01A8     		add	r0, sp, #4
+ 782              	.LVL63:
+ 783              		.loc 1 166 11 view .LVU173
+ 784 0022 FFF7FEFF 		bl	f_open
+ 785              	.LVL64:
+ 167:./Application/Src/sdcard.c ****     if (res != FR_OK) {
+ 786              		.loc 1 167 5 is_stmt 1 view .LVU174
+ 787              		.loc 1 167 8 is_stmt 0 view .LVU175
+ 788 0026 D0B9     		cbnz	r0, .L54
+ 168:./Application/Src/sdcard.c ****         return -1;
+ 169:./Application/Src/sdcard.c ****     }
+ 170:./Application/Src/sdcard.c **** 
+ 171:./Application/Src/sdcard.c ****     uint32_t readSize = (fileList[fileIndex].size < maxSize) ?
+ 789              		.loc 1 171 5 is_stmt 1 view .LVU176
+ 790              		.loc 1 171 45 is_stmt 0 view .LVU177
+ 791 0028 04EB8404 		add	r4, r4, r4, lsl #2
+ 792              	.LVL65:
+ 793              		.loc 1 171 45 view .LVU178
+ 794 002c 104B     		ldr	r3, .L60+4
+ 795 002e 03EB8403 		add	r3, r3, r4, lsl #2
+ 796 0032 1A69     		ldr	r2, [r3, #16]
+ 797              	.LVL66:
+ 172:./Application/Src/sdcard.c ****                          fileList[fileIndex].size : maxSize;
+ 173:./Application/Src/sdcard.c **** 
+ 174:./Application/Src/sdcard.c ****     res = f_read(&file, buffer, readSize, &bytesRead);
+ 798              		.loc 1 174 5 is_stmt 1 view .LVU179
+ 799              		.loc 1 174 11 is_stmt 0 view .LVU180
+ 800 0034 01AD     		add	r5, sp, #4
+ 801 0036 6B46     		mov	r3, sp
+ 802 0038 B242     		cmp	r2, r6
+ 803 003a 28BF     		it	cs
+ 804 003c 3246     		movcs	r2, r6
+ 805              	.LVL67:
+ 806              		.loc 1 174 11 view .LVU181
+ 807 003e 3946     		mov	r1, r7
+ 808 0040 2846     		mov	r0, r5
+ 809              	.LVL68:
+ 810              		.loc 1 174 11 view .LVU182
+ 811 0042 FFF7FEFF 		bl	f_read
+ 812              	.LVL69:
+ 813              		.loc 1 174 11 view .LVU183
+ 814 0046 0446     		mov	r4, r0
+ 815              	.LVL70:
+ 175:./Application/Src/sdcard.c ****     f_close(&file);
+ 816              		.loc 1 175 5 is_stmt 1 view .LVU184
+ 817 0048 2846     		mov	r0, r5
+ 818 004a FFF7FEFF 		bl	f_close
+ 819              	.LVL71:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 20
+
+
+ 176:./Application/Src/sdcard.c **** 
+ 177:./Application/Src/sdcard.c ****     if (res != FR_OK) {
+ 820              		.loc 1 177 5 view .LVU185
+ 821              		.loc 1 177 8 is_stmt 0 view .LVU186
+ 822 004e 4CB9     		cbnz	r4, .L55
+ 178:./Application/Src/sdcard.c ****         return -1;
+ 179:./Application/Src/sdcard.c ****     }
+ 180:./Application/Src/sdcard.c **** 
+ 181:./Application/Src/sdcard.c ****     return (int)bytesRead;
+ 823              		.loc 1 181 5 is_stmt 1 view .LVU187
+ 824              		.loc 1 181 12 is_stmt 0 view .LVU188
+ 825 0050 0098     		ldr	r0, [sp]
+ 826              	.LVL72:
+ 827              	.L51:
+ 182:./Application/Src/sdcard.c **** }
+ 828              		.loc 1 182 1 view .LVU189
+ 829 0052 0DF50B7D 		add	sp, sp, #556
+ 830              	.LCFI17:
+ 831              		.cfi_def_cfa_offset 20
+ 832              		@ sp needed
+ 833 0056 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 834              	.LVL73:
+ 835              	.L53:
+ 836              	.LCFI18:
+ 837              		.cfi_def_cfa_offset 0
+ 838              		.cfi_restore 4
+ 839              		.cfi_restore 5
+ 840              		.cfi_restore 6
+ 841              		.cfi_restore 7
+ 842              		.cfi_restore 14
+ 159:./Application/Src/sdcard.c ****     }
+ 843              		.loc 1 159 16 view .LVU190
+ 844 0058 4FF0FF30 		mov	r0, #-1
+ 845              	.LVL74:
+ 846              		.loc 1 182 1 view .LVU191
+ 847 005c 7047     		bx	lr
+ 848              	.LVL75:
+ 849              	.L54:
+ 850              	.LCFI19:
+ 851              		.cfi_def_cfa_offset 576
+ 852              		.cfi_offset 4, -20
+ 853              		.cfi_offset 5, -16
+ 854              		.cfi_offset 6, -12
+ 855              		.cfi_offset 7, -8
+ 856              		.cfi_offset 14, -4
+ 168:./Application/Src/sdcard.c ****     }
+ 857              		.loc 1 168 16 view .LVU192
+ 858 005e 4FF0FF30 		mov	r0, #-1
+ 859              	.LVL76:
+ 168:./Application/Src/sdcard.c ****     }
+ 860              		.loc 1 168 16 view .LVU193
+ 861 0062 F6E7     		b	.L51
+ 862              	.LVL77:
+ 863              	.L55:
+ 178:./Application/Src/sdcard.c ****     }
+ 864              		.loc 1 178 16 view .LVU194
+ 865 0064 4FF0FF30 		mov	r0, #-1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 21
+
+
+ 866 0068 F3E7     		b	.L51
+ 867              	.L61:
+ 868 006a 00BF     		.align	2
+ 869              	.L60:
+ 870 006c 00000000 		.word	fileCount
+ 871 0070 00000000 		.word	fileList
+ 872              		.cfi_endproc
+ 873              	.LFE170:
+ 875              		.section	.text.SD_GetStorageInfo,"ax",%progbits
+ 876              		.align	1
+ 877              		.global	SD_GetStorageInfo
+ 878              		.syntax unified
+ 879              		.thumb
+ 880              		.thumb_func
+ 882              	SD_GetStorageInfo:
+ 883              	.LVL78:
+ 884              	.LFB171:
+ 183:./Application/Src/sdcard.c **** 
+ 184:./Application/Src/sdcard.c **** /* Display text file list on OLED */
+ 185:./Application/Src/sdcard.c **** // void SD_DisplayTxtFileList(uint8_t startIndex, uint8_t selectedIndex) {
+ 186:./Application/Src/sdcard.c **** //     char displayName[20];
+ 187:./Application/Src/sdcard.c **** 
+ 188:./Application/Src/sdcard.c **** //     /* Display up to 5 text files on OLED pages 3-7 */
+ 189:./Application/Src/sdcard.c **** //     for (uint8_t i = 0; i < 5; i++) {
+ 190:./Application/Src/sdcard.c **** //         uint8_t fileIdx = startIndex + i;
+ 191:./Application/Src/sdcard.c **** //         uint8_t page = 3 + i;
+ 192:./Application/Src/sdcard.c **** 
+ 193:./Application/Src/sdcard.c **** //         OLED_SetCursor(0, page);
+ 194:./Application/Src/sdcard.c **** 
+ 195:./Application/Src/sdcard.c **** //         if (fileIdx < fileCount) {
+ 196:./Application/Src/sdcard.c **** //             /* Show selection indicator */
+ 197:./Application/Src/sdcard.c **** //             if (fileIdx == selectedIndex) {
+ 198:./Application/Src/sdcard.c **** //                 OLED_WriteChar('>');
+ 199:./Application/Src/sdcard.c **** //             } else {
+ 200:./Application/Src/sdcard.c **** //                 OLED_WriteChar(' ');
+ 201:./Application/Src/sdcard.c **** //             }
+ 202:./Application/Src/sdcard.c **** 
+ 203:./Application/Src/sdcard.c **** //             /* Display filename (truncate if needed) */
+ 204:./Application/Src/sdcard.c **** //             strncpy(displayName, fileList[fileIdx].name, 19);
+ 205:./Application/Src/sdcard.c **** //             displayName[19] = '\0';
+ 206:./Application/Src/sdcard.c **** //             OLED_WriteString(displayName);
+ 207:./Application/Src/sdcard.c **** 
+ 208:./Application/Src/sdcard.c **** //             /* Clear rest of line */
+ 209:./Application/Src/sdcard.c **** //             uint8_t nameLen = strlen(displayName) + 1;
+ 210:./Application/Src/sdcard.c **** //             for (uint8_t j = nameLen; j < 21; j++) {
+ 211:./Application/Src/sdcard.c **** //                 OLED_WriteChar(' ');
+ 212:./Application/Src/sdcard.c **** //             }
+ 213:./Application/Src/sdcard.c **** //         } else {
+ 214:./Application/Src/sdcard.c **** //             /* Clear empty line */
+ 215:./Application/Src/sdcard.c **** //             for (uint8_t j = 0; j < 21; j++) {
+ 216:./Application/Src/sdcard.c **** //                 OLED_WriteChar(' ');
+ 217:./Application/Src/sdcard.c **** //             }
+ 218:./Application/Src/sdcard.c **** //         }
+ 219:./Application/Src/sdcard.c **** //     }
+ 220:./Application/Src/sdcard.c **** // }
+ 221:./Application/Src/sdcard.c **** 
+ 222:./Application/Src/sdcard.c **** /* Get storage info */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 22
+
+
+ 223:./Application/Src/sdcard.c **** FRESULT SD_GetStorageInfo(SD_StorageInfo* info) {
+ 885              		.loc 1 223 49 is_stmt 1 view -0
+ 886              		.cfi_startproc
+ 887              		@ args = 0, pretend = 0, frame = 8
+ 888              		@ frame_needed = 0, uses_anonymous_args = 0
+ 889              		.loc 1 223 49 is_stmt 0 view .LVU196
+ 890 0000 10B5     		push	{r4, lr}
+ 891              	.LCFI20:
+ 892              		.cfi_def_cfa_offset 8
+ 893              		.cfi_offset 4, -8
+ 894              		.cfi_offset 14, -4
+ 895 0002 82B0     		sub	sp, sp, #8
+ 896              	.LCFI21:
+ 897              		.cfi_def_cfa_offset 16
+ 898 0004 0446     		mov	r4, r0
+ 224:./Application/Src/sdcard.c ****     FATFS* fs;
+ 899              		.loc 1 224 5 is_stmt 1 view .LVU197
+ 225:./Application/Src/sdcard.c ****     DWORD freeClusters;
+ 900              		.loc 1 225 5 view .LVU198
+ 226:./Application/Src/sdcard.c ****     FRESULT res;
+ 901              		.loc 1 226 5 view .LVU199
+ 227:./Application/Src/sdcard.c **** 
+ 228:./Application/Src/sdcard.c ****     res = f_getfree("", &freeClusters, &fs);
+ 902              		.loc 1 228 5 view .LVU200
+ 903              		.loc 1 228 11 is_stmt 0 view .LVU201
+ 904 0006 01AA     		add	r2, sp, #4
+ 905 0008 6946     		mov	r1, sp
+ 906 000a 0A48     		ldr	r0, .L65
+ 907              	.LVL79:
+ 908              		.loc 1 228 11 view .LVU202
+ 909 000c FFF7FEFF 		bl	f_getfree
+ 910              	.LVL80:
+ 229:./Application/Src/sdcard.c ****     if (res != FR_OK) {
+ 911              		.loc 1 229 5 is_stmt 1 view .LVU203
+ 912              		.loc 1 229 8 is_stmt 0 view .LVU204
+ 913 0010 70B9     		cbnz	r0, .L63
+ 230:./Application/Src/sdcard.c ****         return res;
+ 231:./Application/Src/sdcard.c ****     }
+ 232:./Application/Src/sdcard.c **** 
+ 233:./Application/Src/sdcard.c ****     /* Calculate sizes in KB */
+ 234:./Application/Src/sdcard.c ****     DWORD totalSectors = (fs->n_fatent - 2) * fs->csize;
+ 914              		.loc 1 234 5 is_stmt 1 view .LVU205
+ 915              		.loc 1 234 29 is_stmt 0 view .LVU206
+ 916 0012 019A     		ldr	r2, [sp, #4]
+ 917 0014 D2F81432 		ldr	r3, [r2, #532]
+ 918              		.loc 1 234 40 view .LVU207
+ 919 0018 023B     		subs	r3, r3, #2
+ 920              		.loc 1 234 49 view .LVU208
+ 921 001a 92F80222 		ldrb	r2, [r2, #514]	@ zero_extendqisi2
+ 922              		.loc 1 234 11 view .LVU209
+ 923 001e 02FB03F3 		mul	r3, r2, r3
+ 924              	.LVL81:
+ 235:./Application/Src/sdcard.c ****     DWORD freeSectors = freeClusters * fs->csize;
+ 925              		.loc 1 235 5 is_stmt 1 view .LVU210
+ 926              		.loc 1 235 38 is_stmt 0 view .LVU211
+ 927 0022 0099     		ldr	r1, [sp]
+ 928              		.loc 1 235 11 view .LVU212
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 23
+
+
+ 929 0024 01FB02F2 		mul	r2, r1, r2
+ 930              	.LVL82:
+ 236:./Application/Src/sdcard.c **** 
+ 237:./Application/Src/sdcard.c ****     info->totalKB = totalSectors / 2;  /* 512 bytes per sector, /2 = KB */
+ 931              		.loc 1 237 5 is_stmt 1 view .LVU213
+ 932              		.loc 1 237 34 is_stmt 0 view .LVU214
+ 933 0028 5B08     		lsrs	r3, r3, #1
+ 934              	.LVL83:
+ 935              		.loc 1 237 19 view .LVU215
+ 936 002a 2360     		str	r3, [r4]
+ 937              	.LVL84:
+ 238:./Application/Src/sdcard.c ****     info->freeKB = freeSectors / 2;
+ 938              		.loc 1 238 5 is_stmt 1 view .LVU216
+ 939              		.loc 1 238 32 is_stmt 0 view .LVU217
+ 940 002c 5208     		lsrs	r2, r2, #1
+ 941              	.LVL85:
+ 942              		.loc 1 238 18 view .LVU218
+ 943 002e 6260     		str	r2, [r4, #4]
+ 239:./Application/Src/sdcard.c **** 
+ 240:./Application/Src/sdcard.c ****     return FR_OK;
+ 944              		.loc 1 240 5 is_stmt 1 view .LVU219
+ 945              	.LVL86:
+ 946              	.L63:
+ 241:./Application/Src/sdcard.c **** }
+ 947              		.loc 1 241 1 is_stmt 0 view .LVU220
+ 948 0030 02B0     		add	sp, sp, #8
+ 949              	.LCFI22:
+ 950              		.cfi_def_cfa_offset 8
+ 951              		@ sp needed
+ 952 0032 10BD     		pop	{r4, pc}
+ 953              	.LVL87:
+ 954              	.L66:
+ 955              		.loc 1 241 1 view .LVU221
+ 956              		.align	2
+ 957              	.L65:
+ 958 0034 00000000 		.word	.LC0
+ 959              		.cfi_endproc
+ 960              	.LFE171:
+ 962              		.global	fileCount
+ 963              		.section	.bss.fileCount,"aw",%nobits
+ 966              	fileCount:
+ 967 0000 00       		.space	1
+ 968              		.global	fileList
+ 969              		.section	.bss.fileList,"aw",%nobits
+ 970              		.align	2
+ 973              	fileList:
+ 974 0000 00000000 		.space	2000
+ 974      00000000 
+ 974      00000000 
+ 974      00000000 
+ 974      00000000 
+ 975              		.global	fatFs
+ 976              		.section	.bss.fatFs,"aw",%nobits
+ 977              		.align	2
+ 980              	fatFs:
+ 981 0000 00000000 		.space	560
+ 981      00000000 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 24
+
+
+ 981      00000000 
+ 981      00000000 
+ 981      00000000 
+ 982              		.text
+ 983              	.Letext0:
+ 984              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 985              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 986              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 987              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 988              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 989              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 990              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 991              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 992              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 993              		.file 11 "ThirdParty/FatFs/integer.h"
+ 994              		.file 12 "ThirdParty/FatFs/ff.h"
+ 995              		.file 13 "Application/Inc/sdcard.h"
+ 996              		.file 14 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 997              		.file 15 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s 			page 25
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 sdcard.c
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:22     .text.isTxtFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:27     .text.isTxtFile:00000000 isTxtFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:137    .text.SD_IsCardPresent:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:143    .text.SD_IsCardPresent:00000000 SD_IsCardPresent
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:361    .rodata.SD_Init.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:365    .text.SD_Init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:371    .text.SD_Init:00000000 SD_Init
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:396    .text.SD_Init:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:980    .bss.fatFs:00000000 fatFs
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:402    .text.SD_Mount:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:408    .text.SD_Mount:00000000 SD_Mount
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:431    .text.SD_Mount:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:437    .text.SD_Unmount:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:443    .text.SD_Unmount:00000000 SD_Unmount
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:466    .text.SD_Unmount:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:471    .text.SD_OpenFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:477    .text.SD_OpenFile:00000000 SD_OpenFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:500    .text.SD_CloseFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:506    .text.SD_CloseFile:00000000 SD_CloseFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:529    .text.SD_ReadFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:535    .text.SD_ReadFile:00000000 SD_ReadFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:558    .text.SD_WriteFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:564    .text.SD_WriteFile:00000000 SD_WriteFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:587    .rodata.SD_ListTxtFiles.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:591    .text.SD_ListTxtFiles:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:597    .text.SD_ListTxtFiles:00000000 SD_ListTxtFiles
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:726    .text.SD_ListTxtFiles:0000008c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:966    .bss.fileCount:00000000 fileCount
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:973    .bss.fileList:00000000 fileList
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:733    .text.SD_ReadTxtFile:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:739    .text.SD_ReadTxtFile:00000000 SD_ReadTxtFile
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:870    .text.SD_ReadTxtFile:0000006c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:876    .text.SD_GetStorageInfo:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:882    .text.SD_GetStorageInfo:00000000 SD_GetStorageInfo
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:958    .text.SD_GetStorageInfo:00000034 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:967    .bss.fileCount:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:970    .bss.fileList:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccXBNzHk.s:977    .bss.fatFs:00000000 $d
+
+UNDEFINED SYMBOLS
+strlen
+HAL_Delay
+HAL_GPIO_WritePin
+HAL_SPI_TransmitReceive
+f_mount
+f_open
+f_close
+f_read
+f_write
+f_opendir
+f_readdir
+strncpy
+f_closedir
+f_getfree

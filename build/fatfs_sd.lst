@@ -1,0 +1,3219 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"fatfs_sd.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/fatfs_sd.c"
+  21              		.section	.text.SD_PowerOff,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	SD_PowerOff:
+  28              	.LFB168:
+   1:./Application/Src/fatfs_sd.c **** /*
+   2:./Application/Src/fatfs_sd.c ****  * fatfs_sd.c - SD Card driver for FatFs using STM32 HAL
+   3:./Application/Src/fatfs_sd.c ****  * Based on: https://github.com/NimaMX/STM32F103-SDCARD
+   4:./Application/Src/fatfs_sd.c ****  * Adapted for HAL SPI2 with PC14 as CS
+   5:./Application/Src/fatfs_sd.c ****  */
+   6:./Application/Src/fatfs_sd.c **** 
+   7:./Application/Src/fatfs_sd.c **** #include <fatfs_sd.h>
+   8:./Application/Src/fatfs_sd.c **** #include <string.h>
+   9:./Application/Src/fatfs_sd.c **** 
+  10:./Application/Src/fatfs_sd.c **** #define TRUE  1
+  11:./Application/Src/fatfs_sd.c **** #define FALSE 0
+  12:./Application/Src/fatfs_sd.c **** #define bool BYTE
+  13:./Application/Src/fatfs_sd.c **** 
+  14:./Application/Src/fatfs_sd.c **** extern SPI_HandleTypeDef SD_SPI_HANDLE;
+  15:./Application/Src/fatfs_sd.c **** 
+  16:./Application/Src/fatfs_sd.c **** /* Debug variables readable from main.c */
+  17:./Application/Src/fatfs_sd.c **** volatile uint8_t  sd_dbg_poweron_resp = 0xFF;
+  18:./Application/Src/fatfs_sd.c **** volatile uint8_t  sd_dbg_cmd0 = 0xFF;
+  19:./Application/Src/fatfs_sd.c **** volatile uint8_t  sd_dbg_cmd8 = 0xFF;
+  20:./Application/Src/fatfs_sd.c **** volatile uint8_t  sd_dbg_acmd41 = 0xFF;
+  21:./Application/Src/fatfs_sd.c **** volatile uint8_t  sd_dbg_type = 0;
+  22:./Application/Src/fatfs_sd.c **** volatile uint32_t sd_dbg_spi_errs = 0;
+  23:./Application/Src/fatfs_sd.c **** 
+  24:./Application/Src/fatfs_sd.c **** uint8_t Timer1, Timer2;  /* Timeout counters */
+  25:./Application/Src/fatfs_sd.c **** 
+  26:./Application/Src/fatfs_sd.c **** static volatile DSTATUS Stat = STA_NOINIT;
+  27:./Application/Src/fatfs_sd.c **** static uint8_t CardType;
+  28:./Application/Src/fatfs_sd.c **** static uint8_t PowerFlag = 0;
+  29:./Application/Src/fatfs_sd.c **** 
+  30:./Application/Src/fatfs_sd.c **** /* HAL SPI wrappers */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 2
+
+
+  31:./Application/Src/fatfs_sd.c **** static void SELECT(void) {
+  32:./Application/Src/fatfs_sd.c ****     HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
+  33:./Application/Src/fatfs_sd.c **** }
+  34:./Application/Src/fatfs_sd.c **** 
+  35:./Application/Src/fatfs_sd.c **** static void DESELECT(void) {
+  36:./Application/Src/fatfs_sd.c ****     HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_SET);
+  37:./Application/Src/fatfs_sd.c **** }
+  38:./Application/Src/fatfs_sd.c **** 
+  39:./Application/Src/fatfs_sd.c **** static uint8_t SpiTransceiveByte(uint8_t data) {
+  40:./Application/Src/fatfs_sd.c ****     uint8_t rx;
+  41:./Application/Src/fatfs_sd.c ****     if (HAL_SPI_TransmitReceive(&SD_SPI_HANDLE, &data, &rx, 1, SPI_TIMEOUT) != HAL_OK) {
+  42:./Application/Src/fatfs_sd.c ****         sd_dbg_spi_errs++;
+  43:./Application/Src/fatfs_sd.c ****     }
+  44:./Application/Src/fatfs_sd.c ****     return rx;
+  45:./Application/Src/fatfs_sd.c **** }
+  46:./Application/Src/fatfs_sd.c **** 
+  47:./Application/Src/fatfs_sd.c **** static void SPI_TxByte(BYTE data) {
+  48:./Application/Src/fatfs_sd.c ****     SpiTransceiveByte(data);
+  49:./Application/Src/fatfs_sd.c **** }
+  50:./Application/Src/fatfs_sd.c **** 
+  51:./Application/Src/fatfs_sd.c **** static uint8_t SPI_RxByte(void) {
+  52:./Application/Src/fatfs_sd.c ****     return SpiTransceiveByte(0xFF);
+  53:./Application/Src/fatfs_sd.c **** }
+  54:./Application/Src/fatfs_sd.c **** 
+  55:./Application/Src/fatfs_sd.c **** static void SPI_RxBytePtr(uint8_t *buff) {
+  56:./Application/Src/fatfs_sd.c ****     *buff = SPI_RxByte();
+  57:./Application/Src/fatfs_sd.c **** }
+  58:./Application/Src/fatfs_sd.c **** 
+  59:./Application/Src/fatfs_sd.c **** static uint8_t SD_ReadyWait(void) {
+  60:./Application/Src/fatfs_sd.c ****     uint8_t res;
+  61:./Application/Src/fatfs_sd.c ****     uint32_t timeout = 50000;
+  62:./Application/Src/fatfs_sd.c **** 
+  63:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+  64:./Application/Src/fatfs_sd.c ****     do {
+  65:./Application/Src/fatfs_sd.c ****         res = SPI_RxByte();
+  66:./Application/Src/fatfs_sd.c ****     } while ((res != 0xFF) && --timeout);
+  67:./Application/Src/fatfs_sd.c **** 
+  68:./Application/Src/fatfs_sd.c ****     return res;
+  69:./Application/Src/fatfs_sd.c **** }
+  70:./Application/Src/fatfs_sd.c **** 
+  71:./Application/Src/fatfs_sd.c **** static void SD_PowerOn(void) {
+  72:./Application/Src/fatfs_sd.c ****     uint8_t cmd_arg[6];
+  73:./Application/Src/fatfs_sd.c ****     uint32_t Count = 0x1FFF;
+  74:./Application/Src/fatfs_sd.c **** 
+  75:./Application/Src/fatfs_sd.c ****     DESELECT();
+  76:./Application/Src/fatfs_sd.c ****     for(int i = 0; i < 10; i++) {
+  77:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+  78:./Application/Src/fatfs_sd.c ****     }
+  79:./Application/Src/fatfs_sd.c **** 
+  80:./Application/Src/fatfs_sd.c ****     SELECT();
+  81:./Application/Src/fatfs_sd.c **** 
+  82:./Application/Src/fatfs_sd.c ****     cmd_arg[0] = (CMD0 | 0x40);
+  83:./Application/Src/fatfs_sd.c ****     cmd_arg[1] = 0;
+  84:./Application/Src/fatfs_sd.c ****     cmd_arg[2] = 0;
+  85:./Application/Src/fatfs_sd.c ****     cmd_arg[3] = 0;
+  86:./Application/Src/fatfs_sd.c ****     cmd_arg[4] = 0;
+  87:./Application/Src/fatfs_sd.c ****     cmd_arg[5] = 0x95;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 3
+
+
+  88:./Application/Src/fatfs_sd.c **** 
+  89:./Application/Src/fatfs_sd.c ****     for (int i = 0; i < 6; i++) {
+  90:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+  91:./Application/Src/fatfs_sd.c ****     }
+  92:./Application/Src/fatfs_sd.c **** 
+  93:./Application/Src/fatfs_sd.c ****     uint8_t resp = 0xFF;
+  94:./Application/Src/fatfs_sd.c ****     while (Count) {
+  95:./Application/Src/fatfs_sd.c ****         resp = SPI_RxByte();
+  96:./Application/Src/fatfs_sd.c ****         if (resp == 0x01) break;
+  97:./Application/Src/fatfs_sd.c ****         Count--;
+  98:./Application/Src/fatfs_sd.c ****     }
+  99:./Application/Src/fatfs_sd.c **** 
+ 100:./Application/Src/fatfs_sd.c ****     sd_dbg_poweron_resp = resp;
+ 101:./Application/Src/fatfs_sd.c **** 
+ 102:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 103:./Application/Src/fatfs_sd.c ****     SPI_TxByte(0xFF);
+ 104:./Application/Src/fatfs_sd.c **** 
+ 105:./Application/Src/fatfs_sd.c ****     PowerFlag = 1;
+ 106:./Application/Src/fatfs_sd.c **** }
+ 107:./Application/Src/fatfs_sd.c **** 
+ 108:./Application/Src/fatfs_sd.c **** static void SD_PowerOff(void) {
+  29              		.loc 1 108 31 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+ 109:./Application/Src/fatfs_sd.c ****     PowerFlag = 0;
+  34              		.loc 1 109 5 view .LVU1
+  35              		.loc 1 109 15 is_stmt 0 view .LVU2
+  36 0000 014B     		ldr	r3, .L2
+  37 0002 0022     		movs	r2, #0
+  38 0004 1A70     		strb	r2, [r3]
+ 110:./Application/Src/fatfs_sd.c **** }
+  39              		.loc 1 110 1 view .LVU3
+  40 0006 7047     		bx	lr
+  41              	.L3:
+  42              		.align	2
+  43              	.L2:
+  44 0008 00000000 		.word	PowerFlag
+  45              		.cfi_endproc
+  46              	.LFE168:
+  48              		.section	.text.SD_CheckPower,"ax",%progbits
+  49              		.align	1
+  50              		.syntax unified
+  51              		.thumb
+  52              		.thumb_func
+  54              	SD_CheckPower:
+  55              	.LFB169:
+ 111:./Application/Src/fatfs_sd.c **** 
+ 112:./Application/Src/fatfs_sd.c **** static uint8_t SD_CheckPower(void) {
+  56              		.loc 1 112 36 is_stmt 1 view -0
+  57              		.cfi_startproc
+  58              		@ args = 0, pretend = 0, frame = 0
+  59              		@ frame_needed = 0, uses_anonymous_args = 0
+  60              		@ link register save eliminated.
+ 113:./Application/Src/fatfs_sd.c ****     return PowerFlag;
+  61              		.loc 1 113 5 view .LVU5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 4
+
+
+ 114:./Application/Src/fatfs_sd.c **** }
+  62              		.loc 1 114 1 is_stmt 0 view .LVU6
+  63 0000 014B     		ldr	r3, .L5
+  64 0002 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+  65 0004 7047     		bx	lr
+  66              	.L6:
+  67 0006 00BF     		.align	2
+  68              	.L5:
+  69 0008 00000000 		.word	PowerFlag
+  70              		.cfi_endproc
+  71              	.LFE169:
+  73              		.section	.text.SpiTransceiveByte,"ax",%progbits
+  74              		.align	1
+  75              		.syntax unified
+  76              		.thumb
+  77              		.thumb_func
+  79              	SpiTransceiveByte:
+  80              	.LVL0:
+  81              	.LFB162:
+  39:./Application/Src/fatfs_sd.c ****     uint8_t rx;
+  82              		.loc 1 39 48 is_stmt 1 view -0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 16
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  39:./Application/Src/fatfs_sd.c ****     uint8_t rx;
+  86              		.loc 1 39 48 is_stmt 0 view .LVU8
+  87 0000 00B5     		push	{lr}
+  88              	.LCFI0:
+  89              		.cfi_def_cfa_offset 4
+  90              		.cfi_offset 14, -4
+  91 0002 87B0     		sub	sp, sp, #28
+  92              	.LCFI1:
+  93              		.cfi_def_cfa_offset 32
+  94 0004 8DF80F00 		strb	r0, [sp, #15]
+  40:./Application/Src/fatfs_sd.c ****     if (HAL_SPI_TransmitReceive(&SD_SPI_HANDLE, &data, &rx, 1, SPI_TIMEOUT) != HAL_OK) {
+  95              		.loc 1 40 5 is_stmt 1 view .LVU9
+  41:./Application/Src/fatfs_sd.c ****         sd_dbg_spi_errs++;
+  96              		.loc 1 41 5 view .LVU10
+  41:./Application/Src/fatfs_sd.c ****         sd_dbg_spi_errs++;
+  97              		.loc 1 41 9 is_stmt 0 view .LVU11
+  98 0008 6423     		movs	r3, #100
+  99 000a 0093     		str	r3, [sp]
+ 100 000c 0123     		movs	r3, #1
+ 101 000e 0DF11702 		add	r2, sp, #23
+ 102 0012 0DF10F01 		add	r1, sp, #15
+ 103 0016 0648     		ldr	r0, .L10
+ 104              	.LVL1:
+  41:./Application/Src/fatfs_sd.c ****         sd_dbg_spi_errs++;
+ 105              		.loc 1 41 9 view .LVU12
+ 106 0018 FFF7FEFF 		bl	HAL_SPI_TransmitReceive
+ 107              	.LVL2:
+  41:./Application/Src/fatfs_sd.c ****         sd_dbg_spi_errs++;
+ 108              		.loc 1 41 8 discriminator 1 view .LVU13
+ 109 001c 18B1     		cbz	r0, .L8
+  42:./Application/Src/fatfs_sd.c ****     }
+ 110              		.loc 1 42 9 is_stmt 1 view .LVU14
+  42:./Application/Src/fatfs_sd.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 5
+
+
+ 111              		.loc 1 42 24 is_stmt 0 view .LVU15
+ 112 001e 054A     		ldr	r2, .L10+4
+ 113 0020 1368     		ldr	r3, [r2]
+ 114 0022 0133     		adds	r3, r3, #1
+ 115 0024 1360     		str	r3, [r2]
+ 116              	.L8:
+  44:./Application/Src/fatfs_sd.c **** }
+ 117              		.loc 1 44 5 is_stmt 1 view .LVU16
+  45:./Application/Src/fatfs_sd.c **** 
+ 118              		.loc 1 45 1 is_stmt 0 view .LVU17
+ 119 0026 9DF81700 		ldrb	r0, [sp, #23]	@ zero_extendqisi2
+ 120 002a 07B0     		add	sp, sp, #28
+ 121              	.LCFI2:
+ 122              		.cfi_def_cfa_offset 4
+ 123              		@ sp needed
+ 124 002c 00BD     		pop	{pc}
+ 125              	.L11:
+ 126 002e 00BF     		.align	2
+ 127              	.L10:
+ 128 0030 00000000 		.word	hspi3
+ 129 0034 00000000 		.word	sd_dbg_spi_errs
+ 130              		.cfi_endproc
+ 131              	.LFE162:
+ 133              		.section	.text.SPI_TxByte,"ax",%progbits
+ 134              		.align	1
+ 135              		.syntax unified
+ 136              		.thumb
+ 137              		.thumb_func
+ 139              	SPI_TxByte:
+ 140              	.LVL3:
+ 141              	.LFB163:
+  47:./Application/Src/fatfs_sd.c ****     SpiTransceiveByte(data);
+ 142              		.loc 1 47 35 is_stmt 1 view -0
+ 143              		.cfi_startproc
+ 144              		@ args = 0, pretend = 0, frame = 0
+ 145              		@ frame_needed = 0, uses_anonymous_args = 0
+  47:./Application/Src/fatfs_sd.c ****     SpiTransceiveByte(data);
+ 146              		.loc 1 47 35 is_stmt 0 view .LVU19
+ 147 0000 08B5     		push	{r3, lr}
+ 148              	.LCFI3:
+ 149              		.cfi_def_cfa_offset 8
+ 150              		.cfi_offset 3, -8
+ 151              		.cfi_offset 14, -4
+  48:./Application/Src/fatfs_sd.c **** }
+ 152              		.loc 1 48 5 is_stmt 1 view .LVU20
+ 153 0002 FFF7FEFF 		bl	SpiTransceiveByte
+ 154              	.LVL4:
+  49:./Application/Src/fatfs_sd.c **** 
+ 155              		.loc 1 49 1 is_stmt 0 view .LVU21
+ 156 0006 08BD     		pop	{r3, pc}
+ 157              		.cfi_endproc
+ 158              	.LFE163:
+ 160              		.section	.text.SPI_RxByte,"ax",%progbits
+ 161              		.align	1
+ 162              		.syntax unified
+ 163              		.thumb
+ 164              		.thumb_func
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 6
+
+
+ 166              	SPI_RxByte:
+ 167              	.LFB164:
+  51:./Application/Src/fatfs_sd.c ****     return SpiTransceiveByte(0xFF);
+ 168              		.loc 1 51 33 is_stmt 1 view -0
+ 169              		.cfi_startproc
+ 170              		@ args = 0, pretend = 0, frame = 0
+ 171              		@ frame_needed = 0, uses_anonymous_args = 0
+ 172 0000 08B5     		push	{r3, lr}
+ 173              	.LCFI4:
+ 174              		.cfi_def_cfa_offset 8
+ 175              		.cfi_offset 3, -8
+ 176              		.cfi_offset 14, -4
+  52:./Application/Src/fatfs_sd.c **** }
+ 177              		.loc 1 52 5 view .LVU23
+  52:./Application/Src/fatfs_sd.c **** }
+ 178              		.loc 1 52 12 is_stmt 0 view .LVU24
+ 179 0002 FF20     		movs	r0, #255
+ 180 0004 FFF7FEFF 		bl	SpiTransceiveByte
+ 181              	.LVL5:
+  53:./Application/Src/fatfs_sd.c **** 
+ 182              		.loc 1 53 1 view .LVU25
+ 183 0008 08BD     		pop	{r3, pc}
+ 184              		.cfi_endproc
+ 185              	.LFE164:
+ 187              		.section	.text.SD_ReadyWait,"ax",%progbits
+ 188              		.align	1
+ 189              		.syntax unified
+ 190              		.thumb
+ 191              		.thumb_func
+ 193              	SD_ReadyWait:
+ 194              	.LFB166:
+  59:./Application/Src/fatfs_sd.c ****     uint8_t res;
+ 195              		.loc 1 59 35 is_stmt 1 view -0
+ 196              		.cfi_startproc
+ 197              		@ args = 0, pretend = 0, frame = 0
+ 198              		@ frame_needed = 0, uses_anonymous_args = 0
+ 199 0000 10B5     		push	{r4, lr}
+ 200              	.LCFI5:
+ 201              		.cfi_def_cfa_offset 8
+ 202              		.cfi_offset 4, -8
+ 203              		.cfi_offset 14, -4
+  60:./Application/Src/fatfs_sd.c ****     uint32_t timeout = 50000;
+ 204              		.loc 1 60 5 view .LVU27
+  61:./Application/Src/fatfs_sd.c **** 
+ 205              		.loc 1 61 5 view .LVU28
+ 206              	.LVL6:
+  63:./Application/Src/fatfs_sd.c ****     do {
+ 207              		.loc 1 63 5 view .LVU29
+ 208 0002 FFF7FEFF 		bl	SPI_RxByte
+ 209              	.LVL7:
+  61:./Application/Src/fatfs_sd.c **** 
+ 210              		.loc 1 61 14 is_stmt 0 view .LVU30
+ 211 0006 4CF25034 		movw	r4, #50000
+ 212              	.LVL8:
+ 213              	.L18:
+  64:./Application/Src/fatfs_sd.c ****         res = SPI_RxByte();
+ 214              		.loc 1 64 5 is_stmt 1 view .LVU31
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 7
+
+
+  65:./Application/Src/fatfs_sd.c ****     } while ((res != 0xFF) && --timeout);
+ 215              		.loc 1 65 9 view .LVU32
+  65:./Application/Src/fatfs_sd.c ****     } while ((res != 0xFF) && --timeout);
+ 216              		.loc 1 65 15 is_stmt 0 view .LVU33
+ 217 000a FFF7FEFF 		bl	SPI_RxByte
+ 218              	.LVL9:
+  66:./Application/Src/fatfs_sd.c **** 
+ 219              		.loc 1 66 28 is_stmt 1 discriminator 2 view .LVU34
+ 220 000e FF28     		cmp	r0, #255
+ 221 0010 01D0     		beq	.L17
+ 222              	.LVL10:
+  66:./Application/Src/fatfs_sd.c **** 
+ 223              		.loc 1 66 28 is_stmt 0 discriminator 1 view .LVU35
+ 224 0012 013C     		subs	r4, r4, #1
+ 225              	.LVL11:
+  66:./Application/Src/fatfs_sd.c **** 
+ 226              		.loc 1 66 28 discriminator 1 view .LVU36
+ 227 0014 F9D1     		bne	.L18
+ 228              	.L17:
+  68:./Application/Src/fatfs_sd.c **** }
+ 229              		.loc 1 68 5 is_stmt 1 view .LVU37
+  69:./Application/Src/fatfs_sd.c **** 
+ 230              		.loc 1 69 1 is_stmt 0 view .LVU38
+ 231 0016 10BD     		pop	{r4, pc}
+  69:./Application/Src/fatfs_sd.c **** 
+ 232              		.loc 1 69 1 view .LVU39
+ 233              		.cfi_endproc
+ 234              	.LFE166:
+ 236              		.section	.text.SD_SendCmd,"ax",%progbits
+ 237              		.align	1
+ 238              		.syntax unified
+ 239              		.thumb
+ 240              		.thumb_func
+ 242              	SD_SendCmd:
+ 243              	.LVL12:
+ 244              	.LFB172:
+ 115:./Application/Src/fatfs_sd.c **** 
+ 116:./Application/Src/fatfs_sd.c **** static bool SD_RxDataBlock(BYTE *buff, UINT btr) {
+ 117:./Application/Src/fatfs_sd.c ****     uint8_t token;
+ 118:./Application/Src/fatfs_sd.c ****     uint32_t timeout = 100000;
+ 119:./Application/Src/fatfs_sd.c **** 
+ 120:./Application/Src/fatfs_sd.c ****     do {
+ 121:./Application/Src/fatfs_sd.c ****         token = SPI_RxByte();
+ 122:./Application/Src/fatfs_sd.c ****     } while((token == 0xFF) && --timeout);
+ 123:./Application/Src/fatfs_sd.c **** 
+ 124:./Application/Src/fatfs_sd.c ****     if(token != 0xFE)
+ 125:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 126:./Application/Src/fatfs_sd.c **** 
+ 127:./Application/Src/fatfs_sd.c ****     do {
+ 128:./Application/Src/fatfs_sd.c ****         SPI_RxBytePtr(buff++);
+ 129:./Application/Src/fatfs_sd.c ****         SPI_RxBytePtr(buff++);
+ 130:./Application/Src/fatfs_sd.c ****     } while(btr -= 2);
+ 131:./Application/Src/fatfs_sd.c **** 
+ 132:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 133:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 134:./Application/Src/fatfs_sd.c **** 
+ 135:./Application/Src/fatfs_sd.c ****     return TRUE;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 8
+
+
+ 136:./Application/Src/fatfs_sd.c **** }
+ 137:./Application/Src/fatfs_sd.c **** 
+ 138:./Application/Src/fatfs_sd.c **** static bool SD_TxDataBlock(const BYTE *buff, BYTE token) {
+ 139:./Application/Src/fatfs_sd.c ****     uint8_t resp = 0;
+ 140:./Application/Src/fatfs_sd.c ****     uint8_t wc = 0;
+ 141:./Application/Src/fatfs_sd.c ****     uint8_t i = 0;
+ 142:./Application/Src/fatfs_sd.c **** 
+ 143:./Application/Src/fatfs_sd.c ****     if (SD_ReadyWait() != 0xFF)
+ 144:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 145:./Application/Src/fatfs_sd.c **** 
+ 146:./Application/Src/fatfs_sd.c ****     SPI_TxByte(token);
+ 147:./Application/Src/fatfs_sd.c **** 
+ 148:./Application/Src/fatfs_sd.c ****     if (token != 0xFD) {
+ 149:./Application/Src/fatfs_sd.c ****         do {
+ 150:./Application/Src/fatfs_sd.c ****             SPI_TxByte(*buff++);
+ 151:./Application/Src/fatfs_sd.c ****             SPI_TxByte(*buff++);
+ 152:./Application/Src/fatfs_sd.c ****         } while (--wc);
+ 153:./Application/Src/fatfs_sd.c **** 
+ 154:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 155:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 156:./Application/Src/fatfs_sd.c **** 
+ 157:./Application/Src/fatfs_sd.c ****         while (i <= 64) {
+ 158:./Application/Src/fatfs_sd.c ****             resp = SPI_RxByte();
+ 159:./Application/Src/fatfs_sd.c ****             if ((resp & 0x1F) == 0x05)
+ 160:./Application/Src/fatfs_sd.c ****                 break;
+ 161:./Application/Src/fatfs_sd.c ****             i++;
+ 162:./Application/Src/fatfs_sd.c ****         }
+ 163:./Application/Src/fatfs_sd.c **** 
+ 164:./Application/Src/fatfs_sd.c ****         while (SPI_RxByte() == 0);
+ 165:./Application/Src/fatfs_sd.c ****     }
+ 166:./Application/Src/fatfs_sd.c **** 
+ 167:./Application/Src/fatfs_sd.c ****     if ((resp & 0x1F) == 0x05)
+ 168:./Application/Src/fatfs_sd.c ****         return TRUE;
+ 169:./Application/Src/fatfs_sd.c ****     else
+ 170:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 171:./Application/Src/fatfs_sd.c **** }
+ 172:./Application/Src/fatfs_sd.c **** 
+ 173:./Application/Src/fatfs_sd.c **** static BYTE SD_SendCmd(BYTE cmd, DWORD arg) {
+ 245              		.loc 1 173 45 is_stmt 1 view -0
+ 246              		.cfi_startproc
+ 247              		@ args = 0, pretend = 0, frame = 0
+ 248              		@ frame_needed = 0, uses_anonymous_args = 0
+ 249              		.loc 1 173 45 is_stmt 0 view .LVU41
+ 250 0000 38B5     		push	{r3, r4, r5, lr}
+ 251              	.LCFI6:
+ 252              		.cfi_def_cfa_offset 16
+ 253              		.cfi_offset 3, -16
+ 254              		.cfi_offset 4, -12
+ 255              		.cfi_offset 5, -8
+ 256              		.cfi_offset 14, -4
+ 257 0002 0446     		mov	r4, r0
+ 258 0004 0D46     		mov	r5, r1
+ 174:./Application/Src/fatfs_sd.c ****     uint8_t crc, res;
+ 259              		.loc 1 174 5 is_stmt 1 view .LVU42
+ 175:./Application/Src/fatfs_sd.c **** 
+ 176:./Application/Src/fatfs_sd.c ****     if (SD_ReadyWait() != 0xFF)
+ 260              		.loc 1 176 5 view .LVU43
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 9
+
+
+ 261              		.loc 1 176 9 is_stmt 0 view .LVU44
+ 262 0006 FFF7FEFF 		bl	SD_ReadyWait
+ 263              	.LVL13:
+ 264              		.loc 1 176 8 discriminator 1 view .LVU45
+ 265 000a FF28     		cmp	r0, #255
+ 266 000c 01D0     		beq	.L29
+ 177:./Application/Src/fatfs_sd.c ****         return 0xFF;
+ 267              		.loc 1 177 16 view .LVU46
+ 268 000e FF20     		movs	r0, #255
+ 269              	.LVL14:
+ 270              	.L21:
+ 178:./Application/Src/fatfs_sd.c **** 
+ 179:./Application/Src/fatfs_sd.c ****     SPI_TxByte(cmd);
+ 180:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 24));
+ 181:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 16));
+ 182:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 8));
+ 183:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)arg);
+ 184:./Application/Src/fatfs_sd.c **** 
+ 185:./Application/Src/fatfs_sd.c ****     crc = 0x01;
+ 186:./Application/Src/fatfs_sd.c ****     if (cmd == CMD0) crc = 0x95;
+ 187:./Application/Src/fatfs_sd.c ****     if (cmd == CMD8) crc = 0x87;
+ 188:./Application/Src/fatfs_sd.c ****     SPI_TxByte(crc);
+ 189:./Application/Src/fatfs_sd.c **** 
+ 190:./Application/Src/fatfs_sd.c ****     if (cmd == CMD12)
+ 191:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 192:./Application/Src/fatfs_sd.c **** 
+ 193:./Application/Src/fatfs_sd.c ****     uint8_t n = 10;
+ 194:./Application/Src/fatfs_sd.c ****     do {
+ 195:./Application/Src/fatfs_sd.c ****         res = SPI_RxByte();
+ 196:./Application/Src/fatfs_sd.c ****     } while ((res & 0x80) && --n);
+ 197:./Application/Src/fatfs_sd.c **** 
+ 198:./Application/Src/fatfs_sd.c ****     return res;
+ 199:./Application/Src/fatfs_sd.c **** }
+ 271              		.loc 1 199 1 view .LVU47
+ 272 0010 38BD     		pop	{r3, r4, r5, pc}
+ 273              	.LVL15:
+ 274              	.L29:
+ 179:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 24));
+ 275              		.loc 1 179 5 is_stmt 1 view .LVU48
+ 276 0012 2046     		mov	r0, r4
+ 277 0014 FFF7FEFF 		bl	SPI_TxByte
+ 278              	.LVL16:
+ 180:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 16));
+ 279              		.loc 1 180 5 view .LVU49
+ 280 0018 280E     		lsrs	r0, r5, #24
+ 281 001a FFF7FEFF 		bl	SPI_TxByte
+ 282              	.LVL17:
+ 181:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)(arg >> 8));
+ 283              		.loc 1 181 5 view .LVU50
+ 284 001e C5F30740 		ubfx	r0, r5, #16, #8
+ 285 0022 FFF7FEFF 		bl	SPI_TxByte
+ 286              	.LVL18:
+ 182:./Application/Src/fatfs_sd.c ****     SPI_TxByte((BYTE)arg);
+ 287              		.loc 1 182 5 view .LVU51
+ 288 0026 C5F30720 		ubfx	r0, r5, #8, #8
+ 289 002a FFF7FEFF 		bl	SPI_TxByte
+ 290              	.LVL19:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 10
+
+
+ 183:./Application/Src/fatfs_sd.c **** 
+ 291              		.loc 1 183 5 view .LVU52
+ 292 002e E8B2     		uxtb	r0, r5
+ 293 0030 FFF7FEFF 		bl	SPI_TxByte
+ 294              	.LVL20:
+ 185:./Application/Src/fatfs_sd.c ****     if (cmd == CMD0) crc = 0x95;
+ 295              		.loc 1 185 5 view .LVU53
+ 186:./Application/Src/fatfs_sd.c ****     if (cmd == CMD8) crc = 0x87;
+ 296              		.loc 1 186 5 view .LVU54
+ 186:./Application/Src/fatfs_sd.c ****     if (cmd == CMD8) crc = 0x87;
+ 297              		.loc 1 186 8 is_stmt 0 view .LVU55
+ 298 0034 402C     		cmp	r4, #64
+ 299 0036 11D0     		beq	.L26
+ 187:./Application/Src/fatfs_sd.c ****     SPI_TxByte(crc);
+ 300              		.loc 1 187 5 is_stmt 1 view .LVU56
+ 187:./Application/Src/fatfs_sd.c ****     SPI_TxByte(crc);
+ 301              		.loc 1 187 8 is_stmt 0 view .LVU57
+ 302 0038 482C     		cmp	r4, #72
+ 303 003a 11D0     		beq	.L27
+ 304 003c 0120     		movs	r0, #1
+ 305              	.L22:
+ 306              	.LVL21:
+ 188:./Application/Src/fatfs_sd.c **** 
+ 307              		.loc 1 188 5 is_stmt 1 view .LVU58
+ 308 003e FFF7FEFF 		bl	SPI_TxByte
+ 309              	.LVL22:
+ 190:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 310              		.loc 1 190 5 view .LVU59
+ 190:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 311              		.loc 1 190 8 is_stmt 0 view .LVU60
+ 312 0042 4C2C     		cmp	r4, #76
+ 313 0044 0ED0     		beq	.L30
+ 314              	.L23:
+ 186:./Application/Src/fatfs_sd.c ****     if (cmd == CMD8) crc = 0x87;
+ 315              		.loc 1 186 26 discriminator 1 view .LVU61
+ 316 0046 0A24     		movs	r4, #10
+ 317              	.L24:
+ 318              	.LVL23:
+ 194:./Application/Src/fatfs_sd.c ****         res = SPI_RxByte();
+ 319              		.loc 1 194 5 is_stmt 1 view .LVU62
+ 195:./Application/Src/fatfs_sd.c ****     } while ((res & 0x80) && --n);
+ 320              		.loc 1 195 9 view .LVU63
+ 195:./Application/Src/fatfs_sd.c ****     } while ((res & 0x80) && --n);
+ 321              		.loc 1 195 15 is_stmt 0 view .LVU64
+ 322 0048 FFF7FEFF 		bl	SPI_RxByte
+ 323              	.LVL24:
+ 196:./Application/Src/fatfs_sd.c **** 
+ 324              		.loc 1 196 27 is_stmt 1 discriminator 2 view .LVU65
+ 325 004c 10F0800F 		tst	r0, #128
+ 326 0050 DED0     		beq	.L21
+ 196:./Application/Src/fatfs_sd.c **** 
+ 327              		.loc 1 196 27 is_stmt 0 discriminator 1 view .LVU66
+ 328 0052 631E     		subs	r3, r4, #1
+ 329              	.LVL25:
+ 196:./Application/Src/fatfs_sd.c **** 
+ 330              		.loc 1 196 27 discriminator 1 view .LVU67
+ 331 0054 13F0FF04 		ands	r4, r3, #255
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 11
+
+
+ 332 0058 F6D1     		bne	.L24
+ 333 005a D9E7     		b	.L21
+ 334              	.LVL26:
+ 335              	.L26:
+ 186:./Application/Src/fatfs_sd.c ****     if (cmd == CMD8) crc = 0x87;
+ 336              		.loc 1 186 26 discriminator 1 view .LVU68
+ 337 005c 9520     		movs	r0, #149
+ 338 005e EEE7     		b	.L22
+ 339              	.L27:
+ 187:./Application/Src/fatfs_sd.c ****     SPI_TxByte(crc);
+ 340              		.loc 1 187 26 discriminator 1 view .LVU69
+ 341 0060 8720     		movs	r0, #135
+ 342 0062 ECE7     		b	.L22
+ 343              	.LVL27:
+ 344              	.L30:
+ 191:./Application/Src/fatfs_sd.c **** 
+ 345              		.loc 1 191 9 is_stmt 1 view .LVU70
+ 346 0064 FFF7FEFF 		bl	SPI_RxByte
+ 347              	.LVL28:
+ 348 0068 EDE7     		b	.L23
+ 349              		.cfi_endproc
+ 350              	.LFE172:
+ 352              		.section	.text.SPI_RxBytePtr,"ax",%progbits
+ 353              		.align	1
+ 354              		.syntax unified
+ 355              		.thumb
+ 356              		.thumb_func
+ 358              	SPI_RxBytePtr:
+ 359              	.LVL29:
+ 360              	.LFB165:
+  55:./Application/Src/fatfs_sd.c ****     *buff = SPI_RxByte();
+ 361              		.loc 1 55 42 view -0
+ 362              		.cfi_startproc
+ 363              		@ args = 0, pretend = 0, frame = 0
+ 364              		@ frame_needed = 0, uses_anonymous_args = 0
+  55:./Application/Src/fatfs_sd.c ****     *buff = SPI_RxByte();
+ 365              		.loc 1 55 42 is_stmt 0 view .LVU72
+ 366 0000 10B5     		push	{r4, lr}
+ 367              	.LCFI7:
+ 368              		.cfi_def_cfa_offset 8
+ 369              		.cfi_offset 4, -8
+ 370              		.cfi_offset 14, -4
+ 371 0002 0446     		mov	r4, r0
+  56:./Application/Src/fatfs_sd.c **** }
+ 372              		.loc 1 56 5 is_stmt 1 view .LVU73
+  56:./Application/Src/fatfs_sd.c **** }
+ 373              		.loc 1 56 13 is_stmt 0 view .LVU74
+ 374 0004 FFF7FEFF 		bl	SPI_RxByte
+ 375              	.LVL30:
+  56:./Application/Src/fatfs_sd.c **** }
+ 376              		.loc 1 56 11 discriminator 1 view .LVU75
+ 377 0008 2070     		strb	r0, [r4]
+  57:./Application/Src/fatfs_sd.c **** 
+ 378              		.loc 1 57 1 view .LVU76
+ 379 000a 10BD     		pop	{r4, pc}
+  57:./Application/Src/fatfs_sd.c **** 
+ 380              		.loc 1 57 1 view .LVU77
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 12
+
+
+ 381              		.cfi_endproc
+ 382              	.LFE165:
+ 384              		.section	.text.SD_RxDataBlock,"ax",%progbits
+ 385              		.align	1
+ 386              		.syntax unified
+ 387              		.thumb
+ 388              		.thumb_func
+ 390              	SD_RxDataBlock:
+ 391              	.LVL31:
+ 392              	.LFB170:
+ 116:./Application/Src/fatfs_sd.c ****     uint8_t token;
+ 393              		.loc 1 116 50 is_stmt 1 view -0
+ 394              		.cfi_startproc
+ 395              		@ args = 0, pretend = 0, frame = 0
+ 396              		@ frame_needed = 0, uses_anonymous_args = 0
+ 116:./Application/Src/fatfs_sd.c ****     uint8_t token;
+ 397              		.loc 1 116 50 is_stmt 0 view .LVU79
+ 398 0000 70B5     		push	{r4, r5, r6, lr}
+ 399              	.LCFI8:
+ 400              		.cfi_def_cfa_offset 16
+ 401              		.cfi_offset 4, -16
+ 402              		.cfi_offset 5, -12
+ 403              		.cfi_offset 6, -8
+ 404              		.cfi_offset 14, -4
+ 405 0002 0546     		mov	r5, r0
+ 406 0004 0E46     		mov	r6, r1
+ 117:./Application/Src/fatfs_sd.c ****     uint32_t timeout = 100000;
+ 407              		.loc 1 117 5 is_stmt 1 view .LVU80
+ 118:./Application/Src/fatfs_sd.c **** 
+ 408              		.loc 1 118 5 view .LVU81
+ 409              	.LVL32:
+ 118:./Application/Src/fatfs_sd.c **** 
+ 410              		.loc 1 118 14 is_stmt 0 view .LVU82
+ 411 0006 0D4C     		ldr	r4, .L40
+ 412              	.LVL33:
+ 413              	.L35:
+ 120:./Application/Src/fatfs_sd.c ****         token = SPI_RxByte();
+ 414              		.loc 1 120 5 is_stmt 1 view .LVU83
+ 121:./Application/Src/fatfs_sd.c ****     } while((token == 0xFF) && --timeout);
+ 415              		.loc 1 121 9 view .LVU84
+ 121:./Application/Src/fatfs_sd.c ****     } while((token == 0xFF) && --timeout);
+ 416              		.loc 1 121 17 is_stmt 0 view .LVU85
+ 417 0008 FFF7FEFF 		bl	SPI_RxByte
+ 418              	.LVL34:
+ 122:./Application/Src/fatfs_sd.c **** 
+ 419              		.loc 1 122 29 is_stmt 1 discriminator 2 view .LVU86
+ 420 000c FF28     		cmp	r0, #255
+ 421 000e 01D1     		bne	.L34
+ 422              	.LVL35:
+ 122:./Application/Src/fatfs_sd.c **** 
+ 423              		.loc 1 122 29 is_stmt 0 discriminator 1 view .LVU87
+ 424 0010 013C     		subs	r4, r4, #1
+ 425              	.LVL36:
+ 122:./Application/Src/fatfs_sd.c **** 
+ 426              		.loc 1 122 29 discriminator 1 view .LVU88
+ 427 0012 F9D1     		bne	.L35
+ 428              	.L34:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 13
+
+
+ 124:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 429              		.loc 1 124 5 is_stmt 1 view .LVU89
+ 124:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 430              		.loc 1 124 7 is_stmt 0 view .LVU90
+ 431 0014 FE28     		cmp	r0, #254
+ 432 0016 0FD1     		bne	.L38
+ 433              	.LVL37:
+ 434              	.L37:
+ 127:./Application/Src/fatfs_sd.c ****         SPI_RxBytePtr(buff++);
+ 435              		.loc 1 127 5 is_stmt 1 view .LVU91
+ 128:./Application/Src/fatfs_sd.c ****         SPI_RxBytePtr(buff++);
+ 436              		.loc 1 128 9 view .LVU92
+ 437 0018 6C1C     		adds	r4, r5, #1
+ 438              	.LVL38:
+ 128:./Application/Src/fatfs_sd.c ****         SPI_RxBytePtr(buff++);
+ 439              		.loc 1 128 9 is_stmt 0 view .LVU93
+ 440 001a 2846     		mov	r0, r5
+ 441 001c FFF7FEFF 		bl	SPI_RxBytePtr
+ 442              	.LVL39:
+ 129:./Application/Src/fatfs_sd.c ****     } while(btr -= 2);
+ 443              		.loc 1 129 9 is_stmt 1 view .LVU94
+ 129:./Application/Src/fatfs_sd.c ****     } while(btr -= 2);
+ 444              		.loc 1 129 9 is_stmt 0 view .LVU95
+ 445 0020 2046     		mov	r0, r4
+ 446 0022 0235     		adds	r5, r5, #2
+ 447              	.LVL40:
+ 129:./Application/Src/fatfs_sd.c ****     } while(btr -= 2);
+ 448              		.loc 1 129 9 view .LVU96
+ 449 0024 FFF7FEFF 		bl	SPI_RxBytePtr
+ 450              	.LVL41:
+ 130:./Application/Src/fatfs_sd.c **** 
+ 451              		.loc 1 130 13 is_stmt 1 discriminator 1 view .LVU97
+ 130:./Application/Src/fatfs_sd.c **** 
+ 452              		.loc 1 130 13 is_stmt 0 discriminator 1 view .LVU98
+ 453 0028 023E     		subs	r6, r6, #2
+ 454              	.LVL42:
+ 130:./Application/Src/fatfs_sd.c **** 
+ 455              		.loc 1 130 13 discriminator 1 view .LVU99
+ 456 002a F5D1     		bne	.L37
+ 132:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 457              		.loc 1 132 5 is_stmt 1 view .LVU100
+ 458 002c FFF7FEFF 		bl	SPI_RxByte
+ 459              	.LVL43:
+ 133:./Application/Src/fatfs_sd.c **** 
+ 460              		.loc 1 133 5 view .LVU101
+ 461 0030 FFF7FEFF 		bl	SPI_RxByte
+ 462              	.LVL44:
+ 135:./Application/Src/fatfs_sd.c **** }
+ 463              		.loc 1 135 5 view .LVU102
+ 135:./Application/Src/fatfs_sd.c **** }
+ 464              		.loc 1 135 12 is_stmt 0 view .LVU103
+ 465 0034 0120     		movs	r0, #1
+ 466              	.LVL45:
+ 467              	.L36:
+ 136:./Application/Src/fatfs_sd.c **** 
+ 468              		.loc 1 136 1 view .LVU104
+ 469 0036 70BD     		pop	{r4, r5, r6, pc}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 14
+
+
+ 470              	.LVL46:
+ 471              	.L38:
+ 125:./Application/Src/fatfs_sd.c **** 
+ 472              		.loc 1 125 16 view .LVU105
+ 473 0038 0020     		movs	r0, #0
+ 474              	.LVL47:
+ 125:./Application/Src/fatfs_sd.c **** 
+ 475              		.loc 1 125 16 view .LVU106
+ 476 003a FCE7     		b	.L36
+ 477              	.L41:
+ 478              		.align	2
+ 479              	.L40:
+ 480 003c A0860100 		.word	100000
+ 481              		.cfi_endproc
+ 482              	.LFE170:
+ 484              		.section	.text.SD_TxDataBlock,"ax",%progbits
+ 485              		.align	1
+ 486              		.syntax unified
+ 487              		.thumb
+ 488              		.thumb_func
+ 490              	SD_TxDataBlock:
+ 491              	.LVL48:
+ 492              	.LFB171:
+ 138:./Application/Src/fatfs_sd.c ****     uint8_t resp = 0;
+ 493              		.loc 1 138 58 is_stmt 1 view -0
+ 494              		.cfi_startproc
+ 495              		@ args = 0, pretend = 0, frame = 0
+ 496              		@ frame_needed = 0, uses_anonymous_args = 0
+ 138:./Application/Src/fatfs_sd.c ****     uint8_t resp = 0;
+ 497              		.loc 1 138 58 is_stmt 0 view .LVU108
+ 498 0000 38B5     		push	{r3, r4, r5, lr}
+ 499              	.LCFI9:
+ 500              		.cfi_def_cfa_offset 16
+ 501              		.cfi_offset 3, -16
+ 502              		.cfi_offset 4, -12
+ 503              		.cfi_offset 5, -8
+ 504              		.cfi_offset 14, -4
+ 505 0002 0546     		mov	r5, r0
+ 506 0004 0C46     		mov	r4, r1
+ 139:./Application/Src/fatfs_sd.c ****     uint8_t wc = 0;
+ 507              		.loc 1 139 5 is_stmt 1 view .LVU109
+ 508              	.LVL49:
+ 140:./Application/Src/fatfs_sd.c ****     uint8_t i = 0;
+ 509              		.loc 1 140 5 view .LVU110
+ 141:./Application/Src/fatfs_sd.c **** 
+ 510              		.loc 1 141 5 view .LVU111
+ 143:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 511              		.loc 1 143 5 view .LVU112
+ 143:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 512              		.loc 1 143 9 is_stmt 0 view .LVU113
+ 513 0006 FFF7FEFF 		bl	SD_ReadyWait
+ 514              	.LVL50:
+ 143:./Application/Src/fatfs_sd.c ****         return FALSE;
+ 515              		.loc 1 143 8 discriminator 1 view .LVU114
+ 516 000a FF28     		cmp	r0, #255
+ 517 000c 01D0     		beq	.L53
+ 144:./Application/Src/fatfs_sd.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 15
+
+
+ 518              		.loc 1 144 16 view .LVU115
+ 519 000e 0020     		movs	r0, #0
+ 520              	.LVL51:
+ 521              	.L43:
+ 171:./Application/Src/fatfs_sd.c **** 
+ 522              		.loc 1 171 1 view .LVU116
+ 523 0010 38BD     		pop	{r3, r4, r5, pc}
+ 524              	.LVL52:
+ 525              	.L53:
+ 146:./Application/Src/fatfs_sd.c **** 
+ 526              		.loc 1 146 5 is_stmt 1 view .LVU117
+ 527 0012 2046     		mov	r0, r4
+ 528 0014 FFF7FEFF 		bl	SPI_TxByte
+ 529              	.LVL53:
+ 148:./Application/Src/fatfs_sd.c ****         do {
+ 530              		.loc 1 148 5 view .LVU118
+ 148:./Application/Src/fatfs_sd.c ****         do {
+ 531              		.loc 1 148 8 is_stmt 0 view .LVU119
+ 532 0018 FD2C     		cmp	r4, #253
+ 533 001a 24D0     		beq	.L44
+ 140:./Application/Src/fatfs_sd.c ****     uint8_t i = 0;
+ 534              		.loc 1 140 13 view .LVU120
+ 535 001c 0024     		movs	r4, #0
+ 536              	.LVL54:
+ 537              	.L45:
+ 149:./Application/Src/fatfs_sd.c ****             SPI_TxByte(*buff++);
+ 538              		.loc 1 149 9 is_stmt 1 view .LVU121
+ 150:./Application/Src/fatfs_sd.c ****             SPI_TxByte(*buff++);
+ 539              		.loc 1 150 13 view .LVU122
+ 150:./Application/Src/fatfs_sd.c ****             SPI_TxByte(*buff++);
+ 540              		.loc 1 150 13 is_stmt 0 view .LVU123
+ 541 001e 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 542 0020 FFF7FEFF 		bl	SPI_TxByte
+ 543              	.LVL55:
+ 151:./Application/Src/fatfs_sd.c ****         } while (--wc);
+ 544              		.loc 1 151 13 is_stmt 1 view .LVU124
+ 151:./Application/Src/fatfs_sd.c ****         } while (--wc);
+ 545              		.loc 1 151 13 is_stmt 0 view .LVU125
+ 546 0024 6878     		ldrb	r0, [r5, #1]	@ zero_extendqisi2
+ 547 0026 0235     		adds	r5, r5, #2
+ 548              	.LVL56:
+ 151:./Application/Src/fatfs_sd.c ****         } while (--wc);
+ 549              		.loc 1 151 13 view .LVU126
+ 550 0028 FFF7FEFF 		bl	SPI_TxByte
+ 551              	.LVL57:
+ 152:./Application/Src/fatfs_sd.c **** 
+ 552              		.loc 1 152 18 is_stmt 1 discriminator 1 view .LVU127
+ 553 002c 601E     		subs	r0, r4, #1
+ 554              	.LVL58:
+ 152:./Application/Src/fatfs_sd.c **** 
+ 555              		.loc 1 152 18 is_stmt 0 discriminator 1 view .LVU128
+ 556 002e 10F0FF04 		ands	r4, r0, #255
+ 557 0032 F4D1     		bne	.L45
+ 154:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 558              		.loc 1 154 9 is_stmt 1 view .LVU129
+ 559 0034 FFF7FEFF 		bl	SPI_RxByte
+ 560              	.LVL59:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 16
+
+
+ 155:./Application/Src/fatfs_sd.c **** 
+ 561              		.loc 1 155 9 view .LVU130
+ 562 0038 FFF7FEFF 		bl	SPI_RxByte
+ 563              	.LVL60:
+ 157:./Application/Src/fatfs_sd.c ****             resp = SPI_RxByte();
+ 564              		.loc 1 157 9 view .LVU131
+ 141:./Application/Src/fatfs_sd.c **** 
+ 565              		.loc 1 141 13 is_stmt 0 view .LVU132
+ 566 003c 2546     		mov	r5, r4
+ 567              	.LVL61:
+ 568              	.L46:
+ 157:./Application/Src/fatfs_sd.c ****             resp = SPI_RxByte();
+ 569              		.loc 1 157 18 is_stmt 1 view .LVU133
+ 570 003e 402D     		cmp	r5, #64
+ 571 0040 09D8     		bhi	.L49
+ 158:./Application/Src/fatfs_sd.c ****             if ((resp & 0x1F) == 0x05)
+ 572              		.loc 1 158 13 view .LVU134
+ 158:./Application/Src/fatfs_sd.c ****             if ((resp & 0x1F) == 0x05)
+ 573              		.loc 1 158 20 is_stmt 0 view .LVU135
+ 574 0042 FFF7FEFF 		bl	SPI_RxByte
+ 575              	.LVL62:
+ 576 0046 0446     		mov	r4, r0
+ 577              	.LVL63:
+ 159:./Application/Src/fatfs_sd.c ****                 break;
+ 578              		.loc 1 159 13 is_stmt 1 view .LVU136
+ 159:./Application/Src/fatfs_sd.c ****                 break;
+ 579              		.loc 1 159 16 is_stmt 0 view .LVU137
+ 580 0048 00F01F03 		and	r3, r0, #31
+ 581 004c 052B     		cmp	r3, #5
+ 582 004e 02D0     		beq	.L49
+ 161:./Application/Src/fatfs_sd.c ****         }
+ 583              		.loc 1 161 13 is_stmt 1 view .LVU138
+ 161:./Application/Src/fatfs_sd.c ****         }
+ 584              		.loc 1 161 14 is_stmt 0 view .LVU139
+ 585 0050 0135     		adds	r5, r5, #1
+ 586              	.LVL64:
+ 161:./Application/Src/fatfs_sd.c ****         }
+ 587              		.loc 1 161 14 view .LVU140
+ 588 0052 EDB2     		uxtb	r5, r5
+ 589              	.LVL65:
+ 161:./Application/Src/fatfs_sd.c ****         }
+ 590              		.loc 1 161 14 view .LVU141
+ 591 0054 F3E7     		b	.L46
+ 592              	.LVL66:
+ 593              	.L49:
+ 164:./Application/Src/fatfs_sd.c ****     }
+ 594              		.loc 1 164 29 is_stmt 1 discriminator 2 view .LVU142
+ 164:./Application/Src/fatfs_sd.c ****     }
+ 595              		.loc 1 164 16 is_stmt 0 discriminator 2 view .LVU143
+ 596 0056 FFF7FEFF 		bl	SPI_RxByte
+ 597              	.LVL67:
+ 164:./Application/Src/fatfs_sd.c ****     }
+ 598              		.loc 1 164 29 discriminator 2 view .LVU144
+ 599 005a 0028     		cmp	r0, #0
+ 600 005c FBD0     		beq	.L49
+ 167:./Application/Src/fatfs_sd.c ****         return TRUE;
+ 601              		.loc 1 167 5 is_stmt 1 view .LVU145
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 17
+
+
+ 167:./Application/Src/fatfs_sd.c ****         return TRUE;
+ 602              		.loc 1 167 8 is_stmt 0 view .LVU146
+ 603 005e 04F01F00 		and	r0, r4, #31
+ 604 0062 0528     		cmp	r0, #5
+ 605 0064 01D0     		beq	.L51
+ 606              	.LVL68:
+ 607              	.L44:
+ 170:./Application/Src/fatfs_sd.c **** }
+ 608              		.loc 1 170 9 is_stmt 1 view .LVU147
+ 170:./Application/Src/fatfs_sd.c **** }
+ 609              		.loc 1 170 16 is_stmt 0 view .LVU148
+ 610 0066 0020     		movs	r0, #0
+ 611 0068 D2E7     		b	.L43
+ 612              	.LVL69:
+ 613              	.L51:
+ 168:./Application/Src/fatfs_sd.c ****     else
+ 614              		.loc 1 168 16 view .LVU149
+ 615 006a 0120     		movs	r0, #1
+ 616 006c D0E7     		b	.L43
+ 617              		.cfi_endproc
+ 618              	.LFE171:
+ 620              		.section	.text.SELECT,"ax",%progbits
+ 621              		.align	1
+ 622              		.syntax unified
+ 623              		.thumb
+ 624              		.thumb_func
+ 626              	SELECT:
+ 627              	.LFB160:
+  31:./Application/Src/fatfs_sd.c ****     HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
+ 628              		.loc 1 31 26 is_stmt 1 view -0
+ 629              		.cfi_startproc
+ 630              		@ args = 0, pretend = 0, frame = 0
+ 631              		@ frame_needed = 0, uses_anonymous_args = 0
+ 632 0000 08B5     		push	{r3, lr}
+ 633              	.LCFI10:
+ 634              		.cfi_def_cfa_offset 8
+ 635              		.cfi_offset 3, -8
+ 636              		.cfi_offset 14, -4
+  32:./Application/Src/fatfs_sd.c **** }
+ 637              		.loc 1 32 5 view .LVU151
+ 638 0002 0022     		movs	r2, #0
+ 639 0004 0821     		movs	r1, #8
+ 640 0006 0248     		ldr	r0, .L56
+ 641 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 642              	.LVL70:
+  33:./Application/Src/fatfs_sd.c **** 
+ 643              		.loc 1 33 1 is_stmt 0 view .LVU152
+ 644 000c 08BD     		pop	{r3, pc}
+ 645              	.L57:
+ 646 000e 00BF     		.align	2
+ 647              	.L56:
+ 648 0010 00080242 		.word	1107429376
+ 649              		.cfi_endproc
+ 650              	.LFE160:
+ 652              		.section	.text.DESELECT,"ax",%progbits
+ 653              		.align	1
+ 654              		.syntax unified
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 18
+
+
+ 655              		.thumb
+ 656              		.thumb_func
+ 658              	DESELECT:
+ 659              	.LFB161:
+  35:./Application/Src/fatfs_sd.c ****     HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_SET);
+ 660              		.loc 1 35 28 is_stmt 1 view -0
+ 661              		.cfi_startproc
+ 662              		@ args = 0, pretend = 0, frame = 0
+ 663              		@ frame_needed = 0, uses_anonymous_args = 0
+ 664 0000 08B5     		push	{r3, lr}
+ 665              	.LCFI11:
+ 666              		.cfi_def_cfa_offset 8
+ 667              		.cfi_offset 3, -8
+ 668              		.cfi_offset 14, -4
+  36:./Application/Src/fatfs_sd.c **** }
+ 669              		.loc 1 36 5 view .LVU154
+ 670 0002 0122     		movs	r2, #1
+ 671 0004 0821     		movs	r1, #8
+ 672 0006 0248     		ldr	r0, .L60
+ 673 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 674              	.LVL71:
+  37:./Application/Src/fatfs_sd.c **** 
+ 675              		.loc 1 37 1 is_stmt 0 view .LVU155
+ 676 000c 08BD     		pop	{r3, pc}
+ 677              	.L61:
+ 678 000e 00BF     		.align	2
+ 679              	.L60:
+ 680 0010 00080242 		.word	1107429376
+ 681              		.cfi_endproc
+ 682              	.LFE161:
+ 684              		.section	.text.SD_PowerOn,"ax",%progbits
+ 685              		.align	1
+ 686              		.syntax unified
+ 687              		.thumb
+ 688              		.thumb_func
+ 690              	SD_PowerOn:
+ 691              	.LFB167:
+  71:./Application/Src/fatfs_sd.c ****     uint8_t cmd_arg[6];
+ 692              		.loc 1 71 30 is_stmt 1 view -0
+ 693              		.cfi_startproc
+ 694              		@ args = 0, pretend = 0, frame = 8
+ 695              		@ frame_needed = 0, uses_anonymous_args = 0
+ 696 0000 10B5     		push	{r4, lr}
+ 697              	.LCFI12:
+ 698              		.cfi_def_cfa_offset 8
+ 699              		.cfi_offset 4, -8
+ 700              		.cfi_offset 14, -4
+ 701 0002 82B0     		sub	sp, sp, #8
+ 702              	.LCFI13:
+ 703              		.cfi_def_cfa_offset 16
+  72:./Application/Src/fatfs_sd.c ****     uint32_t Count = 0x1FFF;
+ 704              		.loc 1 72 5 view .LVU157
+  73:./Application/Src/fatfs_sd.c **** 
+ 705              		.loc 1 73 5 view .LVU158
+ 706              	.LVL72:
+  75:./Application/Src/fatfs_sd.c ****     for(int i = 0; i < 10; i++) {
+ 707              		.loc 1 75 5 view .LVU159
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 19
+
+
+ 708 0004 FFF7FEFF 		bl	DESELECT
+ 709              	.LVL73:
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 710              		.loc 1 76 5 view .LVU160
+ 711              	.LBB2:
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 712              		.loc 1 76 9 view .LVU161
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 713              		.loc 1 76 13 is_stmt 0 view .LVU162
+ 714 0008 0024     		movs	r4, #0
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 715              		.loc 1 76 5 view .LVU163
+ 716 000a 03E0     		b	.L63
+ 717              	.LVL74:
+ 718              	.L64:
+  77:./Application/Src/fatfs_sd.c ****     }
+ 719              		.loc 1 77 9 is_stmt 1 view .LVU164
+ 720 000c FF20     		movs	r0, #255
+ 721 000e FFF7FEFF 		bl	SPI_TxByte
+ 722              	.LVL75:
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 723              		.loc 1 76 29 discriminator 3 view .LVU165
+ 724 0012 0134     		adds	r4, r4, #1
+ 725              	.LVL76:
+ 726              	.L63:
+  76:./Application/Src/fatfs_sd.c ****         SPI_TxByte(0xFF);
+ 727              		.loc 1 76 22 discriminator 1 view .LVU166
+ 728 0014 092C     		cmp	r4, #9
+ 729 0016 F9DD     		ble	.L64
+ 730              	.LBE2:
+  80:./Application/Src/fatfs_sd.c **** 
+ 731              		.loc 1 80 5 view .LVU167
+ 732 0018 FFF7FEFF 		bl	SELECT
+ 733              	.LVL77:
+  82:./Application/Src/fatfs_sd.c ****     cmd_arg[1] = 0;
+ 734              		.loc 1 82 5 view .LVU168
+  82:./Application/Src/fatfs_sd.c ****     cmd_arg[1] = 0;
+ 735              		.loc 1 82 16 is_stmt 0 view .LVU169
+ 736 001c 4023     		movs	r3, #64
+ 737 001e 8DF80030 		strb	r3, [sp]
+  83:./Application/Src/fatfs_sd.c ****     cmd_arg[2] = 0;
+ 738              		.loc 1 83 5 is_stmt 1 view .LVU170
+  83:./Application/Src/fatfs_sd.c ****     cmd_arg[2] = 0;
+ 739              		.loc 1 83 16 is_stmt 0 view .LVU171
+ 740 0022 0024     		movs	r4, #0
+ 741              	.LVL78:
+  83:./Application/Src/fatfs_sd.c ****     cmd_arg[2] = 0;
+ 742              		.loc 1 83 16 view .LVU172
+ 743 0024 8DF80140 		strb	r4, [sp, #1]
+  84:./Application/Src/fatfs_sd.c ****     cmd_arg[3] = 0;
+ 744              		.loc 1 84 5 is_stmt 1 view .LVU173
+  84:./Application/Src/fatfs_sd.c ****     cmd_arg[3] = 0;
+ 745              		.loc 1 84 16 is_stmt 0 view .LVU174
+ 746 0028 8DF80240 		strb	r4, [sp, #2]
+  85:./Application/Src/fatfs_sd.c ****     cmd_arg[4] = 0;
+ 747              		.loc 1 85 5 is_stmt 1 view .LVU175
+  85:./Application/Src/fatfs_sd.c ****     cmd_arg[4] = 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 20
+
+
+ 748              		.loc 1 85 16 is_stmt 0 view .LVU176
+ 749 002c 8DF80340 		strb	r4, [sp, #3]
+  86:./Application/Src/fatfs_sd.c ****     cmd_arg[5] = 0x95;
+ 750              		.loc 1 86 5 is_stmt 1 view .LVU177
+  86:./Application/Src/fatfs_sd.c ****     cmd_arg[5] = 0x95;
+ 751              		.loc 1 86 16 is_stmt 0 view .LVU178
+ 752 0030 8DF80440 		strb	r4, [sp, #4]
+  87:./Application/Src/fatfs_sd.c **** 
+ 753              		.loc 1 87 5 is_stmt 1 view .LVU179
+  87:./Application/Src/fatfs_sd.c **** 
+ 754              		.loc 1 87 16 is_stmt 0 view .LVU180
+ 755 0034 9523     		movs	r3, #149
+ 756 0036 8DF80530 		strb	r3, [sp, #5]
+  89:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+ 757              		.loc 1 89 5 is_stmt 1 view .LVU181
+ 758              	.LBB3:
+  89:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+ 759              		.loc 1 89 10 view .LVU182
+ 760              	.LVL79:
+  89:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+ 761              		.loc 1 89 5 is_stmt 0 view .LVU183
+ 762 003a 07E0     		b	.L65
+ 763              	.LVL80:
+ 764              	.L66:
+  90:./Application/Src/fatfs_sd.c ****     }
+ 765              		.loc 1 90 9 is_stmt 1 view .LVU184
+  90:./Application/Src/fatfs_sd.c ****     }
+ 766              		.loc 1 90 27 is_stmt 0 view .LVU185
+ 767 003c 04F10803 		add	r3, r4, #8
+ 768 0040 6B44     		add	r3, sp, r3
+  90:./Application/Src/fatfs_sd.c ****     }
+ 769              		.loc 1 90 9 view .LVU186
+ 770 0042 13F8080C 		ldrb	r0, [r3, #-8]	@ zero_extendqisi2
+ 771 0046 FFF7FEFF 		bl	SPI_TxByte
+ 772              	.LVL81:
+  89:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+ 773              		.loc 1 89 29 is_stmt 1 discriminator 3 view .LVU187
+ 774 004a 0134     		adds	r4, r4, #1
+ 775              	.LVL82:
+ 776              	.L65:
+  89:./Application/Src/fatfs_sd.c ****         SPI_TxByte(cmd_arg[i]);
+ 777              		.loc 1 89 23 discriminator 1 view .LVU188
+ 778 004c 052C     		cmp	r4, #5
+ 779 004e F5DD     		ble	.L66
+ 780              	.LBE3:
+  93:./Application/Src/fatfs_sd.c ****     while (Count) {
+ 781              		.loc 1 93 13 is_stmt 0 view .LVU189
+ 782 0050 FF20     		movs	r0, #255
+  73:./Application/Src/fatfs_sd.c **** 
+ 783              		.loc 1 73 14 view .LVU190
+ 784 0052 41F6FF74 		movw	r4, #8191
+ 785              	.LVL83:
+ 786              	.L67:
+  94:./Application/Src/fatfs_sd.c ****         resp = SPI_RxByte();
+ 787              		.loc 1 94 12 is_stmt 1 view .LVU191
+ 788 0056 2CB1     		cbz	r4, .L68
+  95:./Application/Src/fatfs_sd.c ****         if (resp == 0x01) break;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 21
+
+
+ 789              		.loc 1 95 9 view .LVU192
+  95:./Application/Src/fatfs_sd.c ****         if (resp == 0x01) break;
+ 790              		.loc 1 95 16 is_stmt 0 view .LVU193
+ 791 0058 FFF7FEFF 		bl	SPI_RxByte
+ 792              	.LVL84:
+  96:./Application/Src/fatfs_sd.c ****         Count--;
+ 793              		.loc 1 96 9 is_stmt 1 view .LVU194
+  96:./Application/Src/fatfs_sd.c ****         Count--;
+ 794              		.loc 1 96 12 is_stmt 0 view .LVU195
+ 795 005c 0128     		cmp	r0, #1
+ 796 005e 01D0     		beq	.L68
+  97:./Application/Src/fatfs_sd.c ****     }
+ 797              		.loc 1 97 9 is_stmt 1 view .LVU196
+  97:./Application/Src/fatfs_sd.c ****     }
+ 798              		.loc 1 97 14 is_stmt 0 view .LVU197
+ 799 0060 013C     		subs	r4, r4, #1
+ 800              	.LVL85:
+  97:./Application/Src/fatfs_sd.c ****     }
+ 801              		.loc 1 97 14 view .LVU198
+ 802 0062 F8E7     		b	.L67
+ 803              	.LVL86:
+ 804              	.L68:
+ 100:./Application/Src/fatfs_sd.c **** 
+ 805              		.loc 1 100 5 is_stmt 1 view .LVU199
+ 100:./Application/Src/fatfs_sd.c **** 
+ 806              		.loc 1 100 25 is_stmt 0 view .LVU200
+ 807 0064 054B     		ldr	r3, .L71
+ 808 0066 1870     		strb	r0, [r3]
+ 102:./Application/Src/fatfs_sd.c ****     SPI_TxByte(0xFF);
+ 809              		.loc 1 102 5 is_stmt 1 view .LVU201
+ 810 0068 FFF7FEFF 		bl	DESELECT
+ 811              	.LVL87:
+ 103:./Application/Src/fatfs_sd.c **** 
+ 812              		.loc 1 103 5 view .LVU202
+ 813 006c FF20     		movs	r0, #255
+ 814 006e FFF7FEFF 		bl	SPI_TxByte
+ 815              	.LVL88:
+ 105:./Application/Src/fatfs_sd.c **** }
+ 816              		.loc 1 105 5 view .LVU203
+ 105:./Application/Src/fatfs_sd.c **** }
+ 817              		.loc 1 105 15 is_stmt 0 view .LVU204
+ 818 0072 034B     		ldr	r3, .L71+4
+ 819 0074 0122     		movs	r2, #1
+ 820 0076 1A70     		strb	r2, [r3]
+ 106:./Application/Src/fatfs_sd.c **** 
+ 821              		.loc 1 106 1 view .LVU205
+ 822 0078 02B0     		add	sp, sp, #8
+ 823              	.LCFI14:
+ 824              		.cfi_def_cfa_offset 8
+ 825              		@ sp needed
+ 826 007a 10BD     		pop	{r4, pc}
+ 827              	.LVL89:
+ 828              	.L72:
+ 106:./Application/Src/fatfs_sd.c **** 
+ 829              		.loc 1 106 1 view .LVU206
+ 830              		.align	2
+ 831              	.L71:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 22
+
+
+ 832 007c 00000000 		.word	sd_dbg_poweron_resp
+ 833 0080 00000000 		.word	PowerFlag
+ 834              		.cfi_endproc
+ 835              	.LFE167:
+ 837              		.section	.text.SD_disk_initialize,"ax",%progbits
+ 838              		.align	1
+ 839              		.global	SD_disk_initialize
+ 840              		.syntax unified
+ 841              		.thumb
+ 842              		.thumb_func
+ 844              	SD_disk_initialize:
+ 845              	.LVL90:
+ 846              	.LFB173:
+ 200:./Application/Src/fatfs_sd.c **** 
+ 201:./Application/Src/fatfs_sd.c **** /*-----------------------------------------------------------------------*/
+ 202:./Application/Src/fatfs_sd.c **** /* FatFs disk functions                                                  */
+ 203:./Application/Src/fatfs_sd.c **** /*-----------------------------------------------------------------------*/
+ 204:./Application/Src/fatfs_sd.c **** 
+ 205:./Application/Src/fatfs_sd.c **** DSTATUS SD_disk_initialize(BYTE drv) {
+ 847              		.loc 1 205 38 is_stmt 1 view -0
+ 848              		.cfi_startproc
+ 849              		@ args = 0, pretend = 0, frame = 8
+ 850              		@ frame_needed = 0, uses_anonymous_args = 0
+ 206:./Application/Src/fatfs_sd.c ****     uint8_t n, type, ocr[4];
+ 851              		.loc 1 206 5 view .LVU208
+ 207:./Application/Src/fatfs_sd.c **** 
+ 208:./Application/Src/fatfs_sd.c ****     if(drv) return STA_NOINIT;
+ 852              		.loc 1 208 5 view .LVU209
+ 853              		.loc 1 208 7 is_stmt 0 view .LVU210
+ 854 0000 0028     		cmp	r0, #0
+ 855 0002 40F0CF80 		bne	.L92
+ 205:./Application/Src/fatfs_sd.c ****     uint8_t n, type, ocr[4];
+ 856              		.loc 1 205 38 view .LVU211
+ 857 0006 70B5     		push	{r4, r5, r6, lr}
+ 858              	.LCFI15:
+ 859              		.cfi_def_cfa_offset 16
+ 860              		.cfi_offset 4, -16
+ 861              		.cfi_offset 5, -12
+ 862              		.cfi_offset 6, -8
+ 863              		.cfi_offset 14, -4
+ 864 0008 82B0     		sub	sp, sp, #8
+ 865              	.LCFI16:
+ 866              		.cfi_def_cfa_offset 24
+ 209:./Application/Src/fatfs_sd.c ****     if(Stat & STA_NODISK) return Stat;
+ 867              		.loc 1 209 5 is_stmt 1 view .LVU212
+ 868              		.loc 1 209 13 is_stmt 0 view .LVU213
+ 869 000a 674B     		ldr	r3, .L106
+ 870 000c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 871              		.loc 1 209 7 view .LVU214
+ 872 000e 13F00203 		ands	r3, r3, #2
+ 873 0012 1E46     		mov	r6, r3
+ 874 0014 04D0     		beq	.L75
+ 875              		.loc 1 209 27 is_stmt 1 discriminator 1 view .LVU215
+ 876              		.loc 1 209 34 is_stmt 0 discriminator 1 view .LVU216
+ 877 0016 644B     		ldr	r3, .L106
+ 878 0018 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 879              	.LVL91:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 23
+
+
+ 880              		.loc 1 209 34 discriminator 1 view .LVU217
+ 881 001a C0B2     		uxtb	r0, r0
+ 882              	.L74:
+ 210:./Application/Src/fatfs_sd.c **** 
+ 211:./Application/Src/fatfs_sd.c ****     sd_dbg_spi_errs = 0;  /* reset error counter for this init attempt */
+ 212:./Application/Src/fatfs_sd.c **** 
+ 213:./Application/Src/fatfs_sd.c ****     /* Slow SPI for init (<400kHz recommended by SD spec) */
+ 214:./Application/Src/fatfs_sd.c ****     SD_SPI_HANDLE.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+ 215:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 216:./Application/Src/fatfs_sd.c **** 
+ 217:./Application/Src/fatfs_sd.c ****     SD_PowerOn();
+ 218:./Application/Src/fatfs_sd.c ****     SELECT();
+ 219:./Application/Src/fatfs_sd.c **** 
+ 220:./Application/Src/fatfs_sd.c ****     type = 0;
+ 221:./Application/Src/fatfs_sd.c **** 
+ 222:./Application/Src/fatfs_sd.c ****     uint8_t cmd0_r = SD_SendCmd(CMD0, 0);
+ 223:./Application/Src/fatfs_sd.c ****     sd_dbg_cmd0 = cmd0_r;
+ 224:./Application/Src/fatfs_sd.c **** 
+ 225:./Application/Src/fatfs_sd.c ****     if (cmd0_r == 1) {
+ 226:./Application/Src/fatfs_sd.c ****         uint32_t timeout = 100000;
+ 227:./Application/Src/fatfs_sd.c **** 
+ 228:./Application/Src/fatfs_sd.c ****         uint8_t cmd8_r = SD_SendCmd(CMD8, 0x1AA);
+ 229:./Application/Src/fatfs_sd.c ****         sd_dbg_cmd8 = cmd8_r;
+ 230:./Application/Src/fatfs_sd.c **** 
+ 231:./Application/Src/fatfs_sd.c ****         if (cmd8_r == 1) {
+ 232:./Application/Src/fatfs_sd.c ****             for (n = 0; n < 4; n++) {
+ 233:./Application/Src/fatfs_sd.c ****                 ocr[n] = SPI_RxByte();
+ 234:./Application/Src/fatfs_sd.c ****             }
+ 235:./Application/Src/fatfs_sd.c **** 
+ 236:./Application/Src/fatfs_sd.c ****             if (ocr[2] == 0x01 && ocr[3] == 0xAA) {
+ 237:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 238:./Application/Src/fatfs_sd.c ****                 do {
+ 239:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD55, 0) <= 1 && (a41_r = SD_SendCmd(CMD41, 1UL << 30)) == 0)
+ 240:./Application/Src/fatfs_sd.c ****                         break;
+ 241:./Application/Src/fatfs_sd.c ****                 } while (--timeout);
+ 242:./Application/Src/fatfs_sd.c **** 
+ 243:./Application/Src/fatfs_sd.c ****                 sd_dbg_acmd41 = a41_r;
+ 244:./Application/Src/fatfs_sd.c **** 
+ 245:./Application/Src/fatfs_sd.c ****                 if (timeout && SD_SendCmd(CMD58, 0) == 0) {
+ 246:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ 247:./Application/Src/fatfs_sd.c ****                         ocr[n] = SPI_RxByte();
+ 248:./Application/Src/fatfs_sd.c ****                     }
+ 249:./Application/Src/fatfs_sd.c ****                     type = (ocr[0] & 0x40) ? 6 : 2;
+ 250:./Application/Src/fatfs_sd.c ****                 }
+ 251:./Application/Src/fatfs_sd.c ****             }
+ 252:./Application/Src/fatfs_sd.c ****         } else {
+ 253:./Application/Src/fatfs_sd.c ****             type = (SD_SendCmd(CMD55, 0) <= 1 && SD_SendCmd(CMD41, 0) <= 1) ? 2 : 1;
+ 254:./Application/Src/fatfs_sd.c **** 
+ 255:./Application/Src/fatfs_sd.c ****             do {
+ 256:./Application/Src/fatfs_sd.c ****                 if (type == 2) {
+ 257:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD55, 0) <= 1 && SD_SendCmd(CMD41, 0) == 0)
+ 258:./Application/Src/fatfs_sd.c ****                         break;
+ 259:./Application/Src/fatfs_sd.c ****                 } else {
+ 260:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD1, 0) == 0)
+ 261:./Application/Src/fatfs_sd.c ****                         break;
+ 262:./Application/Src/fatfs_sd.c ****                 }
+ 263:./Application/Src/fatfs_sd.c ****             } while (--timeout);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 24
+
+
+ 264:./Application/Src/fatfs_sd.c **** 
+ 265:./Application/Src/fatfs_sd.c ****             if (!timeout || SD_SendCmd(CMD16, 512) != 0) {
+ 266:./Application/Src/fatfs_sd.c ****                 type = 0;
+ 267:./Application/Src/fatfs_sd.c ****             }
+ 268:./Application/Src/fatfs_sd.c ****         }
+ 269:./Application/Src/fatfs_sd.c ****     }
+ 270:./Application/Src/fatfs_sd.c **** 
+ 271:./Application/Src/fatfs_sd.c ****     sd_dbg_type = type;
+ 272:./Application/Src/fatfs_sd.c ****     CardType = type;
+ 273:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 274:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 275:./Application/Src/fatfs_sd.c **** 
+ 276:./Application/Src/fatfs_sd.c ****     /* Speed up SPI after init */
+ 277:./Application/Src/fatfs_sd.c ****     SD_SPI_HANDLE.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+ 278:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 279:./Application/Src/fatfs_sd.c **** 
+ 280:./Application/Src/fatfs_sd.c ****     if (type) {
+ 281:./Application/Src/fatfs_sd.c ****         Stat &= ~STA_NOINIT;
+ 282:./Application/Src/fatfs_sd.c ****     } else {
+ 283:./Application/Src/fatfs_sd.c ****         SD_PowerOff();
+ 284:./Application/Src/fatfs_sd.c ****     }
+ 285:./Application/Src/fatfs_sd.c **** 
+ 286:./Application/Src/fatfs_sd.c ****     return Stat;
+ 287:./Application/Src/fatfs_sd.c **** }
+ 883              		.loc 1 287 1 view .LVU218
+ 884 001c 02B0     		add	sp, sp, #8
+ 885              	.LCFI17:
+ 886              		.cfi_remember_state
+ 887              		.cfi_def_cfa_offset 16
+ 888              		@ sp needed
+ 889 001e 70BD     		pop	{r4, r5, r6, pc}
+ 890              	.LVL92:
+ 891              	.L75:
+ 892              	.LCFI18:
+ 893              		.cfi_restore_state
+ 211:./Application/Src/fatfs_sd.c **** 
+ 894              		.loc 1 211 5 is_stmt 1 view .LVU219
+ 211:./Application/Src/fatfs_sd.c **** 
+ 895              		.loc 1 211 21 is_stmt 0 view .LVU220
+ 896 0020 624B     		ldr	r3, .L106+4
+ 897 0022 0022     		movs	r2, #0
+ 898 0024 1A60     		str	r2, [r3]
+ 214:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 899              		.loc 1 214 5 is_stmt 1 view .LVU221
+ 214:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 900              		.loc 1 214 42 is_stmt 0 view .LVU222
+ 901 0026 6248     		ldr	r0, .L106+8
+ 902              	.LVL93:
+ 214:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 903              		.loc 1 214 42 view .LVU223
+ 904 0028 4FF0E043 		mov	r3, #1879048192
+ 905 002c C361     		str	r3, [r0, #28]
+ 215:./Application/Src/fatfs_sd.c **** 
+ 906              		.loc 1 215 5 is_stmt 1 view .LVU224
+ 907 002e FFF7FEFF 		bl	HAL_SPI_Init
+ 908              	.LVL94:
+ 217:./Application/Src/fatfs_sd.c ****     SELECT();
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 25
+
+
+ 909              		.loc 1 217 5 view .LVU225
+ 910 0032 FFF7FEFF 		bl	SD_PowerOn
+ 911              	.LVL95:
+ 218:./Application/Src/fatfs_sd.c **** 
+ 912              		.loc 1 218 5 view .LVU226
+ 913 0036 FFF7FEFF 		bl	SELECT
+ 914              	.LVL96:
+ 220:./Application/Src/fatfs_sd.c **** 
+ 915              		.loc 1 220 5 view .LVU227
+ 222:./Application/Src/fatfs_sd.c ****     sd_dbg_cmd0 = cmd0_r;
+ 916              		.loc 1 222 5 view .LVU228
+ 222:./Application/Src/fatfs_sd.c ****     sd_dbg_cmd0 = cmd0_r;
+ 917              		.loc 1 222 22 is_stmt 0 view .LVU229
+ 918 003a 0021     		movs	r1, #0
+ 919 003c 4020     		movs	r0, #64
+ 920 003e FFF7FEFF 		bl	SD_SendCmd
+ 921              	.LVL97:
+ 922 0042 0546     		mov	r5, r0
+ 923              	.LVL98:
+ 223:./Application/Src/fatfs_sd.c **** 
+ 924              		.loc 1 223 5 is_stmt 1 view .LVU230
+ 223:./Application/Src/fatfs_sd.c **** 
+ 925              		.loc 1 223 17 is_stmt 0 view .LVU231
+ 926 0044 5B4B     		ldr	r3, .L106+12
+ 927 0046 1870     		strb	r0, [r3]
+ 225:./Application/Src/fatfs_sd.c ****         uint32_t timeout = 100000;
+ 928              		.loc 1 225 5 is_stmt 1 view .LVU232
+ 225:./Application/Src/fatfs_sd.c ****         uint32_t timeout = 100000;
+ 929              		.loc 1 225 8 is_stmt 0 view .LVU233
+ 930 0048 0128     		cmp	r0, #1
+ 931 004a 19D0     		beq	.L100
+ 932              	.LVL99:
+ 933              	.L76:
+ 271:./Application/Src/fatfs_sd.c ****     CardType = type;
+ 934              		.loc 1 271 5 is_stmt 1 view .LVU234
+ 271:./Application/Src/fatfs_sd.c ****     CardType = type;
+ 935              		.loc 1 271 17 is_stmt 0 view .LVU235
+ 936 004c 5A4B     		ldr	r3, .L106+16
+ 937 004e 1E70     		strb	r6, [r3]
+ 272:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 938              		.loc 1 272 5 is_stmt 1 view .LVU236
+ 272:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 939              		.loc 1 272 14 is_stmt 0 view .LVU237
+ 940 0050 5A4B     		ldr	r3, .L106+20
+ 941 0052 1E70     		strb	r6, [r3]
+ 273:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 942              		.loc 1 273 5 is_stmt 1 view .LVU238
+ 943 0054 FFF7FEFF 		bl	DESELECT
+ 944              	.LVL100:
+ 274:./Application/Src/fatfs_sd.c **** 
+ 945              		.loc 1 274 5 view .LVU239
+ 946 0058 FFF7FEFF 		bl	SPI_RxByte
+ 947              	.LVL101:
+ 277:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 948              		.loc 1 277 5 view .LVU240
+ 277:./Application/Src/fatfs_sd.c ****     HAL_SPI_Init(&SD_SPI_HANDLE);
+ 949              		.loc 1 277 42 is_stmt 0 view .LVU241
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 26
+
+
+ 950 005c 5448     		ldr	r0, .L106+8
+ 951 005e 4FF00053 		mov	r3, #536870912
+ 952 0062 C361     		str	r3, [r0, #28]
+ 278:./Application/Src/fatfs_sd.c **** 
+ 953              		.loc 1 278 5 is_stmt 1 view .LVU242
+ 954 0064 FFF7FEFF 		bl	HAL_SPI_Init
+ 955              	.LVL102:
+ 280:./Application/Src/fatfs_sd.c ****         Stat &= ~STA_NOINIT;
+ 956              		.loc 1 280 5 view .LVU243
+ 280:./Application/Src/fatfs_sd.c ****         Stat &= ~STA_NOINIT;
+ 957              		.loc 1 280 8 is_stmt 0 view .LVU244
+ 958 0068 002E     		cmp	r6, #0
+ 959 006a 00F09880 		beq	.L90
+ 281:./Application/Src/fatfs_sd.c ****     } else {
+ 960              		.loc 1 281 9 is_stmt 1 view .LVU245
+ 281:./Application/Src/fatfs_sd.c ****     } else {
+ 961              		.loc 1 281 14 is_stmt 0 view .LVU246
+ 962 006e 4E4A     		ldr	r2, .L106
+ 963 0070 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 964 0072 03F0FE03 		and	r3, r3, #254
+ 965 0076 1370     		strb	r3, [r2]
+ 966              	.L91:
+ 286:./Application/Src/fatfs_sd.c **** }
+ 967              		.loc 1 286 5 is_stmt 1 view .LVU247
+ 286:./Application/Src/fatfs_sd.c **** }
+ 968              		.loc 1 286 12 is_stmt 0 view .LVU248
+ 969 0078 4B4B     		ldr	r3, .L106
+ 970 007a 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 971 007c C0B2     		uxtb	r0, r0
+ 972 007e CDE7     		b	.L74
+ 973              	.LVL103:
+ 974              	.L100:
+ 975              	.LBB4:
+ 226:./Application/Src/fatfs_sd.c **** 
+ 976              		.loc 1 226 9 is_stmt 1 view .LVU249
+ 228:./Application/Src/fatfs_sd.c ****         sd_dbg_cmd8 = cmd8_r;
+ 977              		.loc 1 228 9 view .LVU250
+ 228:./Application/Src/fatfs_sd.c ****         sd_dbg_cmd8 = cmd8_r;
+ 978              		.loc 1 228 26 is_stmt 0 view .LVU251
+ 979 0080 4FF4D571 		mov	r1, #426
+ 980 0084 4820     		movs	r0, #72
+ 981              	.LVL104:
+ 228:./Application/Src/fatfs_sd.c ****         sd_dbg_cmd8 = cmd8_r;
+ 982              		.loc 1 228 26 view .LVU252
+ 983 0086 FFF7FEFF 		bl	SD_SendCmd
+ 984              	.LVL105:
+ 229:./Application/Src/fatfs_sd.c **** 
+ 985              		.loc 1 229 9 is_stmt 1 view .LVU253
+ 229:./Application/Src/fatfs_sd.c **** 
+ 986              		.loc 1 229 21 is_stmt 0 view .LVU254
+ 987 008a 4D4B     		ldr	r3, .L106+24
+ 988 008c 1870     		strb	r0, [r3]
+ 231:./Application/Src/fatfs_sd.c ****             for (n = 0; n < 4; n++) {
+ 989              		.loc 1 231 9 is_stmt 1 view .LVU255
+ 231:./Application/Src/fatfs_sd.c ****             for (n = 0; n < 4; n++) {
+ 990              		.loc 1 231 12 is_stmt 0 view .LVU256
+ 991 008e 0128     		cmp	r0, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 27
+
+
+ 992 0090 4BD1     		bne	.L101
+ 232:./Application/Src/fatfs_sd.c ****                 ocr[n] = SPI_RxByte();
+ 993              		.loc 1 232 20 view .LVU257
+ 994 0092 3446     		mov	r4, r6
+ 995 0094 09E0     		b	.L77
+ 996              	.LVL106:
+ 997              	.L79:
+ 233:./Application/Src/fatfs_sd.c ****             }
+ 998              		.loc 1 233 17 is_stmt 1 view .LVU258
+ 233:./Application/Src/fatfs_sd.c ****             }
+ 999              		.loc 1 233 26 is_stmt 0 view .LVU259
+ 1000 0096 FFF7FEFF 		bl	SPI_RxByte
+ 1001              	.LVL107:
+ 233:./Application/Src/fatfs_sd.c ****             }
+ 1002              		.loc 1 233 24 discriminator 1 view .LVU260
+ 1003 009a 04F10803 		add	r3, r4, #8
+ 1004 009e 6B44     		add	r3, sp, r3
+ 1005 00a0 03F8040C 		strb	r0, [r3, #-4]
+ 232:./Application/Src/fatfs_sd.c ****                 ocr[n] = SPI_RxByte();
+ 1006              		.loc 1 232 33 is_stmt 1 discriminator 3 view .LVU261
+ 1007 00a4 631C     		adds	r3, r4, #1
+ 1008 00a6 DBB2     		uxtb	r3, r3
+ 1009 00a8 1C46     		mov	r4, r3
+ 1010              	.LVL108:
+ 1011              	.L77:
+ 232:./Application/Src/fatfs_sd.c ****                 ocr[n] = SPI_RxByte();
+ 1012              		.loc 1 232 27 discriminator 1 view .LVU262
+ 1013 00aa 032C     		cmp	r4, #3
+ 1014 00ac F3D9     		bls	.L79
+ 236:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 1015              		.loc 1 236 13 view .LVU263
+ 236:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 1016              		.loc 1 236 20 is_stmt 0 view .LVU264
+ 1017 00ae 9DF80630 		ldrb	r3, [sp, #6]	@ zero_extendqisi2
+ 236:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 1018              		.loc 1 236 16 view .LVU265
+ 1019 00b2 012B     		cmp	r3, #1
+ 1020 00b4 CAD1     		bne	.L76
+ 236:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 1021              		.loc 1 236 38 discriminator 1 view .LVU266
+ 1022 00b6 9DF80730 		ldrb	r3, [sp, #7]	@ zero_extendqisi2
+ 236:./Application/Src/fatfs_sd.c ****                 uint8_t a41_r = 0xFF;
+ 1023              		.loc 1 236 32 discriminator 1 view .LVU267
+ 1024 00ba AA2B     		cmp	r3, #170
+ 1025 00bc C6D1     		bne	.L76
+ 1026              	.LBB5:
+ 237:./Application/Src/fatfs_sd.c ****                 do {
+ 1027              		.loc 1 237 25 view .LVU268
+ 1028 00be FF23     		movs	r3, #255
+ 1029 00c0 1D46     		mov	r5, r3
+ 1030              	.LBE5:
+ 226:./Application/Src/fatfs_sd.c **** 
+ 1031              		.loc 1 226 18 view .LVU269
+ 1032 00c2 404B     		ldr	r3, .L106+28
+ 1033 00c4 1C46     		mov	r4, r3
+ 1034              	.LVL109:
+ 226:./Application/Src/fatfs_sd.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 28
+
+
+ 1035              		.loc 1 226 18 view .LVU270
+ 1036 00c6 02E0     		b	.L82
+ 1037              	.LVL110:
+ 1038              	.L80:
+ 1039              	.LBB6:
+ 241:./Application/Src/fatfs_sd.c **** 
+ 1040              		.loc 1 241 26 is_stmt 1 view .LVU271
+ 241:./Application/Src/fatfs_sd.c **** 
+ 1041              		.loc 1 241 26 is_stmt 0 view .LVU272
+ 1042 00c8 631E     		subs	r3, r4, #1
+ 1043              	.LVL111:
+ 241:./Application/Src/fatfs_sd.c **** 
+ 1044              		.loc 1 241 26 view .LVU273
+ 1045 00ca 1C46     		mov	r4, r3
+ 1046 00cc 0DD0     		beq	.L81
+ 1047              	.LVL112:
+ 1048              	.L82:
+ 238:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD55, 0) <= 1 && (a41_r = SD_SendCmd(CMD41, 1UL << 30)) == 0)
+ 1049              		.loc 1 238 17 is_stmt 1 view .LVU274
+ 239:./Application/Src/fatfs_sd.c ****                         break;
+ 1050              		.loc 1 239 21 view .LVU275
+ 239:./Application/Src/fatfs_sd.c ****                         break;
+ 1051              		.loc 1 239 25 is_stmt 0 view .LVU276
+ 1052 00ce 0021     		movs	r1, #0
+ 1053 00d0 7720     		movs	r0, #119
+ 1054 00d2 FFF7FEFF 		bl	SD_SendCmd
+ 1055              	.LVL113:
+ 239:./Application/Src/fatfs_sd.c ****                         break;
+ 1056              		.loc 1 239 24 discriminator 1 view .LVU277
+ 1057 00d6 0128     		cmp	r0, #1
+ 1058 00d8 F6D8     		bhi	.L80
+ 239:./Application/Src/fatfs_sd.c ****                         break;
+ 1059              		.loc 1 239 63 discriminator 2 view .LVU278
+ 1060 00da 4FF08041 		mov	r1, #1073741824
+ 1061 00de 6920     		movs	r0, #105
+ 1062 00e0 FFF7FEFF 		bl	SD_SendCmd
+ 1063              	.LVL114:
+ 239:./Application/Src/fatfs_sd.c ****                         break;
+ 1064              		.loc 1 239 51 discriminator 3 view .LVU279
+ 1065 00e4 0546     		mov	r5, r0
+ 1066 00e6 0028     		cmp	r0, #0
+ 1067 00e8 EED1     		bne	.L80
+ 1068              	.LVL115:
+ 1069              	.L81:
+ 243:./Application/Src/fatfs_sd.c **** 
+ 1070              		.loc 1 243 17 is_stmt 1 view .LVU280
+ 243:./Application/Src/fatfs_sd.c **** 
+ 1071              		.loc 1 243 31 is_stmt 0 view .LVU281
+ 1072 00ea 374B     		ldr	r3, .L106+32
+ 1073 00ec 1D70     		strb	r5, [r3]
+ 245:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ 1074              		.loc 1 245 17 is_stmt 1 view .LVU282
+ 245:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ 1075              		.loc 1 245 20 is_stmt 0 view .LVU283
+ 1076 00ee 002C     		cmp	r4, #0
+ 1077 00f0 ACD0     		beq	.L76
+ 245:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 29
+
+
+ 1078              		.loc 1 245 32 discriminator 1 view .LVU284
+ 1079 00f2 0021     		movs	r1, #0
+ 1080 00f4 7A20     		movs	r0, #122
+ 1081 00f6 FFF7FEFF 		bl	SD_SendCmd
+ 1082              	.LVL116:
+ 245:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ 1083              		.loc 1 245 29 discriminator 2 view .LVU285
+ 1084 00fa 0446     		mov	r4, r0
+ 1085              	.LVL117:
+ 245:./Application/Src/fatfs_sd.c ****                     for (n = 0; n < 4; n++) {
+ 1086              		.loc 1 245 29 discriminator 2 view .LVU286
+ 1087 00fc 0028     		cmp	r0, #0
+ 1088 00fe A5D1     		bne	.L76
+ 1089              	.LVL118:
+ 1090              	.L83:
+ 246:./Application/Src/fatfs_sd.c ****                         ocr[n] = SPI_RxByte();
+ 1091              		.loc 1 246 35 is_stmt 1 discriminator 1 view .LVU287
+ 1092 0100 032C     		cmp	r4, #3
+ 1093 0102 0AD8     		bhi	.L102
+ 247:./Application/Src/fatfs_sd.c ****                     }
+ 1094              		.loc 1 247 25 view .LVU288
+ 247:./Application/Src/fatfs_sd.c ****                     }
+ 1095              		.loc 1 247 34 is_stmt 0 view .LVU289
+ 1096 0104 FFF7FEFF 		bl	SPI_RxByte
+ 1097              	.LVL119:
+ 247:./Application/Src/fatfs_sd.c ****                     }
+ 1098              		.loc 1 247 32 discriminator 1 view .LVU290
+ 1099 0108 04F10803 		add	r3, r4, #8
+ 1100 010c 6B44     		add	r3, sp, r3
+ 1101 010e 03F8040C 		strb	r0, [r3, #-4]
+ 246:./Application/Src/fatfs_sd.c ****                         ocr[n] = SPI_RxByte();
+ 1102              		.loc 1 246 41 is_stmt 1 discriminator 3 view .LVU291
+ 1103 0112 631C     		adds	r3, r4, #1
+ 1104 0114 DBB2     		uxtb	r3, r3
+ 1105 0116 1C46     		mov	r4, r3
+ 1106              	.LVL120:
+ 246:./Application/Src/fatfs_sd.c ****                         ocr[n] = SPI_RxByte();
+ 1107              		.loc 1 246 41 is_stmt 0 discriminator 3 view .LVU292
+ 1108 0118 F2E7     		b	.L83
+ 1109              	.LVL121:
+ 1110              	.L102:
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1111              		.loc 1 249 21 is_stmt 1 view .LVU293
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1112              		.loc 1 249 32 is_stmt 0 view .LVU294
+ 1113 011a 9DF80430 		ldrb	r3, [sp, #4]	@ zero_extendqisi2
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1114              		.loc 1 249 26 view .LVU295
+ 1115 011e 13F0400F 		tst	r3, #64
+ 1116 0122 39D0     		beq	.L94
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1117              		.loc 1 249 26 discriminator 1 view .LVU296
+ 1118 0124 0623     		movs	r3, #6
+ 1119 0126 1E46     		mov	r6, r3
+ 1120 0128 90E7     		b	.L76
+ 1121              	.LVL122:
+ 1122              	.L101:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 30
+
+
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1123              		.loc 1 249 26 discriminator 1 view .LVU297
+ 1124              	.LBE6:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1125              		.loc 1 253 13 is_stmt 1 view .LVU298
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1126              		.loc 1 253 21 is_stmt 0 view .LVU299
+ 1127 012a 0021     		movs	r1, #0
+ 1128 012c 7720     		movs	r0, #119
+ 1129              	.LVL123:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1130              		.loc 1 253 21 view .LVU300
+ 1131 012e FFF7FEFF 		bl	SD_SendCmd
+ 1132              	.LVL124:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1133              		.loc 1 253 18 discriminator 1 view .LVU301
+ 1134 0132 0128     		cmp	r0, #1
+ 1135 0134 02D9     		bls	.L103
+ 1136              	.L85:
+ 1137              	.LVL125:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1138              		.loc 1 253 18 discriminator 5 view .LVU302
+ 1139 0136 234B     		ldr	r3, .L106+28
+ 1140 0138 1C46     		mov	r4, r3
+ 1141 013a 11E0     		b	.L89
+ 1142              	.LVL126:
+ 1143              	.L103:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1144              		.loc 1 253 50 discriminator 2 view .LVU303
+ 1145 013c 0021     		movs	r1, #0
+ 1146 013e 6920     		movs	r0, #105
+ 1147 0140 FFF7FEFF 		bl	SD_SendCmd
+ 1148              	.LVL127:
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1149              		.loc 1 253 47 discriminator 4 view .LVU304
+ 1150 0144 0128     		cmp	r0, #1
+ 1151 0146 F6D8     		bhi	.L85
+ 253:./Application/Src/fatfs_sd.c **** 
+ 1152              		.loc 1 253 18 discriminator 5 view .LVU305
+ 1153 0148 0223     		movs	r3, #2
+ 1154 014a 1D46     		mov	r5, r3
+ 1155 014c F3E7     		b	.L85
+ 1156              	.LVL128:
+ 1157              	.L105:
+ 257:./Application/Src/fatfs_sd.c ****                         break;
+ 1158              		.loc 1 257 21 is_stmt 1 view .LVU306
+ 257:./Application/Src/fatfs_sd.c ****                         break;
+ 1159              		.loc 1 257 25 is_stmt 0 view .LVU307
+ 1160 014e 0021     		movs	r1, #0
+ 1161 0150 7720     		movs	r0, #119
+ 1162 0152 FFF7FEFF 		bl	SD_SendCmd
+ 1163              	.LVL129:
+ 257:./Application/Src/fatfs_sd.c ****                         break;
+ 1164              		.loc 1 257 24 discriminator 1 view .LVU308
+ 1165 0156 0128     		cmp	r0, #1
+ 1166 0158 17D9     		bls	.L104
+ 1167              	.L87:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 31
+
+
+ 263:./Application/Src/fatfs_sd.c **** 
+ 1168              		.loc 1 263 22 is_stmt 1 view .LVU309
+ 1169              	.LVL130:
+ 263:./Application/Src/fatfs_sd.c **** 
+ 1170              		.loc 1 263 22 is_stmt 0 view .LVU310
+ 1171 015a 631E     		subs	r3, r4, #1
+ 1172              	.LVL131:
+ 263:./Application/Src/fatfs_sd.c **** 
+ 1173              		.loc 1 263 22 view .LVU311
+ 1174 015c 1C46     		mov	r4, r3
+ 1175 015e 07D0     		beq	.L88
+ 1176              	.LVL132:
+ 1177              	.L89:
+ 255:./Application/Src/fatfs_sd.c ****                 if (type == 2) {
+ 1178              		.loc 1 255 13 is_stmt 1 view .LVU312
+ 256:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD55, 0) <= 1 && SD_SendCmd(CMD41, 0) == 0)
+ 1179              		.loc 1 256 17 view .LVU313
+ 256:./Application/Src/fatfs_sd.c ****                     if (SD_SendCmd(CMD55, 0) <= 1 && SD_SendCmd(CMD41, 0) == 0)
+ 1180              		.loc 1 256 20 is_stmt 0 view .LVU314
+ 1181 0160 022D     		cmp	r5, #2
+ 1182 0162 F4D0     		beq	.L105
+ 260:./Application/Src/fatfs_sd.c ****                         break;
+ 1183              		.loc 1 260 21 is_stmt 1 view .LVU315
+ 260:./Application/Src/fatfs_sd.c ****                         break;
+ 1184              		.loc 1 260 25 is_stmt 0 view .LVU316
+ 1185 0164 0021     		movs	r1, #0
+ 1186 0166 4120     		movs	r0, #65
+ 1187 0168 FFF7FEFF 		bl	SD_SendCmd
+ 1188              	.LVL133:
+ 260:./Application/Src/fatfs_sd.c ****                         break;
+ 1189              		.loc 1 260 24 discriminator 1 view .LVU317
+ 1190 016c 0028     		cmp	r0, #0
+ 1191 016e F4D1     		bne	.L87
+ 1192              	.L88:
+ 265:./Application/Src/fatfs_sd.c ****                 type = 0;
+ 1193              		.loc 1 265 13 is_stmt 1 view .LVU318
+ 265:./Application/Src/fatfs_sd.c ****                 type = 0;
+ 1194              		.loc 1 265 16 is_stmt 0 view .LVU319
+ 1195 0170 002C     		cmp	r4, #0
+ 1196 0172 3FF46BAF 		beq	.L76
+ 265:./Application/Src/fatfs_sd.c ****                 type = 0;
+ 1197              		.loc 1 265 29 discriminator 1 view .LVU320
+ 1198 0176 4FF40071 		mov	r1, #512
+ 1199 017a 5020     		movs	r0, #80
+ 1200 017c FFF7FEFF 		bl	SD_SendCmd
+ 1201              	.LVL134:
+ 265:./Application/Src/fatfs_sd.c ****                 type = 0;
+ 1202              		.loc 1 265 26 discriminator 2 view .LVU321
+ 1203 0180 0028     		cmp	r0, #0
+ 1204 0182 7FF463AF 		bne	.L76
+ 1205 0186 2E46     		mov	r6, r5
+ 1206 0188 60E7     		b	.L76
+ 1207              	.L104:
+ 257:./Application/Src/fatfs_sd.c ****                         break;
+ 1208              		.loc 1 257 54 discriminator 2 view .LVU322
+ 1209 018a 0021     		movs	r1, #0
+ 1210 018c 6920     		movs	r0, #105
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 32
+
+
+ 1211 018e FFF7FEFF 		bl	SD_SendCmd
+ 1212              	.LVL135:
+ 257:./Application/Src/fatfs_sd.c ****                         break;
+ 1213              		.loc 1 257 51 discriminator 3 view .LVU323
+ 1214 0192 0028     		cmp	r0, #0
+ 1215 0194 E1D1     		bne	.L87
+ 1216 0196 EBE7     		b	.L88
+ 1217              	.LVL136:
+ 1218              	.L94:
+ 1219              	.LBB7:
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1220              		.loc 1 249 26 discriminator 2 view .LVU324
+ 1221 0198 0223     		movs	r3, #2
+ 1222 019a 1E46     		mov	r6, r3
+ 1223 019c 56E7     		b	.L76
+ 1224              	.LVL137:
+ 1225              	.L90:
+ 249:./Application/Src/fatfs_sd.c ****                 }
+ 1226              		.loc 1 249 26 discriminator 2 view .LVU325
+ 1227              	.LBE7:
+ 1228              	.LBE4:
+ 283:./Application/Src/fatfs_sd.c ****     }
+ 1229              		.loc 1 283 9 is_stmt 1 view .LVU326
+ 1230 019e FFF7FEFF 		bl	SD_PowerOff
+ 1231              	.LVL138:
+ 1232 01a2 69E7     		b	.L91
+ 1233              	.LVL139:
+ 1234              	.L92:
+ 1235              	.LCFI19:
+ 1236              		.cfi_def_cfa_offset 0
+ 1237              		.cfi_restore 4
+ 1238              		.cfi_restore 5
+ 1239              		.cfi_restore 6
+ 1240              		.cfi_restore 14
+ 208:./Application/Src/fatfs_sd.c ****     if(Stat & STA_NODISK) return Stat;
+ 1241              		.loc 1 208 20 is_stmt 0 discriminator 1 view .LVU327
+ 1242 01a4 0120     		movs	r0, #1
+ 1243              	.LVL140:
+ 1244              		.loc 1 287 1 view .LVU328
+ 1245 01a6 7047     		bx	lr
+ 1246              	.L107:
+ 1247              		.align	2
+ 1248              	.L106:
+ 1249 01a8 00000000 		.word	Stat
+ 1250 01ac 00000000 		.word	sd_dbg_spi_errs
+ 1251 01b0 00000000 		.word	hspi3
+ 1252 01b4 00000000 		.word	sd_dbg_cmd0
+ 1253 01b8 00000000 		.word	sd_dbg_type
+ 1254 01bc 00000000 		.word	CardType
+ 1255 01c0 00000000 		.word	sd_dbg_cmd8
+ 1256 01c4 A0860100 		.word	100000
+ 1257 01c8 00000000 		.word	sd_dbg_acmd41
+ 1258              		.cfi_endproc
+ 1259              	.LFE173:
+ 1261              		.section	.text.SD_disk_status,"ax",%progbits
+ 1262              		.align	1
+ 1263              		.global	SD_disk_status
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 33
+
+
+ 1264              		.syntax unified
+ 1265              		.thumb
+ 1266              		.thumb_func
+ 1268              	SD_disk_status:
+ 1269              	.LVL141:
+ 1270              	.LFB174:
+ 288:./Application/Src/fatfs_sd.c **** 
+ 289:./Application/Src/fatfs_sd.c **** DSTATUS SD_disk_status(BYTE drv) {
+ 1271              		.loc 1 289 34 is_stmt 1 view -0
+ 1272              		.cfi_startproc
+ 1273              		@ args = 0, pretend = 0, frame = 0
+ 1274              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1275              		@ link register save eliminated.
+ 290:./Application/Src/fatfs_sd.c ****     if (drv) return STA_NOINIT;
+ 1276              		.loc 1 290 5 view .LVU330
+ 1277              		.loc 1 290 8 is_stmt 0 view .LVU331
+ 1278 0000 18B9     		cbnz	r0, .L110
+ 291:./Application/Src/fatfs_sd.c ****     return Stat;
+ 1279              		.loc 1 291 5 is_stmt 1 view .LVU332
+ 1280              		.loc 1 291 12 is_stmt 0 view .LVU333
+ 1281 0002 034B     		ldr	r3, .L111
+ 1282 0004 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1283              	.LVL142:
+ 1284              		.loc 1 291 12 view .LVU334
+ 1285 0006 C0B2     		uxtb	r0, r0
+ 1286 0008 7047     		bx	lr
+ 1287              	.LVL143:
+ 1288              	.L110:
+ 290:./Application/Src/fatfs_sd.c ****     if (drv) return STA_NOINIT;
+ 1289              		.loc 1 290 21 discriminator 1 view .LVU335
+ 1290 000a 0120     		movs	r0, #1
+ 1291              	.LVL144:
+ 292:./Application/Src/fatfs_sd.c **** }
+ 1292              		.loc 1 292 1 view .LVU336
+ 1293 000c 7047     		bx	lr
+ 1294              	.L112:
+ 1295 000e 00BF     		.align	2
+ 1296              	.L111:
+ 1297 0010 00000000 		.word	Stat
+ 1298              		.cfi_endproc
+ 1299              	.LFE174:
+ 1301              		.section	.text.SD_disk_read,"ax",%progbits
+ 1302              		.align	1
+ 1303              		.global	SD_disk_read
+ 1304              		.syntax unified
+ 1305              		.thumb
+ 1306              		.thumb_func
+ 1308              	SD_disk_read:
+ 1309              	.LVL145:
+ 1310              	.LFB175:
+ 293:./Application/Src/fatfs_sd.c **** 
+ 294:./Application/Src/fatfs_sd.c **** DRESULT SD_disk_read(BYTE pdrv, BYTE* buff, DWORD sector, UINT count) {
+ 1311              		.loc 1 294 71 is_stmt 1 view -0
+ 1312              		.cfi_startproc
+ 1313              		@ args = 0, pretend = 0, frame = 0
+ 1314              		@ frame_needed = 0, uses_anonymous_args = 0
+ 295:./Application/Src/fatfs_sd.c ****     if (pdrv || !count) return RES_PARERR;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 34
+
+
+ 1315              		.loc 1 295 5 view .LVU338
+ 1316              		.loc 1 295 8 is_stmt 0 view .LVU339
+ 1317 0000 0028     		cmp	r0, #0
+ 1318 0002 3FD1     		bne	.L120
+ 294:./Application/Src/fatfs_sd.c ****     if (pdrv || !count) return RES_PARERR;
+ 1319              		.loc 1 294 71 view .LVU340
+ 1320 0004 70B5     		push	{r4, r5, r6, lr}
+ 1321              	.LCFI20:
+ 1322              		.cfi_def_cfa_offset 16
+ 1323              		.cfi_offset 4, -16
+ 1324              		.cfi_offset 5, -12
+ 1325              		.cfi_offset 6, -8
+ 1326              		.cfi_offset 14, -4
+ 1327 0006 0D46     		mov	r5, r1
+ 1328 0008 1646     		mov	r6, r2
+ 1329 000a 1C46     		mov	r4, r3
+ 1330              		.loc 1 295 14 discriminator 2 view .LVU341
+ 1331 000c 002B     		cmp	r3, #0
+ 1332 000e 3BD0     		beq	.L121
+ 296:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1333              		.loc 1 296 5 is_stmt 1 view .LVU342
+ 1334              		.loc 1 296 14 is_stmt 0 view .LVU343
+ 1335 0010 1F4B     		ldr	r3, .L129
+ 1336              	.LVL146:
+ 1337              		.loc 1 296 14 view .LVU344
+ 1338 0012 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1339              		.loc 1 296 8 view .LVU345
+ 1340 0014 13F0010F 		tst	r3, #1
+ 1341 0018 38D1     		bne	.L122
+ 297:./Application/Src/fatfs_sd.c **** 
+ 298:./Application/Src/fatfs_sd.c ****     if (!(CardType & 4))
+ 1342              		.loc 1 298 5 is_stmt 1 view .LVU346
+ 1343              		.loc 1 298 20 is_stmt 0 view .LVU347
+ 1344 001a 1E4B     		ldr	r3, .L129+4
+ 1345 001c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1346              		.loc 1 298 8 view .LVU348
+ 1347 001e 13F0040F 		tst	r3, #4
+ 1348 0022 01D1     		bne	.L115
+ 299:./Application/Src/fatfs_sd.c ****         sector *= 512;
+ 1349              		.loc 1 299 9 is_stmt 1 view .LVU349
+ 1350              		.loc 1 299 16 is_stmt 0 view .LVU350
+ 1351 0024 5302     		lsls	r3, r2, #9
+ 1352 0026 1E46     		mov	r6, r3
+ 1353              	.L115:
+ 1354              	.LVL147:
+ 300:./Application/Src/fatfs_sd.c **** 
+ 301:./Application/Src/fatfs_sd.c ****     SELECT();
+ 1355              		.loc 1 301 5 is_stmt 1 view .LVU351
+ 1356 0028 FFF7FEFF 		bl	SELECT
+ 1357              	.LVL148:
+ 302:./Application/Src/fatfs_sd.c **** 
+ 303:./Application/Src/fatfs_sd.c ****     if (count == 1) {
+ 1358              		.loc 1 303 5 view .LVU352
+ 1359              		.loc 1 303 8 is_stmt 0 view .LVU353
+ 1360 002c 012C     		cmp	r4, #1
+ 1361 002e 1AD0     		beq	.L128
+ 304:./Application/Src/fatfs_sd.c ****         if ((SD_SendCmd(CMD17, sector) == 0) && SD_RxDataBlock(buff, 512))
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 35
+
+
+ 305:./Application/Src/fatfs_sd.c ****             count = 0;
+ 306:./Application/Src/fatfs_sd.c ****     } else {
+ 307:./Application/Src/fatfs_sd.c ****         if (SD_SendCmd(CMD18, sector) == 0) {
+ 1362              		.loc 1 307 9 is_stmt 1 view .LVU354
+ 1363              		.loc 1 307 13 is_stmt 0 view .LVU355
+ 1364 0030 3146     		mov	r1, r6
+ 1365 0032 5220     		movs	r0, #82
+ 1366 0034 FFF7FEFF 		bl	SD_SendCmd
+ 1367              	.LVL149:
+ 1368              		.loc 1 307 12 discriminator 1 view .LVU356
+ 1369 0038 68B9     		cbnz	r0, .L117
+ 1370              	.L119:
+ 308:./Application/Src/fatfs_sd.c ****             do {
+ 1371              		.loc 1 308 13 is_stmt 1 view .LVU357
+ 309:./Application/Src/fatfs_sd.c ****                 if (!SD_RxDataBlock(buff, 512))
+ 1372              		.loc 1 309 17 view .LVU358
+ 1373              		.loc 1 309 22 is_stmt 0 view .LVU359
+ 1374 003a 4FF40071 		mov	r1, #512
+ 1375 003e 2846     		mov	r0, r5
+ 1376 0040 FFF7FEFF 		bl	SD_RxDataBlock
+ 1377              	.LVL150:
+ 1378              		.loc 1 309 20 discriminator 1 view .LVU360
+ 1379 0044 18B1     		cbz	r0, .L118
+ 310:./Application/Src/fatfs_sd.c ****                     break;
+ 311:./Application/Src/fatfs_sd.c ****                 buff += 512;
+ 1380              		.loc 1 311 17 is_stmt 1 view .LVU361
+ 1381              		.loc 1 311 22 is_stmt 0 view .LVU362
+ 1382 0046 05F50075 		add	r5, r5, #512
+ 1383              	.LVL151:
+ 312:./Application/Src/fatfs_sd.c ****             } while (--count);
+ 1384              		.loc 1 312 22 is_stmt 1 view .LVU363
+ 1385              		.loc 1 312 22 is_stmt 0 view .LVU364
+ 1386 004a 013C     		subs	r4, r4, #1
+ 1387              	.LVL152:
+ 1388              		.loc 1 312 22 view .LVU365
+ 1389 004c F5D1     		bne	.L119
+ 1390              	.L118:
+ 313:./Application/Src/fatfs_sd.c ****             SD_SendCmd(CMD12, 0);
+ 1391              		.loc 1 313 13 is_stmt 1 view .LVU366
+ 1392 004e 0021     		movs	r1, #0
+ 1393 0050 4C20     		movs	r0, #76
+ 1394 0052 FFF7FEFF 		bl	SD_SendCmd
+ 1395              	.LVL153:
+ 1396              	.L117:
+ 314:./Application/Src/fatfs_sd.c ****         }
+ 315:./Application/Src/fatfs_sd.c ****     }
+ 316:./Application/Src/fatfs_sd.c **** 
+ 317:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 1397              		.loc 1 317 5 view .LVU367
+ 1398 0056 FFF7FEFF 		bl	DESELECT
+ 1399              	.LVL154:
+ 318:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 1400              		.loc 1 318 5 view .LVU368
+ 1401 005a FFF7FEFF 		bl	SPI_RxByte
+ 1402              	.LVL155:
+ 319:./Application/Src/fatfs_sd.c **** 
+ 320:./Application/Src/fatfs_sd.c ****     return count ? RES_ERROR : RES_OK;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 36
+
+
+ 1403              		.loc 1 320 5 view .LVU369
+ 1404              		.loc 1 320 30 is_stmt 0 view .LVU370
+ 1405 005e 201E     		subs	r0, r4, #0
+ 1406 0060 18BF     		it	ne
+ 1407 0062 0120     		movne	r0, #1
+ 1408              	.L114:
+ 321:./Application/Src/fatfs_sd.c **** }
+ 1409              		.loc 1 321 1 view .LVU371
+ 1410 0064 70BD     		pop	{r4, r5, r6, pc}
+ 1411              	.LVL156:
+ 1412              	.L128:
+ 304:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1413              		.loc 1 304 9 is_stmt 1 view .LVU372
+ 304:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1414              		.loc 1 304 14 is_stmt 0 view .LVU373
+ 1415 0066 3146     		mov	r1, r6
+ 1416 0068 5120     		movs	r0, #81
+ 1417 006a FFF7FEFF 		bl	SD_SendCmd
+ 1418              	.LVL157:
+ 304:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1419              		.loc 1 304 12 discriminator 1 view .LVU374
+ 1420 006e 0028     		cmp	r0, #0
+ 1421 0070 F1D1     		bne	.L117
+ 304:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1422              		.loc 1 304 49 discriminator 2 view .LVU375
+ 1423 0072 4FF40071 		mov	r1, #512
+ 1424 0076 2846     		mov	r0, r5
+ 1425 0078 FFF7FEFF 		bl	SD_RxDataBlock
+ 1426              	.LVL158:
+ 304:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1427              		.loc 1 304 46 discriminator 3 view .LVU376
+ 1428 007c 0028     		cmp	r0, #0
+ 1429 007e EAD0     		beq	.L117
+ 305:./Application/Src/fatfs_sd.c ****     } else {
+ 1430              		.loc 1 305 19 view .LVU377
+ 1431 0080 0024     		movs	r4, #0
+ 1432              	.LVL159:
+ 305:./Application/Src/fatfs_sd.c ****     } else {
+ 1433              		.loc 1 305 19 view .LVU378
+ 1434 0082 E8E7     		b	.L117
+ 1435              	.LVL160:
+ 1436              	.L120:
+ 1437              	.LCFI21:
+ 1438              		.cfi_def_cfa_offset 0
+ 1439              		.cfi_restore 4
+ 1440              		.cfi_restore 5
+ 1441              		.cfi_restore 6
+ 1442              		.cfi_restore 14
+ 295:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1443              		.loc 1 295 32 discriminator 3 view .LVU379
+ 1444 0084 0420     		movs	r0, #4
+ 1445              	.LVL161:
+ 1446              		.loc 1 321 1 view .LVU380
+ 1447 0086 7047     		bx	lr
+ 1448              	.LVL162:
+ 1449              	.L121:
+ 1450              	.LCFI22:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 37
+
+
+ 1451              		.cfi_def_cfa_offset 16
+ 1452              		.cfi_offset 4, -16
+ 1453              		.cfi_offset 5, -12
+ 1454              		.cfi_offset 6, -8
+ 1455              		.cfi_offset 14, -4
+ 295:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1456              		.loc 1 295 32 discriminator 3 view .LVU381
+ 1457 0088 0420     		movs	r0, #4
+ 1458              	.LVL163:
+ 295:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1459              		.loc 1 295 32 discriminator 3 view .LVU382
+ 1460 008a EBE7     		b	.L114
+ 1461              	.LVL164:
+ 1462              	.L122:
+ 296:./Application/Src/fatfs_sd.c **** 
+ 1463              		.loc 1 296 35 discriminator 1 view .LVU383
+ 1464 008c 0320     		movs	r0, #3
+ 1465              	.LVL165:
+ 296:./Application/Src/fatfs_sd.c **** 
+ 1466              		.loc 1 296 35 discriminator 1 view .LVU384
+ 1467 008e E9E7     		b	.L114
+ 1468              	.L130:
+ 1469              		.align	2
+ 1470              	.L129:
+ 1471 0090 00000000 		.word	Stat
+ 1472 0094 00000000 		.word	CardType
+ 1473              		.cfi_endproc
+ 1474              	.LFE175:
+ 1476              		.section	.text.SD_disk_write,"ax",%progbits
+ 1477              		.align	1
+ 1478              		.global	SD_disk_write
+ 1479              		.syntax unified
+ 1480              		.thumb
+ 1481              		.thumb_func
+ 1483              	SD_disk_write:
+ 1484              	.LVL166:
+ 1485              	.LFB176:
+ 322:./Application/Src/fatfs_sd.c **** 
+ 323:./Application/Src/fatfs_sd.c **** DRESULT SD_disk_write(BYTE pdrv, const BYTE* buff, DWORD sector, UINT count) {
+ 1486              		.loc 1 323 78 is_stmt 1 view -0
+ 1487              		.cfi_startproc
+ 1488              		@ args = 0, pretend = 0, frame = 0
+ 1489              		@ frame_needed = 0, uses_anonymous_args = 0
+ 324:./Application/Src/fatfs_sd.c ****     if (pdrv || !count) return RES_PARERR;
+ 1490              		.loc 1 324 5 view .LVU386
+ 1491              		.loc 1 324 8 is_stmt 0 view .LVU387
+ 1492 0000 0028     		cmp	r0, #0
+ 1493 0002 53D1     		bne	.L139
+ 323:./Application/Src/fatfs_sd.c ****     if (pdrv || !count) return RES_PARERR;
+ 1494              		.loc 1 323 78 view .LVU388
+ 1495 0004 70B5     		push	{r4, r5, r6, lr}
+ 1496              	.LCFI23:
+ 1497              		.cfi_def_cfa_offset 16
+ 1498              		.cfi_offset 4, -16
+ 1499              		.cfi_offset 5, -12
+ 1500              		.cfi_offset 6, -8
+ 1501              		.cfi_offset 14, -4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 38
+
+
+ 1502 0006 0D46     		mov	r5, r1
+ 1503 0008 1646     		mov	r6, r2
+ 1504 000a 1C46     		mov	r4, r3
+ 1505              		.loc 1 324 14 discriminator 2 view .LVU389
+ 1506 000c 002B     		cmp	r3, #0
+ 1507 000e 4FD0     		beq	.L140
+ 325:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1508              		.loc 1 325 5 is_stmt 1 view .LVU390
+ 1509              		.loc 1 325 14 is_stmt 0 view .LVU391
+ 1510 0010 2A4B     		ldr	r3, .L151
+ 1511              	.LVL167:
+ 1512              		.loc 1 325 14 view .LVU392
+ 1513 0012 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1514              		.loc 1 325 8 view .LVU393
+ 1515 0014 13F0010F 		tst	r3, #1
+ 1516 0018 4CD1     		bne	.L141
+ 326:./Application/Src/fatfs_sd.c ****     if (Stat & STA_PROTECT) return RES_WRPRT;
+ 1517              		.loc 1 326 5 is_stmt 1 view .LVU394
+ 1518              		.loc 1 326 14 is_stmt 0 view .LVU395
+ 1519 001a 284B     		ldr	r3, .L151
+ 1520 001c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1521              		.loc 1 326 8 view .LVU396
+ 1522 001e 13F0040F 		tst	r3, #4
+ 1523 0022 49D1     		bne	.L142
+ 327:./Application/Src/fatfs_sd.c **** 
+ 328:./Application/Src/fatfs_sd.c ****     if (!(CardType & 4))
+ 1524              		.loc 1 328 5 is_stmt 1 view .LVU397
+ 1525              		.loc 1 328 20 is_stmt 0 view .LVU398
+ 1526 0024 264B     		ldr	r3, .L151+4
+ 1527 0026 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1528              		.loc 1 328 8 view .LVU399
+ 1529 0028 13F0040F 		tst	r3, #4
+ 1530 002c 01D1     		bne	.L133
+ 329:./Application/Src/fatfs_sd.c ****         sector *= 512;
+ 1531              		.loc 1 329 9 is_stmt 1 view .LVU400
+ 1532              		.loc 1 329 16 is_stmt 0 view .LVU401
+ 1533 002e 5302     		lsls	r3, r2, #9
+ 1534 0030 1E46     		mov	r6, r3
+ 1535              	.L133:
+ 1536              	.LVL168:
+ 330:./Application/Src/fatfs_sd.c **** 
+ 331:./Application/Src/fatfs_sd.c ****     SELECT();
+ 1537              		.loc 1 331 5 is_stmt 1 view .LVU402
+ 1538 0032 FFF7FEFF 		bl	SELECT
+ 1539              	.LVL169:
+ 332:./Application/Src/fatfs_sd.c **** 
+ 333:./Application/Src/fatfs_sd.c ****     if (count == 1) {
+ 1540              		.loc 1 333 5 view .LVU403
+ 1541              		.loc 1 333 8 is_stmt 0 view .LVU404
+ 1542 0036 012C     		cmp	r4, #1
+ 1543 0038 1FD0     		beq	.L149
+ 334:./Application/Src/fatfs_sd.c ****         if ((SD_SendCmd(CMD24, sector) == 0) && SD_TxDataBlock(buff, 0xFE))
+ 335:./Application/Src/fatfs_sd.c ****             count = 0;
+ 336:./Application/Src/fatfs_sd.c ****     } else {
+ 337:./Application/Src/fatfs_sd.c ****         if (CardType & 2) {
+ 1544              		.loc 1 337 9 is_stmt 1 view .LVU405
+ 1545              		.loc 1 337 22 is_stmt 0 view .LVU406
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 39
+
+
+ 1546 003a 214B     		ldr	r3, .L151+4
+ 1547 003c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1548              		.loc 1 337 12 view .LVU407
+ 1549 003e 13F0020F 		tst	r3, #2
+ 1550 0042 28D1     		bne	.L150
+ 1551              	.L136:
+ 338:./Application/Src/fatfs_sd.c ****             SD_SendCmd(CMD55, 0);
+ 339:./Application/Src/fatfs_sd.c ****             SD_SendCmd(CMD23, count);
+ 340:./Application/Src/fatfs_sd.c ****         }
+ 341:./Application/Src/fatfs_sd.c **** 
+ 342:./Application/Src/fatfs_sd.c ****         if (SD_SendCmd(CMD25, sector) == 0) {
+ 1552              		.loc 1 342 9 is_stmt 1 view .LVU408
+ 1553              		.loc 1 342 13 is_stmt 0 view .LVU409
+ 1554 0044 3146     		mov	r1, r6
+ 1555 0046 5920     		movs	r0, #89
+ 1556 0048 FFF7FEFF 		bl	SD_SendCmd
+ 1557              	.LVL170:
+ 1558              		.loc 1 342 12 discriminator 1 view .LVU410
+ 1559 004c 68B9     		cbnz	r0, .L135
+ 1560              	.L138:
+ 343:./Application/Src/fatfs_sd.c ****             do {
+ 1561              		.loc 1 343 13 is_stmt 1 view .LVU411
+ 344:./Application/Src/fatfs_sd.c ****                 if(!SD_TxDataBlock(buff, 0xFC))
+ 1562              		.loc 1 344 17 view .LVU412
+ 1563              		.loc 1 344 21 is_stmt 0 view .LVU413
+ 1564 004e FC21     		movs	r1, #252
+ 1565 0050 2846     		mov	r0, r5
+ 1566 0052 FFF7FEFF 		bl	SD_TxDataBlock
+ 1567              	.LVL171:
+ 1568              		.loc 1 344 19 discriminator 1 view .LVU414
+ 1569 0056 18B1     		cbz	r0, .L137
+ 345:./Application/Src/fatfs_sd.c ****                     break;
+ 346:./Application/Src/fatfs_sd.c ****                 buff += 512;
+ 1570              		.loc 1 346 17 is_stmt 1 view .LVU415
+ 1571              		.loc 1 346 22 is_stmt 0 view .LVU416
+ 1572 0058 05F50075 		add	r5, r5, #512
+ 1573              	.LVL172:
+ 347:./Application/Src/fatfs_sd.c ****             } while (--count);
+ 1574              		.loc 1 347 22 is_stmt 1 view .LVU417
+ 1575              		.loc 1 347 22 is_stmt 0 view .LVU418
+ 1576 005c 013C     		subs	r4, r4, #1
+ 1577              	.LVL173:
+ 1578              		.loc 1 347 22 view .LVU419
+ 1579 005e F6D1     		bne	.L138
+ 1580              	.L137:
+ 348:./Application/Src/fatfs_sd.c **** 
+ 349:./Application/Src/fatfs_sd.c ****             if(!SD_TxDataBlock(0, 0xFD)) {
+ 1581              		.loc 1 349 13 is_stmt 1 view .LVU420
+ 1582              		.loc 1 349 17 is_stmt 0 view .LVU421
+ 1583 0060 FD21     		movs	r1, #253
+ 1584 0062 0020     		movs	r0, #0
+ 1585 0064 FFF7FEFF 		bl	SD_TxDataBlock
+ 1586              	.LVL174:
+ 1587              		.loc 1 349 15 discriminator 1 view .LVU422
+ 1588 0068 F0B1     		cbz	r0, .L144
+ 1589              	.LVL175:
+ 1590              	.L135:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 40
+
+
+ 350:./Application/Src/fatfs_sd.c ****                 count = 1;
+ 351:./Application/Src/fatfs_sd.c ****             }
+ 352:./Application/Src/fatfs_sd.c ****         }
+ 353:./Application/Src/fatfs_sd.c ****     }
+ 354:./Application/Src/fatfs_sd.c **** 
+ 355:./Application/Src/fatfs_sd.c ****     DESELECT();
+ 1591              		.loc 1 355 5 is_stmt 1 view .LVU423
+ 1592 006a FFF7FEFF 		bl	DESELECT
+ 1593              	.LVL176:
+ 356:./Application/Src/fatfs_sd.c ****     SPI_RxByte();
+ 1594              		.loc 1 356 5 view .LVU424
+ 1595 006e FFF7FEFF 		bl	SPI_RxByte
+ 1596              	.LVL177:
+ 357:./Application/Src/fatfs_sd.c **** 
+ 358:./Application/Src/fatfs_sd.c ****     return count ? RES_ERROR : RES_OK;
+ 1597              		.loc 1 358 5 view .LVU425
+ 1598              		.loc 1 358 30 is_stmt 0 view .LVU426
+ 1599 0072 201E     		subs	r0, r4, #0
+ 1600 0074 18BF     		it	ne
+ 1601 0076 0120     		movne	r0, #1
+ 1602              	.L132:
+ 359:./Application/Src/fatfs_sd.c **** }
+ 1603              		.loc 1 359 1 view .LVU427
+ 1604 0078 70BD     		pop	{r4, r5, r6, pc}
+ 1605              	.LVL178:
+ 1606              	.L149:
+ 334:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1607              		.loc 1 334 9 is_stmt 1 view .LVU428
+ 334:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1608              		.loc 1 334 14 is_stmt 0 view .LVU429
+ 1609 007a 3146     		mov	r1, r6
+ 1610 007c 5820     		movs	r0, #88
+ 1611 007e FFF7FEFF 		bl	SD_SendCmd
+ 1612              	.LVL179:
+ 334:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1613              		.loc 1 334 12 discriminator 1 view .LVU430
+ 1614 0082 0028     		cmp	r0, #0
+ 1615 0084 F1D1     		bne	.L135
+ 334:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1616              		.loc 1 334 49 discriminator 2 view .LVU431
+ 1617 0086 FE21     		movs	r1, #254
+ 1618 0088 2846     		mov	r0, r5
+ 1619 008a FFF7FEFF 		bl	SD_TxDataBlock
+ 1620              	.LVL180:
+ 334:./Application/Src/fatfs_sd.c ****             count = 0;
+ 1621              		.loc 1 334 46 discriminator 3 view .LVU432
+ 1622 008e 0028     		cmp	r0, #0
+ 1623 0090 EBD0     		beq	.L135
+ 335:./Application/Src/fatfs_sd.c ****     } else {
+ 1624              		.loc 1 335 19 view .LVU433
+ 1625 0092 0024     		movs	r4, #0
+ 1626              	.LVL181:
+ 335:./Application/Src/fatfs_sd.c ****     } else {
+ 1627              		.loc 1 335 19 view .LVU434
+ 1628 0094 E9E7     		b	.L135
+ 1629              	.LVL182:
+ 1630              	.L150:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 41
+
+
+ 338:./Application/Src/fatfs_sd.c ****             SD_SendCmd(CMD23, count);
+ 1631              		.loc 1 338 13 is_stmt 1 view .LVU435
+ 1632 0096 0021     		movs	r1, #0
+ 1633 0098 7720     		movs	r0, #119
+ 1634 009a FFF7FEFF 		bl	SD_SendCmd
+ 1635              	.LVL183:
+ 339:./Application/Src/fatfs_sd.c ****         }
+ 1636              		.loc 1 339 13 view .LVU436
+ 1637 009e 2146     		mov	r1, r4
+ 1638 00a0 5720     		movs	r0, #87
+ 1639 00a2 FFF7FEFF 		bl	SD_SendCmd
+ 1640              	.LVL184:
+ 1641 00a6 CDE7     		b	.L136
+ 1642              	.L144:
+ 350:./Application/Src/fatfs_sd.c ****             }
+ 1643              		.loc 1 350 23 is_stmt 0 view .LVU437
+ 1644 00a8 0124     		movs	r4, #1
+ 1645              	.LVL185:
+ 350:./Application/Src/fatfs_sd.c ****             }
+ 1646              		.loc 1 350 23 view .LVU438
+ 1647 00aa DEE7     		b	.L135
+ 1648              	.LVL186:
+ 1649              	.L139:
+ 1650              	.LCFI24:
+ 1651              		.cfi_def_cfa_offset 0
+ 1652              		.cfi_restore 4
+ 1653              		.cfi_restore 5
+ 1654              		.cfi_restore 6
+ 1655              		.cfi_restore 14
+ 324:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1656              		.loc 1 324 32 discriminator 3 view .LVU439
+ 1657 00ac 0420     		movs	r0, #4
+ 1658              	.LVL187:
+ 1659              		.loc 1 359 1 view .LVU440
+ 1660 00ae 7047     		bx	lr
+ 1661              	.LVL188:
+ 1662              	.L140:
+ 1663              	.LCFI25:
+ 1664              		.cfi_def_cfa_offset 16
+ 1665              		.cfi_offset 4, -16
+ 1666              		.cfi_offset 5, -12
+ 1667              		.cfi_offset 6, -8
+ 1668              		.cfi_offset 14, -4
+ 324:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1669              		.loc 1 324 32 discriminator 3 view .LVU441
+ 1670 00b0 0420     		movs	r0, #4
+ 1671              	.LVL189:
+ 324:./Application/Src/fatfs_sd.c ****     if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1672              		.loc 1 324 32 discriminator 3 view .LVU442
+ 1673 00b2 E1E7     		b	.L132
+ 1674              	.LVL190:
+ 1675              	.L141:
+ 325:./Application/Src/fatfs_sd.c ****     if (Stat & STA_PROTECT) return RES_WRPRT;
+ 1676              		.loc 1 325 35 discriminator 1 view .LVU443
+ 1677 00b4 0320     		movs	r0, #3
+ 1678              	.LVL191:
+ 325:./Application/Src/fatfs_sd.c ****     if (Stat & STA_PROTECT) return RES_WRPRT;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 42
+
+
+ 1679              		.loc 1 325 35 discriminator 1 view .LVU444
+ 1680 00b6 DFE7     		b	.L132
+ 1681              	.LVL192:
+ 1682              	.L142:
+ 326:./Application/Src/fatfs_sd.c **** 
+ 1683              		.loc 1 326 36 discriminator 1 view .LVU445
+ 1684 00b8 0220     		movs	r0, #2
+ 1685              	.LVL193:
+ 326:./Application/Src/fatfs_sd.c **** 
+ 1686              		.loc 1 326 36 discriminator 1 view .LVU446
+ 1687 00ba DDE7     		b	.L132
+ 1688              	.L152:
+ 1689              		.align	2
+ 1690              	.L151:
+ 1691 00bc 00000000 		.word	Stat
+ 1692 00c0 00000000 		.word	CardType
+ 1693              		.cfi_endproc
+ 1694              	.LFE176:
+ 1696              		.section	.text.SD_disk_ioctl,"ax",%progbits
+ 1697              		.align	1
+ 1698              		.global	SD_disk_ioctl
+ 1699              		.syntax unified
+ 1700              		.thumb
+ 1701              		.thumb_func
+ 1703              	SD_disk_ioctl:
+ 1704              	.LVL194:
+ 1705              	.LFB177:
+ 360:./Application/Src/fatfs_sd.c **** 
+ 361:./Application/Src/fatfs_sd.c **** DRESULT SD_disk_ioctl(BYTE drv, BYTE ctrl, void *buff) {
+ 1706              		.loc 1 361 56 is_stmt 1 view -0
+ 1707              		.cfi_startproc
+ 1708              		@ args = 0, pretend = 0, frame = 16
+ 1709              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1710              		.loc 1 361 56 is_stmt 0 view .LVU448
+ 1711 0000 70B5     		push	{r4, r5, r6, lr}
+ 1712              	.LCFI26:
+ 1713              		.cfi_def_cfa_offset 16
+ 1714              		.cfi_offset 4, -16
+ 1715              		.cfi_offset 5, -12
+ 1716              		.cfi_offset 6, -8
+ 1717              		.cfi_offset 14, -4
+ 1718 0002 84B0     		sub	sp, sp, #16
+ 1719              	.LCFI27:
+ 1720              		.cfi_def_cfa_offset 32
+ 362:./Application/Src/fatfs_sd.c ****     DRESULT res;
+ 1721              		.loc 1 362 5 is_stmt 1 view .LVU449
+ 363:./Application/Src/fatfs_sd.c ****     BYTE n, csd[16], *ptr = buff;
+ 1722              		.loc 1 363 5 view .LVU450
+ 1723              	.LVL195:
+ 364:./Application/Src/fatfs_sd.c ****     WORD csize;
+ 1724              		.loc 1 364 5 view .LVU451
+ 365:./Application/Src/fatfs_sd.c **** 
+ 366:./Application/Src/fatfs_sd.c ****     if (drv) return RES_PARERR;
+ 1725              		.loc 1 366 5 view .LVU452
+ 1726              		.loc 1 366 8 is_stmt 0 view .LVU453
+ 1727 0004 0028     		cmp	r0, #0
+ 1728 0006 40F0C980 		bne	.L169
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 43
+
+
+ 1729 000a 0C46     		mov	r4, r1
+ 1730 000c 1546     		mov	r5, r2
+ 1731 000e 0646     		mov	r6, r0
+ 367:./Application/Src/fatfs_sd.c **** 
+ 368:./Application/Src/fatfs_sd.c ****     res = RES_ERROR;
+ 1732              		.loc 1 368 5 is_stmt 1 view .LVU454
+ 1733              	.LVL196:
+ 369:./Application/Src/fatfs_sd.c **** 
+ 370:./Application/Src/fatfs_sd.c ****     if (ctrl == CTRL_POWER) {
+ 1734              		.loc 1 370 5 view .LVU455
+ 1735              		.loc 1 370 8 is_stmt 0 view .LVU456
+ 1736 0010 0529     		cmp	r1, #5
+ 1737 0012 19D0     		beq	.L179
+ 371:./Application/Src/fatfs_sd.c ****         switch (*ptr) {
+ 372:./Application/Src/fatfs_sd.c ****         case 0:
+ 373:./Application/Src/fatfs_sd.c ****             if (SD_CheckPower()) SD_PowerOff();
+ 374:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 375:./Application/Src/fatfs_sd.c ****             break;
+ 376:./Application/Src/fatfs_sd.c ****         case 1:
+ 377:./Application/Src/fatfs_sd.c ****             SD_PowerOn();
+ 378:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 379:./Application/Src/fatfs_sd.c ****             break;
+ 380:./Application/Src/fatfs_sd.c ****         case 2:
+ 381:./Application/Src/fatfs_sd.c ****             *(ptr + 1) = (BYTE)SD_CheckPower();
+ 382:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 383:./Application/Src/fatfs_sd.c ****             break;
+ 384:./Application/Src/fatfs_sd.c ****         default:
+ 385:./Application/Src/fatfs_sd.c ****             res = RES_PARERR;
+ 386:./Application/Src/fatfs_sd.c ****         }
+ 387:./Application/Src/fatfs_sd.c ****     } else {
+ 388:./Application/Src/fatfs_sd.c ****         if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1738              		.loc 1 388 9 is_stmt 1 view .LVU457
+ 1739              		.loc 1 388 18 is_stmt 0 view .LVU458
+ 1740 0014 664B     		ldr	r3, .L186
+ 1741 0016 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1742              		.loc 1 388 12 view .LVU459
+ 1743 0018 13F00103 		ands	r3, r3, #1
+ 1744 001c 1E46     		mov	r6, r3
+ 1745 001e 40F0C380 		bne	.L171
+ 389:./Application/Src/fatfs_sd.c **** 
+ 390:./Application/Src/fatfs_sd.c ****         SELECT();
+ 1746              		.loc 1 390 9 is_stmt 1 view .LVU460
+ 1747 0022 FFF7FEFF 		bl	SELECT
+ 1748              	.LVL197:
+ 391:./Application/Src/fatfs_sd.c **** 
+ 392:./Application/Src/fatfs_sd.c ****         switch (ctrl) {
+ 1749              		.loc 1 392 9 view .LVU461
+ 1750 0026 0B2C     		cmp	r4, #11
+ 1751 0028 00F08380 		beq	.L158
+ 1752 002c 27D8     		bhi	.L159
+ 1753 002e 012C     		cmp	r4, #1
+ 1754 0030 36D0     		beq	.L160
+ 1755 0032 022C     		cmp	r4, #2
+ 1756 0034 73D0     		beq	.L161
+ 1757 0036 FCB9     		cbnz	r4, .L180
+ 393:./Application/Src/fatfs_sd.c ****         case GET_SECTOR_COUNT:
+ 394:./Application/Src/fatfs_sd.c ****             if ((SD_SendCmd(CMD9, 0) == 0) && SD_RxDataBlock(csd, 16)) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 44
+
+
+ 395:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 396:./Application/Src/fatfs_sd.c ****                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+ 397:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 398:./Application/Src/fatfs_sd.c ****                 } else {
+ 399:./Application/Src/fatfs_sd.c ****                     n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
+ 400:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 401:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 402:./Application/Src/fatfs_sd.c ****                 }
+ 403:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 404:./Application/Src/fatfs_sd.c ****             }
+ 405:./Application/Src/fatfs_sd.c ****             break;
+ 406:./Application/Src/fatfs_sd.c **** 
+ 407:./Application/Src/fatfs_sd.c ****         case GET_SECTOR_SIZE:
+ 408:./Application/Src/fatfs_sd.c ****             *(WORD*)buff = 512;
+ 409:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 410:./Application/Src/fatfs_sd.c ****             break;
+ 411:./Application/Src/fatfs_sd.c **** 
+ 412:./Application/Src/fatfs_sd.c ****         case CTRL_SYNC:
+ 413:./Application/Src/fatfs_sd.c ****             if (SD_ReadyWait() == 0xFF)
+ 1758              		.loc 1 413 13 view .LVU462
+ 1759              		.loc 1 413 17 is_stmt 0 view .LVU463
+ 1760 0038 FFF7FEFF 		bl	SD_ReadyWait
+ 1761              	.LVL198:
+ 1762              		.loc 1 413 16 discriminator 1 view .LVU464
+ 1763 003c FF28     		cmp	r0, #255
+ 1764 003e 00F0AB80 		beq	.L174
+ 368:./Application/Src/fatfs_sd.c **** 
+ 1765              		.loc 1 368 9 view .LVU465
+ 1766 0042 0123     		movs	r3, #1
+ 1767 0044 1E46     		mov	r6, r3
+ 1768 0046 6DE0     		b	.L163
+ 1769              	.LVL199:
+ 1770              	.L179:
+ 371:./Application/Src/fatfs_sd.c ****         case 0:
+ 1771              		.loc 1 371 9 is_stmt 1 view .LVU466
+ 371:./Application/Src/fatfs_sd.c ****         case 0:
+ 1772              		.loc 1 371 17 is_stmt 0 view .LVU467
+ 1773 0048 1478     		ldrb	r4, [r2]	@ zero_extendqisi2
+ 371:./Application/Src/fatfs_sd.c ****         case 0:
+ 1774              		.loc 1 371 9 view .LVU468
+ 1775 004a 012C     		cmp	r4, #1
+ 1776 004c 0DD0     		beq	.L156
+ 1777 004e 022C     		cmp	r4, #2
+ 1778 0050 0ED0     		beq	.L157
+ 1779 0052 002C     		cmp	r4, #0
+ 1780 0054 40F0A580 		bne	.L170
+ 373:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1781              		.loc 1 373 13 is_stmt 1 view .LVU469
+ 373:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1782              		.loc 1 373 17 is_stmt 0 view .LVU470
+ 1783 0058 FFF7FEFF 		bl	SD_CheckPower
+ 1784              	.LVL200:
+ 373:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1785              		.loc 1 373 16 discriminator 1 view .LVU471
+ 1786 005c 0646     		mov	r6, r0
+ 1787              	.LVL201:
+ 373:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 45
+
+
+ 1788              		.loc 1 373 16 discriminator 1 view .LVU472
+ 1789 005e 0028     		cmp	r0, #0
+ 1790 0060 64D0     		beq	.L154
+ 373:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1791              		.loc 1 373 34 is_stmt 1 discriminator 2 view .LVU473
+ 1792 0062 FFF7FEFF 		bl	SD_PowerOff
+ 1793              	.LVL202:
+ 374:./Application/Src/fatfs_sd.c ****             break;
+ 1794              		.loc 1 374 17 is_stmt 0 view .LVU474
+ 1795 0066 2646     		mov	r6, r4
+ 1796 0068 60E0     		b	.L154
+ 1797              	.LVL203:
+ 1798              	.L156:
+ 377:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1799              		.loc 1 377 13 is_stmt 1 view .LVU475
+ 1800 006a FFF7FEFF 		bl	SD_PowerOn
+ 1801              	.LVL204:
+ 378:./Application/Src/fatfs_sd.c ****             break;
+ 1802              		.loc 1 378 13 view .LVU476
+ 379:./Application/Src/fatfs_sd.c ****         case 2:
+ 1803              		.loc 1 379 13 view .LVU477
+ 1804 006e 5DE0     		b	.L154
+ 1805              	.LVL205:
+ 1806              	.L157:
+ 381:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1807              		.loc 1 381 13 view .LVU478
+ 381:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1808              		.loc 1 381 32 is_stmt 0 view .LVU479
+ 1809 0070 FFF7FEFF 		bl	SD_CheckPower
+ 1810              	.LVL206:
+ 381:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1811              		.loc 1 381 24 discriminator 1 view .LVU480
+ 1812 0074 6870     		strb	r0, [r5, #1]
+ 382:./Application/Src/fatfs_sd.c ****             break;
+ 1813              		.loc 1 382 13 is_stmt 1 view .LVU481
+ 1814              	.LVL207:
+ 383:./Application/Src/fatfs_sd.c ****         default:
+ 1815              		.loc 1 383 13 view .LVU482
+ 1816 0076 59E0     		b	.L154
+ 1817              	.LVL208:
+ 1818              	.L180:
+ 392:./Application/Src/fatfs_sd.c ****         case GET_SECTOR_COUNT:
+ 1819              		.loc 1 392 9 is_stmt 0 view .LVU483
+ 1820 0078 0423     		movs	r3, #4
+ 1821 007a 1E46     		mov	r6, r3
+ 1822 007c 52E0     		b	.L163
+ 1823              	.L159:
+ 1824 007e 0C2C     		cmp	r4, #12
+ 1825 0080 69D0     		beq	.L164
+ 1826 0082 0D2C     		cmp	r4, #13
+ 1827 0084 09D1     		bne	.L181
+ 414:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 415:./Application/Src/fatfs_sd.c ****             break;
+ 416:./Application/Src/fatfs_sd.c **** 
+ 417:./Application/Src/fatfs_sd.c ****         case MMC_GET_CSD:
+ 418:./Application/Src/fatfs_sd.c ****             if (SD_SendCmd(CMD9, 0) == 0 && SD_RxDataBlock(ptr, 16))
+ 419:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 46
+
+
+ 420:./Application/Src/fatfs_sd.c ****             break;
+ 421:./Application/Src/fatfs_sd.c **** 
+ 422:./Application/Src/fatfs_sd.c ****         case MMC_GET_CID:
+ 423:./Application/Src/fatfs_sd.c ****             if (SD_SendCmd(CMD10, 0) == 0 && SD_RxDataBlock(ptr, 16))
+ 424:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 425:./Application/Src/fatfs_sd.c ****             break;
+ 426:./Application/Src/fatfs_sd.c **** 
+ 427:./Application/Src/fatfs_sd.c ****         case MMC_GET_OCR:
+ 428:./Application/Src/fatfs_sd.c ****             if (SD_SendCmd(CMD58, 0) == 0) {
+ 1828              		.loc 1 428 13 is_stmt 1 view .LVU484
+ 1829              		.loc 1 428 17 is_stmt 0 view .LVU485
+ 1830 0086 0021     		movs	r1, #0
+ 1831 0088 7A20     		movs	r0, #122
+ 1832 008a FFF7FEFF 		bl	SD_SendCmd
+ 1833              	.LVL209:
+ 1834              		.loc 1 428 16 discriminator 1 view .LVU486
+ 1835 008e 0646     		mov	r6, r0
+ 1836 0090 0028     		cmp	r0, #0
+ 1837 0092 7DD0     		beq	.L177
+ 368:./Application/Src/fatfs_sd.c **** 
+ 1838              		.loc 1 368 9 view .LVU487
+ 1839 0094 0123     		movs	r3, #1
+ 1840 0096 1E46     		mov	r6, r3
+ 1841 0098 44E0     		b	.L163
+ 1842              	.L181:
+ 392:./Application/Src/fatfs_sd.c ****         case GET_SECTOR_COUNT:
+ 1843              		.loc 1 392 9 view .LVU488
+ 1844 009a 0423     		movs	r3, #4
+ 1845 009c 1E46     		mov	r6, r3
+ 1846 009e 41E0     		b	.L163
+ 1847              	.L160:
+ 394:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 1848              		.loc 1 394 13 is_stmt 1 view .LVU489
+ 394:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 1849              		.loc 1 394 18 is_stmt 0 view .LVU490
+ 1850 00a0 0021     		movs	r1, #0
+ 1851 00a2 4920     		movs	r0, #73
+ 1852 00a4 FFF7FEFF 		bl	SD_SendCmd
+ 1853              	.LVL210:
+ 394:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 1854              		.loc 1 394 16 discriminator 1 view .LVU491
+ 1855 00a8 0646     		mov	r6, r0
+ 1856 00aa 08B1     		cbz	r0, .L182
+ 368:./Application/Src/fatfs_sd.c **** 
+ 1857              		.loc 1 368 9 view .LVU492
+ 1858 00ac 2646     		mov	r6, r4
+ 1859 00ae 39E0     		b	.L163
+ 1860              	.L182:
+ 394:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 1861              		.loc 1 394 47 discriminator 2 view .LVU493
+ 1862 00b0 1021     		movs	r1, #16
+ 1863 00b2 6846     		mov	r0, sp
+ 1864 00b4 FFF7FEFF 		bl	SD_RxDataBlock
+ 1865              	.LVL211:
+ 394:./Application/Src/fatfs_sd.c ****                 if ((csd[0] >> 6) == 1) {
+ 1866              		.loc 1 394 44 discriminator 3 view .LVU494
+ 1867 00b8 0028     		cmp	r0, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 47
+
+
+ 1868 00ba 6BD0     		beq	.L173
+ 395:./Application/Src/fatfs_sd.c ****                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+ 1869              		.loc 1 395 17 is_stmt 1 view .LVU495
+ 395:./Application/Src/fatfs_sd.c ****                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+ 1870              		.loc 1 395 25 is_stmt 0 view .LVU496
+ 1871 00bc 9DF80030 		ldrb	r3, [sp]	@ zero_extendqisi2
+ 395:./Application/Src/fatfs_sd.c ****                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+ 1872              		.loc 1 395 35 view .LVU497
+ 1873 00c0 9B09     		lsrs	r3, r3, #6
+ 395:./Application/Src/fatfs_sd.c ****                     csize = csd[9] + ((WORD)csd[8] << 8) + 1;
+ 1874              		.loc 1 395 20 view .LVU498
+ 1875 00c2 012B     		cmp	r3, #1
+ 1876 00c4 1FD0     		beq	.L183
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1877              		.loc 1 399 21 is_stmt 1 view .LVU499
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1878              		.loc 1 399 29 is_stmt 0 view .LVU500
+ 1879 00c6 9DF80520 		ldrb	r2, [sp, #5]	@ zero_extendqisi2
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1880              		.loc 1 399 33 view .LVU501
+ 1881 00ca 02F00F02 		and	r2, r2, #15
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1882              		.loc 1 399 46 view .LVU502
+ 1883 00ce 9DF80A30 		ldrb	r3, [sp, #10]	@ zero_extendqisi2
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1884              		.loc 1 399 39 view .LVU503
+ 1885 00d2 02EBD312 		add	r2, r2, r3, lsr #7
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1886              		.loc 1 399 71 view .LVU504
+ 1887 00d6 9DF80930 		ldrb	r3, [sp, #9]	@ zero_extendqisi2
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1888              		.loc 1 399 80 view .LVU505
+ 1889 00da 5B00     		lsls	r3, r3, #1
+ 1890 00dc 03F00603 		and	r3, r3, #6
+ 399:./Application/Src/fatfs_sd.c ****                     csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1891              		.loc 1 399 64 view .LVU506
+ 1892 00e0 1A44     		add	r2, r2, r3
+ 1893              	.LVL212:
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1894              		.loc 1 400 21 is_stmt 1 view .LVU507
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1895              		.loc 1 400 33 is_stmt 0 view .LVU508
+ 1896 00e2 9DF80830 		ldrb	r3, [sp, #8]	@ zero_extendqisi2
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1897              		.loc 1 400 55 view .LVU509
+ 1898 00e6 9DF80710 		ldrb	r1, [sp, #7]	@ zero_extendqisi2
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1899              		.loc 1 400 43 view .LVU510
+ 1900 00ea 9B09     		lsrs	r3, r3, #6
+ 1901 00ec 03EB8103 		add	r3, r3, r1, lsl #2
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1902              		.loc 1 400 78 view .LVU511
+ 1903 00f0 9DF80610 		ldrb	r1, [sp, #6]	@ zero_extendqisi2
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1904              		.loc 1 400 87 view .LVU512
+ 1905 00f4 8902     		lsls	r1, r1, #10
+ 1906 00f6 01F44061 		and	r1, r1, #3072
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 48
+
+
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1907              		.loc 1 400 65 view .LVU513
+ 1908 00fa 0B44     		add	r3, r3, r1
+ 400:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << (n - 9);
+ 1909              		.loc 1 400 27 view .LVU514
+ 1910 00fc 0133     		adds	r3, r3, #1
+ 1911              	.LVL213:
+ 401:./Application/Src/fatfs_sd.c ****                 }
+ 1912              		.loc 1 401 21 is_stmt 1 view .LVU515
+ 401:./Application/Src/fatfs_sd.c ****                 }
+ 1913              		.loc 1 401 56 is_stmt 0 view .LVU516
+ 1914 00fe 073A     		subs	r2, r2, #7
+ 1915              	.LVL214:
+ 401:./Application/Src/fatfs_sd.c ****                 }
+ 1916              		.loc 1 401 50 view .LVU517
+ 1917 0100 9340     		lsls	r3, r3, r2
+ 1918              	.LVL215:
+ 401:./Application/Src/fatfs_sd.c ****                 }
+ 1919              		.loc 1 401 35 view .LVU518
+ 1920 0102 2B60     		str	r3, [r5]
+ 1921              	.LVL216:
+ 401:./Application/Src/fatfs_sd.c ****                 }
+ 1922              		.loc 1 401 35 view .LVU519
+ 1923 0104 0EE0     		b	.L163
+ 1924              	.LVL217:
+ 1925              	.L183:
+ 396:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 1926              		.loc 1 396 21 is_stmt 1 view .LVU520
+ 396:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 1927              		.loc 1 396 32 is_stmt 0 view .LVU521
+ 1928 0106 9DF80930 		ldrb	r3, [sp, #9]	@ zero_extendqisi2
+ 396:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 1929              		.loc 1 396 48 view .LVU522
+ 1930 010a 9DF80820 		ldrb	r2, [sp, #8]	@ zero_extendqisi2
+ 396:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 1931              		.loc 1 396 36 view .LVU523
+ 1932 010e 03EB0223 		add	r3, r3, r2, lsl #8
+ 1933 0112 9BB2     		uxth	r3, r3
+ 396:./Application/Src/fatfs_sd.c ****                     *(DWORD*)buff = (DWORD)csize << 10;
+ 1934              		.loc 1 396 27 view .LVU524
+ 1935 0114 0133     		adds	r3, r3, #1
+ 1936 0116 9BB2     		uxth	r3, r3
+ 1937              	.LVL218:
+ 397:./Application/Src/fatfs_sd.c ****                 } else {
+ 1938              		.loc 1 397 21 is_stmt 1 view .LVU525
+ 397:./Application/Src/fatfs_sd.c ****                 } else {
+ 1939              		.loc 1 397 50 is_stmt 0 view .LVU526
+ 1940 0118 9B02     		lsls	r3, r3, #10
+ 1941              	.LVL219:
+ 397:./Application/Src/fatfs_sd.c ****                 } else {
+ 1942              		.loc 1 397 35 view .LVU527
+ 1943 011a 2B60     		str	r3, [r5]
+ 1944              	.LVL220:
+ 397:./Application/Src/fatfs_sd.c ****                 } else {
+ 1945              		.loc 1 397 35 view .LVU528
+ 1946 011c 02E0     		b	.L163
+ 1947              	.LVL221:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 49
+
+
+ 1948              	.L161:
+ 408:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1949              		.loc 1 408 13 is_stmt 1 view .LVU529
+ 408:./Application/Src/fatfs_sd.c ****             res = RES_OK;
+ 1950              		.loc 1 408 26 is_stmt 0 view .LVU530
+ 1951 011e 4FF40073 		mov	r3, #512
+ 1952 0122 2B80     		strh	r3, [r5]	@ movhi
+ 409:./Application/Src/fatfs_sd.c ****             break;
+ 1953              		.loc 1 409 13 is_stmt 1 view .LVU531
+ 1954              	.LVL222:
+ 410:./Application/Src/fatfs_sd.c **** 
+ 1955              		.loc 1 410 13 view .LVU532
+ 1956              	.L163:
+ 429:./Application/Src/fatfs_sd.c ****                 for (n = 0; n < 4; n++) {
+ 430:./Application/Src/fatfs_sd.c ****                     *ptr++ = SPI_RxByte();
+ 431:./Application/Src/fatfs_sd.c ****                 }
+ 432:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 433:./Application/Src/fatfs_sd.c ****             }
+ 434:./Application/Src/fatfs_sd.c ****             break;
+ 435:./Application/Src/fatfs_sd.c **** 
+ 436:./Application/Src/fatfs_sd.c ****         default:
+ 437:./Application/Src/fatfs_sd.c ****             res = RES_PARERR;
+ 438:./Application/Src/fatfs_sd.c ****         }
+ 439:./Application/Src/fatfs_sd.c **** 
+ 440:./Application/Src/fatfs_sd.c ****         DESELECT();
+ 1957              		.loc 1 440 9 view .LVU533
+ 1958 0124 FFF7FEFF 		bl	DESELECT
+ 1959              	.LVL223:
+ 441:./Application/Src/fatfs_sd.c ****         SPI_RxByte();
+ 1960              		.loc 1 441 9 view .LVU534
+ 1961 0128 FFF7FEFF 		bl	SPI_RxByte
+ 1962              	.LVL224:
+ 1963              	.L154:
+ 442:./Application/Src/fatfs_sd.c ****     }
+ 443:./Application/Src/fatfs_sd.c **** 
+ 444:./Application/Src/fatfs_sd.c ****     return res;
+ 445:./Application/Src/fatfs_sd.c **** }
+ 1964              		.loc 1 445 1 is_stmt 0 view .LVU535
+ 1965 012c 3046     		mov	r0, r6
+ 1966 012e 04B0     		add	sp, sp, #16
+ 1967              	.LCFI28:
+ 1968              		.cfi_remember_state
+ 1969              		.cfi_def_cfa_offset 16
+ 1970              		@ sp needed
+ 1971 0130 70BD     		pop	{r4, r5, r6, pc}
+ 1972              	.LVL225:
+ 1973              	.L158:
+ 1974              	.LCFI29:
+ 1975              		.cfi_restore_state
+ 418:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 1976              		.loc 1 418 13 is_stmt 1 view .LVU536
+ 418:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 1977              		.loc 1 418 17 is_stmt 0 view .LVU537
+ 1978 0132 0021     		movs	r1, #0
+ 1979 0134 4920     		movs	r0, #73
+ 1980 0136 FFF7FEFF 		bl	SD_SendCmd
+ 1981              	.LVL226:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 50
+
+
+ 418:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 1982              		.loc 1 418 16 discriminator 1 view .LVU538
+ 1983 013a 0646     		mov	r6, r0
+ 1984 013c 10B1     		cbz	r0, .L184
+ 368:./Application/Src/fatfs_sd.c **** 
+ 1985              		.loc 1 368 9 view .LVU539
+ 1986 013e 0123     		movs	r3, #1
+ 1987 0140 1E46     		mov	r6, r3
+ 1988 0142 EFE7     		b	.L163
+ 1989              	.L184:
+ 418:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 1990              		.loc 1 418 45 discriminator 2 view .LVU540
+ 1991 0144 1021     		movs	r1, #16
+ 1992 0146 2846     		mov	r0, r5
+ 1993 0148 FFF7FEFF 		bl	SD_RxDataBlock
+ 1994              	.LVL227:
+ 418:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 1995              		.loc 1 418 42 discriminator 3 view .LVU541
+ 1996 014c 0028     		cmp	r0, #0
+ 1997 014e E9D1     		bne	.L163
+ 368:./Application/Src/fatfs_sd.c **** 
+ 1998              		.loc 1 368 9 view .LVU542
+ 1999 0150 0123     		movs	r3, #1
+ 2000 0152 1E46     		mov	r6, r3
+ 2001 0154 E6E7     		b	.L163
+ 2002              	.L164:
+ 423:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 2003              		.loc 1 423 13 is_stmt 1 view .LVU543
+ 423:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 2004              		.loc 1 423 17 is_stmt 0 view .LVU544
+ 2005 0156 0021     		movs	r1, #0
+ 2006 0158 4A20     		movs	r0, #74
+ 2007 015a FFF7FEFF 		bl	SD_SendCmd
+ 2008              	.LVL228:
+ 423:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 2009              		.loc 1 423 16 discriminator 1 view .LVU545
+ 2010 015e 0646     		mov	r6, r0
+ 2011 0160 10B1     		cbz	r0, .L185
+ 368:./Application/Src/fatfs_sd.c **** 
+ 2012              		.loc 1 368 9 view .LVU546
+ 2013 0162 0123     		movs	r3, #1
+ 2014 0164 1E46     		mov	r6, r3
+ 2015 0166 DDE7     		b	.L163
+ 2016              	.L185:
+ 423:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 2017              		.loc 1 423 46 discriminator 2 view .LVU547
+ 2018 0168 1021     		movs	r1, #16
+ 2019 016a 2846     		mov	r0, r5
+ 2020 016c FFF7FEFF 		bl	SD_RxDataBlock
+ 2021              	.LVL229:
+ 423:./Application/Src/fatfs_sd.c ****                 res = RES_OK;
+ 2022              		.loc 1 423 43 discriminator 3 view .LVU548
+ 2023 0170 0028     		cmp	r0, #0
+ 2024 0172 D7D1     		bne	.L163
+ 368:./Application/Src/fatfs_sd.c **** 
+ 2025              		.loc 1 368 9 view .LVU549
+ 2026 0174 0123     		movs	r3, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 51
+
+
+ 2027 0176 1E46     		mov	r6, r3
+ 2028 0178 D4E7     		b	.L163
+ 2029              	.LVL230:
+ 2030              	.L168:
+ 430:./Application/Src/fatfs_sd.c ****                 }
+ 2031              		.loc 1 430 21 is_stmt 1 view .LVU550
+ 430:./Application/Src/fatfs_sd.c ****                 }
+ 2032              		.loc 1 430 30 is_stmt 0 view .LVU551
+ 2033 017a FFF7FEFF 		bl	SPI_RxByte
+ 2034              	.LVL231:
+ 430:./Application/Src/fatfs_sd.c ****                 }
+ 2035              		.loc 1 430 28 discriminator 1 view .LVU552
+ 2036 017e 2B46     		mov	r3, r5
+ 2037 0180 03F8010B 		strb	r0, [r3], #1
+ 2038              	.LVL232:
+ 429:./Application/Src/fatfs_sd.c ****                     *ptr++ = SPI_RxByte();
+ 2039              		.loc 1 429 37 is_stmt 1 discriminator 3 view .LVU553
+ 2040 0184 0134     		adds	r4, r4, #1
+ 2041              	.LVL233:
+ 429:./Application/Src/fatfs_sd.c ****                     *ptr++ = SPI_RxByte();
+ 2042              		.loc 1 429 37 is_stmt 0 discriminator 3 view .LVU554
+ 2043 0186 E4B2     		uxtb	r4, r4
+ 2044              	.LVL234:
+ 430:./Application/Src/fatfs_sd.c ****                 }
+ 2045              		.loc 1 430 25 view .LVU555
+ 2046 0188 1D46     		mov	r5, r3
+ 2047              	.LVL235:
+ 2048              	.L167:
+ 429:./Application/Src/fatfs_sd.c ****                     *ptr++ = SPI_RxByte();
+ 2049              		.loc 1 429 31 is_stmt 1 discriminator 1 view .LVU556
+ 2050 018a 032C     		cmp	r4, #3
+ 2051 018c F5D9     		bls	.L168
+ 2052 018e C9E7     		b	.L163
+ 2053              	.LVL236:
+ 2054              	.L177:
+ 429:./Application/Src/fatfs_sd.c ****                     *ptr++ = SPI_RxByte();
+ 2055              		.loc 1 429 24 is_stmt 0 view .LVU557
+ 2056 0190 0446     		mov	r4, r0
+ 2057 0192 FAE7     		b	.L167
+ 2058              	.L173:
+ 368:./Application/Src/fatfs_sd.c **** 
+ 2059              		.loc 1 368 9 view .LVU558
+ 2060 0194 2646     		mov	r6, r4
+ 2061 0196 C5E7     		b	.L163
+ 2062              	.L174:
+ 414:./Application/Src/fatfs_sd.c ****             break;
+ 2063              		.loc 1 414 21 view .LVU559
+ 2064 0198 2646     		mov	r6, r4
+ 2065 019a C3E7     		b	.L163
+ 2066              	.LVL237:
+ 2067              	.L169:
+ 366:./Application/Src/fatfs_sd.c **** 
+ 2068              		.loc 1 366 21 discriminator 1 view .LVU560
+ 2069 019c 0423     		movs	r3, #4
+ 2070 019e 1E46     		mov	r6, r3
+ 2071 01a0 C4E7     		b	.L154
+ 2072              	.LVL238:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 52
+
+
+ 2073              	.L170:
+ 371:./Application/Src/fatfs_sd.c ****         case 0:
+ 2074              		.loc 1 371 9 view .LVU561
+ 2075 01a2 0423     		movs	r3, #4
+ 2076 01a4 1E46     		mov	r6, r3
+ 2077 01a6 C1E7     		b	.L154
+ 2078              	.L171:
+ 388:./Application/Src/fatfs_sd.c **** 
+ 2079              		.loc 1 388 39 discriminator 1 view .LVU562
+ 2080 01a8 0323     		movs	r3, #3
+ 2081 01aa 1E46     		mov	r6, r3
+ 2082 01ac BEE7     		b	.L154
+ 2083              	.L187:
+ 2084 01ae 00BF     		.align	2
+ 2085              	.L186:
+ 2086 01b0 00000000 		.word	Stat
+ 2087              		.cfi_endproc
+ 2088              	.LFE177:
+ 2090              		.section	.bss.PowerFlag,"aw",%nobits
+ 2093              	PowerFlag:
+ 2094 0000 00       		.space	1
+ 2095              		.section	.bss.CardType,"aw",%nobits
+ 2098              	CardType:
+ 2099 0000 00       		.space	1
+ 2100              		.section	.data.Stat,"aw"
+ 2103              	Stat:
+ 2104 0000 01       		.byte	1
+ 2105              		.global	Timer2
+ 2106              		.section	.bss.Timer2,"aw",%nobits
+ 2109              	Timer2:
+ 2110 0000 00       		.space	1
+ 2111              		.global	Timer1
+ 2112              		.section	.bss.Timer1,"aw",%nobits
+ 2115              	Timer1:
+ 2116 0000 00       		.space	1
+ 2117              		.global	sd_dbg_spi_errs
+ 2118              		.section	.bss.sd_dbg_spi_errs,"aw",%nobits
+ 2119              		.align	2
+ 2122              	sd_dbg_spi_errs:
+ 2123 0000 00000000 		.space	4
+ 2124              		.global	sd_dbg_type
+ 2125              		.section	.bss.sd_dbg_type,"aw",%nobits
+ 2128              	sd_dbg_type:
+ 2129 0000 00       		.space	1
+ 2130              		.global	sd_dbg_acmd41
+ 2131              		.section	.data.sd_dbg_acmd41,"aw"
+ 2134              	sd_dbg_acmd41:
+ 2135 0000 FF       		.byte	-1
+ 2136              		.global	sd_dbg_cmd8
+ 2137              		.section	.data.sd_dbg_cmd8,"aw"
+ 2140              	sd_dbg_cmd8:
+ 2141 0000 FF       		.byte	-1
+ 2142              		.global	sd_dbg_cmd0
+ 2143              		.section	.data.sd_dbg_cmd0,"aw"
+ 2146              	sd_dbg_cmd0:
+ 2147 0000 FF       		.byte	-1
+ 2148              		.global	sd_dbg_poweron_resp
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 53
+
+
+ 2149              		.section	.data.sd_dbg_poweron_resp,"aw"
+ 2152              	sd_dbg_poweron_resp:
+ 2153 0000 FF       		.byte	-1
+ 2154              		.text
+ 2155              	.Letext0:
+ 2156              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 2157              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 2158              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h533xx.h"
+ 2159              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 2160              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 2161              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 2162              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 2163              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 2164              		.file 10 "ThirdParty/FatFs/integer.h"
+ 2165              		.file 11 "ThirdParty/FatFs/diskio.h"
+ 2166              		.file 12 "Core/Inc/spi.h"
+ 2167              		.file 13 "Application/Inc/fatfs_sd.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 54
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 fatfs_sd.c
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:22     .text.SD_PowerOff:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:27     .text.SD_PowerOff:00000000 SD_PowerOff
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:44     .text.SD_PowerOff:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2093   .bss.PowerFlag:00000000 PowerFlag
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:49     .text.SD_CheckPower:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:54     .text.SD_CheckPower:00000000 SD_CheckPower
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:69     .text.SD_CheckPower:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:74     .text.SpiTransceiveByte:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:79     .text.SpiTransceiveByte:00000000 SpiTransceiveByte
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:128    .text.SpiTransceiveByte:00000030 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2122   .bss.sd_dbg_spi_errs:00000000 sd_dbg_spi_errs
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:134    .text.SPI_TxByte:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:139    .text.SPI_TxByte:00000000 SPI_TxByte
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:161    .text.SPI_RxByte:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:166    .text.SPI_RxByte:00000000 SPI_RxByte
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:188    .text.SD_ReadyWait:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:193    .text.SD_ReadyWait:00000000 SD_ReadyWait
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:237    .text.SD_SendCmd:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:242    .text.SD_SendCmd:00000000 SD_SendCmd
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:353    .text.SPI_RxBytePtr:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:358    .text.SPI_RxBytePtr:00000000 SPI_RxBytePtr
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:385    .text.SD_RxDataBlock:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:390    .text.SD_RxDataBlock:00000000 SD_RxDataBlock
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:480    .text.SD_RxDataBlock:0000003c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:485    .text.SD_TxDataBlock:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:490    .text.SD_TxDataBlock:00000000 SD_TxDataBlock
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:621    .text.SELECT:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:626    .text.SELECT:00000000 SELECT
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:648    .text.SELECT:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:653    .text.DESELECT:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:658    .text.DESELECT:00000000 DESELECT
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:680    .text.DESELECT:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:685    .text.SD_PowerOn:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:690    .text.SD_PowerOn:00000000 SD_PowerOn
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:832    .text.SD_PowerOn:0000007c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2152   .data.sd_dbg_poweron_resp:00000000 sd_dbg_poweron_resp
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:838    .text.SD_disk_initialize:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:844    .text.SD_disk_initialize:00000000 SD_disk_initialize
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1249   .text.SD_disk_initialize:000001a8 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2103   .data.Stat:00000000 Stat
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2146   .data.sd_dbg_cmd0:00000000 sd_dbg_cmd0
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2128   .bss.sd_dbg_type:00000000 sd_dbg_type
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2098   .bss.CardType:00000000 CardType
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2140   .data.sd_dbg_cmd8:00000000 sd_dbg_cmd8
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2134   .data.sd_dbg_acmd41:00000000 sd_dbg_acmd41
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1262   .text.SD_disk_status:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1268   .text.SD_disk_status:00000000 SD_disk_status
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1297   .text.SD_disk_status:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1302   .text.SD_disk_read:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1308   .text.SD_disk_read:00000000 SD_disk_read
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1471   .text.SD_disk_read:00000090 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1477   .text.SD_disk_write:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1483   .text.SD_disk_write:00000000 SD_disk_write
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1691   .text.SD_disk_write:000000bc $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1697   .text.SD_disk_ioctl:00000000 $t
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s 			page 55
+
+
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:1703   .text.SD_disk_ioctl:00000000 SD_disk_ioctl
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2086   .text.SD_disk_ioctl:000001b0 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2094   .bss.PowerFlag:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2099   .bss.CardType:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2109   .bss.Timer2:00000000 Timer2
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2110   .bss.Timer2:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2115   .bss.Timer1:00000000 Timer1
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2116   .bss.Timer1:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2119   .bss.sd_dbg_spi_errs:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccPCjNXk.s:2129   .bss.sd_dbg_type:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_SPI_TransmitReceive
+hspi3
+HAL_GPIO_WritePin
+HAL_SPI_Init

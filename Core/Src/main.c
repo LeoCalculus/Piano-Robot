@@ -65,6 +65,7 @@ char LCD_Send_buf[32];
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void PeriphCommonClock_Config(void);
 /* USER CODE BEGIN PFP */
 
 // this function tells where dma data should be on arrival
@@ -100,6 +101,9 @@ int main(void)
   /* Configure the system clock */
   SystemClock_Config();
 
+  /* Configure the peripherals common clocks */
+  PeriphCommonClock_Config();
+
   /* USER CODE BEGIN SysInit */
 
   /* USER CODE END SysInit */
@@ -115,6 +119,7 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM8_Init();
   MX_TIM4_Init();
+  MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
   /* Initialize LCD directly (without LVGL for this demo) */
   LCD_init(&lcd_config);
@@ -151,7 +156,30 @@ int main(void)
   // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);
   //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, 80);
   //__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, 40);
-  
+
+  HAL_Delay(3000);
+  {
+    char dbg[40];
+    FRESULT sd_res = SD_Init();
+    if (sd_res == FR_OK) {
+      LCD_draw_string(&lcd_config, 0, 5, "SD card init OK!   ", COLOR_BLACK, COLOR_WHITE);
+    } else {
+      sprintf(dbg, "SD FAIL fr=%d       ", (int)sd_res);
+      LCD_draw_string(&lcd_config, 0, 5, dbg, COLOR_BLACK, COLOR_WHITE);
+    }
+    sprintf(dbg, "pw:%02X c0:%02X c8:%02X", sd_dbg_poweron_resp, sd_dbg_cmd0, sd_dbg_cmd8);
+    LCD_draw_string(&lcd_config, 0, 6, dbg, COLOR_BLACK, COLOR_WHITE);
+    sprintf(dbg, "a41:%02X ty:%d er:%lu", sd_dbg_acmd41, sd_dbg_type, (unsigned long)sd_dbg_spi_errs);
+    LCD_draw_string(&lcd_config, 0, 7, dbg, COLOR_BLACK, COLOR_WHITE);
+  }
+
+  HAL_Delay(1000);
+  if (SD_IsCardPresent(&hspi3, GPIOC, GPIO_PIN_3)) {
+    LCD_draw_string(&lcd_config, 0, 8, "SD card present!   ", COLOR_BLACK, COLOR_WHITE);
+  } else {
+    LCD_draw_string(&lcd_config, 0, 8, "No SD card detected!", COLOR_BLACK, COLOR_WHITE);
+  }
+
   /* USER CODE END 2 */
 
   /* Initialize leds */
@@ -251,7 +279,10 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_CSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_CSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.CSIState = RCC_CSI_ON;
   RCC_OscInitStruct.CSICalibrationValue = RCC_CSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
@@ -288,6 +319,24 @@ void SystemClock_Config(void)
   /** Configure the programming delay
   */
   __HAL_FLASH_SET_PROGRAM_DELAY(FLASH_PROGRAMMING_DELAY_2);
+}
+
+/**
+  * @brief Peripherals Common Clock Configuration
+  * @retval None
+  */
+void PeriphCommonClock_Config(void)
+{
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  /** Initializes the peripherals clock
+  */
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
 }
 
 /* USER CODE BEGIN 4 */

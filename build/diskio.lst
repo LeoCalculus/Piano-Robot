@@ -1,0 +1,286 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv4-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"diskio.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./ThirdParty/FatFs/diskio.c"
+  21              		.section	.text.disk_status,"ax",%progbits
+  22              		.align	1
+  23              		.global	disk_status
+  24              		.syntax unified
+  25              		.thumb
+  26              		.thumb_func
+  28              	disk_status:
+  29              	.LVL0:
+  30              	.LFB160:
+   1:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+   2:./ThirdParty/FatFs/diskio.c **** /* Low level disk I/O module for FatFs                                   */
+   3:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+   4:./ThirdParty/FatFs/diskio.c **** 
+   5:./ThirdParty/FatFs/diskio.c **** #include <diskio.h>
+   6:./ThirdParty/FatFs/diskio.c **** #include <fatfs_sd.h>
+   7:./ThirdParty/FatFs/diskio.c **** 
+   8:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+   9:./ThirdParty/FatFs/diskio.c **** /* Get Drive Status                                                      */
+  10:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  11:./ThirdParty/FatFs/diskio.c **** 
+  12:./ThirdParty/FatFs/diskio.c **** DSTATUS disk_status(BYTE pdrv) {
+  31              		.loc 1 12 32 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 0
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		.loc 1 12 32 is_stmt 0 view .LVU1
+  36 0000 08B5     		push	{r3, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 8
+  39              		.cfi_offset 3, -8
+  40              		.cfi_offset 14, -4
+  13:./ThirdParty/FatFs/diskio.c ****     return SD_disk_status(pdrv);
+  41              		.loc 1 13 5 is_stmt 1 view .LVU2
+  42              		.loc 1 13 12 is_stmt 0 view .LVU3
+  43 0002 FFF7FEFF 		bl	SD_disk_status
+  44              	.LVL1:
+  14:./ThirdParty/FatFs/diskio.c **** }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 2
+
+
+  45              		.loc 1 14 1 view .LVU4
+  46 0006 08BD     		pop	{r3, pc}
+  47              		.cfi_endproc
+  48              	.LFE160:
+  50              		.section	.text.disk_initialize,"ax",%progbits
+  51              		.align	1
+  52              		.global	disk_initialize
+  53              		.syntax unified
+  54              		.thumb
+  55              		.thumb_func
+  57              	disk_initialize:
+  58              	.LVL2:
+  59              	.LFB161:
+  15:./ThirdParty/FatFs/diskio.c **** 
+  16:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  17:./ThirdParty/FatFs/diskio.c **** /* Initialize a Drive                                                    */
+  18:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  19:./ThirdParty/FatFs/diskio.c **** 
+  20:./ThirdParty/FatFs/diskio.c **** DSTATUS disk_initialize(BYTE pdrv) {
+  60              		.loc 1 20 36 is_stmt 1 view -0
+  61              		.cfi_startproc
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  64              		.loc 1 20 36 is_stmt 0 view .LVU6
+  65 0000 08B5     		push	{r3, lr}
+  66              	.LCFI1:
+  67              		.cfi_def_cfa_offset 8
+  68              		.cfi_offset 3, -8
+  69              		.cfi_offset 14, -4
+  21:./ThirdParty/FatFs/diskio.c ****     return SD_disk_initialize(pdrv);
+  70              		.loc 1 21 5 is_stmt 1 view .LVU7
+  71              		.loc 1 21 12 is_stmt 0 view .LVU8
+  72 0002 FFF7FEFF 		bl	SD_disk_initialize
+  73              	.LVL3:
+  22:./ThirdParty/FatFs/diskio.c **** }
+  74              		.loc 1 22 1 view .LVU9
+  75 0006 08BD     		pop	{r3, pc}
+  76              		.cfi_endproc
+  77              	.LFE161:
+  79              		.section	.text.disk_read,"ax",%progbits
+  80              		.align	1
+  81              		.global	disk_read
+  82              		.syntax unified
+  83              		.thumb
+  84              		.thumb_func
+  86              	disk_read:
+  87              	.LVL4:
+  88              	.LFB162:
+  23:./ThirdParty/FatFs/diskio.c **** 
+  24:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  25:./ThirdParty/FatFs/diskio.c **** /* Read Sector(s)                                                        */
+  26:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  27:./ThirdParty/FatFs/diskio.c **** 
+  28:./ThirdParty/FatFs/diskio.c **** DRESULT disk_read(BYTE pdrv, BYTE *buff, DWORD sector, UINT count) {
+  89              		.loc 1 28 68 is_stmt 1 view -0
+  90              		.cfi_startproc
+  91              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 3
+
+
+  92              		@ frame_needed = 0, uses_anonymous_args = 0
+  93              		.loc 1 28 68 is_stmt 0 view .LVU11
+  94 0000 08B5     		push	{r3, lr}
+  95              	.LCFI2:
+  96              		.cfi_def_cfa_offset 8
+  97              		.cfi_offset 3, -8
+  98              		.cfi_offset 14, -4
+  29:./ThirdParty/FatFs/diskio.c ****     return SD_disk_read(pdrv, buff, sector, count);
+  99              		.loc 1 29 5 is_stmt 1 view .LVU12
+ 100              		.loc 1 29 12 is_stmt 0 view .LVU13
+ 101 0002 FFF7FEFF 		bl	SD_disk_read
+ 102              	.LVL5:
+  30:./ThirdParty/FatFs/diskio.c **** }
+ 103              		.loc 1 30 1 view .LVU14
+ 104 0006 08BD     		pop	{r3, pc}
+ 105              		.cfi_endproc
+ 106              	.LFE162:
+ 108              		.section	.text.disk_write,"ax",%progbits
+ 109              		.align	1
+ 110              		.global	disk_write
+ 111              		.syntax unified
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	disk_write:
+ 116              	.LVL6:
+ 117              	.LFB163:
+  31:./ThirdParty/FatFs/diskio.c **** 
+  32:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  33:./ThirdParty/FatFs/diskio.c **** /* Write Sector(s)                                                       */
+  34:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  35:./ThirdParty/FatFs/diskio.c **** 
+  36:./ThirdParty/FatFs/diskio.c **** DRESULT disk_write(BYTE pdrv, const BYTE *buff, DWORD sector, UINT count) {
+ 118              		.loc 1 36 75 is_stmt 1 view -0
+ 119              		.cfi_startproc
+ 120              		@ args = 0, pretend = 0, frame = 0
+ 121              		@ frame_needed = 0, uses_anonymous_args = 0
+ 122              		.loc 1 36 75 is_stmt 0 view .LVU16
+ 123 0000 08B5     		push	{r3, lr}
+ 124              	.LCFI3:
+ 125              		.cfi_def_cfa_offset 8
+ 126              		.cfi_offset 3, -8
+ 127              		.cfi_offset 14, -4
+  37:./ThirdParty/FatFs/diskio.c ****     return SD_disk_write(pdrv, buff, sector, count);
+ 128              		.loc 1 37 5 is_stmt 1 view .LVU17
+ 129              		.loc 1 37 12 is_stmt 0 view .LVU18
+ 130 0002 FFF7FEFF 		bl	SD_disk_write
+ 131              	.LVL7:
+  38:./ThirdParty/FatFs/diskio.c **** }
+ 132              		.loc 1 38 1 view .LVU19
+ 133 0006 08BD     		pop	{r3, pc}
+ 134              		.cfi_endproc
+ 135              	.LFE163:
+ 137              		.section	.text.disk_ioctl,"ax",%progbits
+ 138              		.align	1
+ 139              		.global	disk_ioctl
+ 140              		.syntax unified
+ 141              		.thumb
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 4
+
+
+ 142              		.thumb_func
+ 144              	disk_ioctl:
+ 145              	.LVL8:
+ 146              	.LFB164:
+  39:./ThirdParty/FatFs/diskio.c **** 
+  40:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  41:./ThirdParty/FatFs/diskio.c **** /* Miscellaneous Functions                                               */
+  42:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  43:./ThirdParty/FatFs/diskio.c **** 
+  44:./ThirdParty/FatFs/diskio.c **** DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff) {
+ 147              		.loc 1 44 53 is_stmt 1 view -0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 0
+ 150              		@ frame_needed = 0, uses_anonymous_args = 0
+ 151              		.loc 1 44 53 is_stmt 0 view .LVU21
+ 152 0000 08B5     		push	{r3, lr}
+ 153              	.LCFI4:
+ 154              		.cfi_def_cfa_offset 8
+ 155              		.cfi_offset 3, -8
+ 156              		.cfi_offset 14, -4
+  45:./ThirdParty/FatFs/diskio.c ****     return SD_disk_ioctl(pdrv, cmd, buff);
+ 157              		.loc 1 45 5 is_stmt 1 view .LVU22
+ 158              		.loc 1 45 12 is_stmt 0 view .LVU23
+ 159 0002 FFF7FEFF 		bl	SD_disk_ioctl
+ 160              	.LVL9:
+  46:./ThirdParty/FatFs/diskio.c **** }
+ 161              		.loc 1 46 1 view .LVU24
+ 162 0006 08BD     		pop	{r3, pc}
+ 163              		.cfi_endproc
+ 164              	.LFE164:
+ 166              		.section	.text.get_fattime,"ax",%progbits
+ 167              		.align	1
+ 168              		.global	get_fattime
+ 169              		.syntax unified
+ 170              		.thumb
+ 171              		.thumb_func
+ 173              	get_fattime:
+ 174              	.LFB165:
+  47:./ThirdParty/FatFs/diskio.c **** 
+  48:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  49:./ThirdParty/FatFs/diskio.c **** /* Get current time for FatFs timestamps                                 */
+  50:./ThirdParty/FatFs/diskio.c **** /*-----------------------------------------------------------------------*/
+  51:./ThirdParty/FatFs/diskio.c **** 
+  52:./ThirdParty/FatFs/diskio.c **** DWORD get_fattime(void) {
+ 175              		.loc 1 52 25 is_stmt 1 view -0
+ 176              		.cfi_startproc
+ 177              		@ args = 0, pretend = 0, frame = 0
+ 178              		@ frame_needed = 0, uses_anonymous_args = 0
+ 179              		@ link register save eliminated.
+  53:./ThirdParty/FatFs/diskio.c ****     /* Return a fixed timestamp if RTC is not available */
+  54:./ThirdParty/FatFs/diskio.c ****     /* Format: bit31:25=Year(0-127 from 1980), bit24:21=Month(1-12),
+  55:./ThirdParty/FatFs/diskio.c ****        bit20:16=Day(1-31), bit15:11=Hour(0-23), bit10:5=Min(0-59),
+  56:./ThirdParty/FatFs/diskio.c ****        bit4:0=Sec/2(0-29) */
+  57:./ThirdParty/FatFs/diskio.c ****     return ((DWORD)(2024 - 1980) << 25)  /* Year 2024 */
+ 180              		.loc 1 57 5 view .LVU26
+  58:./ThirdParty/FatFs/diskio.c ****          | ((DWORD)1 << 21)              /* January */
+  59:./ThirdParty/FatFs/diskio.c ****          | ((DWORD)1 << 16)              /* Day 1 */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 5
+
+
+  60:./ThirdParty/FatFs/diskio.c ****          | ((DWORD)0 << 11)              /* Hour 0 */
+  61:./ThirdParty/FatFs/diskio.c ****          | ((DWORD)0 << 5)               /* Min 0 */
+  62:./ThirdParty/FatFs/diskio.c ****          | ((DWORD)0 >> 1);              /* Sec 0 */
+  63:./ThirdParty/FatFs/diskio.c **** }
+ 181              		.loc 1 63 1 is_stmt 0 view .LVU27
+ 182 0000 0048     		ldr	r0, .L12
+ 183 0002 7047     		bx	lr
+ 184              	.L13:
+ 185              		.align	2
+ 186              	.L12:
+ 187 0004 00002158 		.word	1478557696
+ 188              		.cfi_endproc
+ 189              	.LFE165:
+ 191              		.text
+ 192              	.Letext0:
+ 193              		.file 2 "ThirdParty/FatFs/integer.h"
+ 194              		.file 3 "ThirdParty/FatFs/diskio.h"
+ 195              		.file 4 "Application/Inc/fatfs_sd.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s 			page 6
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 diskio.c
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:22     .text.disk_status:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:28     .text.disk_status:00000000 disk_status
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:51     .text.disk_initialize:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:57     .text.disk_initialize:00000000 disk_initialize
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:80     .text.disk_read:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:86     .text.disk_read:00000000 disk_read
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:109    .text.disk_write:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:115    .text.disk_write:00000000 disk_write
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:138    .text.disk_ioctl:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:144    .text.disk_ioctl:00000000 disk_ioctl
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:167    .text.get_fattime:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:173    .text.get_fattime:00000000 get_fattime
+C:\Users\Xuleo\AppData\Local\Temp\cc5JKq3n.s:187    .text.get_fattime:00000004 $d
+
+UNDEFINED SYMBOLS
+SD_disk_status
+SD_disk_initialize
+SD_disk_read
+SD_disk_write
+SD_disk_ioctl
