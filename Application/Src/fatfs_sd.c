@@ -210,8 +210,8 @@ DSTATUS SD_disk_initialize(BYTE drv) {
 
     sd_dbg_spi_errs = 0;  /* reset error counter for this init attempt */
 
-    /* Slow SPI for init (<400kHz recommended by SD spec) */
-    SD_SPI_HANDLE.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+    /* Use prescaler 8 — prescaler 256 doesn't work on H5 SPI3 for this card */
+    SD_SPI_HANDLE.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
     HAL_SPI_Init(&SD_SPI_HANDLE);
 
     SD_PowerOn();
