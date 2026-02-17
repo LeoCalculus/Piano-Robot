@@ -187,7 +187,7 @@ int main(void)
   Kp = 0.05;
   Ki = 0.015;
   // Kd = 0.130;
-  Kd = 1.2;
+  Kd = 0.9;
 
   HAL_Delay(400);
   while (1){

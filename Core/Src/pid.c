@@ -4,17 +4,17 @@
 #include "VOFA.h"
 #include <stdlib.h>
 
-#define I_MAX  1.500f
-#define I_MIN -1.500f
+#define I_MAX  25.500f
+#define I_MIN -25.500f
 
 #define I_ON_ZONE 2.0f
 
 #define PWM_DEAD_ZONE 0
 // 150 160: fric
-#define PWM_DEAD_ZONE_OFFSET_MINUS 270
-#define PWM_DEAD_ZONE_OFFSET_PLUS  285
+#define PWM_DEAD_ZONE_OFFSET_MINUS 150
+#define PWM_DEAD_ZONE_OFFSET_PLUS  150
 
-#define DEAD_BAND 0.7f
+#define DEAD_BAND 0.75f
 
 void pid_control(void){
 
@@ -38,14 +38,6 @@ void pid_control(void){
     }
     else{
         BSP_LED_Off(LED_GREEN);
-    }
-
-    // Dead band
-    if(err < DEAD_BAND && err > -DEAD_BAND){
-        err_acc = 0;
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
-        VOFA_JustFloat_Send(&huart1, (float)location, (float)target, 500.0, 0, 0, 0);
-        return;
     }
 
     // PD: for begining, PID for almost there
@@ -88,6 +80,13 @@ void pid_control(void){
     }
     else {
         pid_pwm = pid_temp;
+    }
+
+        // Dead band
+    if(err < DEAD_BAND && err > -DEAD_BAND){
+        // err_acc = 0;
+        pid_pwm = 500;
+        // VOFA_JustFloat_Send(&huart1, (float)location, (float)target, 500.0, 0, 0, 0);
     }
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pid_pwm);

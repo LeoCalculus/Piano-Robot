@@ -60,8 +60,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
       rad_s = (float) counter * 2 * PI * 1000.0f / 64.0f;
       location = counter_acc * 80.0f / 64.0f / GEAR; 
 
-      // VOFA_JustFloat_Send(&huart1, (float)speed, (float)location, 0, 0, 0, 0);
-
       if(system_mode == 0){
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
       }
