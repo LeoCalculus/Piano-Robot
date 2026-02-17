@@ -12,6 +12,12 @@ VOFA_REPORT vofa; // transmit via usb
 volatile uint32_t time_counter = 0;
 volatile int is_moving = 0;
 volatile int is_blocked = 0;
+volatile int redirect_to_ram = 0; // flag to indicate whether the incoming song data should be written to RAM
+volatile int ram_rx_started = 0;  // 1 = start sentinel received, accumulating
+volatile int ram_rx_complete = 0; // 1 = end sentinel received, ready to parse
+volatile uint32_t ram_rx_offset = 0; // byte offset into song_ram during accumulation
+__ALIGN_BEGIN float rx_data[5500] __ALIGN_END;
+__ALIGN_BEGIN float song_ram[365][14] __ALIGN_END; // receive buffer for RAM song transfer (20440 bytes)
 
 // make a song that has chord nodes:
 // test song: 15 chords, left hand only with varying positions and durations
@@ -107,6 +113,29 @@ void traversal_song(Song_t* entire_song){
     }
 }
 
+// parse flat float buffer [365][14] into Song_t array
+// format per row: [pos_left, pos_right, pressed[0..9], duration_ms, delay_to_next_ms]
+void parsing_song_buffer_to_struct(float song_buffer[365][14], Song_t* song_struct){
+    memset(song_struct, 0, sizeof(Song_t) * MAX_CHORD_EVENTS);
+    int count = (365 < MAX_CHORD_EVENTS) ? 365 : MAX_CHORD_EVENTS;
+    for (int i = 0; i < count; i++){
+        // stop at all-zero row (end of song)
+        int all_zero = 1;
+        for (int j = 0; j < 14; j++){
+            if (song_buffer[i][j] != 0.0f){ all_zero = 0; break; }
+        }
+        if (all_zero) break;
+
+        song_struct[i].event.positions[0] = song_buffer[i][0];
+        song_struct[i].event.positions[1] = song_buffer[i][1];
+        for (int k = 0; k < 10; k++){
+            song_struct[i].event.pressed[k] = (song_buffer[i][2 + k] != 0.0f);
+        }
+        song_struct[i].event.duration_ms = (uint16_t)song_buffer[i][12];
+        song_struct[i].event.delay_to_next_ms = (uint16_t)song_buffer[i][13];
+    }
+}
+
 void homing_procedure() {
     /*
     WARNING, if moving some speed by cannot move might lead to too much current and burn down the circuit
@@ -140,8 +169,8 @@ void pid_cycle(PID_t* target_system, float error, const float dt){
 // PID struct for the motor
 PID_t debug_motor = {
     .Kp = 5.0f,
-    .Ki = 0.0f,
-    .Kd = 3.0f, //0.001
+    .Ki = 0.01f,
+    .Kd = 0.13f, //0.001
     .Integral_max = 0.01f // 0.5
 };
 
@@ -243,4 +272,14 @@ void controller_step(const float dt){
 
     // during these stage the LED will keep on, on oscilloscope will be high.
     // HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); 
+}
+
+uint32_t get_free_ram(void) {
+    // Use address of a local variable as a reliable approximation of SP
+    // This avoids inline asm portability issues across optimization levels
+    volatile uint32_t stack_marker;
+    uint32_t stack_ptr = (uint32_t)&stack_marker;
+    uint32_t heap_end = (uint32_t)&_end;
+    if (stack_ptr < heap_end) return 0; // safety check
+    return stack_ptr - heap_end;
 }

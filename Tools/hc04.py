@@ -22,6 +22,11 @@ FT_RSP_SUCCESS = 0xA4
 
 FT_CHUNK_SIZE = 64  # Match STM32 FT_MAX_CHUNK_SIZE
 
+# RAM Transfer Sentinel Constants
+RAM_SENTINEL_START = struct.pack('<f', 514.114)
+RAM_SENTINEL_END = struct.pack('<f', 114.514)
+RAM_BT_CHUNK_SIZE = 64  # bytes per BT write to avoid overflow
+
 
 class HC04SerialGUI:
     def __init__(self, root):
@@ -334,9 +339,13 @@ class HC04SerialGUI:
         btn_frame = ttk.Frame(control_frame)
         btn_frame.pack(fill=tk.X, pady=5)
 
-        self.upload_button = ttk.Button(btn_frame, text="Upload File",
+        self.upload_button = ttk.Button(btn_frame, text="Upload to SD",
                                          command=self.start_upload, state=tk.DISABLED)
         self.upload_button.pack(side=tk.LEFT, padx=5)
+
+        self.ram_upload_button = ttk.Button(btn_frame, text="Upload to RAM",
+                                             command=self.start_ram_upload, state=tk.DISABLED)
+        self.ram_upload_button.pack(side=tk.LEFT, padx=5)
 
         self.abort_button = ttk.Button(btn_frame, text="Abort",
                                         command=self.abort_upload, state=tk.DISABLED)
@@ -958,9 +967,11 @@ class HC04SerialGUI:
 
             if file_size > 65535:
                 self.upload_button.config(state=tk.DISABLED)
+                self.ram_upload_button.config(state=tk.DISABLED)
                 self.upload_log_message("ERROR: File too large (max 64KB)")
             elif self.connected:
                 self.upload_button.config(state=tk.NORMAL)
+                self.ram_upload_button.config(state=tk.NORMAL)
 
     def upload_log_message(self, message):
         """Add message to upload log"""
@@ -1280,6 +1291,138 @@ class HC04SerialGUI:
         self.ser.write(abort_packet)
         self.root.after(0, lambda: self.upload_log_message("Abort sent to device"))
         self.root.after(0, self.upload_complete_error)
+
+    # ========== RAM Upload Methods ==========
+
+    def start_ram_upload(self):
+        """Start RAM upload in a separate thread"""
+        if not self.selected_file_path:
+            messagebox.showerror("Error", "No file selected")
+            return
+
+        self.upload_button.config(state=tk.DISABLED)
+        self.ram_upload_button.config(state=tk.DISABLED)
+        self.abort_button.config(state=tk.NORMAL)
+        self.upload_abort_flag = False
+        self.progress_var.set(0)
+
+        # Stop reading thread so it doesn't consume our binary data
+        self._stop_reading_thread()
+
+        ram_thread = threading.Thread(target=self.ram_upload_thread)
+        ram_thread.daemon = True
+        ram_thread.start()
+
+    def ram_upload_thread(self):
+        """Thread: parse TXT file into floats, send with sentinels"""
+        try:
+            filepath = self.selected_file_path
+            self.root.after(0, lambda: self.upload_log_message(
+                f"RAM upload: parsing {os.path.basename(filepath)}"))
+
+            # Parse TXT file: each line = 14 space/comma-separated floats
+            float_data = []
+            with open(filepath, 'r') as f:
+                for line_num, line in enumerate(f, 1):
+                    line = line.strip()
+                    if not line or line.startswith('#'):
+                        continue  # skip empty/comment lines
+                    # Support both space and comma separators, strip C-style 'f' suffix
+                    parts = line.replace(',', ' ').split()
+                    # Remove trailing 'f'/'F' from C-style float literals (e.g. "12.0f")
+                    parts = [p.rstrip('fF') for p in parts]
+                    if len(parts) != 14:
+                        self.root.after(0, lambda ln=line_num, n=len(parts):
+                            self.upload_log_message(
+                                f"WARN: line {ln} has {n} values (expected 14), skipping"))
+                        continue
+                    if len(float_data) // 14 >= 365:
+                        self.root.after(0, lambda: self.upload_log_message(
+                            "Max 365 chords reached, truncating"))
+                        break
+                    for val_str in parts:
+                        float_data.append(float(val_str))
+
+            num_chords = len(float_data) // 14
+            if num_chords == 0:
+                self.root.after(0, lambda: self.upload_log_message("ERROR: No valid chord data found"))
+                self.root.after(0, self._ram_upload_done)
+                return
+
+            self.root.after(0, lambda n=num_chords: self.upload_log_message(
+                f"Parsed {n} chords ({n*14} floats, {n*14*4} bytes)"))
+
+            # Pack floats as little-endian binary
+            payload = struct.pack(f'<{len(float_data)}f', *float_data)
+            total_bytes = len(payload) + 8  # payload + 2 sentinels
+
+            self.root.after(0, lambda t=total_bytes: self.upload_log_message(
+                f"Sending {t} bytes (incl. sentinels)..."))
+
+            # Flush stale data from buffers
+            self.ser.reset_input_buffer()
+            self.ser.reset_output_buffer()
+            time.sleep(0.1)
+
+            # Send start sentinel SEPARATELY so STM32 idle-line DMA
+            # delivers it as a complete 4-byte unit (avoids BT fragmentation)
+            self.ser.write(RAM_SENTINEL_START)
+            self.ser.flush()
+            time.sleep(0.1)  # ensure idle-line fires and STM32 detects sentinel
+
+            self.root.after(0, lambda: self.upload_log_message("Start sentinel sent"))
+
+            # Send payload in chunks to avoid BT buffer overflow
+            bytes_sent = 0
+            start_time = time.time()
+
+            for offset in range(0, len(payload), RAM_BT_CHUNK_SIZE):
+                if self.upload_abort_flag:
+                    self.root.after(0, lambda: self.upload_log_message("Upload aborted"))
+                    self.root.after(0, self._ram_upload_done)
+                    return
+
+                chunk = payload[offset:offset + RAM_BT_CHUNK_SIZE]
+                self.ser.write(chunk)
+                bytes_sent += len(chunk)
+
+                # Small delay to let BT module + DMA process
+                time.sleep(0.01)
+
+                # Update progress
+                progress = bytes_sent / len(payload) * 100
+                elapsed = time.time() - start_time
+                speed = bytes_sent / elapsed if elapsed > 0 else 0
+                self.root.after(0, lambda p=progress, s=speed: self.update_progress(
+                    p, f"{p:.0f}% | {s:.0f} B/s"))
+
+            # Send end sentinel separately
+            self.ser.flush()
+            time.sleep(0.05)
+            self.ser.write(RAM_SENTINEL_END)
+            self.ser.flush()
+
+            elapsed = time.time() - start_time
+            avg_speed = total_bytes / elapsed if elapsed > 0 else 0
+            self.root.after(0, lambda s=avg_speed, t=elapsed, n=num_chords:
+                self.upload_log_message(
+                    f"RAM upload complete! {n} chords, {s:.0f} B/s, {t:.1f}s"))
+            self.root.after(0, lambda: self.update_progress(100, "RAM Upload Complete!"))
+            self.root.after(0, self._ram_upload_done)
+
+        except ValueError as e:
+            self.root.after(0, lambda: self.upload_log_message(f"Parse error: {e}"))
+            self.root.after(0, self._ram_upload_done)
+        except Exception as e:
+            self.root.after(0, lambda: self.upload_log_message(f"Error: {e}"))
+            self.root.after(0, self._ram_upload_done)
+
+    def _ram_upload_done(self):
+        """Re-enable buttons after RAM upload"""
+        self.upload_button.config(state=tk.NORMAL)
+        self.ram_upload_button.config(state=tk.NORMAL)
+        self.abort_button.config(state=tk.DISABLED)
+        self._restart_reading_thread()
 
     def refresh_device_files(self):
         """Request file list from device"""

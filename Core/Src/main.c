@@ -63,6 +63,7 @@ char empty_row[] = "                        ";
 float pos_number[] = {50.0f, 20.0f, 10.0f, -69.0f, 62.0f, 90.0f, 0.0f, -30.0f, 20.0f, 55.0f};
 int pos_index = 0;
 char LCD_Send_buf[32];
+uint32_t remaining_ram;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -248,12 +249,77 @@ int main(void)
             {
                 FT_ProcessPacket(rx_buffer, valid_rx);
             }
+            else if (menu_get_state() == MENU_STATE_TRANSMIT_RAM && valid_rx > 0)
+            {
+                /* Sentinel-based RAM song accumulation */
+                if (!ram_rx_started)
+                {
+                    /* Look for start sentinel (514.114f) in received data */
+                    const float start_sentinel = RAM_SENTINEL_START;
+                    int found = 0;
+                    for (int i = 0; i <= (int)valid_rx - 4; i++)
+                    {
+                        if (memcmp(&rx_buffer[i], &start_sentinel, 4) == 0)
+                        {
+                            ram_rx_started = 1;
+                            ram_rx_offset = 0;
+                            /* Copy any data after sentinel into song_ram */
+                            int remaining = valid_rx - (i + 4);
+                            if (remaining > 0)
+                            {
+                                uint32_t copy_len = ((uint32_t)remaining < RAM_SONG_MAX_BYTES) ? (uint32_t)remaining : RAM_SONG_MAX_BYTES;
+                                memcpy((uint8_t *)song_ram, &rx_buffer[i + 4], copy_len);
+                                ram_rx_offset = copy_len;
+                            }
+                            found = 1;
+                            break;
+                        }
+                    }
+                    if (!found)
+                    {
+                        /* Not song data — treat as text command (allows :a back) */
+                        executeCommand(rx_buffer);
+                    }
+                }
+                else
+                {
+                    /* Accumulate song data into song_ram */
+                    uint32_t space = RAM_SONG_MAX_BYTES - ram_rx_offset;
+                    uint32_t copy_len = (valid_rx < space) ? valid_rx : space;
+                    memcpy(&((uint8_t *)song_ram)[ram_rx_offset], rx_buffer, copy_len);
+                    ram_rx_offset += copy_len;
+
+                    /* Check last 4 bytes for end sentinel (114.514f) */
+                    const float end_sentinel = RAM_SENTINEL_END;
+                    if (ram_rx_offset >= 4)
+                    {
+                        float last_float;
+                        memcpy(&last_float, &((uint8_t *)song_ram)[ram_rx_offset - 4], 4);
+                        if (last_float == end_sentinel)
+                        {
+                            ram_rx_offset -= 4; /* Trim sentinel */
+                            ram_rx_complete = 1;
+                        }
+                    }
+
+                    /* Also complete if buffer is full */
+                    if (ram_rx_offset >= RAM_SONG_MAX_BYTES)
+                    {
+                        ram_rx_complete = 1;
+                    }
+                }
+            }
             else
             {
                 executeCommand(rx_buffer); // text command
             }
             rx_complete = 0;
         }
+
+        char buf[25];
+        remaining_ram = get_free_ram();
+        snprintf(buf, sizeof(buf), "Free RAM: %lu bytes ", (unsigned long)remaining_ram);
+        LCD_draw_string(&lcd_config, 0, 13, buf, COLOR_BLACK, COLOR_WHITE);
 
         // test for index traversal - ok
         // while (pos_index < sizeof(pos_number)/sizeof(pos_number[0])){

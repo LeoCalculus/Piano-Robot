@@ -43,11 +43,12 @@ void menu_draw_main(void)
 {
     const char *items[] = {
         "1. Play Song",
-        "2. Transmit Song",
-        "3. Select Song",
-        "4. Homing"};
+        "2. Transmit Song(SD)",
+        "3. Transmit Song(RAM)",
+        "4. Select Song",
+        "5. Homing"};
     char line[25];
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         snprintf(line, sizeof(line), "%s %s", (i == menu_index) ? ">" : " ", items[i]);
         /* Pad to clear old text */
@@ -60,7 +61,7 @@ void menu_draw_main(void)
 }
 
 /* ------------------------------------------------------------------ */
-/*  Transmit Song page                                                */
+/*  Transmit Song (SD) page                                           */
 /* ------------------------------------------------------------------ */
 
 void menu_draw_transmit(void)
@@ -107,6 +108,52 @@ void menu_draw_transmit(void)
         LCD_draw_string(&lcd_config, 0, 3, "Status: ERROR           ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(&lcd_config, 0, 4, "Transfer failed.        ", COLOR_BLACK, COLOR_WHITE);
         break;
+    }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Transmit Song (RAM) page                                          */
+/* ------------------------------------------------------------------ */
+
+void menu_draw_transmit_ram(void){
+    char buf[32];
+
+    if (page_dirty){
+        clear_menu_area();
+        LCD_draw_string(&lcd_config, 0, 1, "[Transmit to RAM]       ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(&lcd_config, 0, 2, "Waiting for start...    ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(&lcd_config, 0, 3, "Max 365x14 floats       ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(&lcd_config, 0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+        page_dirty = 0;
+    }
+
+    /* Show live accumulation status */
+    if (ram_rx_started && !ram_rx_complete){
+        uint32_t total = RAM_SONG_MAX_BYTES;
+        uint8_t pct = (uint8_t)((ram_rx_offset * 100) / total);
+        snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
+                 (unsigned long)ram_rx_offset, (unsigned long)total, pct);
+        LCD_draw_string(&lcd_config, 0, 4, buf, COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(&lcd_config, 0, 2, "Receiving data...       ", COLOR_BLACK, COLOR_WHITE);
+    }
+
+    if (ram_rx_complete){
+        uint32_t num_floats = ram_rx_offset / 4;
+        uint32_t num_chords = num_floats / 14;
+        snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
+        LCD_draw_string(&lcd_config, 0, 3, buf, COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(&lcd_config, 0, 4, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
+
+        /* Parse the flat float buffer into piano_song struct */
+        parsing_song_buffer_to_struct(song_ram, piano_song);
+
+        LCD_draw_string(&lcd_config, 0, 4, "Song loaded to RAM!     ", COLOR_BLACK, COLOR_WHITE);
+
+        /* Reset state so we don't re-parse every loop */
+        ram_rx_complete = 0;
+        ram_rx_started = 0;
+        ram_rx_offset = 0;
+        redirect_to_ram = 0;
     }
 }
 
@@ -227,6 +274,13 @@ void menu_update(void)
             {
                 FT_Abort();
             }
+            if (menu_state == MENU_STATE_TRANSMIT_RAM)
+            {
+                ram_rx_started = 0;
+                ram_rx_complete = 0;
+                ram_rx_offset = 0;
+                redirect_to_ram = 0;
+            }
             menu_state = MENU_STATE_MAIN;
             menu_index = 0;
             page_dirty = 1;
@@ -250,14 +304,14 @@ void menu_update(void)
         if (menu_move_down)
         {
             menu_index++;
-            if (menu_index > 3)
+            if (menu_index > 4)
                 menu_index = 0;
         }
         if (menu_move_up)
         {
             menu_index--;
             if (menu_index < 0)
-                menu_index = 3;
+                menu_index = 4;
         }
 
         /* Enter */
@@ -266,32 +320,40 @@ void menu_update(void)
             menu_enter = 0;
             switch (menu_index)
             {
-            case 0: /* Play Song */
-                /* Only play if a song is selected */
-                if (active_song_index >= 0 && active_song_index < fileCount)
-                {
-                    LCD_draw_string(&lcd_config, 0, 9, "Playing song...         ", COLOR_BLACK, COLOR_WHITE);
-                    /* TODO: hook into traversal_song with the selected file */
-                }
-                else
-                {
-                    LCD_draw_string(&lcd_config, 0, 9, "No song selected!       ", COLOR_BLACK, COLOR_WHITE);
-                }
-                break;
-            case 1: /* Transmit Song */
-                menu_state = MENU_STATE_TRANSMIT;
-                page_dirty = 1;
-                FT_Init(); /* Reset transfer state */
-                break;
-            case 2: /* Select Song */
-                menu_state = MENU_STATE_SELECT;
-                page_dirty = 1;
-                break;
-            case 3: /* Homing */
-                LCD_draw_string(&lcd_config, 0, 9, "Homing...               ", COLOR_BLACK, COLOR_WHITE);
-                homing_procedure();
-                LCD_draw_string(&lcd_config, 0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
-                break;
+                case 0: /* Play Song */
+                    /* Only play if a song is selected */
+                    if (active_song_index >= 0 && active_song_index < fileCount)
+                    {
+                        LCD_draw_string(&lcd_config, 0, 9, "Playing song...         ", COLOR_BLACK, COLOR_WHITE);
+                        /* TODO: hook into traversal_song with the selected file */
+                    }
+                    else
+                    {
+                        LCD_draw_string(&lcd_config, 0, 9, "No song selected!       ", COLOR_BLACK, COLOR_WHITE);
+                    }
+                    break;
+                case 1: /* Transmit Song to SD card */
+                    menu_state = MENU_STATE_TRANSMIT;
+                    page_dirty = 1;
+                    FT_Init(); /* Reset transfer state */
+                    break;
+                case 2: /* Transmit Song to RAM */
+                    menu_state = MENU_STATE_TRANSMIT_RAM;
+                    page_dirty = 1;
+                    redirect_to_ram = 1;
+                    ram_rx_started = 0;
+                    ram_rx_complete = 0;
+                    ram_rx_offset = 0;
+                    break;
+                case 3: /* Select Song */
+                    menu_state = MENU_STATE_SELECT;
+                    page_dirty = 1;
+                    break;
+                case 4: /* Homing */
+                    LCD_draw_string(&lcd_config, 0, 9, "Homing...               ", COLOR_BLACK, COLOR_WHITE);
+                    homing_procedure();
+                    LCD_draw_string(&lcd_config, 0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
+                    break;
             }
         }
 
@@ -304,6 +366,11 @@ void menu_update(void)
         menu_draw_transmit();
         /* Check transfer timeout */
         FT_TimeoutCheck();
+        break;
+
+    case MENU_STATE_TRANSMIT_RAM:
+        /* No navigation needed; just show transfer status */
+        menu_draw_transmit_ram();
         break;
 
     /* ===== SELECT SONG PAGE ===== */

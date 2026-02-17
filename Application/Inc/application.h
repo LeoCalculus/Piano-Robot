@@ -16,10 +16,13 @@
 
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 #define MAX_CHORD_NOTES   10 // number of notes to play at one time, fixed value, 5 for left hand and 5 for right hand
-#define MAX_CHORD_EVENTS  100 // this define how many chords it will play, not fixed value
+#define MAX_CHORD_EVENTS  365 // max chords in a song (matches song_ram rows)
 #define PIANO_THRESHOLD   54.0f // define where the boundary of left hand and right hand is
 #define LEFT_HAND_SIZE    10.0f // size of left hand
 #define RIGHT_HAND_SIZE   10.0f // size of right hand
+#define RAM_SENTINEL_START 514.114f // start-of-song marker sent before data
+#define RAM_SENTINEL_END   114.514f // end-of-song marker sent after data
+#define RAM_SONG_MAX_BYTES (365 * 14 * 4) // 20440 bytes max
 
 
 typedef struct __attribute__((packed)) VOFA_REPORT{
@@ -39,6 +42,14 @@ extern VOFA_REPORT vofa; // transmit via usb
 extern volatile uint32_t time_counter;
 extern volatile int is_moving; // 0 not moving and 1 is moving
 extern volatile int is_blocked;
+extern float song_ram[365][14]; // 365 chords with 14 values for each chord, used for transmit song to RAM
+extern volatile int redirect_to_ram; // flag to indicate whether the incoming song data should be written to RAM
+extern volatile int ram_rx_started;  // 1 = start sentinel received, accumulating
+extern volatile int ram_rx_complete; // 1 = end sentinel received, ready to parse
+extern volatile uint32_t ram_rx_offset; // byte offset into song_ram during accumulation
+extern char _end;          // Defined by the linker script (end of .bss/heap start)
+extern char _estack;       // Defined by the linker script (top of stack)
+__ALIGN_BEGIN extern float rx_data[5500] __ALIGN_END;
 
 // pid struct - used for controller
 typedef struct {
@@ -88,5 +99,11 @@ void wait_ms(uint32_t ms);
 
 // homing procudure: on launch automatically move each hand to leftmost or rightmost
 void homing_procedure();
+
+// parsing the song buffer to the song struct 
+void parsing_song_buffer_to_struct(float song_buffer[365][14], Song_t* song_struct);
+
+// ram monitor
+uint32_t get_free_ram(void);
 
 #endif
