@@ -148,6 +148,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
+  
   // timer2 for general timing: tik = 1ms
   HAL_TIM_Base_Start_IT(&htim2);
 
@@ -187,7 +189,7 @@ int main(void)
   Kp = 0.05;
   Ki = 0.015;
   // Kd = 0.130;
-  Kd = 0.9;
+  Kd = 1.2;
 
   HAL_Delay(400);
   while (1){
@@ -238,7 +240,7 @@ int main(void)
           // OLED_Printf(0, 48, OLED_8X16, "Loc: %.3f       ", location);
           OLED_Printf(0, 48, OLED_8X16, "Cnt: %d       ", counter_acc);
           OLED_Update();
-          homing_control(1);
+          // homing_control(1);
           mode3_state = 1;
           event_index = 0;
           settle_count = 0;
@@ -737,12 +739,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
 
   /*Configure GPIO pin : PB12 */
   GPIO_InitStruct.Pin = GPIO_PIN_12;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 

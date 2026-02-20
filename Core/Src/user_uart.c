@@ -44,6 +44,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
                 err_acc = 0;
                 err_prev = 0;
                 settle_count = 0;
+                start = location; 
             }
             
             // Mode change: halt
@@ -65,7 +66,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size){
             else if(BT_DMA_rx_buff[1] == 'H') {
                 system_mode = 3;
                 mode3_state = 0;
-                HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
             }
         }
 

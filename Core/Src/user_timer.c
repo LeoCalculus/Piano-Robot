@@ -29,9 +29,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
     if(system_mode == 3 && mode3_state == 2){
 
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
       if(press_count >= SONG[event_index].duration_ms){
-        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
         if(event_index == SONG_EVENT - 1){
           system_mode = 0;
         }
@@ -41,6 +41,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
           settle_count = 0;
         }  
       }
+      start = location;
     }
   }
 

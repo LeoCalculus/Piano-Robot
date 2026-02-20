@@ -71,6 +71,7 @@ __EXTERN volatile uint8_t event_index;
 __EXTERN volatile float err_prev;
 __EXTERN volatile float err_acc;
 __EXTERN volatile float err;
+__EXTERN volatile float start;
 
 __EXTERN float Kp;
 __EXTERN float Ki;

@@ -7,7 +7,8 @@
 #define I_MAX  25.500f
 #define I_MIN -25.500f
 
-#define I_ON_ZONE 2.0f
+#define I_ON_ZONE_CLOSE 1.50f
+#define I_ON_ZONE_START 10.0f
 
 #define PWM_DEAD_ZONE 0
 // 150 160: fric
@@ -19,9 +20,12 @@
 void pid_control(void){
 
     float pout, dout, iout;
+    float distance;
     int32_t pid_pwm;
     int32_t pid_temp = 500;
     uint8_t i_flag;
+
+    distance = location - start;
 
     err = target - location;
     err_acc += err;
@@ -41,7 +45,7 @@ void pid_control(void){
     }
 
     // PD: for begining, PID for almost there
-    if (err < I_ON_ZONE && err > -I_ON_ZONE) {
+    if ((err < I_ON_ZONE_CLOSE && err > -I_ON_ZONE_CLOSE) || (distance < I_ON_ZONE_START && distance > -I_ON_ZONE_START)) {
         err_acc += err;
         // limit for integrals
         if (err_acc > I_MAX) err_acc = I_MAX;
