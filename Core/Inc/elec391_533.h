@@ -36,12 +36,12 @@
 #endif
 
 #ifndef SONG_EVENT
-    #define SONG_EVENT 10  
+    #define SONG_EVENT 1000  
 #endif
 
-// wait till settle: t = SETTLE_TH * 10ms
+// wait till settle: t = SETTLE_TH * 1ms
 #ifndef SETTLE_TH
-    #define SETTLE_TH 5  
+    #define SETTLE_TH 10  
 #endif
 
 __EXTERN float vofa_buf[7]; 
@@ -66,7 +66,7 @@ __EXTERN volatile float target;
 __EXTERN volatile uint8_t settle_count;
 __EXTERN volatile uint16_t press_count;
 
-__EXTERN volatile uint8_t event_index;
+__EXTERN volatile uint16_t event_index;
 
 __EXTERN volatile float err_prev;
 __EXTERN volatile float err_acc;
@@ -88,5 +88,7 @@ typedef struct ChordEvent {
 } ChordEvent_t;
 
 extern ChordEvent_t SONG[SONG_EVENT];
+
+
 
 #endif

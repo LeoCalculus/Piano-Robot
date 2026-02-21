@@ -4,10 +4,10 @@
 #include "VOFA.h"
 #include <stdlib.h>
 
-#define I_MAX  25.500f
-#define I_MIN -25.500f
+#define I_MAX  30.500f
+#define I_MIN -30.500f
 
-#define I_ON_ZONE_CLOSE 1.50f
+#define I_ON_ZONE_CLOSE 1.00f
 #define I_ON_ZONE_START 10.0f
 
 #define PWM_DEAD_ZONE 0
@@ -15,7 +15,8 @@
 #define PWM_DEAD_ZONE_OFFSET_MINUS 150
 #define PWM_DEAD_ZONE_OFFSET_PLUS  150
 
-#define DEAD_BAND 0.75f
+#define DEAD_BAND 1.0f
+#define SETTLE_BAND 1.2f
 
 void pid_control(void){
 
@@ -30,7 +31,7 @@ void pid_control(void){
     err = target - location;
     err_acc += err;
 
-    if(err < DEAD_BAND && err > -DEAD_BAND){
+    if(err < SETTLE_BAND && err > -SETTLE_BAND){
         if(settle_count < SETTLE_TH) settle_count ++;
     }
     else {
@@ -65,14 +66,11 @@ void pid_control(void){
     pid_temp /= 2;
 
     // duty cycle offset
-    if(pid_temp < 500 - PWM_DEAD_ZONE){
-        pid_temp -= PWM_DEAD_ZONE_OFFSET_MINUS;
+    if(pid_temp > 500 && pid_temp < 760){
+        pid_temp = 760;
     }
-    else if(pid_temp > 500 + PWM_DEAD_ZONE){
-        pid_temp += PWM_DEAD_ZONE_OFFSET_PLUS;
-    }
-    else{
-        pid_temp = 500;
+    else if(pid_temp < 500 && pid_temp > 240){
+        pid_temp = 240;
     }
 
     // pwm limit

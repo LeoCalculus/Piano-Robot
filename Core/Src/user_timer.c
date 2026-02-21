@@ -32,7 +32,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET);
       if(press_count >= SONG[event_index].duration_ms){
         HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET);
-        if(event_index == SONG_EVENT - 1){
+        if(event_index == SONG_EVENT - 1 || SONG[event_index + 1].positions[0] == -1){
           system_mode = 0;
         }
         else{
@@ -59,7 +59,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 
       speed = (float) counter * 60.0f * 1000.0f / 64.0f / GEAR; 
       rad_s = (float) counter * 2 * PI * 1000.0f / 64.0f;
-      location = counter_acc * 80.0f / 64.0f / GEAR; 
+      location = counter_acc * 73.0f / 64.0f / GEAR; 
 
       if(system_mode == 0){
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
