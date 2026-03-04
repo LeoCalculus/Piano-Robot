@@ -1,0 +1,2626 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"file_transfer.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/file_transfer.c"
+  21              		.section	.text.FT_FlushWriteBuffer,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	FT_FlushWriteBuffer:
+  28              	.LFB359:
+   1:./Application/Src/file_transfer.c **** #include <file_transfer.h>
+   2:./Application/Src/file_transfer.c **** #include <hc04.h>
+   3:./Application/Src/file_transfer.c **** #include <diskio.h>
+   4:./Application/Src/file_transfer.c **** #include <string.h>
+   5:./Application/Src/file_transfer.c **** #include <stdio.h>
+   6:./Application/Src/file_transfer.c **** #include "stm32h5xx_hal.h"
+   7:./Application/Src/file_transfer.c **** 
+   8:./Application/Src/file_transfer.c **** /* Global transfer context */
+   9:./Application/Src/file_transfer.c **** static FT_Context_t ftContext;
+  10:./Application/Src/file_transfer.c **** 
+  11:./Application/Src/file_transfer.c **** /* Write buffer for batching SD writes */
+  12:./Application/Src/file_transfer.c **** #define FT_WRITE_BUFFER_SIZE 512 /* Match SD sector size */
+  13:./Application/Src/file_transfer.c **** static uint8_t ftWriteBuffer[FT_WRITE_BUFFER_SIZE];
+  14:./Application/Src/file_transfer.c **** static uint16_t ftWriteBufferIndex = 0;
+  15:./Application/Src/file_transfer.c **** 
+  16:./Application/Src/file_transfer.c **** /* Track last completed transfer for duplicate FILE_END handling */
+  17:./Application/Src/file_transfer.c **** static uint16_t lastCompletedBytes = 0;
+  18:./Application/Src/file_transfer.c **** static uint32_t lastCompletedTime = 0;
+  19:./Application/Src/file_transfer.c **** 
+  20:./Application/Src/file_transfer.c **** /* Flush write buffer to SD card */
+  21:./Application/Src/file_transfer.c **** static int FT_FlushWriteBuffer(void)
+  22:./Application/Src/file_transfer.c **** {
+  29              		.loc 1 22 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 8
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  23:./Application/Src/file_transfer.c ****     if (ftWriteBufferIndex == 0)
+  33              		.loc 1 23 5 view .LVU1
+  34              		.loc 1 23 28 is_stmt 0 view .LVU2
+  35 0000 0D4B     		ldr	r3, .L11
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 2
+
+
+  36 0002 1A88     		ldrh	r2, [r3]
+  37              		.loc 1 23 8 view .LVU3
+  38 0004 0AB9     		cbnz	r2, .L10
+  24:./Application/Src/file_transfer.c ****         return 0;
+  39              		.loc 1 24 16 view .LVU4
+  40 0006 1046     		mov	r0, r2
+  25:./Application/Src/file_transfer.c **** 
+  26:./Application/Src/file_transfer.c ****     UINT bytesWritten;
+  27:./Application/Src/file_transfer.c ****     FRESULT res = f_write(&ftContext.file, ftWriteBuffer, ftWriteBufferIndex, &bytesWritten);
+  28:./Application/Src/file_transfer.c ****     if (res != FR_OK || bytesWritten != ftWriteBufferIndex)
+  29:./Application/Src/file_transfer.c ****     {
+  30:./Application/Src/file_transfer.c ****         return -1;
+  31:./Application/Src/file_transfer.c ****     }
+  32:./Application/Src/file_transfer.c ****     ftWriteBufferIndex = 0;
+  33:./Application/Src/file_transfer.c ****     return 0;
+  34:./Application/Src/file_transfer.c **** }
+  41              		.loc 1 34 1 view .LVU5
+  42 0008 7047     		bx	lr
+  43              	.L10:
+  22:./Application/Src/file_transfer.c ****     if (ftWriteBufferIndex == 0)
+  44              		.loc 1 22 1 view .LVU6
+  45 000a 00B5     		push	{lr}
+  46              	.LCFI0:
+  47              		.cfi_def_cfa_offset 4
+  48              		.cfi_offset 14, -4
+  49 000c 83B0     		sub	sp, sp, #12
+  50              	.LCFI1:
+  51              		.cfi_def_cfa_offset 16
+  26:./Application/Src/file_transfer.c ****     FRESULT res = f_write(&ftContext.file, ftWriteBuffer, ftWriteBufferIndex, &bytesWritten);
+  52              		.loc 1 26 5 is_stmt 1 view .LVU7
+  27:./Application/Src/file_transfer.c ****     if (res != FR_OK || bytesWritten != ftWriteBufferIndex)
+  53              		.loc 1 27 5 view .LVU8
+  27:./Application/Src/file_transfer.c ****     if (res != FR_OK || bytesWritten != ftWriteBufferIndex)
+  54              		.loc 1 27 19 is_stmt 0 view .LVU9
+  55 000e 01AB     		add	r3, sp, #4
+  56 0010 0A49     		ldr	r1, .L11+4
+  57 0012 0B48     		ldr	r0, .L11+8
+  58 0014 FFF7FEFF 		bl	f_write
+  59              	.LVL0:
+  28:./Application/Src/file_transfer.c ****     {
+  60              		.loc 1 28 5 is_stmt 1 view .LVU10
+  28:./Application/Src/file_transfer.c ****     {
+  61              		.loc 1 28 8 is_stmt 0 view .LVU11
+  62 0018 40B9     		cbnz	r0, .L4
+  28:./Application/Src/file_transfer.c ****     {
+  63              		.loc 1 28 38 discriminator 1 view .LVU12
+  64 001a 074B     		ldr	r3, .L11
+  65 001c 1A88     		ldrh	r2, [r3]
+  66 001e 019B     		ldr	r3, [sp, #4]
+  28:./Application/Src/file_transfer.c ****     {
+  67              		.loc 1 28 22 discriminator 1 view .LVU13
+  68 0020 9A42     		cmp	r2, r3
+  69 0022 06D1     		bne	.L5
+  32:./Application/Src/file_transfer.c ****     return 0;
+  70              		.loc 1 32 5 is_stmt 1 view .LVU14
+  32:./Application/Src/file_transfer.c ****     return 0;
+  71              		.loc 1 32 24 is_stmt 0 view .LVU15
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 3
+
+
+  72 0024 044B     		ldr	r3, .L11
+  73 0026 1880     		strh	r0, [r3]	@ movhi
+  33:./Application/Src/file_transfer.c **** }
+  74              		.loc 1 33 5 is_stmt 1 view .LVU16
+  75              	.LVL1:
+  76              	.L1:
+  77              		.loc 1 34 1 is_stmt 0 view .LVU17
+  78 0028 03B0     		add	sp, sp, #12
+  79              	.LCFI2:
+  80              		.cfi_remember_state
+  81              		.cfi_def_cfa_offset 4
+  82              		@ sp needed
+  83 002a 00BD     		pop	{pc}
+  84              	.LVL2:
+  85              	.L4:
+  86              	.LCFI3:
+  87              		.cfi_restore_state
+  30:./Application/Src/file_transfer.c ****     }
+  88              		.loc 1 30 16 view .LVU18
+  89 002c 4FF0FF30 		mov	r0, #-1
+  90              	.LVL3:
+  30:./Application/Src/file_transfer.c ****     }
+  91              		.loc 1 30 16 view .LVU19
+  92 0030 FAE7     		b	.L1
+  93              	.LVL4:
+  94              	.L5:
+  30:./Application/Src/file_transfer.c ****     }
+  95              		.loc 1 30 16 view .LVU20
+  96 0032 4FF0FF30 		mov	r0, #-1
+  97              	.LVL5:
+  30:./Application/Src/file_transfer.c ****     }
+  98              		.loc 1 30 16 view .LVU21
+  99 0036 F7E7     		b	.L1
+ 100              	.L12:
+ 101              		.align	2
+ 102              	.L11:
+ 103 0038 00000000 		.word	ftWriteBufferIndex
+ 104 003c 00000000 		.word	ftWriteBuffer
+ 105 0040 04000000 		.word	ftContext+4
+ 106              		.cfi_endproc
+ 107              	.LFE359:
+ 109              		.section	.text.FT_Init,"ax",%progbits
+ 110              		.align	1
+ 111              		.global	FT_Init
+ 112              		.syntax unified
+ 113              		.thumb
+ 114              		.thumb_func
+ 116              	FT_Init:
+ 117              	.LFB360:
+  35:./Application/Src/file_transfer.c **** 
+  36:./Application/Src/file_transfer.c **** /* Initialize file transfer module */
+  37:./Application/Src/file_transfer.c **** void FT_Init(void)
+  38:./Application/Src/file_transfer.c **** {
+ 118              		.loc 1 38 1 is_stmt 1 view -0
+ 119              		.cfi_startproc
+ 120              		@ args = 0, pretend = 0, frame = 0
+ 121              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 4
+
+
+ 122 0000 08B5     		push	{r3, lr}
+ 123              	.LCFI4:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 3, -8
+ 126              		.cfi_offset 14, -4
+  39:./Application/Src/file_transfer.c ****     memset(&ftContext, 0, sizeof(ftContext));
+ 127              		.loc 1 39 5 view .LVU23
+ 128 0002 4FF41472 		mov	r2, #592
+ 129 0006 0021     		movs	r1, #0
+ 130 0008 0348     		ldr	r0, .L15
+ 131 000a FFF7FEFF 		bl	memset
+ 132              	.LVL6:
+  40:./Application/Src/file_transfer.c ****     ftContext.state = FT_STATE_IDLE;
+ 133              		.loc 1 40 5 view .LVU24
+  41:./Application/Src/file_transfer.c ****     ftContext.errorCode = FT_ERR_NONE;
+ 134              		.loc 1 41 5 view .LVU25
+  42:./Application/Src/file_transfer.c ****     ftWriteBufferIndex = 0;
+ 135              		.loc 1 42 5 view .LVU26
+ 136              		.loc 1 42 24 is_stmt 0 view .LVU27
+ 137 000e 034B     		ldr	r3, .L15+4
+ 138 0010 0022     		movs	r2, #0
+ 139 0012 1A80     		strh	r2, [r3]	@ movhi
+  43:./Application/Src/file_transfer.c **** }
+ 140              		.loc 1 43 1 view .LVU28
+ 141 0014 08BD     		pop	{r3, pc}
+ 142              	.L16:
+ 143 0016 00BF     		.align	2
+ 144              	.L15:
+ 145 0018 00000000 		.word	ftContext
+ 146 001c 00000000 		.word	ftWriteBufferIndex
+ 147              		.cfi_endproc
+ 148              	.LFE360:
+ 150              		.section	.text.FT_CalculateChecksum,"ax",%progbits
+ 151              		.align	1
+ 152              		.global	FT_CalculateChecksum
+ 153              		.syntax unified
+ 154              		.thumb
+ 155              		.thumb_func
+ 157              	FT_CalculateChecksum:
+ 158              	.LVL7:
+ 159              	.LFB361:
+  44:./Application/Src/file_transfer.c **** 
+  45:./Application/Src/file_transfer.c **** /* Calculate XOR checksum */
+  46:./Application/Src/file_transfer.c **** uint8_t FT_CalculateChecksum(uint8_t *data, uint16_t length)
+  47:./Application/Src/file_transfer.c **** {
+ 160              		.loc 1 47 1 is_stmt 1 view -0
+ 161              		.cfi_startproc
+ 162              		@ args = 0, pretend = 0, frame = 0
+ 163              		@ frame_needed = 0, uses_anonymous_args = 0
+ 164              		@ link register save eliminated.
+ 165              		.loc 1 47 1 is_stmt 0 view .LVU30
+ 166 0000 8446     		mov	ip, r0
+  48:./Application/Src/file_transfer.c ****     uint8_t checksum = 0;
+ 167              		.loc 1 48 5 is_stmt 1 view .LVU31
+ 168              	.LVL8:
+  49:./Application/Src/file_transfer.c ****     for (uint16_t i = 0; i < length; i++)
+ 169              		.loc 1 49 5 view .LVU32
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 5
+
+
+ 170              	.LBB2:
+ 171              		.loc 1 49 10 view .LVU33
+ 172              		.loc 1 49 19 is_stmt 0 view .LVU34
+ 173 0002 0023     		movs	r3, #0
+ 174              	.LBE2:
+  48:./Application/Src/file_transfer.c ****     uint8_t checksum = 0;
+ 175              		.loc 1 48 13 view .LVU35
+ 176 0004 1846     		mov	r0, r3
+ 177              	.LVL9:
+ 178              	.LBB3:
+ 179              		.loc 1 49 5 view .LVU36
+ 180 0006 04E0     		b	.L18
+ 181              	.LVL10:
+ 182              	.L19:
+  50:./Application/Src/file_transfer.c ****     {
+  51:./Application/Src/file_transfer.c ****         checksum ^= data[i];
+ 183              		.loc 1 51 9 is_stmt 1 view .LVU37
+ 184              		.loc 1 51 25 is_stmt 0 view .LVU38
+ 185 0008 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+ 186              		.loc 1 51 18 view .LVU39
+ 187 000c 5040     		eors	r0, r0, r2
+ 188              	.LVL11:
+  49:./Application/Src/file_transfer.c ****     for (uint16_t i = 0; i < length; i++)
+ 189              		.loc 1 49 39 is_stmt 1 discriminator 3 view .LVU40
+ 190 000e 0133     		adds	r3, r3, #1
+ 191              	.LVL12:
+  49:./Application/Src/file_transfer.c ****     for (uint16_t i = 0; i < length; i++)
+ 192              		.loc 1 49 39 is_stmt 0 discriminator 3 view .LVU41
+ 193 0010 9BB2     		uxth	r3, r3
+ 194              	.LVL13:
+ 195              	.L18:
+  49:./Application/Src/file_transfer.c ****     for (uint16_t i = 0; i < length; i++)
+ 196              		.loc 1 49 28 is_stmt 1 discriminator 1 view .LVU42
+ 197 0012 8B42     		cmp	r3, r1
+ 198 0014 F8D3     		bcc	.L19
+ 199              	.LBE3:
+  52:./Application/Src/file_transfer.c ****     }
+  53:./Application/Src/file_transfer.c ****     return checksum;
+ 200              		.loc 1 53 5 view .LVU43
+  54:./Application/Src/file_transfer.c **** }
+ 201              		.loc 1 54 1 is_stmt 0 view .LVU44
+ 202 0016 7047     		bx	lr
+ 203              		.cfi_endproc
+ 204              	.LFE361:
+ 206              		.section	.text.FT_SendResponse,"ax",%progbits
+ 207              		.align	1
+ 208              		.global	FT_SendResponse
+ 209              		.syntax unified
+ 210              		.thumb
+ 211              		.thumb_func
+ 213              	FT_SendResponse:
+ 214              	.LVL14:
+ 215              	.LFB362:
+  55:./Application/Src/file_transfer.c **** 
+  56:./Application/Src/file_transfer.c **** /* Send response packet to PC (blocking – responses are tiny, 2-8 bytes) */
+  57:./Application/Src/file_transfer.c **** void FT_SendResponse(uint8_t responseCode, uint8_t *data, uint8_t dataLen)
+  58:./Application/Src/file_transfer.c **** {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 6
+
+
+ 216              		.loc 1 58 1 is_stmt 1 view -0
+ 217              		.cfi_startproc
+ 218              		@ args = 0, pretend = 0, frame = 8
+ 219              		@ frame_needed = 0, uses_anonymous_args = 0
+ 220              		.loc 1 58 1 is_stmt 0 view .LVU46
+ 221 0000 30B5     		push	{r4, r5, lr}
+ 222              	.LCFI5:
+ 223              		.cfi_def_cfa_offset 12
+ 224              		.cfi_offset 4, -12
+ 225              		.cfi_offset 5, -8
+ 226              		.cfi_offset 14, -4
+ 227 0002 83B0     		sub	sp, sp, #12
+ 228              	.LCFI6:
+ 229              		.cfi_def_cfa_offset 24
+  59:./Application/Src/file_transfer.c ****     uint8_t response[8];
+ 230              		.loc 1 59 5 is_stmt 1 view .LVU47
+  60:./Application/Src/file_transfer.c ****     uint8_t idx = 0;
+ 231              		.loc 1 60 5 view .LVU48
+  61:./Application/Src/file_transfer.c **** 
+  62:./Application/Src/file_transfer.c ****     response[idx++] = responseCode;
+ 232              		.loc 1 62 5 view .LVU49
+ 233              	.LVL15:
+ 234              		.loc 1 62 21 is_stmt 0 view .LVU50
+ 235 0004 8DF80000 		strb	r0, [sp]
+  63:./Application/Src/file_transfer.c ****     for (uint8_t i = 0; i < dataLen; i++)
+ 236              		.loc 1 63 5 is_stmt 1 view .LVU51
+ 237              	.LBB4:
+ 238              		.loc 1 63 10 view .LVU52
+ 239              	.LVL16:
+ 240              		.loc 1 63 18 is_stmt 0 view .LVU53
+ 241 0008 0023     		movs	r3, #0
+ 242              	.LBE4:
+  62:./Application/Src/file_transfer.c ****     for (uint8_t i = 0; i < dataLen; i++)
+ 243              		.loc 1 62 17 view .LVU54
+ 244 000a 0124     		movs	r4, #1
+ 245              	.LBB5:
+ 246              		.loc 1 63 5 view .LVU55
+ 247 000c 09E0     		b	.L21
+ 248              	.LVL17:
+ 249              	.L22:
+  64:./Application/Src/file_transfer.c ****     {
+  65:./Application/Src/file_transfer.c ****         response[idx++] = data[i];
+ 250              		.loc 1 65 9 is_stmt 1 view .LVU56
+ 251              		.loc 1 65 21 is_stmt 0 view .LVU57
+ 252 000e 601C     		adds	r0, r4, #1
+ 253              	.LVL18:
+ 254              		.loc 1 65 31 view .LVU58
+ 255 0010 11F803C0 		ldrb	ip, [r1, r3]	@ zero_extendqisi2
+ 256              		.loc 1 65 25 view .LVU59
+ 257 0014 0834     		adds	r4, r4, #8
+ 258 0016 6C44     		add	r4, sp, r4
+ 259 0018 04F808CC 		strb	ip, [r4, #-8]
+  63:./Application/Src/file_transfer.c ****     {
+ 260              		.loc 1 63 39 is_stmt 1 discriminator 3 view .LVU60
+ 261 001c 0133     		adds	r3, r3, #1
+ 262              	.LVL19:
+  63:./Application/Src/file_transfer.c ****     {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 7
+
+
+ 263              		.loc 1 63 39 is_stmt 0 discriminator 3 view .LVU61
+ 264 001e DBB2     		uxtb	r3, r3
+ 265              	.LVL20:
+ 266              		.loc 1 65 21 view .LVU62
+ 267 0020 C4B2     		uxtb	r4, r0
+ 268              	.LVL21:
+ 269              	.L21:
+  63:./Application/Src/file_transfer.c ****     {
+ 270              		.loc 1 63 27 is_stmt 1 discriminator 1 view .LVU63
+ 271 0022 9342     		cmp	r3, r2
+ 272 0024 F3D3     		bcc	.L22
+ 273              	.LBE5:
+  66:./Application/Src/file_transfer.c ****     }
+  67:./Application/Src/file_transfer.c ****     response[idx] = FT_CalculateChecksum(response, idx);
+ 274              		.loc 1 67 5 view .LVU64
+ 275              		.loc 1 67 21 is_stmt 0 view .LVU65
+ 276 0026 2146     		mov	r1, r4
+ 277              	.LVL22:
+ 278              		.loc 1 67 21 view .LVU66
+ 279 0028 6846     		mov	r0, sp
+ 280 002a FFF7FEFF 		bl	FT_CalculateChecksum
+ 281              	.LVL23:
+ 282              		.loc 1 67 19 discriminator 1 view .LVU67
+ 283 002e 04F10803 		add	r3, r4, #8
+ 284 0032 6B44     		add	r3, sp, r3
+ 285 0034 03F8080C 		strb	r0, [r3, #-8]
+  68:./Application/Src/file_transfer.c ****     idx++;
+ 286              		.loc 1 68 5 is_stmt 1 view .LVU68
+ 287              		.loc 1 68 8 is_stmt 0 view .LVU69
+ 288 0038 621C     		adds	r2, r4, #1
+ 289              	.LVL24:
+  69:./Application/Src/file_transfer.c **** 
+  70:./Application/Src/file_transfer.c ****     HAL_UART_Transmit(&huart1, response, idx, 50);
+ 290              		.loc 1 70 5 is_stmt 1 view .LVU70
+ 291 003a 3223     		movs	r3, #50
+ 292 003c D2B2     		uxtb	r2, r2
+ 293              		.loc 1 70 5 is_stmt 0 view .LVU71
+ 294 003e 6946     		mov	r1, sp
+ 295 0040 0248     		ldr	r0, .L24
+ 296 0042 FFF7FEFF 		bl	HAL_UART_Transmit
+ 297              	.LVL25:
+  71:./Application/Src/file_transfer.c **** }
+ 298              		.loc 1 71 1 view .LVU72
+ 299 0046 03B0     		add	sp, sp, #12
+ 300              	.LCFI7:
+ 301              		.cfi_def_cfa_offset 12
+ 302              		@ sp needed
+ 303 0048 30BD     		pop	{r4, r5, pc}
+ 304              	.LVL26:
+ 305              	.L25:
+ 306              		.loc 1 71 1 view .LVU73
+ 307 004a 00BF     		.align	2
+ 308              	.L24:
+ 309 004c 00000000 		.word	huart1
+ 310              		.cfi_endproc
+ 311              	.LFE362:
+ 313              		.section	.rodata.FT_HandleFileStart.str1.4,"aMS",%progbits,1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 8
+
+
+ 314              		.align	2
+ 315              	.LC0:
+ 316 0000 25732573 		.ascii	"%s%s\000"
+ 316      00
+ 317              		.section	.text.FT_HandleFileStart,"ax",%progbits
+ 318              		.align	1
+ 319              		.syntax unified
+ 320              		.thumb
+ 321              		.thumb_func
+ 323              	FT_HandleFileStart:
+ 324              	.LVL27:
+ 325              	.LFB363:
+  72:./Application/Src/file_transfer.c **** 
+  73:./Application/Src/file_transfer.c **** /* Handle FILE_START packet */
+  74:./Application/Src/file_transfer.c **** static int FT_HandleFileStart(uint8_t *packet, uint16_t length)
+  75:./Application/Src/file_transfer.c **** {
+ 326              		.loc 1 75 1 is_stmt 1 view -0
+ 327              		.cfi_startproc
+ 328              		@ args = 0, pretend = 0, frame = 32
+ 329              		@ frame_needed = 0, uses_anonymous_args = 0
+ 330              		.loc 1 75 1 is_stmt 0 view .LVU75
+ 331 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 332              	.LCFI8:
+ 333              		.cfi_def_cfa_offset 20
+ 334              		.cfi_offset 4, -20
+ 335              		.cfi_offset 5, -16
+ 336              		.cfi_offset 6, -12
+ 337              		.cfi_offset 7, -8
+ 338              		.cfi_offset 14, -4
+ 339 0002 8BB0     		sub	sp, sp, #44
+ 340              	.LCFI9:
+ 341              		.cfi_def_cfa_offset 64
+  76:./Application/Src/file_transfer.c ****     if (length < FT_FILE_START_SIZE)
+ 342              		.loc 1 76 5 is_stmt 1 view .LVU76
+ 343              		.loc 1 76 8 is_stmt 0 view .LVU77
+ 344 0004 1129     		cmp	r1, #17
+ 345 0006 37D9     		bls	.L45
+ 346 0008 0446     		mov	r4, r0
+  77:./Application/Src/file_transfer.c ****     {
+  78:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_OVERFLOW}, 1);
+  79:./Application/Src/file_transfer.c ****         return -1;
+  80:./Application/Src/file_transfer.c ****     }
+  81:./Application/Src/file_transfer.c **** 
+  82:./Application/Src/file_transfer.c ****     /* Verify checksum */
+  83:./Application/Src/file_transfer.c ****     if (FT_CalculateChecksum(packet, length - 1) != packet[length - 1])
+ 347              		.loc 1 83 5 is_stmt 1 view .LVU78
+ 348              		.loc 1 83 9 is_stmt 0 view .LVU79
+ 349 000a 4D1E     		subs	r5, r1, #1
+ 350 000c A9B2     		uxth	r1, r5
+ 351              	.LVL28:
+ 352              		.loc 1 83 9 view .LVU80
+ 353 000e FFF7FEFF 		bl	FT_CalculateChecksum
+ 354              	.LVL29:
+ 355              		.loc 1 83 59 discriminator 1 view .LVU81
+ 356 0012 635D     		ldrb	r3, [r4, r5]	@ zero_extendqisi2
+ 357              		.loc 1 83 8 discriminator 1 view .LVU82
+ 358 0014 9842     		cmp	r0, r3
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 9
+
+
+ 359 0016 3AD1     		bne	.L46
+  84:./Application/Src/file_transfer.c ****     {
+  85:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, (uint8_t[]){0, 0, FT_ERR_CHECKSUM}, 3);
+  86:./Application/Src/file_transfer.c ****         return -1;
+  87:./Application/Src/file_transfer.c ****     }
+  88:./Application/Src/file_transfer.c **** 
+  89:./Application/Src/file_transfer.c ****     /* If already receiving and got another FILE_START, PC didn't get our READY */
+  90:./Application/Src/file_transfer.c ****     /* Re-send READY if we're at chunk 0 (just started), otherwise abort and restart */
+  91:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_RECEIVING)
+ 360              		.loc 1 91 5 is_stmt 1 view .LVU83
+ 361              		.loc 1 91 18 is_stmt 0 view .LVU84
+ 362 0018 5E4B     		ldr	r3, .L51
+ 363 001a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 364              		.loc 1 91 8 view .LVU85
+ 365 001c 012B     		cmp	r3, #1
+ 366 001e 11D1     		bne	.L30
+  92:./Application/Src/file_transfer.c ****     {
+  93:./Application/Src/file_transfer.c ****         if (ftContext.currentChunk == 0)
+ 367              		.loc 1 93 9 is_stmt 1 view .LVU86
+ 368              		.loc 1 93 22 is_stmt 0 view .LVU87
+ 369 0020 5C4B     		ldr	r3, .L51
+ 370 0022 B3F84632 		ldrh	r3, [r3, #582]
+ 371              		.loc 1 93 12 view .LVU88
+ 372 0026 002B     		cmp	r3, #0
+ 373 0028 41D0     		beq	.L47
+  94:./Application/Src/file_transfer.c ****         {
+  95:./Application/Src/file_transfer.c ****             /* Just re-send READY - PC retried because it didn't get our response */
+  96:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_READY, NULL, 0);
+  97:./Application/Src/file_transfer.c ****             ftContext.lastActivityTime = HAL_GetTick();
+  98:./Application/Src/file_transfer.c ****             return 0;
+  99:./Application/Src/file_transfer.c ****         }
+ 100:./Application/Src/file_transfer.c ****         else
+ 101:./Application/Src/file_transfer.c ****         {
+ 102:./Application/Src/file_transfer.c ****             /* Mid-transfer FILE_START means something went wrong - abort and restart */
+ 103:./Application/Src/file_transfer.c ****             f_close(&ftContext.file);
+ 374              		.loc 1 103 13 is_stmt 1 view .LVU89
+ 375 002a 5B4D     		ldr	r5, .L51+4
+ 376              	.LVL30:
+ 377              		.loc 1 103 13 is_stmt 0 view .LVU90
+ 378 002c 2846     		mov	r0, r5
+ 379 002e FFF7FEFF 		bl	f_close
+ 380              	.LVL31:
+ 104:./Application/Src/file_transfer.c ****             f_unlink(ftContext.filename);
+ 381              		.loc 1 104 13 is_stmt 1 view .LVU91
+ 382 0032 05F50A70 		add	r0, r5, #552
+ 383 0036 FFF7FEFF 		bl	f_unlink
+ 384              	.LVL32:
+ 105:./Application/Src/file_transfer.c ****             ftContext.state = FT_STATE_IDLE;
+ 385              		.loc 1 105 13 view .LVU92
+ 386              		.loc 1 105 29 is_stmt 0 view .LVU93
+ 387 003a 0023     		movs	r3, #0
+ 388 003c 05F8043C 		strb	r3, [r5, #-4]
+ 106:./Application/Src/file_transfer.c ****             ftWriteBufferIndex = 0;
+ 389              		.loc 1 106 13 is_stmt 1 view .LVU94
+ 390              		.loc 1 106 32 is_stmt 0 view .LVU95
+ 391 0040 564A     		ldr	r2, .L51+8
+ 392 0042 1380     		strh	r3, [r2]	@ movhi
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 10
+
+
+ 393              	.L30:
+ 107:./Application/Src/file_transfer.c ****         }
+ 108:./Application/Src/file_transfer.c ****     }
+ 109:./Application/Src/file_transfer.c **** 
+ 110:./Application/Src/file_transfer.c ****     /* Parse file info */
+ 111:./Application/Src/file_transfer.c ****     uint16_t fileSize = packet[1] | (packet[2] << 8);
+ 394              		.loc 1 111 5 is_stmt 1 view .LVU96
+ 395              		.loc 1 111 31 is_stmt 0 view .LVU97
+ 396 0044 6378     		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 397              		.loc 1 111 44 view .LVU98
+ 398 0046 A278     		ldrb	r2, [r4, #2]	@ zero_extendqisi2
+ 399              		.loc 1 111 14 view .LVU99
+ 400 0048 43EA0223 		orr	r3, r3, r2, lsl #8
+ 401 004c 1E46     		mov	r6, r3
+ 402              	.LVL33:
+ 112:./Application/Src/file_transfer.c ****     uint16_t totalChunks = packet[3] | (packet[4] << 8);
+ 403              		.loc 1 112 5 is_stmt 1 view .LVU100
+ 404              		.loc 1 112 34 is_stmt 0 view .LVU101
+ 405 004e E378     		ldrb	r3, [r4, #3]	@ zero_extendqisi2
+ 406              		.loc 1 112 47 view .LVU102
+ 407 0050 2279     		ldrb	r2, [r4, #4]	@ zero_extendqisi2
+ 408              		.loc 1 112 14 view .LVU103
+ 409 0052 43EA0223 		orr	r3, r3, r2, lsl #8
+ 410 0056 1F46     		mov	r7, r3
+ 411              	.LVL34:
+ 113:./Application/Src/file_transfer.c **** 
+ 114:./Application/Src/file_transfer.c ****     /* Build filename from 8.3 format */
+ 115:./Application/Src/file_transfer.c ****     char name[9], ext[5];
+ 412              		.loc 1 115 5 is_stmt 1 view .LVU104
+ 116:./Application/Src/file_transfer.c ****     memcpy(name, &packet[5], 8);
+ 413              		.loc 1 116 5 view .LVU105
+ 414 0058 05AB     		add	r3, sp, #20
+ 415 005a D4F80500 		ldr	r0, [r4, #5]	@ unaligned
+ 416 005e D4F80910 		ldr	r1, [r4, #9]	@ unaligned
+ 417 0062 03C3     		stmia	r3!, {r0, r1}
+ 117:./Application/Src/file_transfer.c ****     name[8] = '\0';
+ 418              		.loc 1 117 5 view .LVU106
+ 419              		.loc 1 117 13 is_stmt 0 view .LVU107
+ 420 0064 0023     		movs	r3, #0
+ 421 0066 8DF81C30 		strb	r3, [sp, #28]
+ 118:./Application/Src/file_transfer.c ****     memcpy(ext, &packet[13], 4);
+ 422              		.loc 1 118 5 is_stmt 1 view .LVU108
+ 423 006a D4F80D20 		ldr	r2, [r4, #13]	@ unaligned
+ 424 006e 0392     		str	r2, [sp, #12]
+ 119:./Application/Src/file_transfer.c ****     ext[4] = '\0';
+ 425              		.loc 1 119 5 view .LVU109
+ 426              		.loc 1 119 12 is_stmt 0 view .LVU110
+ 427 0070 8DF81030 		strb	r3, [sp, #16]
+ 120:./Application/Src/file_transfer.c **** 
+ 121:./Application/Src/file_transfer.c ****     /* Trim trailing spaces/nulls from name */
+ 122:./Application/Src/file_transfer.c ****     for (int i = 7; i >= 0; i--)
+ 428              		.loc 1 122 5 is_stmt 1 view .LVU111
+ 429              	.LBB6:
+ 430              		.loc 1 122 10 view .LVU112
+ 431              	.LVL35:
+ 432              		.loc 1 122 14 is_stmt 0 view .LVU113
+ 433 0074 0723     		movs	r3, #7
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 11
+
+
+ 434              		.loc 1 122 5 view .LVU114
+ 435 0076 2DE0     		b	.L32
+ 436              	.LVL36:
+ 437              	.L45:
+ 438              		.loc 1 122 5 view .LVU115
+ 439              	.LBE6:
+ 440              	.LBB7:
+  78:./Application/Src/file_transfer.c ****         return -1;
+ 441              		.loc 1 78 9 is_stmt 1 view .LVU116
+  78:./Application/Src/file_transfer.c ****         return -1;
+ 442              		.loc 1 78 50 is_stmt 0 view .LVU117
+ 443 0078 0823     		movs	r3, #8
+ 444 007a 8DF82030 		strb	r3, [sp, #32]
+  78:./Application/Src/file_transfer.c ****         return -1;
+ 445              		.loc 1 78 9 view .LVU118
+ 446 007e 0122     		movs	r2, #1
+ 447 0080 08A9     		add	r1, sp, #32
+ 448              	.LVL37:
+  78:./Application/Src/file_transfer.c ****         return -1;
+ 449              		.loc 1 78 9 view .LVU119
+ 450 0082 A320     		movs	r0, #163
+ 451              	.LVL38:
+  78:./Application/Src/file_transfer.c ****         return -1;
+ 452              		.loc 1 78 9 view .LVU120
+ 453 0084 FFF7FEFF 		bl	FT_SendResponse
+ 454              	.LVL39:
+  79:./Application/Src/file_transfer.c ****     }
+ 455              		.loc 1 79 9 is_stmt 1 view .LVU121
+  79:./Application/Src/file_transfer.c ****     }
+ 456              		.loc 1 79 16 is_stmt 0 view .LVU122
+ 457 0088 4FF0FF30 		mov	r0, #-1
+ 458 008c 6EE0     		b	.L26
+ 459              	.LVL40:
+ 460              	.L46:
+  79:./Application/Src/file_transfer.c ****     }
+ 461              		.loc 1 79 16 view .LVU123
+ 462              	.LBE7:
+ 463              	.LBB8:
+  85:./Application/Src/file_transfer.c ****         return -1;
+ 464              		.loc 1 85 9 is_stmt 1 view .LVU124
+  85:./Application/Src/file_transfer.c ****         return -1;
+ 465              		.loc 1 85 48 is_stmt 0 view .LVU125
+ 466 008e 0023     		movs	r3, #0
+ 467 0090 8DF82430 		strb	r3, [sp, #36]
+ 468 0094 8DF82530 		strb	r3, [sp, #37]
+ 469 0098 0123     		movs	r3, #1
+ 470 009a 8DF82630 		strb	r3, [sp, #38]
+  85:./Application/Src/file_transfer.c ****         return -1;
+ 471              		.loc 1 85 9 view .LVU126
+ 472 009e 0322     		movs	r2, #3
+ 473 00a0 09A9     		add	r1, sp, #36
+ 474 00a2 A120     		movs	r0, #161
+ 475 00a4 FFF7FEFF 		bl	FT_SendResponse
+ 476              	.LVL41:
+  86:./Application/Src/file_transfer.c ****     }
+ 477              		.loc 1 86 9 is_stmt 1 view .LVU127
+  86:./Application/Src/file_transfer.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 12
+
+
+ 478              		.loc 1 86 16 is_stmt 0 view .LVU128
+ 479 00a8 4FF0FF30 		mov	r0, #-1
+ 480 00ac 5EE0     		b	.L26
+ 481              	.L47:
+ 482              	.LBE8:
+  96:./Application/Src/file_transfer.c ****             ftContext.lastActivityTime = HAL_GetTick();
+ 483              		.loc 1 96 13 is_stmt 1 view .LVU129
+ 484 00ae 1A46     		mov	r2, r3
+ 485 00b0 1946     		mov	r1, r3
+ 486 00b2 A220     		movs	r0, #162
+ 487 00b4 FFF7FEFF 		bl	FT_SendResponse
+ 488              	.LVL42:
+  97:./Application/Src/file_transfer.c ****             return 0;
+ 489              		.loc 1 97 13 view .LVU130
+  97:./Application/Src/file_transfer.c ****             return 0;
+ 490              		.loc 1 97 42 is_stmt 0 view .LVU131
+ 491 00b8 FFF7FEFF 		bl	HAL_GetTick
+ 492              	.LVL43:
+  97:./Application/Src/file_transfer.c ****             return 0;
+ 493              		.loc 1 97 40 discriminator 1 view .LVU132
+ 494 00bc 354B     		ldr	r3, .L51
+ 495 00be C3F84802 		str	r0, [r3, #584]
+  98:./Application/Src/file_transfer.c ****         }
+ 496              		.loc 1 98 13 is_stmt 1 view .LVU133
+  98:./Application/Src/file_transfer.c ****         }
+ 497              		.loc 1 98 20 is_stmt 0 view .LVU134
+ 498 00c2 0020     		movs	r0, #0
+ 499 00c4 52E0     		b	.L26
+ 500              	.LVL44:
+ 501              	.L33:
+ 502              	.LBB9:
+ 123:./Application/Src/file_transfer.c ****     {
+ 124:./Application/Src/file_transfer.c ****         if (name[i] == ' ' || name[i] == '\0')
+ 125:./Application/Src/file_transfer.c ****         {
+ 126:./Application/Src/file_transfer.c ****             name[i] = '\0';
+ 503              		.loc 1 126 13 is_stmt 1 view .LVU135
+ 504              		.loc 1 126 21 is_stmt 0 view .LVU136
+ 505 00c6 03F12802 		add	r2, r3, #40
+ 506 00ca 6A44     		add	r2, sp, r2
+ 507 00cc 0021     		movs	r1, #0
+ 508 00ce 02F8141C 		strb	r1, [r2, #-20]
+ 122:./Application/Src/file_transfer.c ****     {
+ 509              		.loc 1 122 30 is_stmt 1 discriminator 2 view .LVU137
+ 510 00d2 013B     		subs	r3, r3, #1
+ 511              	.LVL45:
+ 512              	.L32:
+ 122:./Application/Src/file_transfer.c ****     {
+ 513              		.loc 1 122 23 discriminator 1 view .LVU138
+ 514 00d4 002B     		cmp	r3, #0
+ 515 00d6 0ADB     		blt	.L48
+ 124:./Application/Src/file_transfer.c ****         {
+ 516              		.loc 1 124 9 view .LVU139
+ 124:./Application/Src/file_transfer.c ****         {
+ 517              		.loc 1 124 17 is_stmt 0 view .LVU140
+ 518 00d8 03F12802 		add	r2, r3, #40
+ 519 00dc 6A44     		add	r2, sp, r2
+ 520 00de 12F8142C 		ldrb	r2, [r2, #-20]	@ zero_extendqisi2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 13
+
+
+ 124:./Application/Src/file_transfer.c ****         {
+ 521              		.loc 1 124 12 view .LVU141
+ 522 00e2 202A     		cmp	r2, #32
+ 523 00e4 EFD0     		beq	.L33
+ 124:./Application/Src/file_transfer.c ****         {
+ 524              		.loc 1 124 28 discriminator 1 view .LVU142
+ 525 00e6 002A     		cmp	r2, #0
+ 526 00e8 EDD0     		beq	.L33
+ 527 00ea 0323     		movs	r3, #3
+ 528              	.LVL46:
+ 124:./Application/Src/file_transfer.c ****         {
+ 529              		.loc 1 124 28 discriminator 1 view .LVU143
+ 530 00ec 08E0     		b	.L38
+ 531              	.LVL47:
+ 532              	.L48:
+ 124:./Application/Src/file_transfer.c ****         {
+ 533              		.loc 1 124 28 discriminator 1 view .LVU144
+ 534 00ee 0323     		movs	r3, #3
+ 535              	.LVL48:
+ 124:./Application/Src/file_transfer.c ****         {
+ 536              		.loc 1 124 28 discriminator 1 view .LVU145
+ 537 00f0 06E0     		b	.L38
+ 538              	.LVL49:
+ 539              	.L36:
+ 124:./Application/Src/file_transfer.c ****         {
+ 540              		.loc 1 124 28 discriminator 1 view .LVU146
+ 541              	.LBE9:
+ 542              	.LBB10:
+ 127:./Application/Src/file_transfer.c ****         }
+ 128:./Application/Src/file_transfer.c ****         else
+ 129:./Application/Src/file_transfer.c ****         {
+ 130:./Application/Src/file_transfer.c ****             break;
+ 131:./Application/Src/file_transfer.c ****         }
+ 132:./Application/Src/file_transfer.c ****     }
+ 133:./Application/Src/file_transfer.c **** 
+ 134:./Application/Src/file_transfer.c ****     /* Trim trailing spaces/nulls from extension */
+ 135:./Application/Src/file_transfer.c ****     for (int i = 3; i >= 0; i--)
+ 136:./Application/Src/file_transfer.c ****     {
+ 137:./Application/Src/file_transfer.c ****         if (ext[i] == ' ' || ext[i] == '\0')
+ 138:./Application/Src/file_transfer.c ****         {
+ 139:./Application/Src/file_transfer.c ****             ext[i] = '\0';
+ 543              		.loc 1 139 13 is_stmt 1 view .LVU147
+ 544              		.loc 1 139 20 is_stmt 0 view .LVU148
+ 545 00f2 03F12802 		add	r2, r3, #40
+ 546 00f6 6A44     		add	r2, sp, r2
+ 547 00f8 0021     		movs	r1, #0
+ 548 00fa 02F81C1C 		strb	r1, [r2, #-28]
+ 135:./Application/Src/file_transfer.c ****     {
+ 549              		.loc 1 135 30 is_stmt 1 discriminator 2 view .LVU149
+ 550 00fe 013B     		subs	r3, r3, #1
+ 551              	.LVL50:
+ 552              	.L38:
+ 135:./Application/Src/file_transfer.c ****     {
+ 553              		.loc 1 135 23 discriminator 1 view .LVU150
+ 554 0100 002B     		cmp	r3, #0
+ 555 0102 08DB     		blt	.L37
+ 137:./Application/Src/file_transfer.c ****         {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 14
+
+
+ 556              		.loc 1 137 9 view .LVU151
+ 137:./Application/Src/file_transfer.c ****         {
+ 557              		.loc 1 137 16 is_stmt 0 view .LVU152
+ 558 0104 03F12802 		add	r2, r3, #40
+ 559 0108 6A44     		add	r2, sp, r2
+ 560 010a 12F81C2C 		ldrb	r2, [r2, #-28]	@ zero_extendqisi2
+ 137:./Application/Src/file_transfer.c ****         {
+ 561              		.loc 1 137 12 view .LVU153
+ 562 010e 202A     		cmp	r2, #32
+ 563 0110 EFD0     		beq	.L36
+ 137:./Application/Src/file_transfer.c ****         {
+ 564              		.loc 1 137 27 discriminator 1 view .LVU154
+ 565 0112 002A     		cmp	r2, #0
+ 566 0114 EDD0     		beq	.L36
+ 567              	.L37:
+ 568              	.LBE10:
+ 140:./Application/Src/file_transfer.c ****         }
+ 141:./Application/Src/file_transfer.c ****         else
+ 142:./Application/Src/file_transfer.c ****         {
+ 143:./Application/Src/file_transfer.c ****             break;
+ 144:./Application/Src/file_transfer.c ****         }
+ 145:./Application/Src/file_transfer.c ****     }
+ 146:./Application/Src/file_transfer.c **** 
+ 147:./Application/Src/file_transfer.c ****     /* Combine name and extension */
+ 148:./Application/Src/file_transfer.c ****     snprintf(ftContext.filename, sizeof(ftContext.filename), "%s%s", name, ext);
+ 569              		.loc 1 148 5 is_stmt 1 view .LVU155
+ 570 0116 224C     		ldr	r4, .L51+12
+ 571              	.LVL51:
+ 572              		.loc 1 148 5 is_stmt 0 view .LVU156
+ 573 0118 03AB     		add	r3, sp, #12
+ 574              	.LVL52:
+ 575              		.loc 1 148 5 view .LVU157
+ 576 011a 0093     		str	r3, [sp]
+ 577 011c 05AB     		add	r3, sp, #20
+ 578 011e 214A     		ldr	r2, .L51+16
+ 579 0120 0D21     		movs	r1, #13
+ 580 0122 2046     		mov	r0, r4
+ 581 0124 FFF7FEFF 		bl	snprintf
+ 582              	.LVL53:
+ 149:./Application/Src/file_transfer.c **** 
+ 150:./Application/Src/file_transfer.c ****     /* Open file for writing (create or overwrite) */
+ 151:./Application/Src/file_transfer.c ****     FRESULT res = f_open(&ftContext.file, ftContext.filename,
+ 583              		.loc 1 151 5 is_stmt 1 view .LVU158
+ 584              		.loc 1 151 19 is_stmt 0 view .LVU159
+ 585 0128 0A22     		movs	r2, #10
+ 586 012a 2146     		mov	r1, r4
+ 587 012c A4F50A70 		sub	r0, r4, #552
+ 588 0130 FFF7FEFF 		bl	f_open
+ 589              	.LVL54:
+ 152:./Application/Src/file_transfer.c ****                          FA_WRITE | FA_CREATE_ALWAYS);
+ 153:./Application/Src/file_transfer.c ****     if (res != FR_OK)
+ 590              		.loc 1 153 5 is_stmt 1 view .LVU160
+ 591              		.loc 1 153 8 is_stmt 0 view .LVU161
+ 592 0134 0346     		mov	r3, r0
+ 593 0136 D8B9     		cbnz	r0, .L49
+ 154:./Application/Src/file_transfer.c ****     {
+ 155:./Application/Src/file_transfer.c ****         /* Send error with the actual FRESULT so we can debug */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 15
+
+
+ 156:./Application/Src/file_transfer.c ****         uint8_t errData[2];
+ 157:./Application/Src/file_transfer.c ****         errData[0] = (res == FR_DISK_ERR) ? FT_ERR_SD_WRITE : FT_ERR_SD_FULL;
+ 158:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 159:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, errData, 2);
+ 160:./Application/Src/file_transfer.c ****         return -1;
+ 161:./Application/Src/file_transfer.c ****     }
+ 162:./Application/Src/file_transfer.c **** 
+ 163:./Application/Src/file_transfer.c ****     /* Initialize context */
+ 164:./Application/Src/file_transfer.c ****     ftContext.state = FT_STATE_RECEIVING;
+ 594              		.loc 1 164 5 is_stmt 1 view .LVU162
+ 595              		.loc 1 164 21 is_stmt 0 view .LVU163
+ 596 0138 164D     		ldr	r5, .L51
+ 597 013a 0123     		movs	r3, #1
+ 598 013c 2B70     		strb	r3, [r5]
+ 165:./Application/Src/file_transfer.c ****     ftContext.expectedSize = fileSize;
+ 599              		.loc 1 165 5 is_stmt 1 view .LVU164
+ 600              		.loc 1 165 28 is_stmt 0 view .LVU165
+ 601 013e C5F83C62 		str	r6, [r5, #572]
+ 166:./Application/Src/file_transfer.c ****     ftContext.totalChunks = totalChunks;
+ 602              		.loc 1 166 5 is_stmt 1 view .LVU166
+ 603              		.loc 1 166 27 is_stmt 0 view .LVU167
+ 604 0142 A5F84472 		strh	r7, [r5, #580]	@ movhi
+ 167:./Application/Src/file_transfer.c ****     ftContext.currentChunk = 0;
+ 605              		.loc 1 167 5 is_stmt 1 view .LVU168
+ 606              		.loc 1 167 28 is_stmt 0 view .LVU169
+ 607 0146 0446     		mov	r4, r0
+ 608 0148 A5F84602 		strh	r0, [r5, #582]	@ movhi
+ 168:./Application/Src/file_transfer.c ****     ftContext.bytesReceived = 0;
+ 609              		.loc 1 168 5 is_stmt 1 view .LVU170
+ 610              		.loc 1 168 29 is_stmt 0 view .LVU171
+ 611 014c C5F84002 		str	r0, [r5, #576]
+ 169:./Application/Src/file_transfer.c ****     ftContext.lastActivityTime = HAL_GetTick();
+ 612              		.loc 1 169 5 is_stmt 1 view .LVU172
+ 613              		.loc 1 169 34 is_stmt 0 view .LVU173
+ 614 0150 FFF7FEFF 		bl	HAL_GetTick
+ 615              	.LVL55:
+ 616              		.loc 1 169 32 discriminator 1 view .LVU174
+ 617 0154 C5F84802 		str	r0, [r5, #584]
+ 170:./Application/Src/file_transfer.c ****     ftContext.errorCode = FT_ERR_NONE;
+ 618              		.loc 1 170 5 is_stmt 1 view .LVU175
+ 619              		.loc 1 170 25 is_stmt 0 view .LVU176
+ 620 0158 4FF00003 		mov	r3, #0	@ movhi
+ 621 015c 85F84C32 		strb	r3, [r5, #588]
+ 171:./Application/Src/file_transfer.c **** 
+ 172:./Application/Src/file_transfer.c ****     FT_SendResponse(FT_RSP_READY, NULL, 0);
+ 622              		.loc 1 172 5 is_stmt 1 view .LVU177
+ 623 0160 2246     		mov	r2, r4
+ 624 0162 2146     		mov	r1, r4
+ 625 0164 A220     		movs	r0, #162
+ 626 0166 FFF7FEFF 		bl	FT_SendResponse
+ 627              	.LVL56:
+ 173:./Application/Src/file_transfer.c ****     return 0;
+ 628              		.loc 1 173 5 view .LVU178
+ 629              		.loc 1 173 12 is_stmt 0 view .LVU179
+ 630 016a 2046     		mov	r0, r4
+ 631              	.LVL57:
+ 632              	.L26:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 16
+
+
+ 174:./Application/Src/file_transfer.c **** }
+ 633              		.loc 1 174 1 view .LVU180
+ 634 016c 0BB0     		add	sp, sp, #44
+ 635              	.LCFI10:
+ 636              		.cfi_remember_state
+ 637              		.cfi_def_cfa_offset 20
+ 638              		@ sp needed
+ 639 016e F0BD     		pop	{r4, r5, r6, r7, pc}
+ 640              	.LVL58:
+ 641              	.L49:
+ 642              	.LCFI11:
+ 643              		.cfi_restore_state
+ 644              	.LBB11:
+ 156:./Application/Src/file_transfer.c ****         errData[0] = (res == FR_DISK_ERR) ? FT_ERR_SD_WRITE : FT_ERR_SD_FULL;
+ 645              		.loc 1 156 9 is_stmt 1 view .LVU181
+ 157:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 646              		.loc 1 157 9 view .LVU182
+ 157:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 647              		.loc 1 157 20 is_stmt 0 view .LVU183
+ 648 0170 0128     		cmp	r0, #1
+ 649 0172 0CD0     		beq	.L50
+ 157:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 650              		.loc 1 157 20 discriminator 2 view .LVU184
+ 651 0174 0422     		movs	r2, #4
+ 652              	.L41:
+ 157:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 653              		.loc 1 157 20 discriminator 4 view .LVU185
+ 654 0176 8DF80820 		strb	r2, [sp, #8]
+ 158:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, errData, 2);
+ 655              		.loc 1 158 9 is_stmt 1 view .LVU186
+ 158:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, errData, 2);
+ 656              		.loc 1 158 20 is_stmt 0 view .LVU187
+ 657 017a 8DF80930 		strb	r3, [sp, #9]
+ 159:./Application/Src/file_transfer.c ****         return -1;
+ 658              		.loc 1 159 9 is_stmt 1 view .LVU188
+ 659 017e 0222     		movs	r2, #2
+ 660 0180 02A9     		add	r1, sp, #8
+ 661 0182 A320     		movs	r0, #163
+ 662              	.LVL59:
+ 159:./Application/Src/file_transfer.c ****         return -1;
+ 663              		.loc 1 159 9 is_stmt 0 view .LVU189
+ 664 0184 FFF7FEFF 		bl	FT_SendResponse
+ 665              	.LVL60:
+ 160:./Application/Src/file_transfer.c ****     }
+ 666              		.loc 1 160 9 is_stmt 1 view .LVU190
+ 160:./Application/Src/file_transfer.c ****     }
+ 667              		.loc 1 160 16 is_stmt 0 view .LVU191
+ 668 0188 4FF0FF30 		mov	r0, #-1
+ 669 018c EEE7     		b	.L26
+ 670              	.LVL61:
+ 671              	.L50:
+ 157:./Application/Src/file_transfer.c ****         errData[1] = (uint8_t)res; /* raw FRESULT for debug */
+ 672              		.loc 1 157 20 discriminator 1 view .LVU192
+ 673 018e 0322     		movs	r2, #3
+ 674 0190 F1E7     		b	.L41
+ 675              	.L52:
+ 676 0192 00BF     		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 17
+
+
+ 677              	.L51:
+ 678 0194 00000000 		.word	ftContext
+ 679 0198 04000000 		.word	ftContext+4
+ 680 019c 00000000 		.word	ftWriteBufferIndex
+ 681 01a0 2C020000 		.word	ftContext+556
+ 682 01a4 00000000 		.word	.LC0
+ 683              	.LBE11:
+ 684              		.cfi_endproc
+ 685              	.LFE363:
+ 687              		.section	.text.FT_HandleFileData,"ax",%progbits
+ 688              		.align	1
+ 689              		.syntax unified
+ 690              		.thumb
+ 691              		.thumb_func
+ 693              	FT_HandleFileData:
+ 694              	.LVL62:
+ 695              	.LFB364:
+ 175:./Application/Src/file_transfer.c **** 
+ 176:./Application/Src/file_transfer.c **** /* Handle FILE_DATA packet */
+ 177:./Application/Src/file_transfer.c **** static int FT_HandleFileData(uint8_t *packet, uint16_t length)
+ 178:./Application/Src/file_transfer.c **** {
+ 696              		.loc 1 178 1 is_stmt 1 view -0
+ 697              		.cfi_startproc
+ 698              		@ args = 0, pretend = 0, frame = 16
+ 699              		@ frame_needed = 0, uses_anonymous_args = 0
+ 700              		.loc 1 178 1 is_stmt 0 view .LVU194
+ 701 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 702              	.LCFI12:
+ 703              		.cfi_def_cfa_offset 28
+ 704              		.cfi_offset 4, -28
+ 705              		.cfi_offset 5, -24
+ 706              		.cfi_offset 6, -20
+ 707              		.cfi_offset 7, -16
+ 708              		.cfi_offset 8, -12
+ 709              		.cfi_offset 9, -8
+ 710              		.cfi_offset 14, -4
+ 711 0004 85B0     		sub	sp, sp, #20
+ 712              	.LCFI13:
+ 713              		.cfi_def_cfa_offset 48
+ 179:./Application/Src/file_transfer.c ****     if (ftContext.state != FT_STATE_RECEIVING)
+ 714              		.loc 1 179 5 is_stmt 1 view .LVU195
+ 715              		.loc 1 179 18 is_stmt 0 view .LVU196
+ 716 0006 5D4B     		ldr	r3, .L70
+ 717 0008 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 718              		.loc 1 179 8 view .LVU197
+ 719 000a 012B     		cmp	r3, #1
+ 720 000c 4ED1     		bne	.L63
+ 721 000e 0546     		mov	r5, r0
+ 180:./Application/Src/file_transfer.c ****     {
+ 181:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SEQUENCE}, 1);
+ 182:./Application/Src/file_transfer.c ****         return -1;
+ 183:./Application/Src/file_transfer.c ****     }
+ 184:./Application/Src/file_transfer.c **** 
+ 185:./Application/Src/file_transfer.c ****     if (length < 5)
+ 722              		.loc 1 185 5 is_stmt 1 view .LVU198
+ 723              		.loc 1 185 8 is_stmt 0 view .LVU199
+ 724 0010 0429     		cmp	r1, #4
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 18
+
+
+ 725 0012 56D9     		bls	.L64
+ 186:./Application/Src/file_transfer.c ****     {
+ 187:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_OVERFLOW}, 1);
+ 188:./Application/Src/file_transfer.c ****         return -1;
+ 189:./Application/Src/file_transfer.c ****     }
+ 190:./Application/Src/file_transfer.c **** 
+ 191:./Application/Src/file_transfer.c ****     uint16_t chunkIndex = packet[1] | (packet[2] << 8);
+ 726              		.loc 1 191 5 is_stmt 1 view .LVU200
+ 727              		.loc 1 191 33 is_stmt 0 view .LVU201
+ 728 0014 4478     		ldrb	r4, [r0, #1]	@ zero_extendqisi2
+ 729              		.loc 1 191 46 view .LVU202
+ 730 0016 8378     		ldrb	r3, [r0, #2]	@ zero_extendqisi2
+ 731              		.loc 1 191 37 view .LVU203
+ 732 0018 44EA0324 		orr	r4, r4, r3, lsl #8
+ 733 001c 0FFA84F8 		sxth	r8, r4
+ 734              	.LVL63:
+ 192:./Application/Src/file_transfer.c ****     uint8_t dataLen = packet[3];
+ 735              		.loc 1 192 5 is_stmt 1 view .LVU204
+ 736              		.loc 1 192 13 is_stmt 0 view .LVU205
+ 737 0020 C678     		ldrb	r6, [r0, #3]	@ zero_extendqisi2
+ 738              	.LVL64:
+ 193:./Application/Src/file_transfer.c **** 
+ 194:./Application/Src/file_transfer.c ****     /* Verify we have enough data */
+ 195:./Application/Src/file_transfer.c ****     if (length < (uint16_t)(5 + dataLen))
+ 739              		.loc 1 195 5 is_stmt 1 view .LVU206
+ 740              		.loc 1 195 18 is_stmt 0 view .LVU207
+ 741 0022 731D     		adds	r3, r6, #5
+ 742              		.loc 1 195 8 view .LVU208
+ 743 0024 8B42     		cmp	r3, r1
+ 744 0026 57D8     		bhi	.L65
+ 196:./Application/Src/file_transfer.c ****     {
+ 197:./Application/Src/file_transfer.c ****         uint8_t nakData[] = {chunkIndex & 0xFF, chunkIndex >> 8, FT_ERR_OVERFLOW};
+ 198:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 199:./Application/Src/file_transfer.c ****         return -1;
+ 200:./Application/Src/file_transfer.c ****     }
+ 201:./Application/Src/file_transfer.c **** 
+ 202:./Application/Src/file_transfer.c ****     /* Verify checksum */
+ 203:./Application/Src/file_transfer.c ****     if (FT_CalculateChecksum(packet, 4 + dataLen) != packet[4 + dataLen])
+ 745              		.loc 1 203 5 is_stmt 1 view .LVU209
+ 746              		.loc 1 203 9 is_stmt 0 view .LVU210
+ 747 0028 311D     		adds	r1, r6, #4
+ 748              	.LVL65:
+ 749              		.loc 1 203 9 view .LVU211
+ 750 002a FFF7FEFF 		bl	FT_CalculateChecksum
+ 751              	.LVL66:
+ 752              		.loc 1 203 63 discriminator 1 view .LVU212
+ 753 002e 331D     		adds	r3, r6, #4
+ 754              		.loc 1 203 60 discriminator 1 view .LVU213
+ 755 0030 EB5C     		ldrb	r3, [r5, r3]	@ zero_extendqisi2
+ 756              		.loc 1 203 8 discriminator 1 view .LVU214
+ 757 0032 9842     		cmp	r0, r3
+ 758 0034 60D1     		bne	.L66
+ 204:./Application/Src/file_transfer.c ****     {
+ 205:./Application/Src/file_transfer.c ****         uint8_t nakData[] = {chunkIndex & 0xFF, chunkIndex >> 8, FT_ERR_CHECKSUM};
+ 206:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 207:./Application/Src/file_transfer.c ****         return -1;
+ 208:./Application/Src/file_transfer.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 19
+
+
+ 209:./Application/Src/file_transfer.c **** 
+ 210:./Application/Src/file_transfer.c ****     /* Handle DUPLICATE packet (PC retried because ACK was lost) */
+ 211:./Application/Src/file_transfer.c ****     /* If we receive the chunk we JUST processed, re-ACK without re-writing */
+ 212:./Application/Src/file_transfer.c ****     if (chunkIndex == ftContext.currentChunk - 1 && ftContext.currentChunk > 0)
+ 759              		.loc 1 212 5 is_stmt 1 view .LVU215
+ 760              		.loc 1 212 32 is_stmt 0 view .LVU216
+ 761 0036 514B     		ldr	r3, .L70
+ 762 0038 B3F84632 		ldrh	r3, [r3, #582]
+ 763              		.loc 1 212 46 view .LVU217
+ 764 003c 5A1E     		subs	r2, r3, #1
+ 765              		.loc 1 212 8 view .LVU218
+ 766 003e 9442     		cmp	r4, r2
+ 767 0040 6AD0     		beq	.L67
+ 768              	.L59:
+ 213:./Application/Src/file_transfer.c ****     {
+ 214:./Application/Src/file_transfer.c ****         /* Duplicate of last successful chunk - just re-send ACK */
+ 215:./Application/Src/file_transfer.c ****         uint8_t ackData[] = {chunkIndex & 0xFF, chunkIndex >> 8};
+ 216:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ACK, ackData, 2);
+ 217:./Application/Src/file_transfer.c ****         ftContext.lastActivityTime = HAL_GetTick();
+ 218:./Application/Src/file_transfer.c ****         return 0; /* Success - no data written */
+ 219:./Application/Src/file_transfer.c ****     }
+ 220:./Application/Src/file_transfer.c **** 
+ 221:./Application/Src/file_transfer.c ****     /* Verify sequence - must be the expected chunk */
+ 222:./Application/Src/file_transfer.c ****     if (chunkIndex != ftContext.currentChunk)
+ 769              		.loc 1 222 5 is_stmt 1 view .LVU219
+ 770              		.loc 1 222 8 is_stmt 0 view .LVU220
+ 771 0042 A342     		cmp	r3, r4
+ 772 0044 7BD1     		bne	.L68
+ 223:./Application/Src/file_transfer.c ****     {
+ 224:./Application/Src/file_transfer.c ****         uint8_t nakData[] = {chunkIndex & 0xFF, chunkIndex >> 8, FT_ERR_SEQUENCE};
+ 225:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 226:./Application/Src/file_transfer.c ****         return -1;
+ 227:./Application/Src/file_transfer.c ****     }
+ 228:./Application/Src/file_transfer.c **** 
+ 229:./Application/Src/file_transfer.c ****     /* Copy data to write buffer */
+ 230:./Application/Src/file_transfer.c ****     memcpy(&ftWriteBuffer[ftWriteBufferIndex], &packet[4], dataLen);
+ 773              		.loc 1 230 5 is_stmt 1 view .LVU221
+ 774              		.loc 1 230 26 is_stmt 0 view .LVU222
+ 775 0046 DFF83C91 		ldr	r9, .L70+8
+ 776 004a B9F80070 		ldrh	r7, [r9]
+ 777              		.loc 1 230 5 view .LVU223
+ 778 004e 3246     		mov	r2, r6
+ 779 0050 291D     		adds	r1, r5, #4
+ 780 0052 4B48     		ldr	r0, .L70+4
+ 781 0054 3844     		add	r0, r0, r7
+ 782 0056 FFF7FEFF 		bl	memcpy
+ 783              	.LVL67:
+ 231:./Application/Src/file_transfer.c ****     ftWriteBufferIndex += dataLen;
+ 784              		.loc 1 231 5 is_stmt 1 view .LVU224
+ 785              		.loc 1 231 24 is_stmt 0 view .LVU225
+ 786 005a 3744     		add	r7, r7, r6
+ 787 005c BFB2     		uxth	r7, r7
+ 788 005e A9F80070 		strh	r7, [r9]	@ movhi
+ 232:./Application/Src/file_transfer.c ****     ftContext.bytesReceived += dataLen;
+ 789              		.loc 1 232 5 is_stmt 1 view .LVU226
+ 790              		.loc 1 232 14 is_stmt 0 view .LVU227
+ 791 0062 464B     		ldr	r3, .L70
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 20
+
+
+ 792 0064 D3F84022 		ldr	r2, [r3, #576]
+ 793              		.loc 1 232 29 view .LVU228
+ 794 0068 1644     		add	r6, r6, r2
+ 795              	.LVL68:
+ 796              		.loc 1 232 29 view .LVU229
+ 797 006a C3F84062 		str	r6, [r3, #576]
+ 233:./Application/Src/file_transfer.c **** 
+ 234:./Application/Src/file_transfer.c ****     /* Flush buffer when full (512 bytes = 1 SD sector) */
+ 235:./Application/Src/file_transfer.c ****     if (ftWriteBufferIndex >= FT_WRITE_BUFFER_SIZE)
+ 798              		.loc 1 235 5 is_stmt 1 view .LVU230
+ 799              		.loc 1 235 8 is_stmt 0 view .LVU231
+ 800 006e B7F5007F 		cmp	r7, #512
+ 801 0072 03D3     		bcc	.L61
+ 236:./Application/Src/file_transfer.c ****     {
+ 237:./Application/Src/file_transfer.c ****         if (FT_FlushWriteBuffer() != 0)
+ 802              		.loc 1 237 9 is_stmt 1 view .LVU232
+ 803              		.loc 1 237 13 is_stmt 0 view .LVU233
+ 804 0074 FFF7FEFF 		bl	FT_FlushWriteBuffer
+ 805              	.LVL69:
+ 806              		.loc 1 237 12 discriminator 1 view .LVU234
+ 807 0078 0028     		cmp	r0, #0
+ 808 007a 70D1     		bne	.L69
+ 809              	.L61:
+ 238:./Application/Src/file_transfer.c ****         {
+ 239:./Application/Src/file_transfer.c ****             uint8_t nakData[] = {chunkIndex & 0xFF, chunkIndex >> 8, FT_ERR_SD_WRITE};
+ 240:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 241:./Application/Src/file_transfer.c ****             return -1;
+ 242:./Application/Src/file_transfer.c ****         }
+ 243:./Application/Src/file_transfer.c ****     }
+ 244:./Application/Src/file_transfer.c **** 
+ 245:./Application/Src/file_transfer.c ****     /* Update context */
+ 246:./Application/Src/file_transfer.c ****     ftContext.currentChunk++;
+ 810              		.loc 1 246 5 is_stmt 1 view .LVU235
+ 811              		.loc 1 246 14 is_stmt 0 view .LVU236
+ 812 007c 3F4D     		ldr	r5, .L70
+ 813              	.LVL70:
+ 814              		.loc 1 246 14 view .LVU237
+ 815 007e B5F84632 		ldrh	r3, [r5, #582]
+ 816              		.loc 1 246 27 view .LVU238
+ 817 0082 0133     		adds	r3, r3, #1
+ 818 0084 A5F84632 		strh	r3, [r5, #582]	@ movhi
+ 247:./Application/Src/file_transfer.c ****     ftContext.lastActivityTime = HAL_GetTick();
+ 819              		.loc 1 247 5 is_stmt 1 view .LVU239
+ 820              		.loc 1 247 34 is_stmt 0 view .LVU240
+ 821 0088 FFF7FEFF 		bl	HAL_GetTick
+ 822              	.LVL71:
+ 823              		.loc 1 247 32 discriminator 1 view .LVU241
+ 824 008c C5F84802 		str	r0, [r5, #584]
+ 248:./Application/Src/file_transfer.c **** 
+ 249:./Application/Src/file_transfer.c ****     /* Send ACK */
+ 250:./Application/Src/file_transfer.c ****     uint8_t ackData[] = {chunkIndex & 0xFF, chunkIndex >> 8};
+ 825              		.loc 1 250 5 is_stmt 1 view .LVU242
+ 826              		.loc 1 250 13 is_stmt 0 view .LVU243
+ 827 0090 8DF80480 		strb	r8, [sp, #4]
+ 828 0094 240A     		lsrs	r4, r4, #8
+ 829              	.LVL72:
+ 830              		.loc 1 250 13 view .LVU244
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 21
+
+
+ 831 0096 8DF80540 		strb	r4, [sp, #5]
+ 251:./Application/Src/file_transfer.c ****     FT_SendResponse(FT_RSP_ACK, ackData, 2);
+ 832              		.loc 1 251 5 is_stmt 1 view .LVU245
+ 833 009a 0222     		movs	r2, #2
+ 834 009c 01A9     		add	r1, sp, #4
+ 835 009e A020     		movs	r0, #160
+ 836 00a0 FFF7FEFF 		bl	FT_SendResponse
+ 837              	.LVL73:
+ 252:./Application/Src/file_transfer.c ****     return 0;
+ 838              		.loc 1 252 5 view .LVU246
+ 839              		.loc 1 252 12 is_stmt 0 view .LVU247
+ 840 00a4 0020     		movs	r0, #0
+ 841              	.LVL74:
+ 842              	.L53:
+ 253:./Application/Src/file_transfer.c **** }
+ 843              		.loc 1 253 1 view .LVU248
+ 844 00a6 05B0     		add	sp, sp, #20
+ 845              	.LCFI14:
+ 846              		.cfi_remember_state
+ 847              		.cfi_def_cfa_offset 28
+ 848              		@ sp needed
+ 849 00a8 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 850              	.LVL75:
+ 851              	.L63:
+ 852              	.LCFI15:
+ 853              		.cfi_restore_state
+ 854              	.LBB12:
+ 181:./Application/Src/file_transfer.c ****         return -1;
+ 855              		.loc 1 181 9 is_stmt 1 view .LVU249
+ 181:./Application/Src/file_transfer.c ****         return -1;
+ 856              		.loc 1 181 50 is_stmt 0 view .LVU250
+ 857 00ac 0223     		movs	r3, #2
+ 858 00ae 8DF80830 		strb	r3, [sp, #8]
+ 181:./Application/Src/file_transfer.c ****         return -1;
+ 859              		.loc 1 181 9 view .LVU251
+ 860 00b2 0122     		movs	r2, #1
+ 861 00b4 02A9     		add	r1, sp, #8
+ 862              	.LVL76:
+ 181:./Application/Src/file_transfer.c ****         return -1;
+ 863              		.loc 1 181 9 view .LVU252
+ 864 00b6 A320     		movs	r0, #163
+ 865              	.LVL77:
+ 181:./Application/Src/file_transfer.c ****         return -1;
+ 866              		.loc 1 181 9 view .LVU253
+ 867 00b8 FFF7FEFF 		bl	FT_SendResponse
+ 868              	.LVL78:
+ 182:./Application/Src/file_transfer.c ****     }
+ 869              		.loc 1 182 9 is_stmt 1 view .LVU254
+ 182:./Application/Src/file_transfer.c ****     }
+ 870              		.loc 1 182 16 is_stmt 0 view .LVU255
+ 871 00bc 4FF0FF30 		mov	r0, #-1
+ 872 00c0 F1E7     		b	.L53
+ 873              	.LVL79:
+ 874              	.L64:
+ 182:./Application/Src/file_transfer.c ****     }
+ 875              		.loc 1 182 16 view .LVU256
+ 876              	.LBE12:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 22
+
+
+ 877              	.LBB13:
+ 187:./Application/Src/file_transfer.c ****         return -1;
+ 878              		.loc 1 187 9 is_stmt 1 view .LVU257
+ 187:./Application/Src/file_transfer.c ****         return -1;
+ 879              		.loc 1 187 50 is_stmt 0 view .LVU258
+ 880 00c2 0823     		movs	r3, #8
+ 881 00c4 8DF80C30 		strb	r3, [sp, #12]
+ 187:./Application/Src/file_transfer.c ****         return -1;
+ 882              		.loc 1 187 9 view .LVU259
+ 883 00c8 0122     		movs	r2, #1
+ 884 00ca 03A9     		add	r1, sp, #12
+ 885              	.LVL80:
+ 187:./Application/Src/file_transfer.c ****         return -1;
+ 886              		.loc 1 187 9 view .LVU260
+ 887 00cc A320     		movs	r0, #163
+ 888              	.LVL81:
+ 187:./Application/Src/file_transfer.c ****         return -1;
+ 889              		.loc 1 187 9 view .LVU261
+ 890 00ce FFF7FEFF 		bl	FT_SendResponse
+ 891              	.LVL82:
+ 188:./Application/Src/file_transfer.c ****     }
+ 892              		.loc 1 188 9 is_stmt 1 view .LVU262
+ 188:./Application/Src/file_transfer.c ****     }
+ 893              		.loc 1 188 16 is_stmt 0 view .LVU263
+ 894 00d2 4FF0FF30 		mov	r0, #-1
+ 895 00d6 E6E7     		b	.L53
+ 896              	.LVL83:
+ 897              	.L65:
+ 188:./Application/Src/file_transfer.c ****     }
+ 898              		.loc 1 188 16 view .LVU264
+ 899              	.LBE13:
+ 900              	.LBB14:
+ 197:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 901              		.loc 1 197 9 is_stmt 1 view .LVU265
+ 197:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 902              		.loc 1 197 17 is_stmt 0 view .LVU266
+ 903 00d8 8DF80080 		strb	r8, [sp]
+ 904 00dc 240A     		lsrs	r4, r4, #8
+ 905              	.LVL84:
+ 197:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 906              		.loc 1 197 17 view .LVU267
+ 907 00de 8DF80140 		strb	r4, [sp, #1]
+ 908 00e2 0823     		movs	r3, #8
+ 909 00e4 8DF80230 		strb	r3, [sp, #2]
+ 198:./Application/Src/file_transfer.c ****         return -1;
+ 910              		.loc 1 198 9 is_stmt 1 view .LVU268
+ 911 00e8 0322     		movs	r2, #3
+ 912 00ea 6946     		mov	r1, sp
+ 913              	.LVL85:
+ 198:./Application/Src/file_transfer.c ****         return -1;
+ 914              		.loc 1 198 9 is_stmt 0 view .LVU269
+ 915 00ec A120     		movs	r0, #161
+ 916              	.LVL86:
+ 198:./Application/Src/file_transfer.c ****         return -1;
+ 917              		.loc 1 198 9 view .LVU270
+ 918 00ee FFF7FEFF 		bl	FT_SendResponse
+ 919              	.LVL87:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 23
+
+
+ 199:./Application/Src/file_transfer.c ****     }
+ 920              		.loc 1 199 9 is_stmt 1 view .LVU271
+ 199:./Application/Src/file_transfer.c ****     }
+ 921              		.loc 1 199 16 is_stmt 0 view .LVU272
+ 922 00f2 4FF0FF30 		mov	r0, #-1
+ 923 00f6 D6E7     		b	.L53
+ 924              	.LVL88:
+ 925              	.L66:
+ 199:./Application/Src/file_transfer.c ****     }
+ 926              		.loc 1 199 16 view .LVU273
+ 927              	.LBE14:
+ 928              	.LBB15:
+ 205:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 929              		.loc 1 205 9 is_stmt 1 view .LVU274
+ 205:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 930              		.loc 1 205 17 is_stmt 0 view .LVU275
+ 931 00f8 8DF80080 		strb	r8, [sp]
+ 932 00fc 240A     		lsrs	r4, r4, #8
+ 933              	.LVL89:
+ 205:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 934              		.loc 1 205 17 view .LVU276
+ 935 00fe 8DF80140 		strb	r4, [sp, #1]
+ 936 0102 0123     		movs	r3, #1
+ 937 0104 8DF80230 		strb	r3, [sp, #2]
+ 206:./Application/Src/file_transfer.c ****         return -1;
+ 938              		.loc 1 206 9 is_stmt 1 view .LVU277
+ 939 0108 0322     		movs	r2, #3
+ 940 010a 6946     		mov	r1, sp
+ 941 010c A120     		movs	r0, #161
+ 942 010e FFF7FEFF 		bl	FT_SendResponse
+ 943              	.LVL90:
+ 207:./Application/Src/file_transfer.c ****     }
+ 944              		.loc 1 207 9 view .LVU278
+ 207:./Application/Src/file_transfer.c ****     }
+ 945              		.loc 1 207 16 is_stmt 0 view .LVU279
+ 946 0112 4FF0FF30 		mov	r0, #-1
+ 947 0116 C6E7     		b	.L53
+ 948              	.LVL91:
+ 949              	.L67:
+ 207:./Application/Src/file_transfer.c ****     }
+ 950              		.loc 1 207 16 view .LVU280
+ 951              	.LBE15:
+ 212:./Application/Src/file_transfer.c ****     {
+ 952              		.loc 1 212 50 discriminator 1 view .LVU281
+ 953 0118 002B     		cmp	r3, #0
+ 954 011a 92D0     		beq	.L59
+ 955              	.LBB16:
+ 215:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ACK, ackData, 2);
+ 956              		.loc 1 215 9 is_stmt 1 view .LVU282
+ 215:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ACK, ackData, 2);
+ 957              		.loc 1 215 17 is_stmt 0 view .LVU283
+ 958 011c 8DF80080 		strb	r8, [sp]
+ 959 0120 240A     		lsrs	r4, r4, #8
+ 960              	.LVL92:
+ 215:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ACK, ackData, 2);
+ 961              		.loc 1 215 17 view .LVU284
+ 962 0122 8DF80140 		strb	r4, [sp, #1]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 24
+
+
+ 216:./Application/Src/file_transfer.c ****         ftContext.lastActivityTime = HAL_GetTick();
+ 963              		.loc 1 216 9 is_stmt 1 view .LVU285
+ 964 0126 0222     		movs	r2, #2
+ 965 0128 6946     		mov	r1, sp
+ 966 012a A020     		movs	r0, #160
+ 967 012c FFF7FEFF 		bl	FT_SendResponse
+ 968              	.LVL93:
+ 217:./Application/Src/file_transfer.c ****         return 0; /* Success - no data written */
+ 969              		.loc 1 217 9 view .LVU286
+ 217:./Application/Src/file_transfer.c ****         return 0; /* Success - no data written */
+ 970              		.loc 1 217 38 is_stmt 0 view .LVU287
+ 971 0130 FFF7FEFF 		bl	HAL_GetTick
+ 972              	.LVL94:
+ 217:./Application/Src/file_transfer.c ****         return 0; /* Success - no data written */
+ 973              		.loc 1 217 36 discriminator 1 view .LVU288
+ 974 0134 114B     		ldr	r3, .L70
+ 975 0136 C3F84802 		str	r0, [r3, #584]
+ 218:./Application/Src/file_transfer.c ****     }
+ 976              		.loc 1 218 9 is_stmt 1 view .LVU289
+ 218:./Application/Src/file_transfer.c ****     }
+ 977              		.loc 1 218 16 is_stmt 0 view .LVU290
+ 978 013a 0020     		movs	r0, #0
+ 979 013c B3E7     		b	.L53
+ 980              	.LVL95:
+ 981              	.L68:
+ 218:./Application/Src/file_transfer.c ****     }
+ 982              		.loc 1 218 16 view .LVU291
+ 983              	.LBE16:
+ 984              	.LBB17:
+ 224:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 985              		.loc 1 224 9 is_stmt 1 view .LVU292
+ 224:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 986              		.loc 1 224 17 is_stmt 0 view .LVU293
+ 987 013e 8DF80080 		strb	r8, [sp]
+ 988 0142 240A     		lsrs	r4, r4, #8
+ 989              	.LVL96:
+ 224:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 990              		.loc 1 224 17 view .LVU294
+ 991 0144 8DF80140 		strb	r4, [sp, #1]
+ 992 0148 0223     		movs	r3, #2
+ 993 014a 8DF80230 		strb	r3, [sp, #2]
+ 225:./Application/Src/file_transfer.c ****         return -1;
+ 994              		.loc 1 225 9 is_stmt 1 view .LVU295
+ 995 014e 0322     		movs	r2, #3
+ 996 0150 6946     		mov	r1, sp
+ 997 0152 A120     		movs	r0, #161
+ 998 0154 FFF7FEFF 		bl	FT_SendResponse
+ 999              	.LVL97:
+ 226:./Application/Src/file_transfer.c ****     }
+ 1000              		.loc 1 226 9 view .LVU296
+ 226:./Application/Src/file_transfer.c ****     }
+ 1001              		.loc 1 226 16 is_stmt 0 view .LVU297
+ 1002 0158 4FF0FF30 		mov	r0, #-1
+ 1003 015c A3E7     		b	.L53
+ 1004              	.LVL98:
+ 1005              	.L69:
+ 226:./Application/Src/file_transfer.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 25
+
+
+ 1006              		.loc 1 226 16 view .LVU298
+ 1007              	.LBE17:
+ 1008              	.LBB18:
+ 239:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 1009              		.loc 1 239 13 is_stmt 1 view .LVU299
+ 239:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 1010              		.loc 1 239 21 is_stmt 0 view .LVU300
+ 1011 015e 8DF80080 		strb	r8, [sp]
+ 1012 0162 240A     		lsrs	r4, r4, #8
+ 1013              	.LVL99:
+ 239:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_NAK, nakData, 3);
+ 1014              		.loc 1 239 21 view .LVU301
+ 1015 0164 8DF80140 		strb	r4, [sp, #1]
+ 1016 0168 0322     		movs	r2, #3
+ 1017 016a 8DF80220 		strb	r2, [sp, #2]
+ 240:./Application/Src/file_transfer.c ****             return -1;
+ 1018              		.loc 1 240 13 is_stmt 1 view .LVU302
+ 1019 016e 6946     		mov	r1, sp
+ 1020 0170 A120     		movs	r0, #161
+ 1021 0172 FFF7FEFF 		bl	FT_SendResponse
+ 1022              	.LVL100:
+ 241:./Application/Src/file_transfer.c ****         }
+ 1023              		.loc 1 241 13 view .LVU303
+ 241:./Application/Src/file_transfer.c ****         }
+ 1024              		.loc 1 241 20 is_stmt 0 view .LVU304
+ 1025 0176 4FF0FF30 		mov	r0, #-1
+ 1026 017a 94E7     		b	.L53
+ 1027              	.L71:
+ 1028              		.align	2
+ 1029              	.L70:
+ 1030 017c 00000000 		.word	ftContext
+ 1031 0180 00000000 		.word	ftWriteBuffer
+ 1032 0184 00000000 		.word	ftWriteBufferIndex
+ 1033              	.LBE18:
+ 1034              		.cfi_endproc
+ 1035              	.LFE364:
+ 1037              		.section	.text.FT_HandleFileEnd,"ax",%progbits
+ 1038              		.align	1
+ 1039              		.syntax unified
+ 1040              		.thumb
+ 1041              		.thumb_func
+ 1043              	FT_HandleFileEnd:
+ 1044              	.LVL101:
+ 1045              	.LFB365:
+ 254:./Application/Src/file_transfer.c **** 
+ 255:./Application/Src/file_transfer.c **** /* Handle FILE_END packet */
+ 256:./Application/Src/file_transfer.c **** static int FT_HandleFileEnd(uint8_t *packet, uint16_t length)
+ 257:./Application/Src/file_transfer.c **** {
+ 1046              		.loc 1 257 1 is_stmt 1 view -0
+ 1047              		.cfi_startproc
+ 1048              		@ args = 0, pretend = 0, frame = 32
+ 1049              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1050              		.loc 1 257 1 is_stmt 0 view .LVU306
+ 1051 0000 70B5     		push	{r4, r5, r6, lr}
+ 1052              	.LCFI16:
+ 1053              		.cfi_def_cfa_offset 16
+ 1054              		.cfi_offset 4, -16
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 26
+
+
+ 1055              		.cfi_offset 5, -12
+ 1056              		.cfi_offset 6, -8
+ 1057              		.cfi_offset 14, -4
+ 1058 0002 88B0     		sub	sp, sp, #32
+ 1059              	.LCFI17:
+ 1060              		.cfi_def_cfa_offset 48
+ 258:./Application/Src/file_transfer.c ****     if (length < FT_FILE_END_SIZE)
+ 1061              		.loc 1 258 5 is_stmt 1 view .LVU307
+ 1062              		.loc 1 258 8 is_stmt 0 view .LVU308
+ 1063 0004 0329     		cmp	r1, #3
+ 1064 0006 3ED9     		bls	.L83
+ 1065 0008 0546     		mov	r5, r0
+ 259:./Application/Src/file_transfer.c ****     {
+ 260:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_OVERFLOW}, 1);
+ 261:./Application/Src/file_transfer.c ****         return -1;
+ 262:./Application/Src/file_transfer.c ****     }
+ 263:./Application/Src/file_transfer.c **** 
+ 264:./Application/Src/file_transfer.c ****     /* Verify checksum */
+ 265:./Application/Src/file_transfer.c ****     if (FT_CalculateChecksum(packet, length - 1) != packet[length - 1])
+ 1066              		.loc 1 265 5 is_stmt 1 view .LVU309
+ 1067              		.loc 1 265 9 is_stmt 0 view .LVU310
+ 1068 000a 4C1E     		subs	r4, r1, #1
+ 1069 000c A1B2     		uxth	r1, r4
+ 1070              	.LVL102:
+ 1071              		.loc 1 265 9 view .LVU311
+ 1072 000e FFF7FEFF 		bl	FT_CalculateChecksum
+ 1073              	.LVL103:
+ 1074              		.loc 1 265 59 discriminator 1 view .LVU312
+ 1075 0012 2B5D     		ldrb	r3, [r5, r4]	@ zero_extendqisi2
+ 1076              		.loc 1 265 8 discriminator 1 view .LVU313
+ 1077 0014 9842     		cmp	r0, r3
+ 1078 0016 43D1     		bne	.L84
+ 266:./Application/Src/file_transfer.c ****     {
+ 267:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_CHECKSUM}, 1);
+ 268:./Application/Src/file_transfer.c ****         return -1;
+ 269:./Application/Src/file_transfer.c ****     }
+ 270:./Application/Src/file_transfer.c **** 
+ 271:./Application/Src/file_transfer.c ****     uint16_t reportedBytes = packet[1] | (packet[2] << 8);
+ 1079              		.loc 1 271 5 is_stmt 1 view .LVU314
+ 1080              		.loc 1 271 36 is_stmt 0 view .LVU315
+ 1081 0018 6B78     		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 1082              		.loc 1 271 49 view .LVU316
+ 1083 001a AA78     		ldrb	r2, [r5, #2]	@ zero_extendqisi2
+ 1084              		.loc 1 271 14 view .LVU317
+ 1085 001c 43EA0225 		orr	r5, r3, r2, lsl #8
+ 1086              	.LVL104:
+ 272:./Application/Src/file_transfer.c **** 
+ 273:./Application/Src/file_transfer.c ****     /* Handle DUPLICATE FILE_END (PC retried because SUCCESS was lost) */
+ 274:./Application/Src/file_transfer.c ****     /* If we're IDLE but recently completed a transfer with matching size, re-send SUCCESS */
+ 275:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_IDLE)
+ 1087              		.loc 1 275 5 is_stmt 1 view .LVU318
+ 1088              		.loc 1 275 18 is_stmt 0 view .LVU319
+ 1089 0020 534B     		ldr	r3, .L90
+ 1090 0022 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1091              		.loc 1 275 8 view .LVU320
+ 1092 0024 002B     		cmp	r3, #0
+ 1093 0026 46D0     		beq	.L85
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 27
+
+
+ 276:./Application/Src/file_transfer.c ****     {
+ 277:./Application/Src/file_transfer.c ****         uint32_t elapsed = HAL_GetTick() - lastCompletedTime;
+ 278:./Application/Src/file_transfer.c ****         if (elapsed < 10000 && reportedBytes == lastCompletedBytes)
+ 279:./Application/Src/file_transfer.c ****         {
+ 280:./Application/Src/file_transfer.c ****             /* Recent completion with matching size - re-send SUCCESS */
+ 281:./Application/Src/file_transfer.c ****             uint8_t successData[] = {lastCompletedBytes & 0xFF, (lastCompletedBytes >> 8) & 0xFF};
+ 282:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_SUCCESS, successData, 2);
+ 283:./Application/Src/file_transfer.c ****             return 0;
+ 284:./Application/Src/file_transfer.c ****         }
+ 285:./Application/Src/file_transfer.c ****         /* Not a duplicate - wrong state */
+ 286:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SEQUENCE}, 1);
+ 287:./Application/Src/file_transfer.c ****         return -1;
+ 288:./Application/Src/file_transfer.c ****     }
+ 289:./Application/Src/file_transfer.c **** 
+ 290:./Application/Src/file_transfer.c ****     if (ftContext.state != FT_STATE_RECEIVING)
+ 1094              		.loc 1 290 5 is_stmt 1 view .LVU321
+ 1095              		.loc 1 290 8 is_stmt 0 view .LVU322
+ 1096 0028 012B     		cmp	r3, #1
+ 1097 002a 6AD1     		bne	.L86
+ 291:./Application/Src/file_transfer.c ****     {
+ 292:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SEQUENCE}, 1);
+ 293:./Application/Src/file_transfer.c ****         return -1;
+ 294:./Application/Src/file_transfer.c ****     }
+ 295:./Application/Src/file_transfer.c **** 
+ 296:./Application/Src/file_transfer.c ****     /* Flush remaining data in buffer */
+ 297:./Application/Src/file_transfer.c ****     if (FT_FlushWriteBuffer() != 0)
+ 1098              		.loc 1 297 5 is_stmt 1 view .LVU323
+ 1099              		.loc 1 297 9 is_stmt 0 view .LVU324
+ 1100 002c FFF7FEFF 		bl	FT_FlushWriteBuffer
+ 1101              	.LVL105:
+ 1102              		.loc 1 297 8 discriminator 1 view .LVU325
+ 1103 0030 0646     		mov	r6, r0
+ 1104 0032 0028     		cmp	r0, #0
+ 1105 0034 71D1     		bne	.L87
+ 298:./Application/Src/file_transfer.c ****     {
+ 299:./Application/Src/file_transfer.c ****         f_close(&ftContext.file);
+ 300:./Application/Src/file_transfer.c ****         f_unlink(ftContext.filename);
+ 301:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SD_WRITE}, 1);
+ 302:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 303:./Application/Src/file_transfer.c ****         return -1;
+ 304:./Application/Src/file_transfer.c ****     }
+ 305:./Application/Src/file_transfer.c **** 
+ 306:./Application/Src/file_transfer.c ****     /* Sync and close file */
+ 307:./Application/Src/file_transfer.c ****     f_sync(&ftContext.file);
+ 1106              		.loc 1 307 5 is_stmt 1 view .LVU326
+ 1107 0036 4F4C     		ldr	r4, .L90+4
+ 1108              	.LVL106:
+ 1109              		.loc 1 307 5 is_stmt 0 view .LVU327
+ 1110 0038 2046     		mov	r0, r4
+ 1111 003a FFF7FEFF 		bl	f_sync
+ 1112              	.LVL107:
+ 308:./Application/Src/file_transfer.c ****     f_close(&ftContext.file);
+ 1113              		.loc 1 308 5 is_stmt 1 view .LVU328
+ 1114 003e 2046     		mov	r0, r4
+ 1115 0040 FFF7FEFF 		bl	f_close
+ 1116              	.LVL108:
+ 309:./Application/Src/file_transfer.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 28
+
+
+ 310:./Application/Src/file_transfer.c ****     /* Verify byte count */
+ 311:./Application/Src/file_transfer.c ****     if (reportedBytes != (ftContext.bytesReceived & 0xFFFF))
+ 1117              		.loc 1 311 5 view .LVU329
+ 1118              		.loc 1 311 36 is_stmt 0 view .LVU330
+ 1119 0044 D4F83C32 		ldr	r3, [r4, #572]
+ 1120              		.loc 1 311 51 view .LVU331
+ 1121 0048 9AB2     		uxth	r2, r3
+ 1122              		.loc 1 311 8 view .LVU332
+ 1123 004a 9542     		cmp	r5, r2
+ 1124 004c 7BD1     		bne	.L88
+ 312:./Application/Src/file_transfer.c ****     {
+ 313:./Application/Src/file_transfer.c ****         /* Delete incomplete file */
+ 314:./Application/Src/file_transfer.c ****         f_unlink(ftContext.filename);
+ 315:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SD_WRITE}, 1);
+ 316:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 317:./Application/Src/file_transfer.c ****         return -1;
+ 318:./Application/Src/file_transfer.c ****     }
+ 319:./Application/Src/file_transfer.c **** 
+ 320:./Application/Src/file_transfer.c ****     ftContext.state = FT_STATE_COMPLETE;
+ 1125              		.loc 1 320 5 is_stmt 1 view .LVU333
+ 1126              		.loc 1 320 21 is_stmt 0 view .LVU334
+ 1127 004e 484D     		ldr	r5, .L90
+ 1128              	.LVL109:
+ 1129              		.loc 1 320 21 view .LVU335
+ 1130 0050 0224     		movs	r4, #2
+ 1131 0052 2C70     		strb	r4, [r5]
+ 321:./Application/Src/file_transfer.c **** 
+ 322:./Application/Src/file_transfer.c ****     /* Track this completion for duplicate handling */
+ 323:./Application/Src/file_transfer.c ****     lastCompletedBytes = ftContext.bytesReceived & 0xFFFF;
+ 1132              		.loc 1 323 5 is_stmt 1 view .LVU336
+ 1133              		.loc 1 323 24 is_stmt 0 view .LVU337
+ 1134 0054 484A     		ldr	r2, .L90+8
+ 1135 0056 1380     		strh	r3, [r2]	@ movhi
+ 324:./Application/Src/file_transfer.c ****     lastCompletedTime = HAL_GetTick();
+ 1136              		.loc 1 324 5 is_stmt 1 view .LVU338
+ 1137              		.loc 1 324 25 is_stmt 0 view .LVU339
+ 1138 0058 FFF7FEFF 		bl	HAL_GetTick
+ 1139              	.LVL110:
+ 1140              		.loc 1 324 23 discriminator 1 view .LVU340
+ 1141 005c 474B     		ldr	r3, .L90+12
+ 1142 005e 1860     		str	r0, [r3]
+ 325:./Application/Src/file_transfer.c **** 
+ 326:./Application/Src/file_transfer.c ****     /* Refresh TXT file list */
+ 327:./Application/Src/file_transfer.c ****     sd_list_txt_files();
+ 1143              		.loc 1 327 5 is_stmt 1 view .LVU341
+ 1144 0060 FFF7FEFF 		bl	sd_list_txt_files
+ 1145              	.LVL111:
+ 328:./Application/Src/file_transfer.c **** 
+ 329:./Application/Src/file_transfer.c ****     /* Send success with bytes received */
+ 330:./Application/Src/file_transfer.c ****     uint8_t successData[] = {
+ 1146              		.loc 1 330 5 view .LVU342
+ 331:./Application/Src/file_transfer.c ****         ftContext.bytesReceived & 0xFF,
+ 1147              		.loc 1 331 18 is_stmt 0 view .LVU343
+ 1148 0064 D5F84032 		ldr	r3, [r5, #576]
+ 330:./Application/Src/file_transfer.c ****         ftContext.bytesReceived & 0xFF,
+ 1149              		.loc 1 330 13 view .LVU344
+ 1150 0068 8DF80430 		strb	r3, [sp, #4]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 29
+
+
+ 332:./Application/Src/file_transfer.c ****         (ftContext.bytesReceived >> 8) & 0xFF};
+ 1151              		.loc 1 332 34 view .LVU345
+ 1152 006c 1B0A     		lsrs	r3, r3, #8
+ 330:./Application/Src/file_transfer.c ****         ftContext.bytesReceived & 0xFF,
+ 1153              		.loc 1 330 13 view .LVU346
+ 1154 006e 8DF80530 		strb	r3, [sp, #5]
+ 333:./Application/Src/file_transfer.c ****     FT_SendResponse(FT_RSP_SUCCESS, successData, 2);
+ 1155              		.loc 1 333 5 is_stmt 1 view .LVU347
+ 1156 0072 2246     		mov	r2, r4
+ 1157 0074 01A9     		add	r1, sp, #4
+ 1158 0076 A420     		movs	r0, #164
+ 1159 0078 FFF7FEFF 		bl	FT_SendResponse
+ 1160              	.LVL112:
+ 334:./Application/Src/file_transfer.c **** 
+ 335:./Application/Src/file_transfer.c ****     /* Reset for next transfer */
+ 336:./Application/Src/file_transfer.c ****     FT_Init();
+ 1161              		.loc 1 336 5 view .LVU348
+ 1162 007c FFF7FEFF 		bl	FT_Init
+ 1163              	.LVL113:
+ 337:./Application/Src/file_transfer.c ****     return 0;
+ 1164              		.loc 1 337 5 view .LVU349
+ 1165              	.L72:
+ 338:./Application/Src/file_transfer.c **** }
+ 1166              		.loc 1 338 1 is_stmt 0 view .LVU350
+ 1167 0080 3046     		mov	r0, r6
+ 1168 0082 08B0     		add	sp, sp, #32
+ 1169              	.LCFI18:
+ 1170              		.cfi_remember_state
+ 1171              		.cfi_def_cfa_offset 16
+ 1172              		@ sp needed
+ 1173 0084 70BD     		pop	{r4, r5, r6, pc}
+ 1174              	.LVL114:
+ 1175              	.L83:
+ 1176              	.LCFI19:
+ 1177              		.cfi_restore_state
+ 1178              	.LBB19:
+ 260:./Application/Src/file_transfer.c ****         return -1;
+ 1179              		.loc 1 260 9 is_stmt 1 view .LVU351
+ 260:./Application/Src/file_transfer.c ****         return -1;
+ 1180              		.loc 1 260 50 is_stmt 0 view .LVU352
+ 1181 0086 0823     		movs	r3, #8
+ 1182 0088 8DF80830 		strb	r3, [sp, #8]
+ 260:./Application/Src/file_transfer.c ****         return -1;
+ 1183              		.loc 1 260 9 view .LVU353
+ 1184 008c 0122     		movs	r2, #1
+ 1185 008e 0DEB0301 		add	r1, sp, r3
+ 1186              	.LVL115:
+ 260:./Application/Src/file_transfer.c ****         return -1;
+ 1187              		.loc 1 260 9 view .LVU354
+ 1188 0092 A320     		movs	r0, #163
+ 1189              	.LVL116:
+ 260:./Application/Src/file_transfer.c ****         return -1;
+ 1190              		.loc 1 260 9 view .LVU355
+ 1191 0094 FFF7FEFF 		bl	FT_SendResponse
+ 1192              	.LVL117:
+ 261:./Application/Src/file_transfer.c ****     }
+ 1193              		.loc 1 261 9 is_stmt 1 view .LVU356
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 30
+
+
+ 261:./Application/Src/file_transfer.c ****     }
+ 1194              		.loc 1 261 16 is_stmt 0 view .LVU357
+ 1195 0098 4FF0FF33 		mov	r3, #-1
+ 1196 009c 1E46     		mov	r6, r3
+ 1197 009e EFE7     		b	.L72
+ 1198              	.LVL118:
+ 1199              	.L84:
+ 261:./Application/Src/file_transfer.c ****     }
+ 1200              		.loc 1 261 16 view .LVU358
+ 1201              	.LBE19:
+ 1202              	.LBB20:
+ 267:./Application/Src/file_transfer.c ****         return -1;
+ 1203              		.loc 1 267 9 is_stmt 1 view .LVU359
+ 267:./Application/Src/file_transfer.c ****         return -1;
+ 1204              		.loc 1 267 50 is_stmt 0 view .LVU360
+ 1205 00a0 0122     		movs	r2, #1
+ 1206 00a2 8DF80C20 		strb	r2, [sp, #12]
+ 267:./Application/Src/file_transfer.c ****         return -1;
+ 1207              		.loc 1 267 9 view .LVU361
+ 1208 00a6 03A9     		add	r1, sp, #12
+ 1209 00a8 A320     		movs	r0, #163
+ 1210 00aa FFF7FEFF 		bl	FT_SendResponse
+ 1211              	.LVL119:
+ 268:./Application/Src/file_transfer.c ****     }
+ 1212              		.loc 1 268 9 is_stmt 1 view .LVU362
+ 268:./Application/Src/file_transfer.c ****     }
+ 1213              		.loc 1 268 16 is_stmt 0 view .LVU363
+ 1214 00ae 4FF0FF33 		mov	r3, #-1
+ 1215 00b2 1E46     		mov	r6, r3
+ 1216 00b4 E4E7     		b	.L72
+ 1217              	.LVL120:
+ 1218              	.L85:
+ 268:./Application/Src/file_transfer.c ****     }
+ 1219              		.loc 1 268 16 view .LVU364
+ 1220              	.LBE20:
+ 1221              	.LBB21:
+ 277:./Application/Src/file_transfer.c ****         if (elapsed < 10000 && reportedBytes == lastCompletedBytes)
+ 1222              		.loc 1 277 9 is_stmt 1 view .LVU365
+ 277:./Application/Src/file_transfer.c ****         if (elapsed < 10000 && reportedBytes == lastCompletedBytes)
+ 1223              		.loc 1 277 28 is_stmt 0 view .LVU366
+ 1224 00b6 FFF7FEFF 		bl	HAL_GetTick
+ 1225              	.LVL121:
+ 277:./Application/Src/file_transfer.c ****         if (elapsed < 10000 && reportedBytes == lastCompletedBytes)
+ 1226              		.loc 1 277 42 discriminator 1 view .LVU367
+ 1227 00ba 304B     		ldr	r3, .L90+12
+ 1228 00bc 1B68     		ldr	r3, [r3]
+ 277:./Application/Src/file_transfer.c ****         if (elapsed < 10000 && reportedBytes == lastCompletedBytes)
+ 1229              		.loc 1 277 18 discriminator 1 view .LVU368
+ 1230 00be C01A     		subs	r0, r0, r3
+ 1231              	.LVL122:
+ 278:./Application/Src/file_transfer.c ****         {
+ 1232              		.loc 1 278 9 is_stmt 1 view .LVU369
+ 278:./Application/Src/file_transfer.c ****         {
+ 1233              		.loc 1 278 12 is_stmt 0 view .LVU370
+ 1234 00c0 42F20F73 		movw	r3, #9999
+ 1235 00c4 9842     		cmp	r0, r3
+ 1236 00c6 03D8     		bhi	.L77
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 31
+
+
+ 278:./Application/Src/file_transfer.c ****         {
+ 1237              		.loc 1 278 46 discriminator 1 view .LVU371
+ 1238 00c8 2B4B     		ldr	r3, .L90+8
+ 1239 00ca 1B88     		ldrh	r3, [r3]
+ 278:./Application/Src/file_transfer.c ****         {
+ 1240              		.loc 1 278 29 discriminator 1 view .LVU372
+ 1241 00cc AB42     		cmp	r3, r5
+ 1242 00ce 0BD0     		beq	.L89
+ 1243              	.L77:
+ 286:./Application/Src/file_transfer.c ****         return -1;
+ 1244              		.loc 1 286 9 is_stmt 1 view .LVU373
+ 286:./Application/Src/file_transfer.c ****         return -1;
+ 1245              		.loc 1 286 50 is_stmt 0 view .LVU374
+ 1246 00d0 0223     		movs	r3, #2
+ 1247 00d2 8DF81030 		strb	r3, [sp, #16]
+ 286:./Application/Src/file_transfer.c ****         return -1;
+ 1248              		.loc 1 286 9 view .LVU375
+ 1249 00d6 0122     		movs	r2, #1
+ 1250 00d8 04A9     		add	r1, sp, #16
+ 1251 00da A320     		movs	r0, #163
+ 1252              	.LVL123:
+ 286:./Application/Src/file_transfer.c ****         return -1;
+ 1253              		.loc 1 286 9 view .LVU376
+ 1254 00dc FFF7FEFF 		bl	FT_SendResponse
+ 1255              	.LVL124:
+ 287:./Application/Src/file_transfer.c ****     }
+ 1256              		.loc 1 287 9 is_stmt 1 view .LVU377
+ 287:./Application/Src/file_transfer.c ****     }
+ 1257              		.loc 1 287 16 is_stmt 0 view .LVU378
+ 1258 00e0 4FF0FF33 		mov	r3, #-1
+ 1259 00e4 1E46     		mov	r6, r3
+ 1260 00e6 CBE7     		b	.L72
+ 1261              	.LVL125:
+ 1262              	.L89:
+ 1263              	.LBB22:
+ 281:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_SUCCESS, successData, 2);
+ 1264              		.loc 1 281 13 is_stmt 1 view .LVU379
+ 281:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_SUCCESS, successData, 2);
+ 1265              		.loc 1 281 21 is_stmt 0 view .LVU380
+ 1266 00e8 8DF80030 		strb	r3, [sp]
+ 1267 00ec 1B0A     		lsrs	r3, r3, #8
+ 1268 00ee 8DF80130 		strb	r3, [sp, #1]
+ 282:./Application/Src/file_transfer.c ****             return 0;
+ 1269              		.loc 1 282 13 is_stmt 1 view .LVU381
+ 1270 00f2 0222     		movs	r2, #2
+ 1271 00f4 6946     		mov	r1, sp
+ 1272 00f6 A420     		movs	r0, #164
+ 1273              	.LVL126:
+ 282:./Application/Src/file_transfer.c ****             return 0;
+ 1274              		.loc 1 282 13 is_stmt 0 view .LVU382
+ 1275 00f8 FFF7FEFF 		bl	FT_SendResponse
+ 1276              	.LVL127:
+ 283:./Application/Src/file_transfer.c ****         }
+ 1277              		.loc 1 283 13 is_stmt 1 view .LVU383
+ 283:./Application/Src/file_transfer.c ****         }
+ 1278              		.loc 1 283 20 is_stmt 0 view .LVU384
+ 1279 00fc 0023     		movs	r3, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 32
+
+
+ 1280 00fe 1E46     		mov	r6, r3
+ 1281 0100 BEE7     		b	.L72
+ 1282              	.LVL128:
+ 1283              	.L86:
+ 283:./Application/Src/file_transfer.c ****         }
+ 1284              		.loc 1 283 20 view .LVU385
+ 1285              	.LBE22:
+ 1286              	.LBE21:
+ 1287              	.LBB23:
+ 292:./Application/Src/file_transfer.c ****         return -1;
+ 1288              		.loc 1 292 9 is_stmt 1 view .LVU386
+ 292:./Application/Src/file_transfer.c ****         return -1;
+ 1289              		.loc 1 292 50 is_stmt 0 view .LVU387
+ 1290 0102 0223     		movs	r3, #2
+ 1291 0104 8DF81430 		strb	r3, [sp, #20]
+ 292:./Application/Src/file_transfer.c ****         return -1;
+ 1292              		.loc 1 292 9 view .LVU388
+ 1293 0108 0122     		movs	r2, #1
+ 1294 010a 05A9     		add	r1, sp, #20
+ 1295 010c A320     		movs	r0, #163
+ 1296 010e FFF7FEFF 		bl	FT_SendResponse
+ 1297              	.LVL129:
+ 293:./Application/Src/file_transfer.c ****     }
+ 1298              		.loc 1 293 9 is_stmt 1 view .LVU389
+ 293:./Application/Src/file_transfer.c ****     }
+ 1299              		.loc 1 293 16 is_stmt 0 view .LVU390
+ 1300 0112 4FF0FF33 		mov	r3, #-1
+ 1301 0116 1E46     		mov	r6, r3
+ 1302 0118 B2E7     		b	.L72
+ 1303              	.L87:
+ 1304              	.LBE23:
+ 1305              	.LBB24:
+ 299:./Application/Src/file_transfer.c ****         f_unlink(ftContext.filename);
+ 1306              		.loc 1 299 9 is_stmt 1 view .LVU391
+ 1307 011a 164C     		ldr	r4, .L90+4
+ 1308 011c 2046     		mov	r0, r4
+ 1309 011e FFF7FEFF 		bl	f_close
+ 1310              	.LVL130:
+ 300:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SD_WRITE}, 1);
+ 1311              		.loc 1 300 9 view .LVU392
+ 1312 0122 04F50A70 		add	r0, r4, #552
+ 1313 0126 FFF7FEFF 		bl	f_unlink
+ 1314              	.LVL131:
+ 301:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1315              		.loc 1 301 9 view .LVU393
+ 301:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1316              		.loc 1 301 50 is_stmt 0 view .LVU394
+ 1317 012a 0325     		movs	r5, #3
+ 1318              	.LVL132:
+ 301:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1319              		.loc 1 301 50 view .LVU395
+ 1320 012c 8DF81850 		strb	r5, [sp, #24]
+ 301:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1321              		.loc 1 301 9 view .LVU396
+ 1322 0130 0122     		movs	r2, #1
+ 1323 0132 06A9     		add	r1, sp, #24
+ 1324 0134 A320     		movs	r0, #163
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 33
+
+
+ 1325 0136 FFF7FEFF 		bl	FT_SendResponse
+ 1326              	.LVL133:
+ 302:./Application/Src/file_transfer.c ****         return -1;
+ 1327              		.loc 1 302 9 is_stmt 1 view .LVU397
+ 302:./Application/Src/file_transfer.c ****         return -1;
+ 1328              		.loc 1 302 25 is_stmt 0 view .LVU398
+ 1329 013a 04F8045C 		strb	r5, [r4, #-4]
+ 303:./Application/Src/file_transfer.c ****     }
+ 1330              		.loc 1 303 9 is_stmt 1 view .LVU399
+ 303:./Application/Src/file_transfer.c ****     }
+ 1331              		.loc 1 303 16 is_stmt 0 view .LVU400
+ 1332 013e 4FF0FF33 		mov	r3, #-1
+ 1333 0142 1E46     		mov	r6, r3
+ 1334 0144 9CE7     		b	.L72
+ 1335              	.LVL134:
+ 1336              	.L88:
+ 303:./Application/Src/file_transfer.c ****     }
+ 1337              		.loc 1 303 16 view .LVU401
+ 1338              	.LBE24:
+ 1339              	.LBB25:
+ 314:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SD_WRITE}, 1);
+ 1340              		.loc 1 314 9 is_stmt 1 view .LVU402
+ 1341 0146 04F50A74 		add	r4, r4, #552
+ 1342 014a 2046     		mov	r0, r4
+ 1343 014c FFF7FEFF 		bl	f_unlink
+ 1344              	.LVL135:
+ 315:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1345              		.loc 1 315 9 view .LVU403
+ 315:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1346              		.loc 1 315 50 is_stmt 0 view .LVU404
+ 1347 0150 0325     		movs	r5, #3
+ 1348              	.LVL136:
+ 315:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1349              		.loc 1 315 50 view .LVU405
+ 1350 0152 8DF81C50 		strb	r5, [sp, #28]
+ 315:./Application/Src/file_transfer.c ****         ftContext.state = FT_STATE_ERROR;
+ 1351              		.loc 1 315 9 view .LVU406
+ 1352 0156 0122     		movs	r2, #1
+ 1353 0158 07A9     		add	r1, sp, #28
+ 1354 015a A320     		movs	r0, #163
+ 1355 015c FFF7FEFF 		bl	FT_SendResponse
+ 1356              	.LVL137:
+ 316:./Application/Src/file_transfer.c ****         return -1;
+ 1357              		.loc 1 316 9 is_stmt 1 view .LVU407
+ 316:./Application/Src/file_transfer.c ****         return -1;
+ 1358              		.loc 1 316 25 is_stmt 0 view .LVU408
+ 1359 0160 A4F50B74 		sub	r4, r4, #556
+ 1360 0164 2570     		strb	r5, [r4]
+ 317:./Application/Src/file_transfer.c ****     }
+ 1361              		.loc 1 317 9 is_stmt 1 view .LVU409
+ 317:./Application/Src/file_transfer.c ****     }
+ 1362              		.loc 1 317 16 is_stmt 0 view .LVU410
+ 1363 0166 4FF0FF33 		mov	r3, #-1
+ 1364 016a 1E46     		mov	r6, r3
+ 1365 016c 88E7     		b	.L72
+ 1366              	.L91:
+ 1367 016e 00BF     		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 34
+
+
+ 1368              	.L90:
+ 1369 0170 00000000 		.word	ftContext
+ 1370 0174 04000000 		.word	ftContext+4
+ 1371 0178 00000000 		.word	lastCompletedBytes
+ 1372 017c 00000000 		.word	lastCompletedTime
+ 1373              	.LBE25:
+ 1374              		.cfi_endproc
+ 1375              	.LFE365:
+ 1377              		.section	.text.FT_Abort,"ax",%progbits
+ 1378              		.align	1
+ 1379              		.global	FT_Abort
+ 1380              		.syntax unified
+ 1381              		.thumb
+ 1382              		.thumb_func
+ 1384              	FT_Abort:
+ 1385              	.LFB369:
+ 339:./Application/Src/file_transfer.c **** 
+ 340:./Application/Src/file_transfer.c **** /* Handle FILE_ABORT packet */
+ 341:./Application/Src/file_transfer.c **** static int FT_HandleFileAbort(uint8_t *packet, uint16_t length)
+ 342:./Application/Src/file_transfer.c **** {
+ 343:./Application/Src/file_transfer.c ****     (void)packet;
+ 344:./Application/Src/file_transfer.c ****     (void)length;
+ 345:./Application/Src/file_transfer.c **** 
+ 346:./Application/Src/file_transfer.c ****     FT_Abort();
+ 347:./Application/Src/file_transfer.c ****     return 0;
+ 348:./Application/Src/file_transfer.c **** }
+ 349:./Application/Src/file_transfer.c **** 
+ 350:./Application/Src/file_transfer.c **** /* Process received packet */
+ 351:./Application/Src/file_transfer.c **** void FT_ProcessPacket(uint8_t *packet, uint16_t length)
+ 352:./Application/Src/file_transfer.c **** {
+ 353:./Application/Src/file_transfer.c ****     if (length == 0)
+ 354:./Application/Src/file_transfer.c ****         return;
+ 355:./Application/Src/file_transfer.c **** 
+ 356:./Application/Src/file_transfer.c ****     uint8_t command = packet[0];
+ 357:./Application/Src/file_transfer.c **** 
+ 358:./Application/Src/file_transfer.c ****     switch (command)
+ 359:./Application/Src/file_transfer.c ****     {
+ 360:./Application/Src/file_transfer.c ****     case FT_CMD_FILE_START:
+ 361:./Application/Src/file_transfer.c ****         FT_HandleFileStart(packet, length);
+ 362:./Application/Src/file_transfer.c ****         break;
+ 363:./Application/Src/file_transfer.c **** 
+ 364:./Application/Src/file_transfer.c ****     case FT_CMD_FILE_DATA:
+ 365:./Application/Src/file_transfer.c ****         FT_HandleFileData(packet, length);
+ 366:./Application/Src/file_transfer.c ****         break;
+ 367:./Application/Src/file_transfer.c **** 
+ 368:./Application/Src/file_transfer.c ****     case FT_CMD_FILE_END:
+ 369:./Application/Src/file_transfer.c ****         FT_HandleFileEnd(packet, length);
+ 370:./Application/Src/file_transfer.c ****         break;
+ 371:./Application/Src/file_transfer.c **** 
+ 372:./Application/Src/file_transfer.c ****     case FT_CMD_FILE_ABORT:
+ 373:./Application/Src/file_transfer.c ****         FT_HandleFileAbort(packet, length);
+ 374:./Application/Src/file_transfer.c ****         break;
+ 375:./Application/Src/file_transfer.c **** 
+ 376:./Application/Src/file_transfer.c ****     default:
+ 377:./Application/Src/file_transfer.c ****         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SEQUENCE}, 1);
+ 378:./Application/Src/file_transfer.c ****         break;
+ 379:./Application/Src/file_transfer.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 35
+
+
+ 380:./Application/Src/file_transfer.c **** }
+ 381:./Application/Src/file_transfer.c **** 
+ 382:./Application/Src/file_transfer.c **** /* Check for timeout during transfer */
+ 383:./Application/Src/file_transfer.c **** void FT_TimeoutCheck(void)
+ 384:./Application/Src/file_transfer.c **** {
+ 385:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_RECEIVING)
+ 386:./Application/Src/file_transfer.c ****     {
+ 387:./Application/Src/file_transfer.c ****         uint32_t elapsed = HAL_GetTick() - ftContext.lastActivityTime;
+ 388:./Application/Src/file_transfer.c ****         if (elapsed > FT_TIMEOUT_MS)
+ 389:./Application/Src/file_transfer.c ****         {
+ 390:./Application/Src/file_transfer.c ****             /* Timeout - abort transfer */
+ 391:./Application/Src/file_transfer.c ****             FT_Abort();
+ 392:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_TIMEOUT}, 1);
+ 393:./Application/Src/file_transfer.c ****         }
+ 394:./Application/Src/file_transfer.c ****     }
+ 395:./Application/Src/file_transfer.c **** }
+ 396:./Application/Src/file_transfer.c **** 
+ 397:./Application/Src/file_transfer.c **** /* Abort current transfer */
+ 398:./Application/Src/file_transfer.c **** void FT_Abort(void)
+ 399:./Application/Src/file_transfer.c **** {
+ 1386              		.loc 1 399 1 is_stmt 1 view -0
+ 1387              		.cfi_startproc
+ 1388              		@ args = 0, pretend = 0, frame = 0
+ 1389              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1390 0000 08B5     		push	{r3, lr}
+ 1391              	.LCFI20:
+ 1392              		.cfi_def_cfa_offset 8
+ 1393              		.cfi_offset 3, -8
+ 1394              		.cfi_offset 14, -4
+ 400:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_RECEIVING)
+ 1395              		.loc 1 400 5 view .LVU412
+ 1396              		.loc 1 400 18 is_stmt 0 view .LVU413
+ 1397 0002 094B     		ldr	r3, .L96
+ 1398 0004 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1399              		.loc 1 400 8 view .LVU414
+ 1400 0006 012B     		cmp	r3, #1
+ 1401 0008 05D0     		beq	.L95
+ 1402              	.L93:
+ 401:./Application/Src/file_transfer.c ****     {
+ 402:./Application/Src/file_transfer.c ****         /* Close and delete incomplete file */
+ 403:./Application/Src/file_transfer.c ****         f_close(&ftContext.file);
+ 404:./Application/Src/file_transfer.c ****         f_unlink(ftContext.filename);
+ 405:./Application/Src/file_transfer.c ****     }
+ 406:./Application/Src/file_transfer.c **** 
+ 407:./Application/Src/file_transfer.c ****     ftContext.state = FT_STATE_IDLE;
+ 1403              		.loc 1 407 5 is_stmt 1 view .LVU415
+ 1404              		.loc 1 407 21 is_stmt 0 view .LVU416
+ 1405 000a 074B     		ldr	r3, .L96
+ 1406 000c 0022     		movs	r2, #0
+ 1407 000e 1A70     		strb	r2, [r3]
+ 408:./Application/Src/file_transfer.c ****     ftContext.errorCode = FT_ERR_NONE;
+ 1408              		.loc 1 408 5 is_stmt 1 view .LVU417
+ 1409              		.loc 1 408 25 is_stmt 0 view .LVU418
+ 1410 0010 83F84C22 		strb	r2, [r3, #588]
+ 409:./Application/Src/file_transfer.c **** }
+ 1411              		.loc 1 409 1 view .LVU419
+ 1412 0014 08BD     		pop	{r3, pc}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 36
+
+
+ 1413              	.L95:
+ 403:./Application/Src/file_transfer.c ****         f_unlink(ftContext.filename);
+ 1414              		.loc 1 403 9 is_stmt 1 view .LVU420
+ 1415 0016 0548     		ldr	r0, .L96+4
+ 1416 0018 FFF7FEFF 		bl	f_close
+ 1417              	.LVL138:
+ 404:./Application/Src/file_transfer.c ****     }
+ 1418              		.loc 1 404 9 view .LVU421
+ 1419 001c 034B     		ldr	r3, .L96+4
+ 1420 001e 03F50A70 		add	r0, r3, #552
+ 1421 0022 FFF7FEFF 		bl	f_unlink
+ 1422              	.LVL139:
+ 1423 0026 F0E7     		b	.L93
+ 1424              	.L97:
+ 1425              		.align	2
+ 1426              	.L96:
+ 1427 0028 00000000 		.word	ftContext
+ 1428 002c 04000000 		.word	ftContext+4
+ 1429              		.cfi_endproc
+ 1430              	.LFE369:
+ 1432              		.section	.text.FT_HandleFileAbort,"ax",%progbits
+ 1433              		.align	1
+ 1434              		.syntax unified
+ 1435              		.thumb
+ 1436              		.thumb_func
+ 1438              	FT_HandleFileAbort:
+ 1439              	.LVL140:
+ 1440              	.LFB366:
+ 342:./Application/Src/file_transfer.c ****     (void)packet;
+ 1441              		.loc 1 342 1 view -0
+ 1442              		.cfi_startproc
+ 1443              		@ args = 0, pretend = 0, frame = 0
+ 1444              		@ frame_needed = 0, uses_anonymous_args = 0
+ 342:./Application/Src/file_transfer.c ****     (void)packet;
+ 1445              		.loc 1 342 1 is_stmt 0 view .LVU423
+ 1446 0000 08B5     		push	{r3, lr}
+ 1447              	.LCFI21:
+ 1448              		.cfi_def_cfa_offset 8
+ 1449              		.cfi_offset 3, -8
+ 1450              		.cfi_offset 14, -4
+ 343:./Application/Src/file_transfer.c ****     (void)length;
+ 1451              		.loc 1 343 5 is_stmt 1 view .LVU424
+ 344:./Application/Src/file_transfer.c **** 
+ 1452              		.loc 1 344 5 view .LVU425
+ 346:./Application/Src/file_transfer.c ****     return 0;
+ 1453              		.loc 1 346 5 view .LVU426
+ 1454 0002 FFF7FEFF 		bl	FT_Abort
+ 1455              	.LVL141:
+ 347:./Application/Src/file_transfer.c **** }
+ 1456              		.loc 1 347 5 view .LVU427
+ 348:./Application/Src/file_transfer.c **** 
+ 1457              		.loc 1 348 1 is_stmt 0 view .LVU428
+ 1458 0006 0020     		movs	r0, #0
+ 1459 0008 08BD     		pop	{r3, pc}
+ 1460              		.cfi_endproc
+ 1461              	.LFE366:
+ 1463              		.section	.text.FT_ProcessPacket,"ax",%progbits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 37
+
+
+ 1464              		.align	1
+ 1465              		.global	FT_ProcessPacket
+ 1466              		.syntax unified
+ 1467              		.thumb
+ 1468              		.thumb_func
+ 1470              	FT_ProcessPacket:
+ 1471              	.LVL142:
+ 1472              	.LFB367:
+ 352:./Application/Src/file_transfer.c ****     if (length == 0)
+ 1473              		.loc 1 352 1 is_stmt 1 view -0
+ 1474              		.cfi_startproc
+ 1475              		@ args = 0, pretend = 0, frame = 8
+ 1476              		@ frame_needed = 0, uses_anonymous_args = 0
+ 353:./Application/Src/file_transfer.c ****         return;
+ 1477              		.loc 1 353 5 view .LVU430
+ 353:./Application/Src/file_transfer.c ****         return;
+ 1478              		.loc 1 353 8 is_stmt 0 view .LVU431
+ 1479 0000 09B3     		cbz	r1, .L110
+ 352:./Application/Src/file_transfer.c ****     if (length == 0)
+ 1480              		.loc 1 352 1 view .LVU432
+ 1481 0002 00B5     		push	{lr}
+ 1482              	.LCFI22:
+ 1483              		.cfi_def_cfa_offset 4
+ 1484              		.cfi_offset 14, -4
+ 1485 0004 83B0     		sub	sp, sp, #12
+ 1486              	.LCFI23:
+ 1487              		.cfi_def_cfa_offset 16
+ 356:./Application/Src/file_transfer.c **** 
+ 1488              		.loc 1 356 5 is_stmt 1 view .LVU433
+ 356:./Application/Src/file_transfer.c **** 
+ 1489              		.loc 1 356 13 is_stmt 0 view .LVU434
+ 1490 0006 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 1491              	.LVL143:
+ 358:./Application/Src/file_transfer.c ****     {
+ 1492              		.loc 1 358 5 is_stmt 1 view .LVU435
+ 1493 0008 F22B     		cmp	r3, #242
+ 1494 000a 10D0     		beq	.L102
+ 1495 000c 06D8     		bhi	.L103
+ 1496 000e F02B     		cmp	r3, #240
+ 1497 0010 09D0     		beq	.L104
+ 1498 0012 F12B     		cmp	r3, #241
+ 1499 0014 0ED1     		bne	.L106
+ 1500              	.LBB26:
+ 365:./Application/Src/file_transfer.c ****         break;
+ 1501              		.loc 1 365 9 view .LVU436
+ 1502 0016 FFF7FEFF 		bl	FT_HandleFileData
+ 1503              	.LVL144:
+ 366:./Application/Src/file_transfer.c **** 
+ 1504              		.loc 1 366 9 view .LVU437
+ 1505 001a 06E0     		b	.L100
+ 1506              	.LVL145:
+ 1507              	.L103:
+ 366:./Application/Src/file_transfer.c **** 
+ 1508              		.loc 1 366 9 is_stmt 0 view .LVU438
+ 1509              	.LBE26:
+ 358:./Application/Src/file_transfer.c ****     {
+ 1510              		.loc 1 358 5 view .LVU439
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 38
+
+
+ 1511 001c F32B     		cmp	r3, #243
+ 1512 001e 09D1     		bne	.L106
+ 1513              	.LBB27:
+ 373:./Application/Src/file_transfer.c ****         break;
+ 1514              		.loc 1 373 9 is_stmt 1 view .LVU440
+ 1515 0020 FFF7FEFF 		bl	FT_HandleFileAbort
+ 1516              	.LVL146:
+ 374:./Application/Src/file_transfer.c **** 
+ 1517              		.loc 1 374 9 view .LVU441
+ 1518 0024 01E0     		b	.L100
+ 1519              	.LVL147:
+ 1520              	.L104:
+ 361:./Application/Src/file_transfer.c ****         break;
+ 1521              		.loc 1 361 9 view .LVU442
+ 1522 0026 FFF7FEFF 		bl	FT_HandleFileStart
+ 1523              	.LVL148:
+ 362:./Application/Src/file_transfer.c **** 
+ 1524              		.loc 1 362 9 view .LVU443
+ 1525              	.L100:
+ 1526              	.LBE27:
+ 380:./Application/Src/file_transfer.c **** 
+ 1527              		.loc 1 380 1 is_stmt 0 view .LVU444
+ 1528 002a 03B0     		add	sp, sp, #12
+ 1529              	.LCFI24:
+ 1530              		.cfi_remember_state
+ 1531              		.cfi_def_cfa_offset 4
+ 1532              		@ sp needed
+ 1533 002c 00BD     		pop	{pc}
+ 1534              	.LVL149:
+ 1535              	.L102:
+ 1536              	.LCFI25:
+ 1537              		.cfi_restore_state
+ 1538              	.LBB28:
+ 369:./Application/Src/file_transfer.c ****         break;
+ 1539              		.loc 1 369 9 is_stmt 1 view .LVU445
+ 1540 002e FFF7FEFF 		bl	FT_HandleFileEnd
+ 1541              	.LVL150:
+ 370:./Application/Src/file_transfer.c **** 
+ 1542              		.loc 1 370 9 view .LVU446
+ 1543 0032 FAE7     		b	.L100
+ 1544              	.LVL151:
+ 1545              	.L106:
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1546              		.loc 1 377 9 view .LVU447
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1547              		.loc 1 377 50 is_stmt 0 view .LVU448
+ 1548 0034 0223     		movs	r3, #2
+ 1549              	.LVL152:
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1550              		.loc 1 377 50 view .LVU449
+ 1551 0036 8DF80430 		strb	r3, [sp, #4]
+ 1552              	.LVL153:
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1553              		.loc 1 377 9 view .LVU450
+ 1554 003a 0122     		movs	r2, #1
+ 1555 003c 01A9     		add	r1, sp, #4
+ 1556              	.LVL154:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 39
+
+
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1557              		.loc 1 377 9 view .LVU451
+ 1558 003e A320     		movs	r0, #163
+ 1559              	.LVL155:
+ 377:./Application/Src/file_transfer.c ****         break;
+ 1560              		.loc 1 377 9 view .LVU452
+ 1561 0040 FFF7FEFF 		bl	FT_SendResponse
+ 1562              	.LVL156:
+ 378:./Application/Src/file_transfer.c ****     }
+ 1563              		.loc 1 378 9 is_stmt 1 view .LVU453
+ 1564 0044 F1E7     		b	.L100
+ 1565              	.LVL157:
+ 1566              	.L110:
+ 1567              	.LCFI26:
+ 1568              		.cfi_def_cfa_offset 0
+ 1569              		.cfi_restore 14
+ 378:./Application/Src/file_transfer.c ****     }
+ 1570              		.loc 1 378 9 is_stmt 0 view .LVU454
+ 1571 0046 7047     		bx	lr
+ 1572              	.LBE28:
+ 1573              		.cfi_endproc
+ 1574              	.LFE367:
+ 1576              		.section	.text.FT_TimeoutCheck,"ax",%progbits
+ 1577              		.align	1
+ 1578              		.global	FT_TimeoutCheck
+ 1579              		.syntax unified
+ 1580              		.thumb
+ 1581              		.thumb_func
+ 1583              	FT_TimeoutCheck:
+ 1584              	.LFB368:
+ 384:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_RECEIVING)
+ 1585              		.loc 1 384 1 is_stmt 1 view -0
+ 1586              		.cfi_startproc
+ 1587              		@ args = 0, pretend = 0, frame = 8
+ 1588              		@ frame_needed = 0, uses_anonymous_args = 0
+ 385:./Application/Src/file_transfer.c ****     {
+ 1589              		.loc 1 385 5 view .LVU456
+ 385:./Application/Src/file_transfer.c ****     {
+ 1590              		.loc 1 385 18 is_stmt 0 view .LVU457
+ 1591 0000 0E4B     		ldr	r3, .L121
+ 1592 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 385:./Application/Src/file_transfer.c ****     {
+ 1593              		.loc 1 385 8 view .LVU458
+ 1594 0004 012B     		cmp	r3, #1
+ 1595 0006 00D0     		beq	.L119
+ 1596 0008 7047     		bx	lr
+ 1597              	.L119:
+ 384:./Application/Src/file_transfer.c ****     if (ftContext.state == FT_STATE_RECEIVING)
+ 1598              		.loc 1 384 1 view .LVU459
+ 1599 000a 00B5     		push	{lr}
+ 1600              	.LCFI27:
+ 1601              		.cfi_def_cfa_offset 4
+ 1602              		.cfi_offset 14, -4
+ 1603 000c 83B0     		sub	sp, sp, #12
+ 1604              	.LCFI28:
+ 1605              		.cfi_def_cfa_offset 16
+ 1606              	.LBB29:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 40
+
+
+ 387:./Application/Src/file_transfer.c ****         if (elapsed > FT_TIMEOUT_MS)
+ 1607              		.loc 1 387 9 is_stmt 1 view .LVU460
+ 387:./Application/Src/file_transfer.c ****         if (elapsed > FT_TIMEOUT_MS)
+ 1608              		.loc 1 387 28 is_stmt 0 view .LVU461
+ 1609 000e FFF7FEFF 		bl	HAL_GetTick
+ 1610              	.LVL158:
+ 387:./Application/Src/file_transfer.c ****         if (elapsed > FT_TIMEOUT_MS)
+ 1611              		.loc 1 387 53 discriminator 1 view .LVU462
+ 1612 0012 0A4B     		ldr	r3, .L121
+ 1613 0014 D3F84832 		ldr	r3, [r3, #584]
+ 387:./Application/Src/file_transfer.c ****         if (elapsed > FT_TIMEOUT_MS)
+ 1614              		.loc 1 387 18 discriminator 1 view .LVU463
+ 1615 0018 C01A     		subs	r0, r0, r3
+ 1616              	.LVL159:
+ 388:./Application/Src/file_transfer.c ****         {
+ 1617              		.loc 1 388 9 is_stmt 1 view .LVU464
+ 388:./Application/Src/file_transfer.c ****         {
+ 1618              		.loc 1 388 12 is_stmt 0 view .LVU465
+ 1619 001a 47F23053 		movw	r3, #30000
+ 1620 001e 9842     		cmp	r0, r3
+ 1621 0020 01D8     		bhi	.L120
+ 1622              	.LVL160:
+ 1623              	.L113:
+ 388:./Application/Src/file_transfer.c ****         {
+ 1624              		.loc 1 388 12 view .LVU466
+ 1625              	.LBE29:
+ 395:./Application/Src/file_transfer.c **** 
+ 1626              		.loc 1 395 1 view .LVU467
+ 1627 0022 03B0     		add	sp, sp, #12
+ 1628              	.LCFI29:
+ 1629              		.cfi_remember_state
+ 1630              		.cfi_def_cfa_offset 4
+ 1631              		@ sp needed
+ 1632 0024 00BD     		pop	{pc}
+ 1633              	.LVL161:
+ 1634              	.L120:
+ 1635              	.LCFI30:
+ 1636              		.cfi_restore_state
+ 1637              	.LBB31:
+ 1638              	.LBB30:
+ 391:./Application/Src/file_transfer.c ****             FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_TIMEOUT}, 1);
+ 1639              		.loc 1 391 13 is_stmt 1 view .LVU468
+ 1640 0026 FFF7FEFF 		bl	FT_Abort
+ 1641              	.LVL162:
+ 392:./Application/Src/file_transfer.c ****         }
+ 1642              		.loc 1 392 13 view .LVU469
+ 392:./Application/Src/file_transfer.c ****         }
+ 1643              		.loc 1 392 54 is_stmt 0 view .LVU470
+ 1644 002a 0723     		movs	r3, #7
+ 1645 002c 8DF80430 		strb	r3, [sp, #4]
+ 392:./Application/Src/file_transfer.c ****         }
+ 1646              		.loc 1 392 13 view .LVU471
+ 1647 0030 0122     		movs	r2, #1
+ 1648 0032 01A9     		add	r1, sp, #4
+ 1649 0034 A320     		movs	r0, #163
+ 1650 0036 FFF7FEFF 		bl	FT_SendResponse
+ 1651              	.LVL163:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 41
+
+
+ 1652              	.LBE30:
+ 1653              	.LBE31:
+ 395:./Application/Src/file_transfer.c **** 
+ 1654              		.loc 1 395 1 view .LVU472
+ 1655 003a F2E7     		b	.L113
+ 1656              	.L122:
+ 1657              		.align	2
+ 1658              	.L121:
+ 1659 003c 00000000 		.word	ftContext
+ 1660              		.cfi_endproc
+ 1661              	.LFE368:
+ 1663              		.section	.text.FT_GetState,"ax",%progbits
+ 1664              		.align	1
+ 1665              		.global	FT_GetState
+ 1666              		.syntax unified
+ 1667              		.thumb
+ 1668              		.thumb_func
+ 1670              	FT_GetState:
+ 1671              	.LFB370:
+ 410:./Application/Src/file_transfer.c **** 
+ 411:./Application/Src/file_transfer.c **** /* Get current transfer state */
+ 412:./Application/Src/file_transfer.c **** FT_State_t FT_GetState(void)
+ 413:./Application/Src/file_transfer.c **** {
+ 1672              		.loc 1 413 1 is_stmt 1 view -0
+ 1673              		.cfi_startproc
+ 1674              		@ args = 0, pretend = 0, frame = 0
+ 1675              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1676              		@ link register save eliminated.
+ 414:./Application/Src/file_transfer.c ****     return ftContext.state;
+ 1677              		.loc 1 414 5 view .LVU474
+ 415:./Application/Src/file_transfer.c **** }
+ 1678              		.loc 1 415 1 is_stmt 0 view .LVU475
+ 1679 0000 014B     		ldr	r3, .L124
+ 1680 0002 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1681 0004 7047     		bx	lr
+ 1682              	.L125:
+ 1683 0006 00BF     		.align	2
+ 1684              	.L124:
+ 1685 0008 00000000 		.word	ftContext
+ 1686              		.cfi_endproc
+ 1687              	.LFE370:
+ 1689              		.section	.text.FT_GetProgress,"ax",%progbits
+ 1690              		.align	1
+ 1691              		.global	FT_GetProgress
+ 1692              		.syntax unified
+ 1693              		.thumb
+ 1694              		.thumb_func
+ 1696              	FT_GetProgress:
+ 1697              	.LFB371:
+ 416:./Application/Src/file_transfer.c **** 
+ 417:./Application/Src/file_transfer.c **** /* Get transfer progress (0-100) */
+ 418:./Application/Src/file_transfer.c **** uint8_t FT_GetProgress(void)
+ 419:./Application/Src/file_transfer.c **** {
+ 1698              		.loc 1 419 1 is_stmt 1 view -0
+ 1699              		.cfi_startproc
+ 1700              		@ args = 0, pretend = 0, frame = 0
+ 1701              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 42
+
+
+ 1702              		@ link register save eliminated.
+ 420:./Application/Src/file_transfer.c ****     if (ftContext.state != FT_STATE_RECEIVING || ftContext.totalChunks == 0)
+ 1703              		.loc 1 420 5 view .LVU477
+ 1704              		.loc 1 420 18 is_stmt 0 view .LVU478
+ 1705 0000 0A4B     		ldr	r3, .L130
+ 1706 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1707              		.loc 1 420 8 view .LVU479
+ 1708 0004 012B     		cmp	r3, #1
+ 1709 0006 0DD1     		bne	.L128
+ 1710              		.loc 1 420 59 discriminator 1 view .LVU480
+ 1711 0008 084B     		ldr	r3, .L130
+ 1712 000a B3F84432 		ldrh	r3, [r3, #580]
+ 1713              		.loc 1 420 47 discriminator 1 view .LVU481
+ 1714 000e 5BB1     		cbz	r3, .L129
+ 421:./Application/Src/file_transfer.c ****     {
+ 422:./Application/Src/file_transfer.c ****         return 0;
+ 423:./Application/Src/file_transfer.c ****     }
+ 424:./Application/Src/file_transfer.c ****     return (uint8_t)((ftContext.currentChunk * 100) / ftContext.totalChunks);
+ 1715              		.loc 1 424 5 is_stmt 1 view .LVU482
+ 1716              		.loc 1 424 32 is_stmt 0 view .LVU483
+ 1717 0010 064A     		ldr	r2, .L130
+ 1718 0012 B2F84602 		ldrh	r0, [r2, #582]
+ 1719              		.loc 1 424 46 view .LVU484
+ 1720 0016 6422     		movs	r2, #100
+ 1721 0018 02FB00F0 		mul	r0, r2, r0
+ 1722              		.loc 1 424 53 view .LVU485
+ 1723 001c 90FBF3F0 		sdiv	r0, r0, r3
+ 1724              		.loc 1 424 12 view .LVU486
+ 1725 0020 C0B2     		uxtb	r0, r0
+ 1726 0022 7047     		bx	lr
+ 1727              	.L128:
+ 422:./Application/Src/file_transfer.c ****     }
+ 1728              		.loc 1 422 16 view .LVU487
+ 1729 0024 0020     		movs	r0, #0
+ 1730 0026 7047     		bx	lr
+ 1731              	.L129:
+ 1732 0028 1846     		mov	r0, r3
+ 425:./Application/Src/file_transfer.c **** }
+ 1733              		.loc 1 425 1 view .LVU488
+ 1734 002a 7047     		bx	lr
+ 1735              	.L131:
+ 1736              		.align	2
+ 1737              	.L130:
+ 1738 002c 00000000 		.word	ftContext
+ 1739              		.cfi_endproc
+ 1740              	.LFE371:
+ 1742              		.section	.bss.lastCompletedTime,"aw",%nobits
+ 1743              		.align	2
+ 1746              	lastCompletedTime:
+ 1747 0000 00000000 		.space	4
+ 1748              		.section	.bss.lastCompletedBytes,"aw",%nobits
+ 1749              		.align	1
+ 1752              	lastCompletedBytes:
+ 1753 0000 0000     		.space	2
+ 1754              		.section	.bss.ftWriteBufferIndex,"aw",%nobits
+ 1755              		.align	1
+ 1758              	ftWriteBufferIndex:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 43
+
+
+ 1759 0000 0000     		.space	2
+ 1760              		.section	.bss.ftWriteBuffer,"aw",%nobits
+ 1761              		.align	2
+ 1764              	ftWriteBuffer:
+ 1765 0000 00000000 		.space	512
+ 1765      00000000 
+ 1765      00000000 
+ 1765      00000000 
+ 1765      00000000 
+ 1766              		.section	.bss.ftContext,"aw",%nobits
+ 1767              		.align	2
+ 1770              	ftContext:
+ 1771 0000 00000000 		.space	592
+ 1771      00000000 
+ 1771      00000000 
+ 1771      00000000 
+ 1771      00000000 
+ 1772              		.text
+ 1773              	.Letext0:
+ 1774              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 1775              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 1776              		.file 4 "ThirdParty/FatFs/Inc/ff.h"
+ 1777              		.file 5 "Application/Inc/file_transfer.h"
+ 1778              		.file 6 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 1779              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 1780              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 1781              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 1782              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ 1783              		.file 11 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
+ 1784              		.file 12 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 1785              		.file 13 "Core/Inc/usart.h"
+ 1786              		.file 14 "<built-in>"
+ 1787              		.file 15 "Application/Inc/sd.h"
+ 1788              		.file 16 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 44
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 file_transfer.c
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:22     .text.FT_FlushWriteBuffer:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:27     .text.FT_FlushWriteBuffer:00000000 FT_FlushWriteBuffer
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:103    .text.FT_FlushWriteBuffer:00000038 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1758   .bss.ftWriteBufferIndex:00000000 ftWriteBufferIndex
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1764   .bss.ftWriteBuffer:00000000 ftWriteBuffer
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1770   .bss.ftContext:00000000 ftContext
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:110    .text.FT_Init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:116    .text.FT_Init:00000000 FT_Init
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:145    .text.FT_Init:00000018 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:151    .text.FT_CalculateChecksum:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:157    .text.FT_CalculateChecksum:00000000 FT_CalculateChecksum
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:207    .text.FT_SendResponse:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:213    .text.FT_SendResponse:00000000 FT_SendResponse
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:309    .text.FT_SendResponse:0000004c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:314    .rodata.FT_HandleFileStart.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:318    .text.FT_HandleFileStart:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:323    .text.FT_HandleFileStart:00000000 FT_HandleFileStart
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:678    .text.FT_HandleFileStart:00000194 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:688    .text.FT_HandleFileData:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:693    .text.FT_HandleFileData:00000000 FT_HandleFileData
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1030   .text.FT_HandleFileData:0000017c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1038   .text.FT_HandleFileEnd:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1043   .text.FT_HandleFileEnd:00000000 FT_HandleFileEnd
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1369   .text.FT_HandleFileEnd:00000170 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1752   .bss.lastCompletedBytes:00000000 lastCompletedBytes
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1746   .bss.lastCompletedTime:00000000 lastCompletedTime
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1378   .text.FT_Abort:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1384   .text.FT_Abort:00000000 FT_Abort
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1427   .text.FT_Abort:00000028 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1433   .text.FT_HandleFileAbort:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1438   .text.FT_HandleFileAbort:00000000 FT_HandleFileAbort
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1464   .text.FT_ProcessPacket:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1470   .text.FT_ProcessPacket:00000000 FT_ProcessPacket
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1577   .text.FT_TimeoutCheck:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1583   .text.FT_TimeoutCheck:00000000 FT_TimeoutCheck
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1659   .text.FT_TimeoutCheck:0000003c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1664   .text.FT_GetState:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1670   .text.FT_GetState:00000000 FT_GetState
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1685   .text.FT_GetState:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1690   .text.FT_GetProgress:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1696   .text.FT_GetProgress:00000000 FT_GetProgress
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1738   .text.FT_GetProgress:0000002c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1743   .bss.lastCompletedTime:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1749   .bss.lastCompletedBytes:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1755   .bss.ftWriteBufferIndex:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1761   .bss.ftWriteBuffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s:1767   .bss.ftContext:00000000 $d
+
+UNDEFINED SYMBOLS
+f_write
+memset
+HAL_UART_Transmit
+huart1
+f_close
+f_unlink
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccVwEQ1U.s 			page 45
+
+
+HAL_GetTick
+snprintf
+f_open
+memcpy
+f_sync
+sd_list_txt_files

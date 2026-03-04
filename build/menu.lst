@@ -1,0 +1,3103 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"menu.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/menu.c"
+  21              		.section	.rodata.clear_menu_area.str1.4,"aMS",%progbits,1
+  22              		.align	2
+  23              	.LC6:
+  24 0000 20202020 		.ascii	"                        \000"
+  24      20202020 
+  24      20202020 
+  24      20202020 
+  24      20202020 
+  25              		.section	.text.clear_menu_area,"ax",%progbits
+  26              		.align	1
+  27              		.syntax unified
+  28              		.thumb
+  29              		.thumb_func
+  31              	clear_menu_area:
+  32              	.LFB359:
+   1:./Application/Src/menu.c **** #include <menu.h>
+   2:./Application/Src/menu.c **** #include <diskio.h>
+   3:./Application/Src/menu.c **** #include <file_transfer.h>
+   4:./Application/Src/menu.c **** #include <string.h>
+   5:./Application/Src/menu.c **** #include <stdio.h>
+   6:./Application/Src/menu.c **** 
+   7:./Application/Src/menu.c **** /* Menu state */
+   8:./Application/Src/menu.c **** static MenuState_t menu_state = MENU_STATE_MAIN;
+   9:./Application/Src/menu.c **** 
+  10:./Application/Src/menu.c **** /* Navigation flags */
+  11:./Application/Src/menu.c **** int menu_index = 0;
+  12:./Application/Src/menu.c **** int menu_move_down = 0;
+  13:./Application/Src/menu.c **** int menu_move_up = 0;
+  14:./Application/Src/menu.c **** int menu_enter = 0;
+  15:./Application/Src/menu.c **** int menu_back = 0;
+  16:./Application/Src/menu.c **** 
+  17:./Application/Src/menu.c **** /* Select-song page state */
+  18:./Application/Src/menu.c **** int select_song_index = 0;
+  19:./Application/Src/menu.c **** int select_scroll_offset = 0;
+  20:./Application/Src/menu.c **** int active_song_index = -1;
+  21:./Application/Src/menu.c **** 
+  22:./Application/Src/menu.c **** /* Track if page needs full redraw */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 2
+
+
+  23:./Application/Src/menu.c **** static int page_dirty = 1;
+  24:./Application/Src/menu.c **** 
+  25:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  26:./Application/Src/menu.c **** /*  Helpers                                                           */
+  27:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  28:./Application/Src/menu.c **** 
+  29:./Application/Src/menu.c **** static void clear_menu_area(void)
+  30:./Application/Src/menu.c **** {
+  33              		.loc 1 30 1 view -0
+  34              		.cfi_startproc
+  35              		@ args = 0, pretend = 0, frame = 0
+  36              		@ frame_needed = 0, uses_anonymous_args = 0
+  37 0000 10B5     		push	{r4, lr}
+  38              	.LCFI0:
+  39              		.cfi_def_cfa_offset 8
+  40              		.cfi_offset 4, -8
+  41              		.cfi_offset 14, -4
+  42 0002 82B0     		sub	sp, sp, #8
+  43              	.LCFI1:
+  44              		.cfi_def_cfa_offset 16
+  31:./Application/Src/menu.c ****     /* Clear rows 1-9 (leave row 0 = title, rows 10+ = debug info) */
+  32:./Application/Src/menu.c ****     for (int r = 1; r <= 9; r++)
+  45              		.loc 1 32 5 view .LVU1
+  46              	.LBB2:
+  47              		.loc 1 32 10 view .LVU2
+  48              	.LVL0:
+  49              		.loc 1 32 14 is_stmt 0 view .LVU3
+  50 0004 0124     		movs	r4, #1
+  51              		.loc 1 32 5 view .LVU4
+  52 0006 09E0     		b	.L2
+  53              	.LVL1:
+  54              	.L3:
+  33:./Application/Src/menu.c ****     {
+  34:./Application/Src/menu.c ****         LCD_draw_string(0, r, "                        ", COLOR_BLACK, COLOR_WHITE);
+  55              		.loc 1 34 9 is_stmt 1 view .LVU5
+  56 0008 4FF6FF73 		movw	r3, #65535
+  57 000c 0093     		str	r3, [sp]
+  58 000e 0023     		movs	r3, #0
+  59 0010 044A     		ldr	r2, .L5
+  60 0012 A1B2     		uxth	r1, r4
+  61 0014 1846     		mov	r0, r3
+  62 0016 FFF7FEFF 		bl	LCD_draw_string
+  63              	.LVL2:
+  32:./Application/Src/menu.c ****     {
+  64              		.loc 1 32 30 discriminator 3 view .LVU6
+  65 001a 0134     		adds	r4, r4, #1
+  66              	.LVL3:
+  67              	.L2:
+  32:./Application/Src/menu.c ****     {
+  68              		.loc 1 32 23 discriminator 1 view .LVU7
+  69 001c 092C     		cmp	r4, #9
+  70 001e F3DD     		ble	.L3
+  71              	.LBE2:
+  35:./Application/Src/menu.c ****     }
+  36:./Application/Src/menu.c **** }
+  72              		.loc 1 36 1 is_stmt 0 view .LVU8
+  73 0020 02B0     		add	sp, sp, #8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 3
+
+
+  74              	.LCFI2:
+  75              		.cfi_def_cfa_offset 8
+  76              		@ sp needed
+  77 0022 10BD     		pop	{r4, pc}
+  78              	.LVL4:
+  79              	.L6:
+  80              		.loc 1 36 1 view .LVU9
+  81              		.align	2
+  82              	.L5:
+  83 0024 00000000 		.word	.LC6
+  84              		.cfi_endproc
+  85              	.LFE359:
+  87              		.section	.rodata.menu_draw_main.str1.4,"aMS",%progbits,1
+  88              		.align	2
+  89              	.LC7:
+  90 0000 3E00     		.ascii	">\000"
+  91 0002 0000     		.align	2
+  92              	.LC8:
+  93 0004 2000     		.ascii	" \000"
+  94 0006 0000     		.align	2
+  95              	.LC10:
+  96 0008 25732025 		.ascii	"%s %s\000"
+  96      7300
+  97              		.section	.text.menu_draw_main,"ax",%progbits
+  98              		.align	1
+  99              		.global	menu_draw_main
+ 100              		.syntax unified
+ 101              		.thumb
+ 102              		.thumb_func
+ 104              	menu_draw_main:
+ 105              	.LFB360:
+  37:./Application/Src/menu.c **** 
+  38:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  39:./Application/Src/menu.c **** /*  Main menu page                                                    */
+  40:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  41:./Application/Src/menu.c **** 
+  42:./Application/Src/menu.c **** void menu_draw_main(void)
+  43:./Application/Src/menu.c **** {
+ 106              		.loc 1 43 1 is_stmt 1 view -0
+ 107              		.cfi_startproc
+ 108              		@ args = 0, pretend = 0, frame = 48
+ 109              		@ frame_needed = 0, uses_anonymous_args = 0
+ 110 0000 30B5     		push	{r4, r5, lr}
+ 111              	.LCFI3:
+ 112              		.cfi_def_cfa_offset 12
+ 113              		.cfi_offset 4, -12
+ 114              		.cfi_offset 5, -8
+ 115              		.cfi_offset 14, -4
+ 116 0002 8FB0     		sub	sp, sp, #60
+ 117              	.LCFI4:
+ 118              		.cfi_def_cfa_offset 72
+  44:./Application/Src/menu.c ****     const char *items[] = {
+ 119              		.loc 1 44 5 view .LVU11
+ 120              		.loc 1 44 17 is_stmt 0 view .LVU12
+ 121 0004 09AC     		add	r4, sp, #36
+ 122 0006 1C4D     		ldr	r5, .L17
+ 123 0008 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 4
+
+
+ 124 000a 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 125 000c 2B68     		ldr	r3, [r5]
+ 126 000e 2360     		str	r3, [r4]
+  45:./Application/Src/menu.c ****         "1. Play Song",
+  46:./Application/Src/menu.c ****         "2. Transmit Song(SD)",
+  47:./Application/Src/menu.c ****         "3. Transmit Song(RAM)",
+  48:./Application/Src/menu.c ****         "4. Select Song",
+  49:./Application/Src/menu.c ****         "5. Homing"};
+  50:./Application/Src/menu.c ****     char line[25];
+ 127              		.loc 1 50 5 is_stmt 1 view .LVU13
+  51:./Application/Src/menu.c ****     for (int i = 0; i < 5; i++)
+ 128              		.loc 1 51 5 view .LVU14
+ 129              	.LBB3:
+ 130              		.loc 1 51 10 view .LVU15
+ 131              	.LVL5:
+ 132              		.loc 1 51 14 is_stmt 0 view .LVU16
+ 133 0010 0024     		movs	r4, #0
+ 134              		.loc 1 51 5 view .LVU17
+ 135 0012 17E0     		b	.L8
+ 136              	.LVL6:
+ 137              	.L16:
+ 138              	.LBB4:
+  52:./Application/Src/menu.c ****     {
+  53:./Application/Src/menu.c ****         snprintf(line, sizeof(line), "%s %s", (i == menu_index) ? ">" : " ", items[i]);
+ 139              		.loc 1 53 9 discriminator 1 view .LVU18
+ 140 0014 194B     		ldr	r3, .L17+4
+ 141 0016 1CE0     		b	.L9
+ 142              	.LVL7:
+ 143              	.L11:
+  54:./Application/Src/menu.c ****         /* Pad to clear old text */
+  55:./Application/Src/menu.c ****         int len = strlen(line);
+  56:./Application/Src/menu.c ****         while (len < 23)
+  57:./Application/Src/menu.c ****             line[len++] = ' ';
+ 144              		.loc 1 57 13 is_stmt 1 view .LVU19
+ 145              		.loc 1 57 25 is_stmt 0 view .LVU20
+ 146 0018 00F13803 		add	r3, r0, #56
+ 147 001c 6B44     		add	r3, sp, r3
+ 148 001e 2022     		movs	r2, #32
+ 149 0020 03F8302C 		strb	r2, [r3, #-48]
+ 150              		.loc 1 57 21 view .LVU21
+ 151 0024 0130     		adds	r0, r0, #1
+ 152              	.LVL8:
+ 153              	.L10:
+  56:./Application/Src/menu.c ****             line[len++] = ' ';
+ 154              		.loc 1 56 20 is_stmt 1 view .LVU22
+ 155 0026 1628     		cmp	r0, #22
+ 156 0028 F6DD     		ble	.L11
+  58:./Application/Src/menu.c ****         line[23] = '\0';
+ 157              		.loc 1 58 9 view .LVU23
+ 158              		.loc 1 58 18 is_stmt 0 view .LVU24
+ 159 002a 0020     		movs	r0, #0
+ 160              	.LVL9:
+ 161              		.loc 1 58 18 view .LVU25
+ 162 002c 8DF81F00 		strb	r0, [sp, #31]
+  59:./Application/Src/menu.c ****         LCD_draw_string(0, 1 + i, line, COLOR_BLACK, COLOR_WHITE);
+ 163              		.loc 1 59 9 is_stmt 1 view .LVU26
+ 164 0030 611C     		adds	r1, r4, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 5
+
+
+ 165 0032 4FF6FF73 		movw	r3, #65535
+ 166 0036 0093     		str	r3, [sp]
+ 167 0038 0346     		mov	r3, r0
+ 168 003a 02AA     		add	r2, sp, #8
+ 169 003c 89B2     		uxth	r1, r1
+ 170 003e FFF7FEFF 		bl	LCD_draw_string
+ 171              	.LVL10:
+ 172              	.LBE4:
+  51:./Application/Src/menu.c ****     {
+ 173              		.loc 1 51 29 discriminator 2 view .LVU27
+ 174 0042 0134     		adds	r4, r4, #1
+ 175              	.LVL11:
+ 176              	.L8:
+  51:./Application/Src/menu.c ****     {
+ 177              		.loc 1 51 23 discriminator 1 view .LVU28
+ 178 0044 042C     		cmp	r4, #4
+ 179 0046 14DC     		bgt	.L15
+ 180              	.LBB5:
+  53:./Application/Src/menu.c ****         /* Pad to clear old text */
+ 181              		.loc 1 53 9 view .LVU29
+  53:./Application/Src/menu.c ****         /* Pad to clear old text */
+ 182              		.loc 1 53 50 is_stmt 0 view .LVU30
+ 183 0048 0D4B     		ldr	r3, .L17+8
+ 184 004a 1B68     		ldr	r3, [r3]
+  53:./Application/Src/menu.c ****         /* Pad to clear old text */
+ 185              		.loc 1 53 9 view .LVU31
+ 186 004c A342     		cmp	r3, r4
+ 187 004e E1D0     		beq	.L16
+  53:./Application/Src/menu.c ****         /* Pad to clear old text */
+ 188              		.loc 1 53 9 discriminator 2 view .LVU32
+ 189 0050 0C4B     		ldr	r3, .L17+12
+ 190              	.L9:
+  53:./Application/Src/menu.c ****         /* Pad to clear old text */
+ 191              		.loc 1 53 9 discriminator 4 view .LVU33
+ 192 0052 02AD     		add	r5, sp, #8
+ 193 0054 0EAA     		add	r2, sp, #56
+ 194 0056 02EB8402 		add	r2, r2, r4, lsl #2
+ 195 005a 52F8142C 		ldr	r2, [r2, #-20]
+ 196 005e 0092     		str	r2, [sp]
+ 197 0060 094A     		ldr	r2, .L17+16
+ 198 0062 1921     		movs	r1, #25
+ 199 0064 2846     		mov	r0, r5
+ 200 0066 FFF7FEFF 		bl	snprintf
+ 201              	.LVL12:
+  55:./Application/Src/menu.c ****         while (len < 23)
+ 202              		.loc 1 55 9 is_stmt 1 view .LVU34
+  55:./Application/Src/menu.c ****         while (len < 23)
+ 203              		.loc 1 55 19 is_stmt 0 view .LVU35
+ 204 006a 2846     		mov	r0, r5
+ 205 006c FFF7FEFF 		bl	strlen
+ 206              	.LVL13:
+  56:./Application/Src/menu.c ****             line[len++] = ' ';
+ 207              		.loc 1 56 9 is_stmt 1 view .LVU36
+  56:./Application/Src/menu.c ****             line[len++] = ' ';
+ 208              		.loc 1 56 15 is_stmt 0 view .LVU37
+ 209 0070 D9E7     		b	.L10
+ 210              	.LVL14:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 6
+
+
+ 211              	.L15:
+  56:./Application/Src/menu.c ****             line[len++] = ' ';
+ 212              		.loc 1 56 15 view .LVU38
+ 213              	.LBE5:
+ 214              	.LBE3:
+  60:./Application/Src/menu.c ****     }
+  61:./Application/Src/menu.c **** }
+ 215              		.loc 1 61 1 view .LVU39
+ 216 0072 0FB0     		add	sp, sp, #60
+ 217              	.LCFI5:
+ 218              		.cfi_def_cfa_offset 12
+ 219              		@ sp needed
+ 220 0074 30BD     		pop	{r4, r5, pc}
+ 221              	.LVL15:
+ 222              	.L18:
+ 223              		.loc 1 61 1 view .LVU40
+ 224 0076 00BF     		.align	2
+ 225              	.L17:
+ 226 0078 00000000 		.word	.LANCHOR0
+ 227 007c 00000000 		.word	.LC7
+ 228 0080 00000000 		.word	menu_index
+ 229 0084 04000000 		.word	.LC8
+ 230 0088 08000000 		.word	.LC10
+ 231              		.cfi_endproc
+ 232              	.LFE360:
+ 234              		.section	.rodata.menu_draw_transmit.str1.4,"aMS",%progbits,1
+ 235              		.align	2
+ 236              	.LC11:
+ 237 0000 5B547261 		.ascii	"[Transmit Song]         \000"
+ 237      6E736D69 
+ 237      7420536F 
+ 237      6E675D20 
+ 237      20202020 
+ 238 0019 000000   		.align	2
+ 239              	.LC12:
+ 240 001c 57616974 		.ascii	"Waiting for file...     \000"
+ 240      696E6720 
+ 240      666F7220 
+ 240      66696C65 
+ 240      2E2E2E20 
+ 241 0035 000000   		.align	2
+ 242              	.LC13:
+ 243 0038 53656E64 		.ascii	"Send :a to go back      \000"
+ 243      203A6120 
+ 243      746F2067 
+ 243      6F206261 
+ 243      636B2020 
+ 244 0051 000000   		.align	2
+ 245              	.LC14:
+ 246 0054 53746174 		.ascii	"Status: IDLE            \000"
+ 246      75733A20 
+ 246      49444C45 
+ 246      20202020 
+ 246      20202020 
+ 247 006d 000000   		.align	2
+ 248              	.LC15:
+ 249 0070 53746174 		.ascii	"Status: RX  %3d%%        \000"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 7
+
+
+ 249      75733A20 
+ 249      52582020 
+ 249      25336425 
+ 249      25202020 
+ 250 008a 0000     		.align	2
+ 251              	.LC16:
+ 252 008c 53746174 		.ascii	"Status: COMPLETE!       \000"
+ 252      75733A20 
+ 252      434F4D50 
+ 252      4C455445 
+ 252      21202020 
+ 253 00a5 000000   		.align	2
+ 254              	.LC17:
+ 255 00a8 46696C65 		.ascii	"File saved to SD card.  \000"
+ 255      20736176 
+ 255      65642074 
+ 255      6F205344 
+ 255      20636172 
+ 256 00c1 000000   		.align	2
+ 257              	.LC18:
+ 258 00c4 53746174 		.ascii	"Status: ERROR           \000"
+ 258      75733A20 
+ 258      4552524F 
+ 258      52202020 
+ 258      20202020 
+ 259 00dd 000000   		.align	2
+ 260              	.LC19:
+ 261 00e0 5472616E 		.ascii	"Transfer failed.        \000"
+ 261      73666572 
+ 261      20666169 
+ 261      6C65642E 
+ 261      20202020 
+ 262              		.section	.text.menu_draw_transmit,"ax",%progbits
+ 263              		.align	1
+ 264              		.global	menu_draw_transmit
+ 265              		.syntax unified
+ 266              		.thumb
+ 267              		.thumb_func
+ 269              	menu_draw_transmit:
+ 270              	.LFB361:
+  62:./Application/Src/menu.c **** 
+  63:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  64:./Application/Src/menu.c **** /*  Transmit Song (SD) page                                           */
+  65:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+  66:./Application/Src/menu.c **** 
+  67:./Application/Src/menu.c **** void menu_draw_transmit(void)
+  68:./Application/Src/menu.c **** {
+ 271              		.loc 1 68 1 is_stmt 1 view -0
+ 272              		.cfi_startproc
+ 273              		@ args = 0, pretend = 0, frame = 56
+ 274              		@ frame_needed = 0, uses_anonymous_args = 0
+ 275 0000 10B5     		push	{r4, lr}
+ 276              	.LCFI6:
+ 277              		.cfi_def_cfa_offset 8
+ 278              		.cfi_offset 4, -8
+ 279              		.cfi_offset 14, -4
+ 280 0002 90B0     		sub	sp, sp, #64
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 8
+
+
+ 281              	.LCFI7:
+ 282              		.cfi_def_cfa_offset 72
+  69:./Application/Src/menu.c ****     if (page_dirty)
+ 283              		.loc 1 69 5 view .LVU42
+ 284              		.loc 1 69 9 is_stmt 0 view .LVU43
+ 285 0004 494B     		ldr	r3, .L34
+ 286 0006 1B68     		ldr	r3, [r3]
+ 287              		.loc 1 69 8 view .LVU44
+ 288 0008 0BBB     		cbnz	r3, .L32
+ 289              	.L20:
+  70:./Application/Src/menu.c ****     {
+  71:./Application/Src/menu.c ****         clear_menu_area();
+  72:./Application/Src/menu.c ****         LCD_draw_string(0, 1, "[Transmit Song]         ", COLOR_BLACK, COLOR_WHITE);
+  73:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Waiting for file...     ", COLOR_BLACK, COLOR_WHITE);
+  74:./Application/Src/menu.c ****         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+  75:./Application/Src/menu.c ****         page_dirty = 0;
+  76:./Application/Src/menu.c ****     }
+  77:./Application/Src/menu.c **** 
+  78:./Application/Src/menu.c ****     /* Show live transfer status */
+  79:./Application/Src/menu.c ****     FT_State_t ft = FT_GetState();
+ 290              		.loc 1 79 5 is_stmt 1 view .LVU45
+ 291              		.loc 1 79 21 is_stmt 0 view .LVU46
+ 292 000a FFF7FEFF 		bl	FT_GetState
+ 293              	.LVL16:
+  80:./Application/Src/menu.c ****     char buf[25];
+ 294              		.loc 1 80 5 is_stmt 1 view .LVU47
+  81:./Application/Src/menu.c **** 
+  82:./Application/Src/menu.c ****     switch (ft)
+ 295              		.loc 1 82 5 view .LVU48
+ 296 000e 0228     		cmp	r0, #2
+ 297 0010 7AD0     		beq	.L21
+ 298 0012 3AD8     		bhi	.L22
+ 299 0014 0028     		cmp	r0, #0
+ 300 0016 4CD0     		beq	.L23
+ 301 0018 0128     		cmp	r0, #1
+ 302 001a 5AD1     		bne	.L19
+ 303              	.LBB6:
+  83:./Application/Src/menu.c ****     {
+  84:./Application/Src/menu.c ****     case FT_STATE_IDLE:
+  85:./Application/Src/menu.c ****         LCD_draw_string(0, 3, "Status: IDLE            ", COLOR_BLACK, COLOR_WHITE);
+  86:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "                        ", COLOR_BLACK, COLOR_WHITE);
+  87:./Application/Src/menu.c ****         break;
+  88:./Application/Src/menu.c ****     case FT_STATE_RECEIVING:
+  89:./Application/Src/menu.c ****     {
+  90:./Application/Src/menu.c ****         uint8_t pct = FT_GetProgress();
+ 304              		.loc 1 90 9 view .LVU49
+ 305              		.loc 1 90 23 is_stmt 0 view .LVU50
+ 306 001c FFF7FEFF 		bl	FT_GetProgress
+ 307              	.LVL17:
+ 308              		.loc 1 90 23 view .LVU51
+ 309 0020 0446     		mov	r4, r0
+ 310              	.LVL18:
+  91:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "Status: RX  %3d%%        ", pct);
+ 311              		.loc 1 91 9 is_stmt 1 view .LVU52
+ 312 0022 0346     		mov	r3, r0
+ 313 0024 424A     		ldr	r2, .L34+4
+ 314 0026 1921     		movs	r1, #25
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 9
+
+
+ 315 0028 09A8     		add	r0, sp, #36
+ 316              	.LVL19:
+ 317              		.loc 1 91 9 is_stmt 0 view .LVU53
+ 318 002a FFF7FEFF 		bl	snprintf
+ 319              	.LVL20:
+  92:./Application/Src/menu.c ****         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
+ 320              		.loc 1 92 9 is_stmt 1 view .LVU54
+ 321 002e 4FF6FF73 		movw	r3, #65535
+ 322 0032 0093     		str	r3, [sp]
+ 323 0034 0023     		movs	r3, #0
+ 324 0036 09AA     		add	r2, sp, #36
+ 325 0038 0321     		movs	r1, #3
+ 326 003a 1846     		mov	r0, r3
+ 327 003c FFF7FEFF 		bl	LCD_draw_string
+ 328              	.LVL21:
+  93:./Application/Src/menu.c **** 
+  94:./Application/Src/menu.c ****         /* Simple progress bar */
+  95:./Application/Src/menu.c ****         char bar[21];
+ 329              		.loc 1 95 9 view .LVU55
+  96:./Application/Src/menu.c ****         int filled = pct / 5; /* 0-20 */
+ 330              		.loc 1 96 9 view .LVU56
+ 331              		.loc 1 96 26 is_stmt 0 view .LVU57
+ 332 0040 3C4B     		ldr	r3, .L34+8
+ 333 0042 A3FB0430 		umull	r3, r0, r3, r4
+ 334 0046 C0F38700 		ubfx	r0, r0, #2, #8
+ 335              	.LVL22:
+  97:./Application/Src/menu.c ****         for (int i = 0; i < 20; i++)
+ 336              		.loc 1 97 9 is_stmt 1 view .LVU58
+ 337              	.LBB7:
+ 338              		.loc 1 97 14 view .LVU59
+ 339              		.loc 1 97 18 is_stmt 0 view .LVU60
+ 340 004a 0023     		movs	r3, #0
+ 341              		.loc 1 97 9 view .LVU61
+ 342 004c 4AE0     		b	.L27
+ 343              	.LVL23:
+ 344              	.L32:
+ 345              		.loc 1 97 9 view .LVU62
+ 346              	.LBE7:
+ 347              	.LBE6:
+  71:./Application/Src/menu.c ****         LCD_draw_string(0, 1, "[Transmit Song]         ", COLOR_BLACK, COLOR_WHITE);
+ 348              		.loc 1 71 9 is_stmt 1 view .LVU63
+ 349 004e FFF7FEFF 		bl	clear_menu_area
+ 350              	.LVL24:
+  72:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Waiting for file...     ", COLOR_BLACK, COLOR_WHITE);
+ 351              		.loc 1 72 9 view .LVU64
+ 352 0052 4FF6FF73 		movw	r3, #65535
+ 353 0056 1C46     		mov	r4, r3
+ 354 0058 0093     		str	r3, [sp]
+ 355 005a 0023     		movs	r3, #0
+ 356 005c 364A     		ldr	r2, .L34+12
+ 357 005e 0121     		movs	r1, #1
+ 358 0060 1846     		mov	r0, r3
+ 359 0062 FFF7FEFF 		bl	LCD_draw_string
+ 360              	.LVL25:
+  73:./Application/Src/menu.c ****         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+ 361              		.loc 1 73 9 view .LVU65
+ 362 0066 0094     		str	r4, [sp]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 10
+
+
+ 363 0068 0023     		movs	r3, #0
+ 364 006a 344A     		ldr	r2, .L34+16
+ 365 006c 0221     		movs	r1, #2
+ 366 006e 1846     		mov	r0, r3
+ 367 0070 FFF7FEFF 		bl	LCD_draw_string
+ 368              	.LVL26:
+  74:./Application/Src/menu.c ****         page_dirty = 0;
+ 369              		.loc 1 74 9 view .LVU66
+ 370 0074 0094     		str	r4, [sp]
+ 371 0076 0023     		movs	r3, #0
+ 372 0078 314A     		ldr	r2, .L34+20
+ 373 007a 0821     		movs	r1, #8
+ 374 007c 1846     		mov	r0, r3
+ 375 007e FFF7FEFF 		bl	LCD_draw_string
+ 376              	.LVL27:
+  75:./Application/Src/menu.c ****     }
+ 377              		.loc 1 75 9 view .LVU67
+  75:./Application/Src/menu.c ****     }
+ 378              		.loc 1 75 20 is_stmt 0 view .LVU68
+ 379 0082 2A4B     		ldr	r3, .L34
+ 380 0084 0022     		movs	r2, #0
+ 381 0086 1A60     		str	r2, [r3]
+ 382 0088 BFE7     		b	.L20
+ 383              	.LVL28:
+ 384              	.L22:
+  82:./Application/Src/menu.c ****     {
+ 385              		.loc 1 82 5 view .LVU69
+ 386 008a 0328     		cmp	r0, #3
+ 387 008c 21D1     		bne	.L19
+  98:./Application/Src/menu.c ****             bar[i] = (i < filled) ? '#' : '-';
+  99:./Application/Src/menu.c ****         bar[20] = '\0';
+ 100:./Application/Src/menu.c ****         LCD_draw_string(0, 4, bar, COLOR_BLACK, COLOR_WHITE);
+ 101:./Application/Src/menu.c ****         break;
+ 102:./Application/Src/menu.c ****     }
+ 103:./Application/Src/menu.c ****     case FT_STATE_COMPLETE:
+ 104:./Application/Src/menu.c ****         LCD_draw_string(0, 3, "Status: COMPLETE!       ", COLOR_BLACK, COLOR_WHITE);
+ 105:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "File saved to SD card.  ", COLOR_BLACK, COLOR_WHITE);
+ 106:./Application/Src/menu.c ****         break;
+ 107:./Application/Src/menu.c ****     case FT_STATE_ERROR:
+ 108:./Application/Src/menu.c ****         LCD_draw_string(0, 3, "Status: ERROR           ", COLOR_BLACK, COLOR_WHITE);
+ 388              		.loc 1 108 9 is_stmt 1 view .LVU70
+ 389 008e 4FF6FF73 		movw	r3, #65535
+ 390 0092 1C46     		mov	r4, r3
+ 391 0094 0093     		str	r3, [sp]
+ 392 0096 0023     		movs	r3, #0
+ 393 0098 2A4A     		ldr	r2, .L34+24
+ 394 009a 0321     		movs	r1, #3
+ 395 009c 1846     		mov	r0, r3
+ 396              	.LVL29:
+ 397              		.loc 1 108 9 is_stmt 0 view .LVU71
+ 398 009e FFF7FEFF 		bl	LCD_draw_string
+ 399              	.LVL30:
+ 109:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "Transfer failed.        ", COLOR_BLACK, COLOR_WHITE);
+ 400              		.loc 1 109 9 is_stmt 1 view .LVU72
+ 401 00a2 0094     		str	r4, [sp]
+ 402 00a4 0023     		movs	r3, #0
+ 403 00a6 284A     		ldr	r2, .L34+28
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 11
+
+
+ 404 00a8 0421     		movs	r1, #4
+ 405 00aa 1846     		mov	r0, r3
+ 406 00ac FFF7FEFF 		bl	LCD_draw_string
+ 407              	.LVL31:
+ 110:./Application/Src/menu.c ****         break;
+ 408              		.loc 1 110 9 view .LVU73
+ 111:./Application/Src/menu.c ****     }
+ 112:./Application/Src/menu.c **** }
+ 409              		.loc 1 112 1 is_stmt 0 view .LVU74
+ 410 00b0 0FE0     		b	.L19
+ 411              	.LVL32:
+ 412              	.L23:
+  85:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "                        ", COLOR_BLACK, COLOR_WHITE);
+ 413              		.loc 1 85 9 is_stmt 1 view .LVU75
+ 414 00b2 4FF6FF73 		movw	r3, #65535
+ 415 00b6 1C46     		mov	r4, r3
+ 416 00b8 0093     		str	r3, [sp]
+ 417 00ba 0346     		mov	r3, r0
+ 418 00bc 234A     		ldr	r2, .L34+32
+ 419 00be 0321     		movs	r1, #3
+ 420 00c0 FFF7FEFF 		bl	LCD_draw_string
+ 421              	.LVL33:
+  86:./Application/Src/menu.c ****         break;
+ 422              		.loc 1 86 9 view .LVU76
+ 423 00c4 0094     		str	r4, [sp]
+ 424 00c6 0023     		movs	r3, #0
+ 425 00c8 214A     		ldr	r2, .L34+36
+ 426 00ca 0421     		movs	r1, #4
+ 427 00cc 1846     		mov	r0, r3
+ 428 00ce FFF7FEFF 		bl	LCD_draw_string
+ 429              	.LVL34:
+  87:./Application/Src/menu.c ****     case FT_STATE_RECEIVING:
+ 430              		.loc 1 87 9 view .LVU77
+ 431              	.L19:
+ 432              		.loc 1 112 1 is_stmt 0 view .LVU78
+ 433 00d2 10B0     		add	sp, sp, #64
+ 434              	.LCFI8:
+ 435              		.cfi_remember_state
+ 436              		.cfi_def_cfa_offset 8
+ 437              		@ sp needed
+ 438 00d4 10BD     		pop	{r4, pc}
+ 439              	.LVL35:
+ 440              	.L30:
+ 441              	.LCFI9:
+ 442              		.cfi_restore_state
+ 443              	.LBB9:
+ 444              	.LBB8:
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 445              		.loc 1 98 20 discriminator 2 view .LVU79
+ 446 00d6 2D21     		movs	r1, #45
+ 447              	.L28:
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 448              		.loc 1 98 20 discriminator 4 view .LVU80
+ 449 00d8 03F14002 		add	r2, r3, #64
+ 450 00dc 6A44     		add	r2, sp, r2
+ 451 00de 02F8341C 		strb	r1, [r2, #-52]
+  97:./Application/Src/menu.c ****             bar[i] = (i < filled) ? '#' : '-';
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 12
+
+
+ 452              		.loc 1 97 34 is_stmt 1 discriminator 2 view .LVU81
+ 453 00e2 0133     		adds	r3, r3, #1
+ 454              	.LVL36:
+ 455              	.L27:
+  97:./Application/Src/menu.c ****             bar[i] = (i < filled) ? '#' : '-';
+ 456              		.loc 1 97 27 discriminator 1 view .LVU82
+ 457 00e4 132B     		cmp	r3, #19
+ 458 00e6 03DC     		bgt	.L33
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 459              		.loc 1 98 13 view .LVU83
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 460              		.loc 1 98 20 is_stmt 0 view .LVU84
+ 461 00e8 8342     		cmp	r3, r0
+ 462 00ea F4DA     		bge	.L30
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 463              		.loc 1 98 20 discriminator 1 view .LVU85
+ 464 00ec 2321     		movs	r1, #35
+ 465 00ee F3E7     		b	.L28
+ 466              	.L33:
+  98:./Application/Src/menu.c ****         bar[20] = '\0';
+ 467              		.loc 1 98 20 discriminator 1 view .LVU86
+ 468              	.LBE8:
+  99:./Application/Src/menu.c ****         LCD_draw_string(0, 4, bar, COLOR_BLACK, COLOR_WHITE);
+ 469              		.loc 1 99 9 is_stmt 1 view .LVU87
+  99:./Application/Src/menu.c ****         LCD_draw_string(0, 4, bar, COLOR_BLACK, COLOR_WHITE);
+ 470              		.loc 1 99 17 is_stmt 0 view .LVU88
+ 471 00f0 0020     		movs	r0, #0
+ 472              	.LVL37:
+  99:./Application/Src/menu.c ****         LCD_draw_string(0, 4, bar, COLOR_BLACK, COLOR_WHITE);
+ 473              		.loc 1 99 17 view .LVU89
+ 474 00f2 8DF82000 		strb	r0, [sp, #32]
+ 100:./Application/Src/menu.c ****         break;
+ 475              		.loc 1 100 9 is_stmt 1 view .LVU90
+ 476 00f6 4FF6FF73 		movw	r3, #65535
+ 477              	.LVL38:
+ 100:./Application/Src/menu.c ****         break;
+ 478              		.loc 1 100 9 is_stmt 0 view .LVU91
+ 479 00fa 0093     		str	r3, [sp]
+ 480 00fc 0346     		mov	r3, r0
+ 481 00fe 03AA     		add	r2, sp, #12
+ 482 0100 0421     		movs	r1, #4
+ 483 0102 FFF7FEFF 		bl	LCD_draw_string
+ 484              	.LVL39:
+ 101:./Application/Src/menu.c ****     }
+ 485              		.loc 1 101 9 is_stmt 1 view .LVU92
+ 486 0106 E4E7     		b	.L19
+ 487              	.LVL40:
+ 488              	.L21:
+ 101:./Application/Src/menu.c ****     }
+ 489              		.loc 1 101 9 is_stmt 0 view .LVU93
+ 490              	.LBE9:
+ 104:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "File saved to SD card.  ", COLOR_BLACK, COLOR_WHITE);
+ 491              		.loc 1 104 9 is_stmt 1 view .LVU94
+ 492 0108 4FF6FF73 		movw	r3, #65535
+ 493 010c 1C46     		mov	r4, r3
+ 494 010e 0093     		str	r3, [sp]
+ 495 0110 0023     		movs	r3, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 13
+
+
+ 496 0112 104A     		ldr	r2, .L34+40
+ 497 0114 0321     		movs	r1, #3
+ 498 0116 1846     		mov	r0, r3
+ 499              	.LVL41:
+ 104:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "File saved to SD card.  ", COLOR_BLACK, COLOR_WHITE);
+ 500              		.loc 1 104 9 is_stmt 0 view .LVU95
+ 501 0118 FFF7FEFF 		bl	LCD_draw_string
+ 502              	.LVL42:
+ 105:./Application/Src/menu.c ****         break;
+ 503              		.loc 1 105 9 is_stmt 1 view .LVU96
+ 504 011c 0094     		str	r4, [sp]
+ 505 011e 0023     		movs	r3, #0
+ 506 0120 0D4A     		ldr	r2, .L34+44
+ 507 0122 0421     		movs	r1, #4
+ 508 0124 1846     		mov	r0, r3
+ 509 0126 FFF7FEFF 		bl	LCD_draw_string
+ 510              	.LVL43:
+ 106:./Application/Src/menu.c ****     case FT_STATE_ERROR:
+ 511              		.loc 1 106 9 view .LVU97
+ 512 012a D2E7     		b	.L19
+ 513              	.L35:
+ 514              		.align	2
+ 515              	.L34:
+ 516 012c 00000000 		.word	page_dirty
+ 517 0130 70000000 		.word	.LC15
+ 518 0134 CDCCCCCC 		.word	-858993459
+ 519 0138 00000000 		.word	.LC11
+ 520 013c 1C000000 		.word	.LC12
+ 521 0140 38000000 		.word	.LC13
+ 522 0144 C4000000 		.word	.LC18
+ 523 0148 E0000000 		.word	.LC19
+ 524 014c 54000000 		.word	.LC14
+ 525 0150 00000000 		.word	.LC6
+ 526 0154 8C000000 		.word	.LC16
+ 527 0158 A8000000 		.word	.LC17
+ 528              		.cfi_endproc
+ 529              	.LFE361:
+ 531              		.section	.rodata.menu_draw_transmit_ram.str1.4,"aMS",%progbits,1
+ 532              		.align	2
+ 533              	.LC20:
+ 534 0000 5B547261 		.ascii	"[Transmit to RAM]       \000"
+ 534      6E736D69 
+ 534      7420746F 
+ 534      2052414D 
+ 534      5D202020 
+ 535 0019 000000   		.align	2
+ 536              	.LC21:
+ 537 001c 57616974 		.ascii	"Waiting for start...    \000"
+ 537      696E6720 
+ 537      666F7220 
+ 537      73746172 
+ 537      742E2E2E 
+ 538 0035 000000   		.align	2
+ 539              	.LC22:
+ 540 0038 4D617820 		.ascii	"Max 365x14 floats       \000"
+ 540      33363578 
+ 540      31342066 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 14
+
+
+ 540      6C6F6174 
+ 540      73202020 
+ 541 0051 000000   		.align	2
+ 542              	.LC23:
+ 543 0054 52583A20 		.ascii	"RX: %lu/%lu  %3d%%   \000"
+ 543      256C752F 
+ 543      256C7520 
+ 543      20253364 
+ 543      25252020 
+ 544 006a 0000     		.align	2
+ 545              	.LC24:
+ 546 006c 52656365 		.ascii	"Receiving data...       \000"
+ 546      6976696E 
+ 546      67206461 
+ 546      74612E2E 
+ 546      2E202020 
+ 547 0085 000000   		.align	2
+ 548              	.LC25:
+ 549 0088 476F7420 		.ascii	"Got %lu chords!     \000"
+ 549      256C7520 
+ 549      63686F72 
+ 549      64732120 
+ 549      20202020 
+ 550 009d 000000   		.align	2
+ 551              	.LC26:
+ 552 00a0 50617273 		.ascii	"Parsing song...         \000"
+ 552      696E6720 
+ 552      736F6E67 
+ 552      2E2E2E20 
+ 552      20202020 
+ 553 00b9 000000   		.align	2
+ 554              	.LC27:
+ 555 00bc 536F6E67 		.ascii	"Song loaded to RAM!     \000"
+ 555      206C6F61 
+ 555      64656420 
+ 555      746F2052 
+ 555      414D2120 
+ 556              		.section	.text.menu_draw_transmit_ram,"ax",%progbits
+ 557              		.align	1
+ 558              		.global	menu_draw_transmit_ram
+ 559              		.syntax unified
+ 560              		.thumb
+ 561              		.thumb_func
+ 563              	menu_draw_transmit_ram:
+ 564              	.LFB362:
+ 113:./Application/Src/menu.c **** 
+ 114:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 115:./Application/Src/menu.c **** /*  Transmit Song (RAM) page                                          */
+ 116:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 117:./Application/Src/menu.c **** 
+ 118:./Application/Src/menu.c **** void menu_draw_transmit_ram(void){
+ 565              		.loc 1 118 34 view -0
+ 566              		.cfi_startproc
+ 567              		@ args = 0, pretend = 0, frame = 32
+ 568              		@ frame_needed = 0, uses_anonymous_args = 0
+ 569 0000 30B5     		push	{r4, r5, lr}
+ 570              	.LCFI10:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 15
+
+
+ 571              		.cfi_def_cfa_offset 12
+ 572              		.cfi_offset 4, -12
+ 573              		.cfi_offset 5, -8
+ 574              		.cfi_offset 14, -4
+ 575 0002 8BB0     		sub	sp, sp, #44
+ 576              	.LCFI11:
+ 577              		.cfi_def_cfa_offset 56
+ 119:./Application/Src/menu.c ****     char buf[32];
+ 578              		.loc 1 119 5 view .LVU99
+ 120:./Application/Src/menu.c **** 
+ 121:./Application/Src/menu.c ****     if (page_dirty){
+ 579              		.loc 1 121 5 view .LVU100
+ 580              		.loc 1 121 9 is_stmt 0 view .LVU101
+ 581 0004 444B     		ldr	r3, .L44
+ 582 0006 1B68     		ldr	r3, [r3]
+ 583              		.loc 1 121 8 view .LVU102
+ 584 0008 5BB9     		cbnz	r3, .L41
+ 585              	.L37:
+ 122:./Application/Src/menu.c ****         clear_menu_area();
+ 123:./Application/Src/menu.c ****         LCD_draw_string(0, 1, "[Transmit to RAM]       ", COLOR_BLACK, COLOR_WHITE);
+ 124:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Waiting for start...    ", COLOR_BLACK, COLOR_WHITE);
+ 125:./Application/Src/menu.c ****         LCD_draw_string(0, 3, "Max 365x14 floats       ", COLOR_BLACK, COLOR_WHITE);
+ 126:./Application/Src/menu.c ****         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+ 127:./Application/Src/menu.c ****         page_dirty = 0;
+ 128:./Application/Src/menu.c ****     }
+ 129:./Application/Src/menu.c **** 
+ 130:./Application/Src/menu.c ****     /* Show live accumulation status */
+ 131:./Application/Src/menu.c ****     if (ram_rx_started && !ram_rx_complete){
+ 586              		.loc 1 131 5 is_stmt 1 view .LVU103
+ 587              		.loc 1 131 9 is_stmt 0 view .LVU104
+ 588 000a 444B     		ldr	r3, .L44+4
+ 589 000c 1B68     		ldr	r3, [r3]
+ 590              		.loc 1 131 8 view .LVU105
+ 591 000e 13B1     		cbz	r3, .L38
+ 592              		.loc 1 131 27 discriminator 1 view .LVU106
+ 593 0010 434B     		ldr	r3, .L44+8
+ 594 0012 1B68     		ldr	r3, [r3]
+ 595              		.loc 1 131 24 discriminator 1 view .LVU107
+ 596 0014 53B3     		cbz	r3, .L42
+ 597              	.L38:
+ 132:./Application/Src/menu.c ****         uint32_t total = RAM_SONG_MAX_BYTES;
+ 133:./Application/Src/menu.c ****         uint8_t pct = (uint8_t)((ram_rx_offset * 100) / total);
+ 134:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
+ 135:./Application/Src/menu.c ****                  (unsigned long)ram_rx_offset, (unsigned long)total, pct);
+ 136:./Application/Src/menu.c ****         LCD_draw_string(0, 4, buf, COLOR_BLACK, COLOR_WHITE);
+ 137:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Receiving data...       ", COLOR_BLACK, COLOR_WHITE);
+ 138:./Application/Src/menu.c ****     }
+ 139:./Application/Src/menu.c **** 
+ 140:./Application/Src/menu.c ****     if (ram_rx_complete){
+ 598              		.loc 1 140 5 is_stmt 1 view .LVU108
+ 599              		.loc 1 140 9 is_stmt 0 view .LVU109
+ 600 0016 424B     		ldr	r3, .L44+8
+ 601 0018 1B68     		ldr	r3, [r3]
+ 602              		.loc 1 140 8 view .LVU110
+ 603 001a 002B     		cmp	r3, #0
+ 604 001c 4CD1     		bne	.L43
+ 605              	.L36:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 16
+
+
+ 141:./Application/Src/menu.c ****         uint32_t num_floats = ram_rx_offset / 4;
+ 142:./Application/Src/menu.c ****         uint32_t num_chords = num_floats / 14;
+ 143:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
+ 144:./Application/Src/menu.c ****         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
+ 145:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
+ 146:./Application/Src/menu.c **** 
+ 147:./Application/Src/menu.c ****         /* Parse the flat float buffer into chord_events struct */
+ 148:./Application/Src/menu.c ****         parsing_song_buffer_to_struct(song_ram, chord_events);
+ 149:./Application/Src/menu.c **** 
+ 150:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "Song loaded to RAM!     ", COLOR_BLACK, COLOR_WHITE);
+ 151:./Application/Src/menu.c **** 
+ 152:./Application/Src/menu.c ****         /* Reset state so we don't re-parse every loop */
+ 153:./Application/Src/menu.c ****         ram_rx_complete = 0;
+ 154:./Application/Src/menu.c ****         ram_rx_started = 0;
+ 155:./Application/Src/menu.c ****         ram_rx_offset = 0;
+ 156:./Application/Src/menu.c ****         redirect_to_ram = 0;
+ 157:./Application/Src/menu.c ****     }
+ 158:./Application/Src/menu.c **** }
+ 606              		.loc 1 158 1 view .LVU111
+ 607 001e 0BB0     		add	sp, sp, #44
+ 608              	.LCFI12:
+ 609              		.cfi_remember_state
+ 610              		.cfi_def_cfa_offset 12
+ 611              		@ sp needed
+ 612 0020 30BD     		pop	{r4, r5, pc}
+ 613              	.L41:
+ 614              	.LCFI13:
+ 615              		.cfi_restore_state
+ 122:./Application/Src/menu.c ****         LCD_draw_string(0, 1, "[Transmit to RAM]       ", COLOR_BLACK, COLOR_WHITE);
+ 616              		.loc 1 122 9 is_stmt 1 view .LVU112
+ 617 0022 FFF7FEFF 		bl	clear_menu_area
+ 618              	.LVL44:
+ 123:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Waiting for start...    ", COLOR_BLACK, COLOR_WHITE);
+ 619              		.loc 1 123 9 view .LVU113
+ 620 0026 4FF6FF73 		movw	r3, #65535
+ 621 002a 1C46     		mov	r4, r3
+ 622 002c 0093     		str	r3, [sp]
+ 623 002e 0023     		movs	r3, #0
+ 624 0030 3C4A     		ldr	r2, .L44+12
+ 625 0032 0121     		movs	r1, #1
+ 626 0034 1846     		mov	r0, r3
+ 627 0036 FFF7FEFF 		bl	LCD_draw_string
+ 628              	.LVL45:
+ 124:./Application/Src/menu.c ****         LCD_draw_string(0, 3, "Max 365x14 floats       ", COLOR_BLACK, COLOR_WHITE);
+ 629              		.loc 1 124 9 view .LVU114
+ 630 003a 0094     		str	r4, [sp]
+ 631 003c 0023     		movs	r3, #0
+ 632 003e 3A4A     		ldr	r2, .L44+16
+ 633 0040 0221     		movs	r1, #2
+ 634 0042 1846     		mov	r0, r3
+ 635 0044 FFF7FEFF 		bl	LCD_draw_string
+ 636              	.LVL46:
+ 125:./Application/Src/menu.c ****         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+ 637              		.loc 1 125 9 view .LVU115
+ 638 0048 0094     		str	r4, [sp]
+ 639 004a 0023     		movs	r3, #0
+ 640 004c 374A     		ldr	r2, .L44+20
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 17
+
+
+ 641 004e 0321     		movs	r1, #3
+ 642 0050 1846     		mov	r0, r3
+ 643 0052 FFF7FEFF 		bl	LCD_draw_string
+ 644              	.LVL47:
+ 126:./Application/Src/menu.c ****         page_dirty = 0;
+ 645              		.loc 1 126 9 view .LVU116
+ 646 0056 0094     		str	r4, [sp]
+ 647 0058 0023     		movs	r3, #0
+ 648 005a 354A     		ldr	r2, .L44+24
+ 649 005c 0821     		movs	r1, #8
+ 650 005e 1846     		mov	r0, r3
+ 651 0060 FFF7FEFF 		bl	LCD_draw_string
+ 652              	.LVL48:
+ 127:./Application/Src/menu.c ****     }
+ 653              		.loc 1 127 9 view .LVU117
+ 127:./Application/Src/menu.c ****     }
+ 654              		.loc 1 127 20 is_stmt 0 view .LVU118
+ 655 0064 2C4B     		ldr	r3, .L44
+ 656 0066 0022     		movs	r2, #0
+ 657 0068 1A60     		str	r2, [r3]
+ 658 006a CEE7     		b	.L37
+ 659              	.L42:
+ 660              	.LBB10:
+ 132:./Application/Src/menu.c ****         uint8_t pct = (uint8_t)((ram_rx_offset * 100) / total);
+ 661              		.loc 1 132 9 is_stmt 1 view .LVU119
+ 662              	.LVL49:
+ 133:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
+ 663              		.loc 1 133 9 view .LVU120
+ 133:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
+ 664              		.loc 1 133 48 is_stmt 0 view .LVU121
+ 665 006c 314B     		ldr	r3, .L44+28
+ 666 006e 1A68     		ldr	r2, [r3]
+ 667 0070 6421     		movs	r1, #100
+ 668 0072 01FB02F2 		mul	r2, r1, r2
+ 133:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
+ 669              		.loc 1 133 55 view .LVU122
+ 670 0076 D208     		lsrs	r2, r2, #3
+ 671 0078 2F49     		ldr	r1, .L44+32
+ 672 007a A1FB0212 		umull	r1, r2, r1, r2
+ 673              	.LVL50:
+ 134:./Application/Src/menu.c ****                  (unsigned long)ram_rx_offset, (unsigned long)total, pct);
+ 674              		.loc 1 134 9 is_stmt 1 view .LVU123
+ 675 007e 1B68     		ldr	r3, [r3]
+ 676 0080 C2F34722 		ubfx	r2, r2, #9, #8
+ 677              	.LVL51:
+ 134:./Application/Src/menu.c ****                  (unsigned long)ram_rx_offset, (unsigned long)total, pct);
+ 678              		.loc 1 134 9 is_stmt 0 view .LVU124
+ 679 0084 0192     		str	r2, [sp, #4]
+ 680 0086 44F6D872 		movw	r2, #20440
+ 681 008a 0092     		str	r2, [sp]
+ 682 008c 2B4A     		ldr	r2, .L44+36
+ 683 008e 2021     		movs	r1, #32
+ 684 0090 02A8     		add	r0, sp, #8
+ 685 0092 FFF7FEFF 		bl	snprintf
+ 686              	.LVL52:
+ 136:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "Receiving data...       ", COLOR_BLACK, COLOR_WHITE);
+ 687              		.loc 1 136 9 is_stmt 1 view .LVU125
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 18
+
+
+ 688 0096 4FF6FF74 		movw	r4, #65535
+ 689 009a 0094     		str	r4, [sp]
+ 690 009c 0023     		movs	r3, #0
+ 691 009e 02AA     		add	r2, sp, #8
+ 692 00a0 0421     		movs	r1, #4
+ 693 00a2 1846     		mov	r0, r3
+ 694 00a4 FFF7FEFF 		bl	LCD_draw_string
+ 695              	.LVL53:
+ 137:./Application/Src/menu.c ****     }
+ 696              		.loc 1 137 9 view .LVU126
+ 697 00a8 0094     		str	r4, [sp]
+ 698 00aa 0023     		movs	r3, #0
+ 699 00ac 244A     		ldr	r2, .L44+40
+ 700 00ae 0221     		movs	r1, #2
+ 701 00b0 1846     		mov	r0, r3
+ 702 00b2 FFF7FEFF 		bl	LCD_draw_string
+ 703              	.LVL54:
+ 704 00b6 AEE7     		b	.L38
+ 705              	.LVL55:
+ 706              	.L43:
+ 137:./Application/Src/menu.c ****     }
+ 707              		.loc 1 137 9 is_stmt 0 view .LVU127
+ 708              	.LBE10:
+ 709              	.LBB11:
+ 141:./Application/Src/menu.c ****         uint32_t num_chords = num_floats / 14;
+ 710              		.loc 1 141 9 is_stmt 1 view .LVU128
+ 141:./Application/Src/menu.c ****         uint32_t num_chords = num_floats / 14;
+ 711              		.loc 1 141 45 is_stmt 0 view .LVU129
+ 712 00b8 1E4D     		ldr	r5, .L44+28
+ 713 00ba 2B68     		ldr	r3, [r5]
+ 714              	.LVL56:
+ 142:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
+ 715              		.loc 1 142 9 is_stmt 1 view .LVU130
+ 142:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
+ 716              		.loc 1 142 18 is_stmt 0 view .LVU131
+ 717 00bc DB08     		lsrs	r3, r3, #3
+ 718              	.LVL57:
+ 142:./Application/Src/menu.c ****         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
+ 719              		.loc 1 142 18 view .LVU132
+ 720 00be 214A     		ldr	r2, .L44+44
+ 721 00c0 A2FB0323 		umull	r2, r3, r2, r3
+ 722              	.LVL58:
+ 143:./Application/Src/menu.c ****         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
+ 723              		.loc 1 143 9 is_stmt 1 view .LVU133
+ 724 00c4 9B08     		lsrs	r3, r3, #2
+ 725              	.LVL59:
+ 143:./Application/Src/menu.c ****         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
+ 726              		.loc 1 143 9 is_stmt 0 view .LVU134
+ 727 00c6 204A     		ldr	r2, .L44+48
+ 728 00c8 2021     		movs	r1, #32
+ 729 00ca 02A8     		add	r0, sp, #8
+ 730 00cc FFF7FEFF 		bl	snprintf
+ 731              	.LVL60:
+ 144:./Application/Src/menu.c ****         LCD_draw_string(0, 4, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
+ 732              		.loc 1 144 9 is_stmt 1 view .LVU135
+ 733 00d0 4FF6FF74 		movw	r4, #65535
+ 734 00d4 0094     		str	r4, [sp]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 19
+
+
+ 735 00d6 0023     		movs	r3, #0
+ 736 00d8 02AA     		add	r2, sp, #8
+ 737 00da 0321     		movs	r1, #3
+ 738 00dc 1846     		mov	r0, r3
+ 739 00de FFF7FEFF 		bl	LCD_draw_string
+ 740              	.LVL61:
+ 145:./Application/Src/menu.c **** 
+ 741              		.loc 1 145 9 view .LVU136
+ 742 00e2 0094     		str	r4, [sp]
+ 743 00e4 0023     		movs	r3, #0
+ 744 00e6 194A     		ldr	r2, .L44+52
+ 745 00e8 0421     		movs	r1, #4
+ 746 00ea 1846     		mov	r0, r3
+ 747 00ec FFF7FEFF 		bl	LCD_draw_string
+ 748              	.LVL62:
+ 148:./Application/Src/menu.c **** 
+ 749              		.loc 1 148 9 view .LVU137
+ 750 00f0 1749     		ldr	r1, .L44+56
+ 751 00f2 1848     		ldr	r0, .L44+60
+ 752 00f4 FFF7FEFF 		bl	parsing_song_buffer_to_struct
+ 753              	.LVL63:
+ 150:./Application/Src/menu.c **** 
+ 754              		.loc 1 150 9 view .LVU138
+ 755 00f8 0094     		str	r4, [sp]
+ 756 00fa 0023     		movs	r3, #0
+ 757 00fc 164A     		ldr	r2, .L44+64
+ 758 00fe 0421     		movs	r1, #4
+ 759 0100 1846     		mov	r0, r3
+ 760 0102 FFF7FEFF 		bl	LCD_draw_string
+ 761              	.LVL64:
+ 153:./Application/Src/menu.c ****         ram_rx_started = 0;
+ 762              		.loc 1 153 9 view .LVU139
+ 153:./Application/Src/menu.c ****         ram_rx_started = 0;
+ 763              		.loc 1 153 25 is_stmt 0 view .LVU140
+ 764 0106 0023     		movs	r3, #0
+ 765 0108 054A     		ldr	r2, .L44+8
+ 766 010a 1360     		str	r3, [r2]
+ 154:./Application/Src/menu.c ****         ram_rx_offset = 0;
+ 767              		.loc 1 154 9 is_stmt 1 view .LVU141
+ 154:./Application/Src/menu.c ****         ram_rx_offset = 0;
+ 768              		.loc 1 154 24 is_stmt 0 view .LVU142
+ 769 010c 034A     		ldr	r2, .L44+4
+ 770 010e 1360     		str	r3, [r2]
+ 155:./Application/Src/menu.c ****         redirect_to_ram = 0;
+ 771              		.loc 1 155 9 is_stmt 1 view .LVU143
+ 155:./Application/Src/menu.c ****         redirect_to_ram = 0;
+ 772              		.loc 1 155 23 is_stmt 0 view .LVU144
+ 773 0110 2B60     		str	r3, [r5]
+ 156:./Application/Src/menu.c ****     }
+ 774              		.loc 1 156 9 is_stmt 1 view .LVU145
+ 156:./Application/Src/menu.c ****     }
+ 775              		.loc 1 156 25 is_stmt 0 view .LVU146
+ 776 0112 124A     		ldr	r2, .L44+68
+ 777 0114 1360     		str	r3, [r2]
+ 778              	.LBE11:
+ 779              		.loc 1 158 1 view .LVU147
+ 780 0116 82E7     		b	.L36
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 20
+
+
+ 781              	.L45:
+ 782              		.align	2
+ 783              	.L44:
+ 784 0118 00000000 		.word	page_dirty
+ 785 011c 00000000 		.word	ram_rx_started
+ 786 0120 00000000 		.word	ram_rx_complete
+ 787 0124 00000000 		.word	.LC20
+ 788 0128 1C000000 		.word	.LC21
+ 789 012c 38000000 		.word	.LC22
+ 790 0130 38000000 		.word	.LC13
+ 791 0134 00000000 		.word	ram_rx_offset
+ 792 0138 A1D94C33 		.word	860674465
+ 793 013c 54000000 		.word	.LC23
+ 794 0140 6C000000 		.word	.LC24
+ 795 0144 93244992 		.word	-1840700269
+ 796 0148 88000000 		.word	.LC25
+ 797 014c A0000000 		.word	.LC26
+ 798 0150 00000000 		.word	chord_events
+ 799 0154 00000000 		.word	song_ram
+ 800 0158 BC000000 		.word	.LC27
+ 801 015c 00000000 		.word	redirect_to_ram
+ 802              		.cfi_endproc
+ 803              	.LFE362:
+ 805              		.section	.rodata.menu_draw_select.str1.4,"aMS",%progbits,1
+ 806              		.align	2
+ 807              	.LC28:
+ 808 0000 5B53656C 		.ascii	"[Select] %d songs\000"
+ 808      6563745D 
+ 808      20256420 
+ 808      736F6E67 
+ 808      7300
+ 809 0012 0000     		.align	2
+ 810              	.LC29:
+ 811 0014 4E6F2073 		.ascii	"No songs on SD card.    \000"
+ 811      6F6E6773 
+ 811      206F6E20 
+ 811      53442063 
+ 811      6172642E 
+ 812 002d 000000   		.align	2
+ 813              	.LC30:
+ 814 0030 25632A25 		.ascii	"%c*%-12s %5luB\000"
+ 814      2D313273 
+ 814      2025356C 
+ 814      754200
+ 815 003f 00       		.align	2
+ 816              	.LC31:
+ 817 0040 25632025 		.ascii	"%c %-12s %5luB\000"
+ 817      2D313273 
+ 817      2025356C 
+ 817      754200
+ 818 004f 00       		.align	2
+ 819              	.LC32:
+ 820 0050 20205B25 		.ascii	"  [%d-%d of %d]\000"
+ 820      642D2564 
+ 820      206F6620 
+ 820      25645D00 
+ 821              		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 21
+
+
+ 822              	.LC33:
+ 823 0060 3A642073 		.ascii	":d select  :a back      \000"
+ 823      656C6563 
+ 823      7420203A 
+ 823      61206261 
+ 823      636B2020 
+ 824              		.section	.text.menu_draw_select,"ax",%progbits
+ 825              		.align	1
+ 826              		.global	menu_draw_select
+ 827              		.syntax unified
+ 828              		.thumb
+ 829              		.thumb_func
+ 831              	menu_draw_select:
+ 832              	.LFB363:
+ 159:./Application/Src/menu.c **** 
+ 160:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 161:./Application/Src/menu.c **** /*  Select Song page                                                  */
+ 162:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 163:./Application/Src/menu.c **** 
+ 164:./Application/Src/menu.c **** void menu_draw_select(void)
+ 165:./Application/Src/menu.c **** {
+ 833              		.loc 1 165 1 is_stmt 1 view -0
+ 834              		.cfi_startproc
+ 835              		@ args = 0, pretend = 0, frame = 48
+ 836              		@ frame_needed = 0, uses_anonymous_args = 0
+ 837 0000 30B5     		push	{r4, r5, lr}
+ 838              	.LCFI14:
+ 839              		.cfi_def_cfa_offset 12
+ 840              		.cfi_offset 4, -12
+ 841              		.cfi_offset 5, -8
+ 842              		.cfi_offset 14, -4
+ 843 0002 8FB0     		sub	sp, sp, #60
+ 844              	.LCFI15:
+ 845              		.cfi_def_cfa_offset 72
+ 166:./Application/Src/menu.c ****     char line[48];
+ 846              		.loc 1 166 5 view .LVU149
+ 167:./Application/Src/menu.c **** 
+ 168:./Application/Src/menu.c ****     if (page_dirty)
+ 847              		.loc 1 168 5 view .LVU150
+ 848              		.loc 1 168 9 is_stmt 0 view .LVU151
+ 849 0004 664B     		ldr	r3, .L72
+ 850 0006 1B68     		ldr	r3, [r3]
+ 851              		.loc 1 168 8 view .LVU152
+ 852 0008 5BB9     		cbnz	r3, .L66
+ 853              	.L47:
+ 169:./Application/Src/menu.c ****     {
+ 170:./Application/Src/menu.c ****         clear_menu_area();
+ 171:./Application/Src/menu.c ****         /* Scan SD card for TXT files */
+ 172:./Application/Src/menu.c ****         sd_list_txt_files();
+ 173:./Application/Src/menu.c ****         select_song_index = 0;
+ 174:./Application/Src/menu.c ****         select_scroll_offset = 0;
+ 175:./Application/Src/menu.c ****         page_dirty = 0;
+ 176:./Application/Src/menu.c ****     }
+ 177:./Application/Src/menu.c **** 
+ 178:./Application/Src/menu.c ****     /* Header */
+ 179:./Application/Src/menu.c ****     snprintf(line, sizeof(line), "[Select] %d songs", (int)fileCount);
+ 854              		.loc 1 179 5 is_stmt 1 view .LVU153
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 22
+
+
+ 855 000a 02AC     		add	r4, sp, #8
+ 856 000c 654B     		ldr	r3, .L72+4
+ 857 000e 1B68     		ldr	r3, [r3]
+ 858 0010 654A     		ldr	r2, .L72+8
+ 859 0012 3021     		movs	r1, #48
+ 860 0014 2046     		mov	r0, r4
+ 861 0016 FFF7FEFF 		bl	snprintf
+ 862              	.LVL65:
+ 180:./Application/Src/menu.c ****     /* Pad to 24 chars */
+ 181:./Application/Src/menu.c ****     int hlen = strlen(line);
+ 863              		.loc 1 181 5 view .LVU154
+ 864              		.loc 1 181 16 is_stmt 0 view .LVU155
+ 865 001a 2046     		mov	r0, r4
+ 866 001c FFF7FEFF 		bl	strlen
+ 867              	.LVL66:
+ 182:./Application/Src/menu.c ****     while (hlen < 24)
+ 868              		.loc 1 182 5 is_stmt 1 view .LVU156
+ 869              		.loc 1 182 11 is_stmt 0 view .LVU157
+ 870 0020 12E0     		b	.L48
+ 871              	.LVL67:
+ 872              	.L66:
+ 170:./Application/Src/menu.c ****         /* Scan SD card for TXT files */
+ 873              		.loc 1 170 9 is_stmt 1 view .LVU158
+ 874 0022 FFF7FEFF 		bl	clear_menu_area
+ 875              	.LVL68:
+ 172:./Application/Src/menu.c ****         select_song_index = 0;
+ 876              		.loc 1 172 9 view .LVU159
+ 877 0026 FFF7FEFF 		bl	sd_list_txt_files
+ 878              	.LVL69:
+ 173:./Application/Src/menu.c ****         select_scroll_offset = 0;
+ 879              		.loc 1 173 9 view .LVU160
+ 173:./Application/Src/menu.c ****         select_scroll_offset = 0;
+ 880              		.loc 1 173 27 is_stmt 0 view .LVU161
+ 881 002a 0023     		movs	r3, #0
+ 882 002c 5F4A     		ldr	r2, .L72+12
+ 883 002e 1360     		str	r3, [r2]
+ 174:./Application/Src/menu.c ****         page_dirty = 0;
+ 884              		.loc 1 174 9 is_stmt 1 view .LVU162
+ 174:./Application/Src/menu.c ****         page_dirty = 0;
+ 885              		.loc 1 174 30 is_stmt 0 view .LVU163
+ 886 0030 5F4A     		ldr	r2, .L72+16
+ 887 0032 1360     		str	r3, [r2]
+ 175:./Application/Src/menu.c ****     }
+ 888              		.loc 1 175 9 is_stmt 1 view .LVU164
+ 175:./Application/Src/menu.c ****     }
+ 889              		.loc 1 175 20 is_stmt 0 view .LVU165
+ 890 0034 5A4A     		ldr	r2, .L72
+ 891 0036 1360     		str	r3, [r2]
+ 892 0038 E7E7     		b	.L47
+ 893              	.LVL70:
+ 894              	.L49:
+ 183:./Application/Src/menu.c ****         line[hlen++] = ' ';
+ 895              		.loc 1 183 9 is_stmt 1 view .LVU166
+ 896              		.loc 1 183 22 is_stmt 0 view .LVU167
+ 897 003a 00F13803 		add	r3, r0, #56
+ 898 003e 6B44     		add	r3, sp, r3
+ 899 0040 2022     		movs	r2, #32
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 23
+
+
+ 900 0042 03F8302C 		strb	r2, [r3, #-48]
+ 901              		.loc 1 183 18 view .LVU168
+ 902 0046 0130     		adds	r0, r0, #1
+ 903              	.LVL71:
+ 904              	.L48:
+ 182:./Application/Src/menu.c ****         line[hlen++] = ' ';
+ 905              		.loc 1 182 17 is_stmt 1 view .LVU169
+ 906 0048 1728     		cmp	r0, #23
+ 907 004a F6DD     		ble	.L49
+ 184:./Application/Src/menu.c ****     line[24] = '\0';
+ 908              		.loc 1 184 5 view .LVU170
+ 909              		.loc 1 184 14 is_stmt 0 view .LVU171
+ 910 004c 0020     		movs	r0, #0
+ 911              	.LVL72:
+ 912              		.loc 1 184 14 view .LVU172
+ 913 004e 8DF82000 		strb	r0, [sp, #32]
+ 185:./Application/Src/menu.c ****     LCD_draw_string(0, 1, line, COLOR_BLACK, COLOR_WHITE);
+ 914              		.loc 1 185 5 is_stmt 1 view .LVU173
+ 915 0052 4FF6FF73 		movw	r3, #65535
+ 916 0056 0093     		str	r3, [sp]
+ 917 0058 0346     		mov	r3, r0
+ 918 005a 02AA     		add	r2, sp, #8
+ 919 005c 0121     		movs	r1, #1
+ 920 005e FFF7FEFF 		bl	LCD_draw_string
+ 921              	.LVL73:
+ 186:./Application/Src/menu.c **** 
+ 187:./Application/Src/menu.c ****     if (fileCount == 0)
+ 922              		.loc 1 187 5 view .LVU174
+ 923              		.loc 1 187 19 is_stmt 0 view .LVU175
+ 924 0062 504B     		ldr	r3, .L72+4
+ 925 0064 1B68     		ldr	r3, [r3]
+ 926              		.loc 1 187 8 view .LVU176
+ 927 0066 0BB1     		cbz	r3, .L67
+ 928              	.LBB12:
+ 188:./Application/Src/menu.c ****     {
+ 189:./Application/Src/menu.c ****         LCD_draw_string(0, 2, "No songs on SD card.    ", COLOR_BLACK, COLOR_WHITE);
+ 190:./Application/Src/menu.c ****         LCD_draw_string(0, 7, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+ 191:./Application/Src/menu.c ****         return;
+ 192:./Application/Src/menu.c ****     }
+ 193:./Application/Src/menu.c **** 
+ 194:./Application/Src/menu.c ****     /* Show up to 5 files with scroll */
+ 195:./Application/Src/menu.c ****     for (int i = 0; i < 5; i++)
+ 929              		.loc 1 195 14 view .LVU177
+ 930 0068 0024     		movs	r4, #0
+ 931 006a 4EE0     		b	.L50
+ 932              	.L67:
+ 933              	.LBE12:
+ 189:./Application/Src/menu.c ****         LCD_draw_string(0, 7, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+ 934              		.loc 1 189 9 is_stmt 1 view .LVU178
+ 935 006c 4FF6FF74 		movw	r4, #65535
+ 936 0070 0094     		str	r4, [sp]
+ 937 0072 504A     		ldr	r2, .L72+20
+ 938 0074 0221     		movs	r1, #2
+ 939 0076 1846     		mov	r0, r3
+ 940 0078 FFF7FEFF 		bl	LCD_draw_string
+ 941              	.LVL74:
+ 190:./Application/Src/menu.c ****         return;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 24
+
+
+ 942              		.loc 1 190 9 view .LVU179
+ 943 007c 0094     		str	r4, [sp]
+ 944 007e 0023     		movs	r3, #0
+ 945 0080 4D4A     		ldr	r2, .L72+24
+ 946 0082 0721     		movs	r1, #7
+ 947 0084 1846     		mov	r0, r3
+ 948 0086 FFF7FEFF 		bl	LCD_draw_string
+ 949              	.LVL75:
+ 191:./Application/Src/menu.c ****     }
+ 950              		.loc 1 191 9 view .LVU180
+ 951 008a 5FE0     		b	.L46
+ 952              	.LVL76:
+ 953              	.L70:
+ 954              	.LBB16:
+ 955              	.LBB13:
+ 956              	.LBB14:
+ 196:./Application/Src/menu.c ****     {
+ 197:./Application/Src/menu.c ****         int fileIdx = select_scroll_offset + i;
+ 198:./Application/Src/menu.c ****         int row = 2 + i;
+ 199:./Application/Src/menu.c **** 
+ 200:./Application/Src/menu.c ****         if (fileIdx < fileCount)
+ 201:./Application/Src/menu.c ****         {
+ 202:./Application/Src/menu.c ****             char marker = ' ';
+ 957              		.loc 1 202 13 view .LVU181
+ 203:./Application/Src/menu.c ****             if (fileIdx == select_song_index)
+ 958              		.loc 1 203 13 view .LVU182
+ 959              		.loc 1 203 25 is_stmt 0 view .LVU183
+ 960 008c 474B     		ldr	r3, .L72+12
+ 961 008e 1B68     		ldr	r3, [r3]
+ 962              		.loc 1 203 16 view .LVU184
+ 963 0090 9342     		cmp	r3, r2
+ 964 0092 15D0     		beq	.L64
+ 202:./Application/Src/menu.c ****             if (fileIdx == select_song_index)
+ 965              		.loc 1 202 18 view .LVU185
+ 966 0094 2023     		movs	r3, #32
+ 967              	.L53:
+ 968              	.LVL77:
+ 204:./Application/Src/menu.c ****                 marker = '>';
+ 205:./Application/Src/menu.c ****             /* Show active song indicator */
+ 206:./Application/Src/menu.c ****             if (fileIdx == active_song_index)
+ 969              		.loc 1 206 13 is_stmt 1 view .LVU186
+ 970              		.loc 1 206 25 is_stmt 0 view .LVU187
+ 971 0096 4949     		ldr	r1, .L72+28
+ 972 0098 0968     		ldr	r1, [r1]
+ 973              		.loc 1 206 16 view .LVU188
+ 974 009a 9142     		cmp	r1, r2
+ 975 009c 12D0     		beq	.L68
+ 207:./Application/Src/menu.c ****             {
+ 208:./Application/Src/menu.c ****                 snprintf(line, sizeof(line), "%c*%-12s %5luB", marker,
+ 209:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ 210:./Application/Src/menu.c ****             }
+ 211:./Application/Src/menu.c ****             else
+ 212:./Application/Src/menu.c ****             {
+ 213:./Application/Src/menu.c ****                 snprintf(line, sizeof(line), "%c %-12s %5luB", marker,
+ 976              		.loc 1 213 17 is_stmt 1 view .LVU189
+ 214:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ 977              		.loc 1 214 43 is_stmt 0 view .LVU190
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 25
+
+
+ 978 009e 02EB8200 		add	r0, r2, r2, lsl #2
+ 979 00a2 4749     		ldr	r1, .L72+32
+ 980 00a4 01EB8000 		add	r0, r1, r0, lsl #2
+ 981              		.loc 1 214 82 view .LVU191
+ 982 00a8 0269     		ldr	r2, [r0, #16]
+ 983              	.LVL78:
+ 213:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ 984              		.loc 1 213 17 view .LVU192
+ 985 00aa 0192     		str	r2, [sp, #4]
+ 986 00ac 0090     		str	r0, [sp]
+ 987 00ae 454A     		ldr	r2, .L72+36
+ 988 00b0 3021     		movs	r1, #48
+ 989 00b2 02A8     		add	r0, sp, #8
+ 990 00b4 FFF7FEFF 		bl	snprintf
+ 991              	.LVL79:
+ 992              	.L55:
+ 215:./Application/Src/menu.c ****             }
+ 216:./Application/Src/menu.c ****             /* Pad to clear */
+ 217:./Application/Src/menu.c ****             int len = strlen(line);
+ 993              		.loc 1 217 13 is_stmt 1 view .LVU193
+ 994              		.loc 1 217 23 is_stmt 0 view .LVU194
+ 995 00b8 02A8     		add	r0, sp, #8
+ 996 00ba FFF7FEFF 		bl	strlen
+ 997              	.LVL80:
+ 218:./Application/Src/menu.c ****             while (len < 23)
+ 998              		.loc 1 218 13 is_stmt 1 view .LVU195
+ 999              		.loc 1 218 19 is_stmt 0 view .LVU196
+ 1000 00be 16E0     		b	.L56
+ 1001              	.LVL81:
+ 1002              	.L64:
+ 204:./Application/Src/menu.c ****             /* Show active song indicator */
+ 1003              		.loc 1 204 24 view .LVU197
+ 1004 00c0 3E23     		movs	r3, #62
+ 1005 00c2 E8E7     		b	.L53
+ 1006              	.LVL82:
+ 1007              	.L68:
+ 208:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ 1008              		.loc 1 208 17 is_stmt 1 view .LVU198
+ 209:./Application/Src/menu.c ****             }
+ 1009              		.loc 1 209 43 is_stmt 0 view .LVU199
+ 1010 00c4 02EB8200 		add	r0, r2, r2, lsl #2
+ 1011 00c8 3D49     		ldr	r1, .L72+32
+ 1012 00ca 01EB8000 		add	r0, r1, r0, lsl #2
+ 209:./Application/Src/menu.c ****             }
+ 1013              		.loc 1 209 82 view .LVU200
+ 1014 00ce 0269     		ldr	r2, [r0, #16]
+ 1015              	.LVL83:
+ 208:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ 1016              		.loc 1 208 17 view .LVU201
+ 1017 00d0 0192     		str	r2, [sp, #4]
+ 1018 00d2 0090     		str	r0, [sp]
+ 1019 00d4 3C4A     		ldr	r2, .L72+40
+ 1020 00d6 3021     		movs	r1, #48
+ 1021 00d8 02A8     		add	r0, sp, #8
+ 1022 00da FFF7FEFF 		bl	snprintf
+ 1023              	.LVL84:
+ 208:./Application/Src/menu.c ****                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 26
+
+
+ 1024              		.loc 1 208 17 view .LVU202
+ 1025 00de EBE7     		b	.L55
+ 1026              	.LVL85:
+ 1027              	.L57:
+ 219:./Application/Src/menu.c ****                 line[len++] = ' ';
+ 1028              		.loc 1 219 17 is_stmt 1 view .LVU203
+ 1029              		.loc 1 219 29 is_stmt 0 view .LVU204
+ 1030 00e0 00F13803 		add	r3, r0, #56
+ 1031 00e4 6B44     		add	r3, sp, r3
+ 1032 00e6 2022     		movs	r2, #32
+ 1033 00e8 03F8302C 		strb	r2, [r3, #-48]
+ 1034              		.loc 1 219 25 view .LVU205
+ 1035 00ec 0130     		adds	r0, r0, #1
+ 1036              	.LVL86:
+ 1037              	.L56:
+ 218:./Application/Src/menu.c ****                 line[len++] = ' ';
+ 1038              		.loc 1 218 24 is_stmt 1 view .LVU206
+ 1039 00ee 1628     		cmp	r0, #22
+ 1040 00f0 F6DD     		ble	.L57
+ 220:./Application/Src/menu.c ****             line[23] = '\0';
+ 1041              		.loc 1 220 13 view .LVU207
+ 1042              		.loc 1 220 22 is_stmt 0 view .LVU208
+ 1043 00f2 0020     		movs	r0, #0
+ 1044              	.LVL87:
+ 1045              		.loc 1 220 22 view .LVU209
+ 1046 00f4 8DF81F00 		strb	r0, [sp, #31]
+ 221:./Application/Src/menu.c ****             LCD_draw_string(0, row, line, COLOR_BLACK, COLOR_WHITE);
+ 1047              		.loc 1 221 13 is_stmt 1 view .LVU210
+ 1048 00f8 4FF6FF73 		movw	r3, #65535
+ 1049 00fc 0093     		str	r3, [sp]
+ 1050 00fe 0346     		mov	r3, r0
+ 1051 0100 02AA     		add	r2, sp, #8
+ 1052 0102 A9B2     		uxth	r1, r5
+ 1053 0104 FFF7FEFF 		bl	LCD_draw_string
+ 1054              	.LVL88:
+ 1055              	.L58:
+ 1056              		.loc 1 221 13 is_stmt 0 view .LVU211
+ 1057              	.LBE14:
+ 1058              	.LBE13:
+ 195:./Application/Src/menu.c ****     {
+ 1059              		.loc 1 195 29 is_stmt 1 discriminator 2 view .LVU212
+ 1060 0108 0134     		adds	r4, r4, #1
+ 1061              	.LVL89:
+ 1062              	.L50:
+ 195:./Application/Src/menu.c ****     {
+ 1063              		.loc 1 195 23 discriminator 1 view .LVU213
+ 1064 010a 042C     		cmp	r4, #4
+ 1065 010c 11DC     		bgt	.L69
+ 1066              	.LBB15:
+ 197:./Application/Src/menu.c ****         int row = 2 + i;
+ 1067              		.loc 1 197 9 view .LVU214
+ 197:./Application/Src/menu.c ****         int row = 2 + i;
+ 1068              		.loc 1 197 44 is_stmt 0 view .LVU215
+ 1069 010e 284B     		ldr	r3, .L72+16
+ 1070 0110 1A68     		ldr	r2, [r3]
+ 197:./Application/Src/menu.c ****         int row = 2 + i;
+ 1071              		.loc 1 197 13 view .LVU216
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 27
+
+
+ 1072 0112 2244     		add	r2, r2, r4
+ 1073              	.LVL90:
+ 198:./Application/Src/menu.c **** 
+ 1074              		.loc 1 198 9 is_stmt 1 view .LVU217
+ 198:./Application/Src/menu.c **** 
+ 1075              		.loc 1 198 13 is_stmt 0 view .LVU218
+ 1076 0114 A51C     		adds	r5, r4, #2
+ 1077              	.LVL91:
+ 200:./Application/Src/menu.c ****         {
+ 1078              		.loc 1 200 9 is_stmt 1 view .LVU219
+ 200:./Application/Src/menu.c ****         {
+ 1079              		.loc 1 200 21 is_stmt 0 view .LVU220
+ 1080 0116 234B     		ldr	r3, .L72+4
+ 1081 0118 1B68     		ldr	r3, [r3]
+ 200:./Application/Src/menu.c ****         {
+ 1082              		.loc 1 200 12 view .LVU221
+ 1083 011a 9342     		cmp	r3, r2
+ 1084 011c B6DC     		bgt	.L70
+ 222:./Application/Src/menu.c ****         }
+ 223:./Application/Src/menu.c ****         else
+ 224:./Application/Src/menu.c ****         {
+ 225:./Application/Src/menu.c ****             LCD_draw_string(0, row, "                        ", COLOR_BLACK, COLOR_WHITE);
+ 1085              		.loc 1 225 13 is_stmt 1 view .LVU222
+ 1086 011e 4FF6FF73 		movw	r3, #65535
+ 1087 0122 0093     		str	r3, [sp]
+ 1088 0124 0023     		movs	r3, #0
+ 1089 0126 294A     		ldr	r2, .L72+44
+ 1090              	.LVL92:
+ 1091              		.loc 1 225 13 is_stmt 0 view .LVU223
+ 1092 0128 A9B2     		uxth	r1, r5
+ 1093 012a 1846     		mov	r0, r3
+ 1094 012c FFF7FEFF 		bl	LCD_draw_string
+ 1095              	.LVL93:
+ 1096              		.loc 1 225 13 view .LVU224
+ 1097 0130 EAE7     		b	.L58
+ 1098              	.LVL94:
+ 1099              	.L69:
+ 1100              		.loc 1 225 13 view .LVU225
+ 1101              	.LBE15:
+ 1102              	.LBE16:
+ 226:./Application/Src/menu.c ****         }
+ 227:./Application/Src/menu.c ****     }
+ 228:./Application/Src/menu.c **** 
+ 229:./Application/Src/menu.c ****     /* Scroll indicator */
+ 230:./Application/Src/menu.c ****     if (fileCount > 5)
+ 1103              		.loc 1 230 5 is_stmt 1 view .LVU226
+ 1104              		.loc 1 230 19 is_stmt 0 view .LVU227
+ 1105 0132 1C4B     		ldr	r3, .L72+4
+ 1106 0134 1A68     		ldr	r2, [r3]
+ 1107              		.loc 1 230 8 view .LVU228
+ 1108 0136 052A     		cmp	r2, #5
+ 1109 0138 0ADC     		bgt	.L71
+ 1110              	.LVL95:
+ 1111              	.L60:
+ 231:./Application/Src/menu.c ****     {
+ 232:./Application/Src/menu.c ****         int lo = select_scroll_offset + 1;
+ 233:./Application/Src/menu.c ****         int hi = (select_scroll_offset + 5 < fileCount) ? select_scroll_offset + 5 : fileCount;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 28
+
+
+ 234:./Application/Src/menu.c ****         snprintf(line, sizeof(line), "  [%d-%d of %d]", lo, hi, (int)fileCount);
+ 235:./Application/Src/menu.c ****         int slen = strlen(line);
+ 236:./Application/Src/menu.c ****         while (slen < 24)
+ 237:./Application/Src/menu.c ****             line[slen++] = ' ';
+ 238:./Application/Src/menu.c ****         line[24] = '\0';
+ 239:./Application/Src/menu.c ****         LCD_draw_string(0, 7, line, COLOR_BLACK, COLOR_WHITE);
+ 240:./Application/Src/menu.c ****     }
+ 241:./Application/Src/menu.c **** 
+ 242:./Application/Src/menu.c ****     LCD_draw_string(0, 8, ":d select  :a back      ", COLOR_BLACK, COLOR_WHITE);
+ 1112              		.loc 1 242 5 is_stmt 1 view .LVU229
+ 1113 013a 4FF6FF73 		movw	r3, #65535
+ 1114 013e 0093     		str	r3, [sp]
+ 1115 0140 0023     		movs	r3, #0
+ 1116 0142 234A     		ldr	r2, .L72+48
+ 1117 0144 0821     		movs	r1, #8
+ 1118 0146 1846     		mov	r0, r3
+ 1119 0148 FFF7FEFF 		bl	LCD_draw_string
+ 1120              	.LVL96:
+ 1121              	.L46:
+ 243:./Application/Src/menu.c **** }
+ 1122              		.loc 1 243 1 is_stmt 0 view .LVU230
+ 1123 014c 0FB0     		add	sp, sp, #60
+ 1124              	.LCFI16:
+ 1125              		.cfi_remember_state
+ 1126              		.cfi_def_cfa_offset 12
+ 1127              		@ sp needed
+ 1128 014e 30BD     		pop	{r4, r5, pc}
+ 1129              	.LVL97:
+ 1130              	.L71:
+ 1131              	.LCFI17:
+ 1132              		.cfi_restore_state
+ 1133              	.LBB17:
+ 232:./Application/Src/menu.c ****         int hi = (select_scroll_offset + 5 < fileCount) ? select_scroll_offset + 5 : fileCount;
+ 1134              		.loc 1 232 9 is_stmt 1 view .LVU231
+ 232:./Application/Src/menu.c ****         int hi = (select_scroll_offset + 5 < fileCount) ? select_scroll_offset + 5 : fileCount;
+ 1135              		.loc 1 232 39 is_stmt 0 view .LVU232
+ 1136 0150 174B     		ldr	r3, .L72+16
+ 1137 0152 1B68     		ldr	r3, [r3]
+ 1138              	.LVL98:
+ 233:./Application/Src/menu.c ****         snprintf(line, sizeof(line), "  [%d-%d of %d]", lo, hi, (int)fileCount);
+ 1139              		.loc 1 233 9 is_stmt 1 view .LVU233
+ 233:./Application/Src/menu.c ****         snprintf(line, sizeof(line), "  [%d-%d of %d]", lo, hi, (int)fileCount);
+ 1140              		.loc 1 233 40 is_stmt 0 view .LVU234
+ 1141 0154 591D     		adds	r1, r3, #5
+ 233:./Application/Src/menu.c ****         snprintf(line, sizeof(line), "  [%d-%d of %d]", lo, hi, (int)fileCount);
+ 1142              		.loc 1 233 13 view .LVU235
+ 1143 0156 9142     		cmp	r1, r2
+ 1144 0158 A8BF     		it	ge
+ 1145 015a 1146     		movge	r1, r2
+ 1146              	.LVL99:
+ 234:./Application/Src/menu.c ****         int slen = strlen(line);
+ 1147              		.loc 1 234 9 is_stmt 1 view .LVU236
+ 1148 015c 02AC     		add	r4, sp, #8
+ 1149              	.LVL100:
+ 234:./Application/Src/menu.c ****         int slen = strlen(line);
+ 1150              		.loc 1 234 9 is_stmt 0 view .LVU237
+ 1151 015e 0192     		str	r2, [sp, #4]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 29
+
+
+ 1152 0160 0091     		str	r1, [sp]
+ 1153 0162 0133     		adds	r3, r3, #1
+ 1154              	.LVL101:
+ 234:./Application/Src/menu.c ****         int slen = strlen(line);
+ 1155              		.loc 1 234 9 view .LVU238
+ 1156 0164 1B4A     		ldr	r2, .L72+52
+ 1157 0166 3021     		movs	r1, #48
+ 1158              	.LVL102:
+ 234:./Application/Src/menu.c ****         int slen = strlen(line);
+ 1159              		.loc 1 234 9 view .LVU239
+ 1160 0168 2046     		mov	r0, r4
+ 1161 016a FFF7FEFF 		bl	snprintf
+ 1162              	.LVL103:
+ 235:./Application/Src/menu.c ****         while (slen < 24)
+ 1163              		.loc 1 235 9 is_stmt 1 view .LVU240
+ 235:./Application/Src/menu.c ****         while (slen < 24)
+ 1164              		.loc 1 235 20 is_stmt 0 view .LVU241
+ 1165 016e 2046     		mov	r0, r4
+ 1166 0170 FFF7FEFF 		bl	strlen
+ 1167              	.LVL104:
+ 236:./Application/Src/menu.c ****             line[slen++] = ' ';
+ 1168              		.loc 1 236 9 is_stmt 1 view .LVU242
+ 236:./Application/Src/menu.c ****             line[slen++] = ' ';
+ 1169              		.loc 1 236 15 is_stmt 0 view .LVU243
+ 1170 0174 06E0     		b	.L61
+ 1171              	.L62:
+ 237:./Application/Src/menu.c ****         line[24] = '\0';
+ 1172              		.loc 1 237 13 is_stmt 1 view .LVU244
+ 1173              	.LVL105:
+ 237:./Application/Src/menu.c ****         line[24] = '\0';
+ 1174              		.loc 1 237 26 is_stmt 0 view .LVU245
+ 1175 0176 00F13803 		add	r3, r0, #56
+ 1176 017a 6B44     		add	r3, sp, r3
+ 1177 017c 2022     		movs	r2, #32
+ 1178 017e 03F8302C 		strb	r2, [r3, #-48]
+ 237:./Application/Src/menu.c ****         line[24] = '\0';
+ 1179              		.loc 1 237 22 view .LVU246
+ 1180 0182 0130     		adds	r0, r0, #1
+ 1181              	.LVL106:
+ 1182              	.L61:
+ 236:./Application/Src/menu.c ****             line[slen++] = ' ';
+ 1183              		.loc 1 236 21 is_stmt 1 view .LVU247
+ 1184 0184 1728     		cmp	r0, #23
+ 1185 0186 F6DD     		ble	.L62
+ 238:./Application/Src/menu.c ****         LCD_draw_string(0, 7, line, COLOR_BLACK, COLOR_WHITE);
+ 1186              		.loc 1 238 9 view .LVU248
+ 238:./Application/Src/menu.c ****         LCD_draw_string(0, 7, line, COLOR_BLACK, COLOR_WHITE);
+ 1187              		.loc 1 238 18 is_stmt 0 view .LVU249
+ 1188 0188 0020     		movs	r0, #0
+ 1189              	.LVL107:
+ 238:./Application/Src/menu.c ****         LCD_draw_string(0, 7, line, COLOR_BLACK, COLOR_WHITE);
+ 1190              		.loc 1 238 18 view .LVU250
+ 1191 018a 8DF82000 		strb	r0, [sp, #32]
+ 239:./Application/Src/menu.c ****     }
+ 1192              		.loc 1 239 9 is_stmt 1 view .LVU251
+ 1193 018e 4FF6FF73 		movw	r3, #65535
+ 1194 0192 0093     		str	r3, [sp]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 30
+
+
+ 1195 0194 0346     		mov	r3, r0
+ 1196 0196 02AA     		add	r2, sp, #8
+ 1197 0198 0721     		movs	r1, #7
+ 1198 019a FFF7FEFF 		bl	LCD_draw_string
+ 1199              	.LVL108:
+ 1200 019e CCE7     		b	.L60
+ 1201              	.L73:
+ 1202              		.align	2
+ 1203              	.L72:
+ 1204 01a0 00000000 		.word	page_dirty
+ 1205 01a4 00000000 		.word	fileCount
+ 1206 01a8 00000000 		.word	.LC28
+ 1207 01ac 00000000 		.word	select_song_index
+ 1208 01b0 00000000 		.word	select_scroll_offset
+ 1209 01b4 14000000 		.word	.LC29
+ 1210 01b8 38000000 		.word	.LC13
+ 1211 01bc 00000000 		.word	active_song_index
+ 1212 01c0 00000000 		.word	fileList
+ 1213 01c4 40000000 		.word	.LC31
+ 1214 01c8 30000000 		.word	.LC30
+ 1215 01cc 00000000 		.word	.LC6
+ 1216 01d0 60000000 		.word	.LC33
+ 1217 01d4 50000000 		.word	.LC32
+ 1218              	.LBE17:
+ 1219              		.cfi_endproc
+ 1220              	.LFE363:
+ 1222              		.section	.text.menu_get_state,"ax",%progbits
+ 1223              		.align	1
+ 1224              		.global	menu_get_state
+ 1225              		.syntax unified
+ 1226              		.thumb
+ 1227              		.thumb_func
+ 1229              	menu_get_state:
+ 1230              	.LFB364:
+ 244:./Application/Src/menu.c **** 
+ 245:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 246:./Application/Src/menu.c **** /*  Public API                                                        */
+ 247:./Application/Src/menu.c **** /* ------------------------------------------------------------------ */
+ 248:./Application/Src/menu.c **** 
+ 249:./Application/Src/menu.c **** MenuState_t menu_get_state(void)
+ 250:./Application/Src/menu.c **** {
+ 1231              		.loc 1 250 1 view -0
+ 1232              		.cfi_startproc
+ 1233              		@ args = 0, pretend = 0, frame = 0
+ 1234              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1235              		@ link register save eliminated.
+ 251:./Application/Src/menu.c ****     return menu_state;
+ 1236              		.loc 1 251 5 view .LVU253
+ 252:./Application/Src/menu.c **** }
+ 1237              		.loc 1 252 1 is_stmt 0 view .LVU254
+ 1238 0000 014B     		ldr	r3, .L75
+ 1239 0002 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1240 0004 7047     		bx	lr
+ 1241              	.L76:
+ 1242 0006 00BF     		.align	2
+ 1243              	.L75:
+ 1244 0008 00000000 		.word	menu_state
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 31
+
+
+ 1245              		.cfi_endproc
+ 1246              	.LFE364:
+ 1248              		.section	.rodata.menu_init.str1.4,"aMS",%progbits,1
+ 1249              		.align	2
+ 1250              	.LC34:
+ 1251 0000 454C4543 		.ascii	"ELEC391 Piano Bot       \000"
+ 1251      33393120 
+ 1251      5069616E 
+ 1251      6F20426F 
+ 1251      74202020 
+ 1252              		.section	.text.menu_init,"ax",%progbits
+ 1253              		.align	1
+ 1254              		.global	menu_init
+ 1255              		.syntax unified
+ 1256              		.thumb
+ 1257              		.thumb_func
+ 1259              	menu_init:
+ 1260              	.LFB365:
+ 253:./Application/Src/menu.c **** 
+ 254:./Application/Src/menu.c **** void menu_init(void)
+ 255:./Application/Src/menu.c **** {
+ 1261              		.loc 1 255 1 is_stmt 1 view -0
+ 1262              		.cfi_startproc
+ 1263              		@ args = 0, pretend = 0, frame = 0
+ 1264              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1265 0000 00B5     		push	{lr}
+ 1266              	.LCFI18:
+ 1267              		.cfi_def_cfa_offset 4
+ 1268              		.cfi_offset 14, -4
+ 1269 0002 83B0     		sub	sp, sp, #12
+ 1270              	.LCFI19:
+ 1271              		.cfi_def_cfa_offset 16
+ 256:./Application/Src/menu.c ****     LCD_draw_string(0, 0, "ELEC391 Piano Bot       ", COLOR_BLACK, COLOR_WHITE);
+ 1272              		.loc 1 256 5 view .LVU256
+ 1273 0004 4FF6FF73 		movw	r3, #65535
+ 1274 0008 0093     		str	r3, [sp]
+ 1275 000a 0023     		movs	r3, #0
+ 1276 000c 084A     		ldr	r2, .L79
+ 1277 000e 1946     		mov	r1, r3
+ 1278 0010 1846     		mov	r0, r3
+ 1279 0012 FFF7FEFF 		bl	LCD_draw_string
+ 1280              	.LVL109:
+ 257:./Application/Src/menu.c ****     menu_state = MENU_STATE_MAIN;
+ 1281              		.loc 1 257 5 view .LVU257
+ 1282              		.loc 1 257 16 is_stmt 0 view .LVU258
+ 1283 0016 0023     		movs	r3, #0
+ 1284 0018 064A     		ldr	r2, .L79+4
+ 1285 001a 1370     		strb	r3, [r2]
+ 258:./Application/Src/menu.c ****     menu_index = 0;
+ 1286              		.loc 1 258 5 is_stmt 1 view .LVU259
+ 1287              		.loc 1 258 16 is_stmt 0 view .LVU260
+ 1288 001c 064A     		ldr	r2, .L79+8
+ 1289 001e 1360     		str	r3, [r2]
+ 259:./Application/Src/menu.c ****     page_dirty = 1;
+ 1290              		.loc 1 259 5 is_stmt 1 view .LVU261
+ 1291              		.loc 1 259 16 is_stmt 0 view .LVU262
+ 1292 0020 064B     		ldr	r3, .L79+12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 32
+
+
+ 1293 0022 0122     		movs	r2, #1
+ 1294 0024 1A60     		str	r2, [r3]
+ 260:./Application/Src/menu.c ****     menu_draw_main();
+ 1295              		.loc 1 260 5 is_stmt 1 view .LVU263
+ 1296 0026 FFF7FEFF 		bl	menu_draw_main
+ 1297              	.LVL110:
+ 261:./Application/Src/menu.c **** }
+ 1298              		.loc 1 261 1 is_stmt 0 view .LVU264
+ 1299 002a 03B0     		add	sp, sp, #12
+ 1300              	.LCFI20:
+ 1301              		.cfi_def_cfa_offset 4
+ 1302              		@ sp needed
+ 1303 002c 00BD     		pop	{pc}
+ 1304              	.L80:
+ 1305 002e 00BF     		.align	2
+ 1306              	.L79:
+ 1307 0030 00000000 		.word	.LC34
+ 1308 0034 00000000 		.word	menu_state
+ 1309 0038 00000000 		.word	menu_index
+ 1310 003c 00000000 		.word	page_dirty
+ 1311              		.cfi_endproc
+ 1312              	.LFE365:
+ 1314              		.section	.rodata.menu_update.str1.4,"aMS",%progbits,1
+ 1315              		.align	2
+ 1316              	.LC35:
+ 1317 0000 506C6179 		.ascii	"Playing song...         \000"
+ 1317      696E6720 
+ 1317      736F6E67 
+ 1317      2E2E2E20 
+ 1317      20202020 
+ 1318 0019 000000   		.align	2
+ 1319              	.LC36:
+ 1320 001c 4E6F2073 		.ascii	"No song selected!       \000"
+ 1320      6F6E6720 
+ 1320      73656C65 
+ 1320      63746564 
+ 1320      21202020 
+ 1321 0035 000000   		.align	2
+ 1322              	.LC37:
+ 1323 0038 486F6D69 		.ascii	"Homing...               \000"
+ 1323      6E672E2E 
+ 1323      2E202020 
+ 1323      20202020 
+ 1323      20202020 
+ 1324 0051 000000   		.align	2
+ 1325              	.LC38:
+ 1326 0054 486F6D69 		.ascii	"Homing done!            \000"
+ 1326      6E672064 
+ 1326      6F6E6521 
+ 1326      20202020 
+ 1326      20202020 
+ 1327 006d 000000   		.align	2
+ 1328              	.LC39:
+ 1329 0070 53656C65 		.ascii	"Selected: %-12s  \000"
+ 1329      63746564 
+ 1329      3A20252D 
+ 1329      31327320 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 33
+
+
+ 1329      2000
+ 1330              		.section	.text.menu_update,"ax",%progbits
+ 1331              		.align	1
+ 1332              		.global	menu_update
+ 1333              		.syntax unified
+ 1334              		.thumb
+ 1335              		.thumb_func
+ 1337              	menu_update:
+ 1338              	.LFB366:
+ 262:./Application/Src/menu.c **** 
+ 263:./Application/Src/menu.c **** void menu_update(void)
+ 264:./Application/Src/menu.c **** {
+ 1339              		.loc 1 264 1 is_stmt 1 view -0
+ 1340              		.cfi_startproc
+ 1341              		@ args = 0, pretend = 0, frame = 32
+ 1342              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1343 0000 10B5     		push	{r4, lr}
+ 1344              	.LCFI21:
+ 1345              		.cfi_def_cfa_offset 8
+ 1346              		.cfi_offset 4, -8
+ 1347              		.cfi_offset 14, -4
+ 1348 0002 8AB0     		sub	sp, sp, #40
+ 1349              	.LCFI22:
+ 1350              		.cfi_def_cfa_offset 48
+ 265:./Application/Src/menu.c **** 
+ 266:./Application/Src/menu.c ****     /* ---- Handle BACK in any sub-page ---- */
+ 267:./Application/Src/menu.c ****     if (menu_back)
+ 1351              		.loc 1 267 5 view .LVU266
+ 1352              		.loc 1 267 9 is_stmt 0 view .LVU267
+ 1353 0004 8B4B     		ldr	r3, .L121
+ 1354 0006 1B68     		ldr	r3, [r3]
+ 1355              		.loc 1 267 8 view .LVU268
+ 1356 0008 2BB1     		cbz	r3, .L82
+ 268:./Application/Src/menu.c ****     {
+ 269:./Application/Src/menu.c ****         menu_back = 0;
+ 1357              		.loc 1 269 9 is_stmt 1 view .LVU269
+ 1358              		.loc 1 269 19 is_stmt 0 view .LVU270
+ 1359 000a 8A4B     		ldr	r3, .L121
+ 1360 000c 0022     		movs	r2, #0
+ 1361 000e 1A60     		str	r2, [r3]
+ 270:./Application/Src/menu.c ****         if (menu_state != MENU_STATE_MAIN)
+ 1362              		.loc 1 270 9 is_stmt 1 view .LVU271
+ 1363              		.loc 1 270 24 is_stmt 0 view .LVU272
+ 1364 0010 894B     		ldr	r3, .L121+4
+ 1365 0012 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1366              		.loc 1 270 12 view .LVU273
+ 1367 0014 ABB9     		cbnz	r3, .L112
+ 1368              	.L82:
+ 271:./Application/Src/menu.c ****         {
+ 272:./Application/Src/menu.c ****             /* If a transfer is in progress, abort it before leaving */
+ 273:./Application/Src/menu.c ****             if (menu_state == MENU_STATE_TRANSMIT && FT_GetState() == FT_STATE_RECEIVING)
+ 274:./Application/Src/menu.c ****             {
+ 275:./Application/Src/menu.c ****                 FT_Abort();
+ 276:./Application/Src/menu.c ****             }
+ 277:./Application/Src/menu.c ****             if (menu_state == MENU_STATE_TRANSMIT_RAM)
+ 278:./Application/Src/menu.c ****             {
+ 279:./Application/Src/menu.c ****                 ram_rx_started = 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 34
+
+
+ 280:./Application/Src/menu.c ****                 ram_rx_complete = 0;
+ 281:./Application/Src/menu.c ****                 ram_rx_offset = 0;
+ 282:./Application/Src/menu.c ****                 redirect_to_ram = 0;
+ 283:./Application/Src/menu.c ****             }
+ 284:./Application/Src/menu.c ****             uart_binary_mode = 0;
+ 285:./Application/Src/menu.c ****             menu_state = MENU_STATE_MAIN;
+ 286:./Application/Src/menu.c ****             menu_index = 0;
+ 287:./Application/Src/menu.c ****             page_dirty = 1;
+ 288:./Application/Src/menu.c ****             clear_menu_area();
+ 289:./Application/Src/menu.c ****             menu_draw_main();
+ 290:./Application/Src/menu.c ****             /* Consume stale nav flags */
+ 291:./Application/Src/menu.c ****             menu_move_down = 0;
+ 292:./Application/Src/menu.c ****             menu_move_up = 0;
+ 293:./Application/Src/menu.c ****             menu_enter = 0;
+ 294:./Application/Src/menu.c ****             return;
+ 295:./Application/Src/menu.c ****         }
+ 296:./Application/Src/menu.c ****     }
+ 297:./Application/Src/menu.c **** 
+ 298:./Application/Src/menu.c ****     /* ---- State-specific update ---- */
+ 299:./Application/Src/menu.c ****     switch (menu_state)
+ 1369              		.loc 1 299 5 is_stmt 1 view .LVU274
+ 1370 0016 884B     		ldr	r3, .L121+4
+ 1371 0018 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1372 001a 022B     		cmp	r3, #2
+ 1373 001c 00F03981 		beq	.L86
+ 1374 0020 3CD8     		bhi	.L87
+ 1375 0022 002B     		cmp	r3, #0
+ 1376 0024 00F08C80 		beq	.L88
+ 1377 0028 012B     		cmp	r3, #1
+ 1378 002a 03D1     		bne	.L90
+ 300:./Application/Src/menu.c ****     {
+ 301:./Application/Src/menu.c **** 
+ 302:./Application/Src/menu.c ****     /* ===== MAIN MENU ===== */
+ 303:./Application/Src/menu.c ****     case MENU_STATE_MAIN:
+ 304:./Application/Src/menu.c ****         /* Navigation */
+ 305:./Application/Src/menu.c ****         if (menu_move_down)
+ 306:./Application/Src/menu.c ****         {
+ 307:./Application/Src/menu.c ****             menu_index++;
+ 308:./Application/Src/menu.c ****             if (menu_index > 4)
+ 309:./Application/Src/menu.c ****                 menu_index = 0;
+ 310:./Application/Src/menu.c ****         }
+ 311:./Application/Src/menu.c ****         if (menu_move_up)
+ 312:./Application/Src/menu.c ****         {
+ 313:./Application/Src/menu.c ****             menu_index--;
+ 314:./Application/Src/menu.c ****             if (menu_index < 0)
+ 315:./Application/Src/menu.c ****                 menu_index = 4;
+ 316:./Application/Src/menu.c ****         }
+ 317:./Application/Src/menu.c **** 
+ 318:./Application/Src/menu.c ****         /* Enter */
+ 319:./Application/Src/menu.c ****         if (menu_enter)
+ 320:./Application/Src/menu.c ****         {
+ 321:./Application/Src/menu.c ****             menu_enter = 0;
+ 322:./Application/Src/menu.c ****             switch (menu_index)
+ 323:./Application/Src/menu.c ****             {
+ 324:./Application/Src/menu.c ****                 case 0: /* Play Song */
+ 325:./Application/Src/menu.c ****                     /* Only play if a song is selected */
+ 326:./Application/Src/menu.c ****                     if (active_song_index >= 0 && active_song_index < fileCount)
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 35
+
+
+ 327:./Application/Src/menu.c ****                     {
+ 328:./Application/Src/menu.c ****                         LCD_draw_string(0, 9, "Playing song...         ", COLOR_BLACK, COLOR_WHITE)
+ 329:./Application/Src/menu.c ****                         /* TODO: hook into traversal_song with the selected file */
+ 330:./Application/Src/menu.c ****                     }
+ 331:./Application/Src/menu.c ****                     else
+ 332:./Application/Src/menu.c ****                     {
+ 333:./Application/Src/menu.c ****                         LCD_draw_string(0, 9, "No song selected!       ", COLOR_BLACK, COLOR_WHITE)
+ 334:./Application/Src/menu.c ****                     }
+ 335:./Application/Src/menu.c ****                     break;
+ 336:./Application/Src/menu.c ****                 case 1: /* Transmit Song to SD card */
+ 337:./Application/Src/menu.c ****                     menu_state = MENU_STATE_TRANSMIT;
+ 338:./Application/Src/menu.c ****                     page_dirty = 1;
+ 339:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 340:./Application/Src/menu.c ****                     FT_Init(); /* Reset transfer state */
+ 341:./Application/Src/menu.c ****                     break;
+ 342:./Application/Src/menu.c ****                 case 2: /* Transmit Song to RAM */
+ 343:./Application/Src/menu.c ****                     menu_state = MENU_STATE_TRANSMIT_RAM;
+ 344:./Application/Src/menu.c ****                     page_dirty = 1;
+ 345:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 346:./Application/Src/menu.c ****                     redirect_to_ram = 1;
+ 347:./Application/Src/menu.c ****                     ram_rx_started = 0;
+ 348:./Application/Src/menu.c ****                     ram_rx_complete = 0;
+ 349:./Application/Src/menu.c ****                     ram_rx_offset = 0;
+ 350:./Application/Src/menu.c ****                     break;
+ 351:./Application/Src/menu.c ****                 case 3: /* Select Song */
+ 352:./Application/Src/menu.c ****                     menu_state = MENU_STATE_SELECT;
+ 353:./Application/Src/menu.c ****                     page_dirty = 1;
+ 354:./Application/Src/menu.c ****                     break;
+ 355:./Application/Src/menu.c ****                 case 4: /* Homing */
+ 356:./Application/Src/menu.c ****                     LCD_draw_string(0, 9, "Homing...               ", COLOR_BLACK, COLOR_WHITE);
+ 357:./Application/Src/menu.c ****                     homing_procedure();
+ 358:./Application/Src/menu.c ****                     LCD_draw_string(0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
+ 359:./Application/Src/menu.c ****                     break;
+ 360:./Application/Src/menu.c ****             }
+ 361:./Application/Src/menu.c ****         }
+ 362:./Application/Src/menu.c **** 
+ 363:./Application/Src/menu.c ****         menu_draw_main();
+ 364:./Application/Src/menu.c ****         break;
+ 365:./Application/Src/menu.c **** 
+ 366:./Application/Src/menu.c ****     /* ===== TRANSMIT SONG PAGE ===== */
+ 367:./Application/Src/menu.c ****     case MENU_STATE_TRANSMIT:
+ 368:./Application/Src/menu.c ****         /* No navigation needed; just show transfer status */
+ 369:./Application/Src/menu.c ****         menu_draw_transmit();
+ 1379              		.loc 1 369 9 view .LVU275
+ 1380 002c FFF7FEFF 		bl	menu_draw_transmit
+ 1381              	.LVL111:
+ 370:./Application/Src/menu.c ****         /* Check transfer timeout */
+ 371:./Application/Src/menu.c ****         FT_TimeoutCheck();
+ 1382              		.loc 1 371 9 view .LVU276
+ 1383 0030 FFF7FEFF 		bl	FT_TimeoutCheck
+ 1384              	.LVL112:
+ 372:./Application/Src/menu.c ****         break;
+ 1385              		.loc 1 372 9 view .LVU277
+ 1386              	.L90:
+ 373:./Application/Src/menu.c **** 
+ 374:./Application/Src/menu.c ****     case MENU_STATE_TRANSMIT_RAM:
+ 375:./Application/Src/menu.c ****         /* No navigation needed; just show transfer status */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 36
+
+
+ 376:./Application/Src/menu.c ****         menu_draw_transmit_ram();
+ 377:./Application/Src/menu.c ****         break;
+ 378:./Application/Src/menu.c **** 
+ 379:./Application/Src/menu.c ****     /* ===== SELECT SONG PAGE ===== */
+ 380:./Application/Src/menu.c ****     case MENU_STATE_SELECT:
+ 381:./Application/Src/menu.c ****         /* Navigation through file list */
+ 382:./Application/Src/menu.c ****         if (menu_move_down)
+ 383:./Application/Src/menu.c ****         {
+ 384:./Application/Src/menu.c ****             select_song_index++;
+ 385:./Application/Src/menu.c ****             if (select_song_index >= fileCount)
+ 386:./Application/Src/menu.c ****                 select_song_index = 0;
+ 387:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 388:./Application/Src/menu.c ****             if (select_song_index >= select_scroll_offset + 5)
+ 389:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 390:./Application/Src/menu.c ****             if (select_song_index < select_scroll_offset)
+ 391:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 392:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 393:./Application/Src/menu.c ****             if (select_song_index == 0)
+ 394:./Application/Src/menu.c ****                 select_scroll_offset = 0;
+ 395:./Application/Src/menu.c ****         }
+ 396:./Application/Src/menu.c ****         if (menu_move_up)
+ 397:./Application/Src/menu.c ****         {
+ 398:./Application/Src/menu.c ****             select_song_index--;
+ 399:./Application/Src/menu.c ****             if (select_song_index < 0)
+ 400:./Application/Src/menu.c ****                 select_song_index = fileCount - 1;
+ 401:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 402:./Application/Src/menu.c ****             if (select_song_index < select_scroll_offset)
+ 403:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 404:./Application/Src/menu.c ****             if (select_song_index >= select_scroll_offset + 5)
+ 405:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 406:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 407:./Application/Src/menu.c ****             if (select_song_index == fileCount - 1)
+ 408:./Application/Src/menu.c ****                 select_scroll_offset = (fileCount > 5) ? fileCount - 5 : 0;
+ 409:./Application/Src/menu.c ****         }
+ 410:./Application/Src/menu.c **** 
+ 411:./Application/Src/menu.c ****         /* Select a song */
+ 412:./Application/Src/menu.c ****         if (menu_enter)
+ 413:./Application/Src/menu.c ****         {
+ 414:./Application/Src/menu.c ****             menu_enter = 0;
+ 415:./Application/Src/menu.c ****             if (fileCount > 0)
+ 416:./Application/Src/menu.c ****             {
+ 417:./Application/Src/menu.c ****                 active_song_index = select_song_index;
+ 418:./Application/Src/menu.c ****                 char buf[25];
+ 419:./Application/Src/menu.c ****                 snprintf(buf, sizeof(buf), "Selected: %-12s  ", fileList[active_song_index].name);
+ 420:./Application/Src/menu.c ****                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
+ 421:./Application/Src/menu.c ****             }
+ 422:./Application/Src/menu.c ****         }
+ 423:./Application/Src/menu.c **** 
+ 424:./Application/Src/menu.c ****         menu_draw_select();
+ 425:./Application/Src/menu.c ****         break;
+ 426:./Application/Src/menu.c ****     }
+ 427:./Application/Src/menu.c **** 
+ 428:./Application/Src/menu.c ****     /* Reset navigation flags */
+ 429:./Application/Src/menu.c ****     menu_move_down = 0;
+ 1387              		.loc 1 429 5 view .LVU278
+ 1388              		.loc 1 429 20 is_stmt 0 view .LVU279
+ 1389 0034 0023     		movs	r3, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 37
+
+
+ 1390 0036 814A     		ldr	r2, .L121+8
+ 1391 0038 1360     		str	r3, [r2]
+ 430:./Application/Src/menu.c ****     menu_move_up = 0;
+ 1392              		.loc 1 430 5 is_stmt 1 view .LVU280
+ 1393              		.loc 1 430 18 is_stmt 0 view .LVU281
+ 1394 003a 814A     		ldr	r2, .L121+12
+ 1395 003c 1360     		str	r3, [r2]
+ 1396              	.L81:
+ 431:./Application/Src/menu.c **** }
+ 1397              		.loc 1 431 1 view .LVU282
+ 1398 003e 0AB0     		add	sp, sp, #40
+ 1399              	.LCFI23:
+ 1400              		.cfi_remember_state
+ 1401              		.cfi_def_cfa_offset 8
+ 1402              		@ sp needed
+ 1403 0040 10BD     		pop	{r4, pc}
+ 1404              	.L112:
+ 1405              	.LCFI24:
+ 1406              		.cfi_restore_state
+ 273:./Application/Src/menu.c ****             {
+ 1407              		.loc 1 273 13 is_stmt 1 view .LVU283
+ 273:./Application/Src/menu.c ****             {
+ 1408              		.loc 1 273 16 is_stmt 0 view .LVU284
+ 1409 0042 012B     		cmp	r3, #1
+ 1410 0044 19D0     		beq	.L113
+ 1411              	.L83:
+ 277:./Application/Src/menu.c ****             {
+ 1412              		.loc 1 277 13 is_stmt 1 view .LVU285
+ 277:./Application/Src/menu.c ****             {
+ 1413              		.loc 1 277 28 is_stmt 0 view .LVU286
+ 1414 0046 7C4B     		ldr	r3, .L121+4
+ 1415 0048 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 277:./Application/Src/menu.c ****             {
+ 1416              		.loc 1 277 16 view .LVU287
+ 1417 004a 022B     		cmp	r3, #2
+ 1418 004c 1CD0     		beq	.L114
+ 1419              	.L84:
+ 284:./Application/Src/menu.c ****             menu_state = MENU_STATE_MAIN;
+ 1420              		.loc 1 284 13 is_stmt 1 view .LVU288
+ 284:./Application/Src/menu.c ****             menu_state = MENU_STATE_MAIN;
+ 1421              		.loc 1 284 30 is_stmt 0 view .LVU289
+ 1422 004e 7D4B     		ldr	r3, .L121+16
+ 1423 0050 0022     		movs	r2, #0
+ 1424 0052 1A60     		str	r2, [r3]
+ 285:./Application/Src/menu.c ****             menu_index = 0;
+ 1425              		.loc 1 285 13 is_stmt 1 view .LVU290
+ 285:./Application/Src/menu.c ****             menu_index = 0;
+ 1426              		.loc 1 285 24 is_stmt 0 view .LVU291
+ 1427 0054 784B     		ldr	r3, .L121+4
+ 1428 0056 1A70     		strb	r2, [r3]
+ 286:./Application/Src/menu.c ****             page_dirty = 1;
+ 1429              		.loc 1 286 13 is_stmt 1 view .LVU292
+ 286:./Application/Src/menu.c ****             page_dirty = 1;
+ 1430              		.loc 1 286 24 is_stmt 0 view .LVU293
+ 1431 0058 7B4B     		ldr	r3, .L121+20
+ 1432 005a 0024     		movs	r4, #0
+ 1433 005c 1C60     		str	r4, [r3]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 38
+
+
+ 287:./Application/Src/menu.c ****             clear_menu_area();
+ 1434              		.loc 1 287 13 is_stmt 1 view .LVU294
+ 287:./Application/Src/menu.c ****             clear_menu_area();
+ 1435              		.loc 1 287 24 is_stmt 0 view .LVU295
+ 1436 005e 7B4B     		ldr	r3, .L121+24
+ 1437 0060 0122     		movs	r2, #1
+ 1438 0062 1A60     		str	r2, [r3]
+ 288:./Application/Src/menu.c ****             menu_draw_main();
+ 1439              		.loc 1 288 13 is_stmt 1 view .LVU296
+ 1440 0064 FFF7FEFF 		bl	clear_menu_area
+ 1441              	.LVL113:
+ 289:./Application/Src/menu.c ****             /* Consume stale nav flags */
+ 1442              		.loc 1 289 13 view .LVU297
+ 1443 0068 FFF7FEFF 		bl	menu_draw_main
+ 1444              	.LVL114:
+ 291:./Application/Src/menu.c ****             menu_move_up = 0;
+ 1445              		.loc 1 291 13 view .LVU298
+ 291:./Application/Src/menu.c ****             menu_move_up = 0;
+ 1446              		.loc 1 291 28 is_stmt 0 view .LVU299
+ 1447 006c 734B     		ldr	r3, .L121+8
+ 1448 006e 1C60     		str	r4, [r3]
+ 292:./Application/Src/menu.c ****             menu_enter = 0;
+ 1449              		.loc 1 292 13 is_stmt 1 view .LVU300
+ 292:./Application/Src/menu.c ****             menu_enter = 0;
+ 1450              		.loc 1 292 26 is_stmt 0 view .LVU301
+ 1451 0070 734B     		ldr	r3, .L121+12
+ 1452 0072 1C60     		str	r4, [r3]
+ 293:./Application/Src/menu.c ****             return;
+ 1453              		.loc 1 293 13 is_stmt 1 view .LVU302
+ 293:./Application/Src/menu.c ****             return;
+ 1454              		.loc 1 293 24 is_stmt 0 view .LVU303
+ 1455 0074 764B     		ldr	r3, .L121+28
+ 1456 0076 1C60     		str	r4, [r3]
+ 294:./Application/Src/menu.c ****         }
+ 1457              		.loc 1 294 13 is_stmt 1 view .LVU304
+ 1458 0078 E1E7     		b	.L81
+ 1459              	.L113:
+ 273:./Application/Src/menu.c ****             {
+ 1460              		.loc 1 273 54 is_stmt 0 discriminator 1 view .LVU305
+ 1461 007a FFF7FEFF 		bl	FT_GetState
+ 1462              	.LVL115:
+ 273:./Application/Src/menu.c ****             {
+ 1463              		.loc 1 273 51 discriminator 2 view .LVU306
+ 1464 007e 0128     		cmp	r0, #1
+ 1465 0080 E1D1     		bne	.L83
+ 275:./Application/Src/menu.c ****             }
+ 1466              		.loc 1 275 17 is_stmt 1 view .LVU307
+ 1467 0082 FFF7FEFF 		bl	FT_Abort
+ 1468              	.LVL116:
+ 1469 0086 DEE7     		b	.L83
+ 1470              	.L114:
+ 279:./Application/Src/menu.c ****                 ram_rx_complete = 0;
+ 1471              		.loc 1 279 17 view .LVU308
+ 279:./Application/Src/menu.c ****                 ram_rx_complete = 0;
+ 1472              		.loc 1 279 32 is_stmt 0 view .LVU309
+ 1473 0088 0023     		movs	r3, #0
+ 1474 008a 724A     		ldr	r2, .L121+32
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 39
+
+
+ 1475 008c 1360     		str	r3, [r2]
+ 280:./Application/Src/menu.c ****                 ram_rx_offset = 0;
+ 1476              		.loc 1 280 17 is_stmt 1 view .LVU310
+ 280:./Application/Src/menu.c ****                 ram_rx_offset = 0;
+ 1477              		.loc 1 280 33 is_stmt 0 view .LVU311
+ 1478 008e 724A     		ldr	r2, .L121+36
+ 1479 0090 1360     		str	r3, [r2]
+ 281:./Application/Src/menu.c ****                 redirect_to_ram = 0;
+ 1480              		.loc 1 281 17 is_stmt 1 view .LVU312
+ 281:./Application/Src/menu.c ****                 redirect_to_ram = 0;
+ 1481              		.loc 1 281 31 is_stmt 0 view .LVU313
+ 1482 0092 724A     		ldr	r2, .L121+40
+ 1483 0094 1360     		str	r3, [r2]
+ 282:./Application/Src/menu.c ****             }
+ 1484              		.loc 1 282 17 is_stmt 1 view .LVU314
+ 282:./Application/Src/menu.c ****             }
+ 1485              		.loc 1 282 33 is_stmt 0 view .LVU315
+ 1486 0096 724A     		ldr	r2, .L121+44
+ 1487 0098 1360     		str	r3, [r2]
+ 1488 009a D8E7     		b	.L84
+ 1489              	.L87:
+ 299:./Application/Src/menu.c ****     {
+ 1490              		.loc 1 299 5 view .LVU316
+ 1491 009c 032B     		cmp	r3, #3
+ 1492 009e C9D1     		bne	.L90
+ 382:./Application/Src/menu.c ****         {
+ 1493              		.loc 1 382 9 is_stmt 1 view .LVU317
+ 382:./Application/Src/menu.c ****         {
+ 1494              		.loc 1 382 13 is_stmt 0 view .LVU318
+ 1495 00a0 664B     		ldr	r3, .L121+8
+ 1496 00a2 1B68     		ldr	r3, [r3]
+ 382:./Application/Src/menu.c ****         {
+ 1497              		.loc 1 382 12 view .LVU319
+ 1498 00a4 F3B1     		cbz	r3, .L102
+ 384:./Application/Src/menu.c ****             if (select_song_index >= fileCount)
+ 1499              		.loc 1 384 13 is_stmt 1 view .LVU320
+ 384:./Application/Src/menu.c ****             if (select_song_index >= fileCount)
+ 1500              		.loc 1 384 30 is_stmt 0 view .LVU321
+ 1501 00a6 6F4A     		ldr	r2, .L121+48
+ 1502 00a8 1368     		ldr	r3, [r2]
+ 1503 00aa 0133     		adds	r3, r3, #1
+ 1504 00ac 1360     		str	r3, [r2]
+ 385:./Application/Src/menu.c ****                 select_song_index = 0;
+ 1505              		.loc 1 385 13 is_stmt 1 view .LVU322
+ 385:./Application/Src/menu.c ****                 select_song_index = 0;
+ 1506              		.loc 1 385 35 is_stmt 0 view .LVU323
+ 1507 00ae 6E4A     		ldr	r2, .L121+52
+ 1508 00b0 1268     		ldr	r2, [r2]
+ 385:./Application/Src/menu.c ****                 select_song_index = 0;
+ 1509              		.loc 1 385 16 view .LVU324
+ 1510 00b2 9342     		cmp	r3, r2
+ 1511 00b4 02DB     		blt	.L103
+ 386:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 1512              		.loc 1 386 17 is_stmt 1 view .LVU325
+ 386:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 1513              		.loc 1 386 35 is_stmt 0 view .LVU326
+ 1514 00b6 6B4B     		ldr	r3, .L121+48
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 40
+
+
+ 1515 00b8 0022     		movs	r2, #0
+ 1516 00ba 1A60     		str	r2, [r3]
+ 1517              	.L103:
+ 388:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1518              		.loc 1 388 13 is_stmt 1 view .LVU327
+ 388:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1519              		.loc 1 388 35 is_stmt 0 view .LVU328
+ 1520 00bc 6B4B     		ldr	r3, .L121+56
+ 1521 00be 1A68     		ldr	r2, [r3]
+ 1522 00c0 0432     		adds	r2, r2, #4
+ 1523 00c2 684B     		ldr	r3, .L121+48
+ 1524 00c4 1B68     		ldr	r3, [r3]
+ 388:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1525              		.loc 1 388 16 view .LVU329
+ 1526 00c6 9A42     		cmp	r2, r3
+ 1527 00c8 02DA     		bge	.L104
+ 389:./Application/Src/menu.c ****             if (select_song_index < select_scroll_offset)
+ 1528              		.loc 1 389 17 is_stmt 1 view .LVU330
+ 389:./Application/Src/menu.c ****             if (select_song_index < select_scroll_offset)
+ 1529              		.loc 1 389 58 is_stmt 0 view .LVU331
+ 1530 00ca 1A1F     		subs	r2, r3, #4
+ 389:./Application/Src/menu.c ****             if (select_song_index < select_scroll_offset)
+ 1531              		.loc 1 389 38 view .LVU332
+ 1532 00cc 6749     		ldr	r1, .L121+56
+ 1533 00ce 0A60     		str	r2, [r1]
+ 1534              	.L104:
+ 390:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1535              		.loc 1 390 13 is_stmt 1 view .LVU333
+ 390:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1536              		.loc 1 390 35 is_stmt 0 view .LVU334
+ 1537 00d0 664A     		ldr	r2, .L121+56
+ 1538 00d2 1268     		ldr	r2, [r2]
+ 390:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1539              		.loc 1 390 16 view .LVU335
+ 1540 00d4 9342     		cmp	r3, r2
+ 1541 00d6 01DA     		bge	.L105
+ 391:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 1542              		.loc 1 391 17 is_stmt 1 view .LVU336
+ 391:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 1543              		.loc 1 391 38 is_stmt 0 view .LVU337
+ 1544 00d8 644A     		ldr	r2, .L121+56
+ 1545 00da 1360     		str	r3, [r2]
+ 1546              	.L105:
+ 393:./Application/Src/menu.c ****                 select_scroll_offset = 0;
+ 1547              		.loc 1 393 13 is_stmt 1 view .LVU338
+ 393:./Application/Src/menu.c ****                 select_scroll_offset = 0;
+ 1548              		.loc 1 393 16 is_stmt 0 view .LVU339
+ 1549 00dc 13B9     		cbnz	r3, .L102
+ 394:./Application/Src/menu.c ****         }
+ 1550              		.loc 1 394 17 is_stmt 1 view .LVU340
+ 394:./Application/Src/menu.c ****         }
+ 1551              		.loc 1 394 38 is_stmt 0 view .LVU341
+ 1552 00de 634B     		ldr	r3, .L121+56
+ 1553 00e0 0022     		movs	r2, #0
+ 1554 00e2 1A60     		str	r2, [r3]
+ 1555              	.L102:
+ 396:./Application/Src/menu.c ****         {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 41
+
+
+ 1556              		.loc 1 396 9 is_stmt 1 view .LVU342
+ 396:./Application/Src/menu.c ****         {
+ 1557              		.loc 1 396 13 is_stmt 0 view .LVU343
+ 1558 00e4 564B     		ldr	r3, .L121+12
+ 1559 00e6 1B68     		ldr	r3, [r3]
+ 396:./Application/Src/menu.c ****         {
+ 1560              		.loc 1 396 12 view .LVU344
+ 1561 00e8 E3B1     		cbz	r3, .L106
+ 398:./Application/Src/menu.c ****             if (select_song_index < 0)
+ 1562              		.loc 1 398 13 is_stmt 1 view .LVU345
+ 398:./Application/Src/menu.c ****             if (select_song_index < 0)
+ 1563              		.loc 1 398 30 is_stmt 0 view .LVU346
+ 1564 00ea 5E4A     		ldr	r2, .L121+48
+ 1565 00ec 1368     		ldr	r3, [r2]
+ 1566 00ee 013B     		subs	r3, r3, #1
+ 1567 00f0 1360     		str	r3, [r2]
+ 399:./Application/Src/menu.c ****                 select_song_index = fileCount - 1;
+ 1568              		.loc 1 399 13 is_stmt 1 view .LVU347
+ 399:./Application/Src/menu.c ****                 select_song_index = fileCount - 1;
+ 1569              		.loc 1 399 16 is_stmt 0 view .LVU348
+ 1570 00f2 002B     		cmp	r3, #0
+ 1571 00f4 C0F2D080 		blt	.L115
+ 1572              	.L107:
+ 402:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1573              		.loc 1 402 13 is_stmt 1 view .LVU349
+ 402:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1574              		.loc 1 402 35 is_stmt 0 view .LVU350
+ 1575 00f8 5A4B     		ldr	r3, .L121+48
+ 1576 00fa 1B68     		ldr	r3, [r3]
+ 1577 00fc 5B4A     		ldr	r2, .L121+56
+ 1578 00fe 1268     		ldr	r2, [r2]
+ 402:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index;
+ 1579              		.loc 1 402 16 view .LVU351
+ 1580 0100 9342     		cmp	r3, r2
+ 1581 0102 01DA     		bge	.L108
+ 403:./Application/Src/menu.c ****             if (select_song_index >= select_scroll_offset + 5)
+ 1582              		.loc 1 403 17 is_stmt 1 view .LVU352
+ 403:./Application/Src/menu.c ****             if (select_song_index >= select_scroll_offset + 5)
+ 1583              		.loc 1 403 38 is_stmt 0 view .LVU353
+ 1584 0104 594A     		ldr	r2, .L121+56
+ 1585 0106 1360     		str	r3, [r2]
+ 1586              	.L108:
+ 404:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1587              		.loc 1 404 13 is_stmt 1 view .LVU354
+ 404:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1588              		.loc 1 404 35 is_stmt 0 view .LVU355
+ 1589 0108 584A     		ldr	r2, .L121+56
+ 1590 010a 1268     		ldr	r2, [r2]
+ 1591 010c 0432     		adds	r2, r2, #4
+ 404:./Application/Src/menu.c ****                 select_scroll_offset = select_song_index - 4;
+ 1592              		.loc 1 404 16 view .LVU356
+ 1593 010e 9342     		cmp	r3, r2
+ 1594 0110 02DD     		ble	.L109
+ 405:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 1595              		.loc 1 405 17 is_stmt 1 view .LVU357
+ 405:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 1596              		.loc 1 405 58 is_stmt 0 view .LVU358
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 42
+
+
+ 1597 0112 1A1F     		subs	r2, r3, #4
+ 405:./Application/Src/menu.c ****             /* Handle wrap-around */
+ 1598              		.loc 1 405 38 view .LVU359
+ 1599 0114 5549     		ldr	r1, .L121+56
+ 1600 0116 0A60     		str	r2, [r1]
+ 1601              	.L109:
+ 407:./Application/Src/menu.c ****                 select_scroll_offset = (fileCount > 5) ? fileCount - 5 : 0;
+ 1602              		.loc 1 407 13 is_stmt 1 view .LVU360
+ 407:./Application/Src/menu.c ****                 select_scroll_offset = (fileCount > 5) ? fileCount - 5 : 0;
+ 1603              		.loc 1 407 48 is_stmt 0 view .LVU361
+ 1604 0118 534A     		ldr	r2, .L121+52
+ 1605 011a 1268     		ldr	r2, [r2]
+ 1606 011c 511E     		subs	r1, r2, #1
+ 407:./Application/Src/menu.c ****                 select_scroll_offset = (fileCount > 5) ? fileCount - 5 : 0;
+ 1607              		.loc 1 407 16 view .LVU362
+ 1608 011e 8B42     		cmp	r3, r1
+ 1609 0120 00F0BF80 		beq	.L116
+ 1610              	.L106:
+ 412:./Application/Src/menu.c ****         {
+ 1611              		.loc 1 412 9 is_stmt 1 view .LVU363
+ 412:./Application/Src/menu.c ****         {
+ 1612              		.loc 1 412 13 is_stmt 0 view .LVU364
+ 1613 0124 4A4B     		ldr	r3, .L121+28
+ 1614 0126 1B68     		ldr	r3, [r3]
+ 412:./Application/Src/menu.c ****         {
+ 1615              		.loc 1 412 12 view .LVU365
+ 1616 0128 3BB1     		cbz	r3, .L110
+ 414:./Application/Src/menu.c ****             if (fileCount > 0)
+ 1617              		.loc 1 414 13 is_stmt 1 view .LVU366
+ 414:./Application/Src/menu.c ****             if (fileCount > 0)
+ 1618              		.loc 1 414 24 is_stmt 0 view .LVU367
+ 1619 012a 494B     		ldr	r3, .L121+28
+ 1620 012c 0022     		movs	r2, #0
+ 1621 012e 1A60     		str	r2, [r3]
+ 415:./Application/Src/menu.c ****             {
+ 1622              		.loc 1 415 13 is_stmt 1 view .LVU368
+ 415:./Application/Src/menu.c ****             {
+ 1623              		.loc 1 415 27 is_stmt 0 view .LVU369
+ 1624 0130 4D4B     		ldr	r3, .L121+52
+ 1625 0132 1B68     		ldr	r3, [r3]
+ 415:./Application/Src/menu.c ****             {
+ 1626              		.loc 1 415 16 view .LVU370
+ 1627 0134 9342     		cmp	r3, r2
+ 1628 0136 00F3BB80 		bgt	.L117
+ 1629              	.L110:
+ 424:./Application/Src/menu.c ****         break;
+ 1630              		.loc 1 424 9 is_stmt 1 view .LVU371
+ 1631 013a FFF7FEFF 		bl	menu_draw_select
+ 1632              	.LVL117:
+ 425:./Application/Src/menu.c ****     }
+ 1633              		.loc 1 425 9 view .LVU372
+ 1634 013e 79E7     		b	.L90
+ 1635              	.L88:
+ 305:./Application/Src/menu.c ****         {
+ 1636              		.loc 1 305 9 view .LVU373
+ 305:./Application/Src/menu.c ****         {
+ 1637              		.loc 1 305 13 is_stmt 0 view .LVU374
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 43
+
+
+ 1638 0140 3E4B     		ldr	r3, .L121+8
+ 1639 0142 1B68     		ldr	r3, [r3]
+ 305:./Application/Src/menu.c ****         {
+ 1640              		.loc 1 305 12 view .LVU375
+ 1641 0144 43B1     		cbz	r3, .L92
+ 307:./Application/Src/menu.c ****             if (menu_index > 4)
+ 1642              		.loc 1 307 13 is_stmt 1 view .LVU376
+ 307:./Application/Src/menu.c ****             if (menu_index > 4)
+ 1643              		.loc 1 307 23 is_stmt 0 view .LVU377
+ 1644 0146 404A     		ldr	r2, .L121+20
+ 1645 0148 1368     		ldr	r3, [r2]
+ 1646 014a 0133     		adds	r3, r3, #1
+ 1647 014c 1360     		str	r3, [r2]
+ 308:./Application/Src/menu.c ****                 menu_index = 0;
+ 1648              		.loc 1 308 13 is_stmt 1 view .LVU378
+ 308:./Application/Src/menu.c ****                 menu_index = 0;
+ 1649              		.loc 1 308 16 is_stmt 0 view .LVU379
+ 1650 014e 042B     		cmp	r3, #4
+ 1651 0150 02DD     		ble	.L92
+ 309:./Application/Src/menu.c ****         }
+ 1652              		.loc 1 309 17 is_stmt 1 view .LVU380
+ 309:./Application/Src/menu.c ****         }
+ 1653              		.loc 1 309 28 is_stmt 0 view .LVU381
+ 1654 0152 1346     		mov	r3, r2
+ 1655 0154 0022     		movs	r2, #0
+ 1656 0156 1A60     		str	r2, [r3]
+ 1657              	.L92:
+ 311:./Application/Src/menu.c ****         {
+ 1658              		.loc 1 311 9 is_stmt 1 view .LVU382
+ 311:./Application/Src/menu.c ****         {
+ 1659              		.loc 1 311 13 is_stmt 0 view .LVU383
+ 1660 0158 394B     		ldr	r3, .L121+12
+ 1661 015a 1B68     		ldr	r3, [r3]
+ 311:./Application/Src/menu.c ****         {
+ 1662              		.loc 1 311 12 view .LVU384
+ 1663 015c 2BB1     		cbz	r3, .L93
+ 313:./Application/Src/menu.c ****             if (menu_index < 0)
+ 1664              		.loc 1 313 13 is_stmt 1 view .LVU385
+ 313:./Application/Src/menu.c ****             if (menu_index < 0)
+ 1665              		.loc 1 313 23 is_stmt 0 view .LVU386
+ 1666 015e 3A4A     		ldr	r2, .L121+20
+ 1667 0160 1368     		ldr	r3, [r2]
+ 1668 0162 013B     		subs	r3, r3, #1
+ 1669 0164 1360     		str	r3, [r2]
+ 314:./Application/Src/menu.c ****                 menu_index = 4;
+ 1670              		.loc 1 314 13 is_stmt 1 view .LVU387
+ 314:./Application/Src/menu.c ****                 menu_index = 4;
+ 1671              		.loc 1 314 16 is_stmt 0 view .LVU388
+ 1672 0166 002B     		cmp	r3, #0
+ 1673 0168 22DB     		blt	.L118
+ 1674              	.L93:
+ 319:./Application/Src/menu.c ****         {
+ 1675              		.loc 1 319 9 is_stmt 1 view .LVU389
+ 319:./Application/Src/menu.c ****         {
+ 1676              		.loc 1 319 13 is_stmt 0 view .LVU390
+ 1677 016a 394B     		ldr	r3, .L121+28
+ 1678 016c 1B68     		ldr	r3, [r3]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 44
+
+
+ 319:./Application/Src/menu.c ****         {
+ 1679              		.loc 1 319 12 view .LVU391
+ 1680 016e 7BB3     		cbz	r3, .L94
+ 321:./Application/Src/menu.c ****             switch (menu_index)
+ 1681              		.loc 1 321 13 is_stmt 1 view .LVU392
+ 321:./Application/Src/menu.c ****             switch (menu_index)
+ 1682              		.loc 1 321 24 is_stmt 0 view .LVU393
+ 1683 0170 374B     		ldr	r3, .L121+28
+ 1684 0172 0022     		movs	r2, #0
+ 1685 0174 1A60     		str	r2, [r3]
+ 322:./Application/Src/menu.c ****             {
+ 1686              		.loc 1 322 13 is_stmt 1 view .LVU394
+ 1687 0176 344B     		ldr	r3, .L121+20
+ 1688 0178 1B68     		ldr	r3, [r3]
+ 1689 017a 022B     		cmp	r3, #2
+ 1690 017c 47D0     		beq	.L95
+ 1691 017e 1BDD     		ble	.L119
+ 1692 0180 032B     		cmp	r3, #3
+ 1693 0182 7FD0     		beq	.L99
+ 1694 0184 042B     		cmp	r3, #4
+ 1695 0186 23D1     		bne	.L94
+ 356:./Application/Src/menu.c ****                     homing_procedure();
+ 1696              		.loc 1 356 21 view .LVU395
+ 1697 0188 4FF6FF73 		movw	r3, #65535
+ 1698 018c 1C46     		mov	r4, r3
+ 1699 018e 0093     		str	r3, [sp]
+ 1700 0190 0023     		movs	r3, #0
+ 1701 0192 374A     		ldr	r2, .L121+60
+ 1702 0194 0921     		movs	r1, #9
+ 1703 0196 1846     		mov	r0, r3
+ 1704 0198 FFF7FEFF 		bl	LCD_draw_string
+ 1705              	.LVL118:
+ 357:./Application/Src/menu.c ****                     LCD_draw_string(0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
+ 1706              		.loc 1 357 21 view .LVU396
+ 1707 019c FFF7FEFF 		bl	homing_procedure
+ 1708              	.LVL119:
+ 358:./Application/Src/menu.c ****                     break;
+ 1709              		.loc 1 358 21 view .LVU397
+ 1710 01a0 0094     		str	r4, [sp]
+ 1711 01a2 0023     		movs	r3, #0
+ 1712 01a4 334A     		ldr	r2, .L121+64
+ 1713 01a6 0921     		movs	r1, #9
+ 1714 01a8 1846     		mov	r0, r3
+ 1715 01aa FFF7FEFF 		bl	LCD_draw_string
+ 1716              	.LVL120:
+ 359:./Application/Src/menu.c ****             }
+ 1717              		.loc 1 359 21 view .LVU398
+ 1718 01ae 0FE0     		b	.L94
+ 1719              	.L118:
+ 315:./Application/Src/menu.c ****         }
+ 1720              		.loc 1 315 17 view .LVU399
+ 315:./Application/Src/menu.c ****         }
+ 1721              		.loc 1 315 28 is_stmt 0 view .LVU400
+ 1722 01b0 1346     		mov	r3, r2
+ 1723 01b2 0422     		movs	r2, #4
+ 1724 01b4 1A60     		str	r2, [r3]
+ 1725 01b6 D8E7     		b	.L93
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 45
+
+
+ 1726              	.L119:
+ 322:./Application/Src/menu.c ****             {
+ 1727              		.loc 1 322 13 view .LVU401
+ 1728 01b8 6BB1     		cbz	r3, .L97
+ 1729 01ba 012B     		cmp	r3, #1
+ 1730 01bc 08D1     		bne	.L94
+ 337:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1731              		.loc 1 337 21 is_stmt 1 view .LVU402
+ 337:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1732              		.loc 1 337 32 is_stmt 0 view .LVU403
+ 1733 01be 0123     		movs	r3, #1
+ 1734 01c0 1D4A     		ldr	r2, .L121+4
+ 1735 01c2 1370     		strb	r3, [r2]
+ 338:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 1736              		.loc 1 338 21 is_stmt 1 view .LVU404
+ 338:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 1737              		.loc 1 338 32 is_stmt 0 view .LVU405
+ 1738 01c4 214A     		ldr	r2, .L121+24
+ 1739 01c6 1360     		str	r3, [r2]
+ 339:./Application/Src/menu.c ****                     FT_Init(); /* Reset transfer state */
+ 1740              		.loc 1 339 21 is_stmt 1 view .LVU406
+ 339:./Application/Src/menu.c ****                     FT_Init(); /* Reset transfer state */
+ 1741              		.loc 1 339 38 is_stmt 0 view .LVU407
+ 1742 01c8 1E4A     		ldr	r2, .L121+16
+ 1743 01ca 1360     		str	r3, [r2]
+ 340:./Application/Src/menu.c ****                     break;
+ 1744              		.loc 1 340 21 is_stmt 1 view .LVU408
+ 1745 01cc FFF7FEFF 		bl	FT_Init
+ 1746              	.LVL121:
+ 341:./Application/Src/menu.c ****                 case 2: /* Transmit Song to RAM */
+ 1747              		.loc 1 341 21 view .LVU409
+ 1748              	.L94:
+ 363:./Application/Src/menu.c ****         break;
+ 1749              		.loc 1 363 9 view .LVU410
+ 1750 01d0 FFF7FEFF 		bl	menu_draw_main
+ 1751              	.LVL122:
+ 364:./Application/Src/menu.c **** 
+ 1752              		.loc 1 364 9 view .LVU411
+ 1753 01d4 2EE7     		b	.L90
+ 1754              	.L97:
+ 326:./Application/Src/menu.c ****                     {
+ 1755              		.loc 1 326 21 view .LVU412
+ 326:./Application/Src/menu.c ****                     {
+ 1756              		.loc 1 326 43 is_stmt 0 view .LVU413
+ 1757 01d6 284B     		ldr	r3, .L121+68
+ 1758 01d8 1B68     		ldr	r3, [r3]
+ 326:./Application/Src/menu.c ****                     {
+ 1759              		.loc 1 326 24 view .LVU414
+ 1760 01da 002B     		cmp	r3, #0
+ 1761 01dc 03DB     		blt	.L101
+ 326:./Application/Src/menu.c ****                     {
+ 1762              		.loc 1 326 69 discriminator 1 view .LVU415
+ 1763 01de 224A     		ldr	r2, .L121+52
+ 1764 01e0 1268     		ldr	r2, [r2]
+ 326:./Application/Src/menu.c ****                     {
+ 1765              		.loc 1 326 48 discriminator 1 view .LVU416
+ 1766 01e2 9342     		cmp	r3, r2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 46
+
+
+ 1767 01e4 09DB     		blt	.L120
+ 1768              	.L101:
+ 333:./Application/Src/menu.c ****                     }
+ 1769              		.loc 1 333 25 is_stmt 1 view .LVU417
+ 1770 01e6 4FF6FF73 		movw	r3, #65535
+ 1771 01ea 0093     		str	r3, [sp]
+ 1772 01ec 0023     		movs	r3, #0
+ 1773 01ee 234A     		ldr	r2, .L121+72
+ 1774 01f0 0921     		movs	r1, #9
+ 1775 01f2 1846     		mov	r0, r3
+ 1776 01f4 FFF7FEFF 		bl	LCD_draw_string
+ 1777              	.LVL123:
+ 1778 01f8 EAE7     		b	.L94
+ 1779              	.L120:
+ 328:./Application/Src/menu.c ****                         /* TODO: hook into traversal_song with the selected file */
+ 1780              		.loc 1 328 25 view .LVU418
+ 1781 01fa 4FF6FF73 		movw	r3, #65535
+ 1782 01fe 0093     		str	r3, [sp]
+ 1783 0200 0023     		movs	r3, #0
+ 1784 0202 1F4A     		ldr	r2, .L121+76
+ 1785 0204 0921     		movs	r1, #9
+ 1786 0206 1846     		mov	r0, r3
+ 1787 0208 FFF7FEFF 		bl	LCD_draw_string
+ 1788              	.LVL124:
+ 1789 020c E0E7     		b	.L94
+ 1790              	.L95:
+ 343:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1791              		.loc 1 343 21 view .LVU419
+ 343:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1792              		.loc 1 343 32 is_stmt 0 view .LVU420
+ 1793 020e 0A4B     		ldr	r3, .L121+4
+ 1794 0210 0222     		movs	r2, #2
+ 1795 0212 1A70     		strb	r2, [r3]
+ 344:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 1796              		.loc 1 344 21 is_stmt 1 view .LVU421
+ 344:./Application/Src/menu.c ****                     uart_binary_mode = 1;
+ 1797              		.loc 1 344 32 is_stmt 0 view .LVU422
+ 1798 0214 0123     		movs	r3, #1
+ 1799 0216 0D4A     		ldr	r2, .L121+24
+ 1800 0218 1360     		str	r3, [r2]
+ 345:./Application/Src/menu.c ****                     redirect_to_ram = 1;
+ 1801              		.loc 1 345 21 is_stmt 1 view .LVU423
+ 345:./Application/Src/menu.c ****                     redirect_to_ram = 1;
+ 1802              		.loc 1 345 38 is_stmt 0 view .LVU424
+ 1803 021a 0A4A     		ldr	r2, .L121+16
+ 1804 021c 1360     		str	r3, [r2]
+ 346:./Application/Src/menu.c ****                     ram_rx_started = 0;
+ 1805              		.loc 1 346 21 is_stmt 1 view .LVU425
+ 346:./Application/Src/menu.c ****                     ram_rx_started = 0;
+ 1806              		.loc 1 346 37 is_stmt 0 view .LVU426
+ 1807 021e 104A     		ldr	r2, .L121+44
+ 1808 0220 1360     		str	r3, [r2]
+ 347:./Application/Src/menu.c ****                     ram_rx_complete = 0;
+ 1809              		.loc 1 347 21 is_stmt 1 view .LVU427
+ 347:./Application/Src/menu.c ****                     ram_rx_complete = 0;
+ 1810              		.loc 1 347 36 is_stmt 0 view .LVU428
+ 1811 0222 0023     		movs	r3, #0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 47
+
+
+ 1812 0224 0B4A     		ldr	r2, .L121+32
+ 1813 0226 1360     		str	r3, [r2]
+ 348:./Application/Src/menu.c ****                     ram_rx_offset = 0;
+ 1814              		.loc 1 348 21 is_stmt 1 view .LVU429
+ 348:./Application/Src/menu.c ****                     ram_rx_offset = 0;
+ 1815              		.loc 1 348 37 is_stmt 0 view .LVU430
+ 1816 0228 0B4A     		ldr	r2, .L121+36
+ 1817 022a 1360     		str	r3, [r2]
+ 349:./Application/Src/menu.c ****                     break;
+ 1818              		.loc 1 349 21 is_stmt 1 view .LVU431
+ 349:./Application/Src/menu.c ****                     break;
+ 1819              		.loc 1 349 35 is_stmt 0 view .LVU432
+ 1820 022c 0B4A     		ldr	r2, .L121+40
+ 1821 022e 1360     		str	r3, [r2]
+ 350:./Application/Src/menu.c ****                 case 3: /* Select Song */
+ 1822              		.loc 1 350 21 is_stmt 1 view .LVU433
+ 1823 0230 CEE7     		b	.L94
+ 1824              	.L122:
+ 1825 0232 00BF     		.align	2
+ 1826              	.L121:
+ 1827 0234 00000000 		.word	menu_back
+ 1828 0238 00000000 		.word	menu_state
+ 1829 023c 00000000 		.word	menu_move_down
+ 1830 0240 00000000 		.word	menu_move_up
+ 1831 0244 00000000 		.word	uart_binary_mode
+ 1832 0248 00000000 		.word	menu_index
+ 1833 024c 00000000 		.word	page_dirty
+ 1834 0250 00000000 		.word	menu_enter
+ 1835 0254 00000000 		.word	ram_rx_started
+ 1836 0258 00000000 		.word	ram_rx_complete
+ 1837 025c 00000000 		.word	ram_rx_offset
+ 1838 0260 00000000 		.word	redirect_to_ram
+ 1839 0264 00000000 		.word	select_song_index
+ 1840 0268 00000000 		.word	fileCount
+ 1841 026c 00000000 		.word	select_scroll_offset
+ 1842 0270 38000000 		.word	.LC37
+ 1843 0274 54000000 		.word	.LC38
+ 1844 0278 00000000 		.word	active_song_index
+ 1845 027c 1C000000 		.word	.LC36
+ 1846 0280 00000000 		.word	.LC35
+ 1847              	.L99:
+ 352:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1848              		.loc 1 352 21 view .LVU434
+ 352:./Application/Src/menu.c ****                     page_dirty = 1;
+ 1849              		.loc 1 352 32 is_stmt 0 view .LVU435
+ 1850 0284 164B     		ldr	r3, .L123
+ 1851 0286 0322     		movs	r2, #3
+ 1852 0288 1A70     		strb	r2, [r3]
+ 353:./Application/Src/menu.c ****                     break;
+ 1853              		.loc 1 353 21 is_stmt 1 view .LVU436
+ 353:./Application/Src/menu.c ****                     break;
+ 1854              		.loc 1 353 32 is_stmt 0 view .LVU437
+ 1855 028a 164B     		ldr	r3, .L123+4
+ 1856 028c 0122     		movs	r2, #1
+ 1857 028e 1A60     		str	r2, [r3]
+ 354:./Application/Src/menu.c ****                 case 4: /* Homing */
+ 1858              		.loc 1 354 21 is_stmt 1 view .LVU438
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 48
+
+
+ 1859 0290 9EE7     		b	.L94
+ 1860              	.L86:
+ 376:./Application/Src/menu.c ****         break;
+ 1861              		.loc 1 376 9 view .LVU439
+ 1862 0292 FFF7FEFF 		bl	menu_draw_transmit_ram
+ 1863              	.LVL125:
+ 377:./Application/Src/menu.c **** 
+ 1864              		.loc 1 377 9 view .LVU440
+ 1865 0296 CDE6     		b	.L90
+ 1866              	.L115:
+ 400:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 1867              		.loc 1 400 17 view .LVU441
+ 400:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 1868              		.loc 1 400 47 is_stmt 0 view .LVU442
+ 1869 0298 134B     		ldr	r3, .L123+8
+ 1870 029a 1B68     		ldr	r3, [r3]
+ 1871 029c 013B     		subs	r3, r3, #1
+ 400:./Application/Src/menu.c ****             /* Adjust scroll window */
+ 1872              		.loc 1 400 35 view .LVU443
+ 1873 029e 1360     		str	r3, [r2]
+ 1874 02a0 2AE7     		b	.L107
+ 1875              	.L116:
+ 408:./Application/Src/menu.c ****         }
+ 1876              		.loc 1 408 17 is_stmt 1 view .LVU444
+ 408:./Application/Src/menu.c ****         }
+ 1877              		.loc 1 408 72 is_stmt 0 view .LVU445
+ 1878 02a2 052A     		cmp	r2, #5
+ 1879 02a4 B8BF     		it	lt
+ 1880 02a6 0522     		movlt	r2, #5
+ 1881 02a8 053A     		subs	r2, r2, #5
+ 408:./Application/Src/menu.c ****         }
+ 1882              		.loc 1 408 38 view .LVU446
+ 1883 02aa 104B     		ldr	r3, .L123+12
+ 1884 02ac 1A60     		str	r2, [r3]
+ 1885 02ae 39E7     		b	.L106
+ 1886              	.L117:
+ 1887              	.LBB18:
+ 417:./Application/Src/menu.c ****                 char buf[25];
+ 1888              		.loc 1 417 17 is_stmt 1 view .LVU447
+ 417:./Application/Src/menu.c ****                 char buf[25];
+ 1889              		.loc 1 417 35 is_stmt 0 view .LVU448
+ 1890 02b0 0F4B     		ldr	r3, .L123+16
+ 1891 02b2 1B68     		ldr	r3, [r3]
+ 1892 02b4 0F4A     		ldr	r2, .L123+20
+ 1893 02b6 1360     		str	r3, [r2]
+ 418:./Application/Src/menu.c ****                 snprintf(buf, sizeof(buf), "Selected: %-12s  ", fileList[active_song_index].name);
+ 1894              		.loc 1 418 17 is_stmt 1 view .LVU449
+ 419:./Application/Src/menu.c ****                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
+ 1895              		.loc 1 419 17 view .LVU450
+ 419:./Application/Src/menu.c ****                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
+ 1896              		.loc 1 419 92 is_stmt 0 view .LVU451
+ 1897 02b8 03EB8303 		add	r3, r3, r3, lsl #2
+ 419:./Application/Src/menu.c ****                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
+ 1898              		.loc 1 419 17 view .LVU452
+ 1899 02bc 0E4A     		ldr	r2, .L123+24
+ 1900 02be 02EB8303 		add	r3, r2, r3, lsl #2
+ 1901 02c2 0E4A     		ldr	r2, .L123+28
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 49
+
+
+ 1902 02c4 1921     		movs	r1, #25
+ 1903 02c6 03A8     		add	r0, sp, #12
+ 1904 02c8 FFF7FEFF 		bl	snprintf
+ 1905              	.LVL126:
+ 420:./Application/Src/menu.c ****             }
+ 1906              		.loc 1 420 17 is_stmt 1 view .LVU453
+ 1907 02cc 4FF6FF73 		movw	r3, #65535
+ 1908 02d0 0093     		str	r3, [sp]
+ 1909 02d2 0023     		movs	r3, #0
+ 1910 02d4 03AA     		add	r2, sp, #12
+ 1911 02d6 0921     		movs	r1, #9
+ 1912 02d8 1846     		mov	r0, r3
+ 1913 02da FFF7FEFF 		bl	LCD_draw_string
+ 1914              	.LVL127:
+ 1915 02de 2CE7     		b	.L110
+ 1916              	.L124:
+ 1917              		.align	2
+ 1918              	.L123:
+ 1919 02e0 00000000 		.word	menu_state
+ 1920 02e4 00000000 		.word	page_dirty
+ 1921 02e8 00000000 		.word	fileCount
+ 1922 02ec 00000000 		.word	select_scroll_offset
+ 1923 02f0 00000000 		.word	select_song_index
+ 1924 02f4 00000000 		.word	active_song_index
+ 1925 02f8 00000000 		.word	fileList
+ 1926 02fc 70000000 		.word	.LC39
+ 1927              	.LBE18:
+ 1928              		.cfi_endproc
+ 1929              	.LFE366:
+ 1931              		.section	.rodata.str1.4,"aMS",%progbits,1
+ 1932              		.align	2
+ 1933              	.LC0:
+ 1934 0000 312E2050 		.ascii	"1. Play Song\000"
+ 1934      6C617920 
+ 1934      536F6E67 
+ 1934      00
+ 1935 000d 000000   		.align	2
+ 1936              	.LC1:
+ 1937 0010 322E2054 		.ascii	"2. Transmit Song(SD)\000"
+ 1937      72616E73 
+ 1937      6D697420 
+ 1937      536F6E67 
+ 1937      28534429 
+ 1938 0025 000000   		.align	2
+ 1939              	.LC2:
+ 1940 0028 332E2054 		.ascii	"3. Transmit Song(RAM)\000"
+ 1940      72616E73 
+ 1940      6D697420 
+ 1940      536F6E67 
+ 1940      2852414D 
+ 1941 003e 0000     		.align	2
+ 1942              	.LC3:
+ 1943 0040 342E2053 		.ascii	"4. Select Song\000"
+ 1943      656C6563 
+ 1943      7420536F 
+ 1943      6E6700
+ 1944 004f 00       		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 50
+
+
+ 1945              	.LC4:
+ 1946 0050 352E2048 		.ascii	"5. Homing\000"
+ 1946      6F6D696E 
+ 1946      6700
+ 1947              		.section	.data.page_dirty,"aw"
+ 1948              		.align	2
+ 1951              	page_dirty:
+ 1952 0000 01000000 		.word	1
+ 1953              		.global	active_song_index
+ 1954              		.section	.data.active_song_index,"aw"
+ 1955              		.align	2
+ 1958              	active_song_index:
+ 1959 0000 FFFFFFFF 		.word	-1
+ 1960              		.global	select_scroll_offset
+ 1961              		.section	.bss.select_scroll_offset,"aw",%nobits
+ 1962              		.align	2
+ 1965              	select_scroll_offset:
+ 1966 0000 00000000 		.space	4
+ 1967              		.global	select_song_index
+ 1968              		.section	.bss.select_song_index,"aw",%nobits
+ 1969              		.align	2
+ 1972              	select_song_index:
+ 1973 0000 00000000 		.space	4
+ 1974              		.global	menu_back
+ 1975              		.section	.bss.menu_back,"aw",%nobits
+ 1976              		.align	2
+ 1979              	menu_back:
+ 1980 0000 00000000 		.space	4
+ 1981              		.global	menu_enter
+ 1982              		.section	.bss.menu_enter,"aw",%nobits
+ 1983              		.align	2
+ 1986              	menu_enter:
+ 1987 0000 00000000 		.space	4
+ 1988              		.global	menu_move_up
+ 1989              		.section	.bss.menu_move_up,"aw",%nobits
+ 1990              		.align	2
+ 1993              	menu_move_up:
+ 1994 0000 00000000 		.space	4
+ 1995              		.global	menu_move_down
+ 1996              		.section	.bss.menu_move_down,"aw",%nobits
+ 1997              		.align	2
+ 2000              	menu_move_down:
+ 2001 0000 00000000 		.space	4
+ 2002              		.global	menu_index
+ 2003              		.section	.bss.menu_index,"aw",%nobits
+ 2004              		.align	2
+ 2007              	menu_index:
+ 2008 0000 00000000 		.space	4
+ 2009              		.section	.bss.menu_state,"aw",%nobits
+ 2012              	menu_state:
+ 2013 0000 00       		.space	1
+ 2014              		.section	.rodata
+ 2015              		.align	2
+ 2016              		.set	.LANCHOR0,. + 0
+ 2017              	.LC9:
+ 2018 0000 00000000 		.word	.LC0
+ 2019 0004 10000000 		.word	.LC1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 51
+
+
+ 2020 0008 28000000 		.word	.LC2
+ 2021 000c 40000000 		.word	.LC3
+ 2022 0010 50000000 		.word	.LC4
+ 2023              		.text
+ 2024              	.Letext0:
+ 2025              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 2026              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 2027              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 2028              		.file 5 "Application/Inc/sd.h"
+ 2029              		.file 6 "Application/Inc/file_transfer.h"
+ 2030              		.file 7 "Application/Inc/application.h"
+ 2031              		.file 8 "Application/Inc/menu.h"
+ 2032              		.file 9 "Application/Inc/ILI9225.h"
+ 2033              		.file 10 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 2034              		.file 11 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 52
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 menu.c
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:22     .rodata.clear_menu_area.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:26     .text.clear_menu_area:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:31     .text.clear_menu_area:00000000 clear_menu_area
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:83     .text.clear_menu_area:00000024 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:88     .rodata.menu_draw_main.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:98     .text.menu_draw_main:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:104    .text.menu_draw_main:00000000 menu_draw_main
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:226    .text.menu_draw_main:00000078 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2007   .bss.menu_index:00000000 menu_index
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:235    .rodata.menu_draw_transmit.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:263    .text.menu_draw_transmit:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:269    .text.menu_draw_transmit:00000000 menu_draw_transmit
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:516    .text.menu_draw_transmit:0000012c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1951   .data.page_dirty:00000000 page_dirty
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:532    .rodata.menu_draw_transmit_ram.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:557    .text.menu_draw_transmit_ram:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:563    .text.menu_draw_transmit_ram:00000000 menu_draw_transmit_ram
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:784    .text.menu_draw_transmit_ram:00000118 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:806    .rodata.menu_draw_select.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:825    .text.menu_draw_select:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:831    .text.menu_draw_select:00000000 menu_draw_select
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1204   .text.menu_draw_select:000001a0 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1972   .bss.select_song_index:00000000 select_song_index
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1965   .bss.select_scroll_offset:00000000 select_scroll_offset
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1958   .data.active_song_index:00000000 active_song_index
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1223   .text.menu_get_state:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1229   .text.menu_get_state:00000000 menu_get_state
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1244   .text.menu_get_state:00000008 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2012   .bss.menu_state:00000000 menu_state
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1249   .rodata.menu_init.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1253   .text.menu_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1259   .text.menu_init:00000000 menu_init
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1307   .text.menu_init:00000030 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1315   .rodata.menu_update.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1331   .text.menu_update:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1337   .text.menu_update:00000000 menu_update
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1827   .text.menu_update:00000234 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1979   .bss.menu_back:00000000 menu_back
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2000   .bss.menu_move_down:00000000 menu_move_down
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1993   .bss.menu_move_up:00000000 menu_move_up
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1986   .bss.menu_enter:00000000 menu_enter
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1850   .text.menu_update:00000284 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1919   .text.menu_update:000002e0 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1932   .rodata.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1948   .data.page_dirty:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1955   .data.active_song_index:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1962   .bss.select_scroll_offset:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1969   .bss.select_song_index:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1976   .bss.menu_back:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1983   .bss.menu_enter:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1990   .bss.menu_move_up:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:1997   .bss.menu_move_down:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2004   .bss.menu_index:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2013   .bss.menu_state:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s:2015   .rodata:00000000 $d
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccJQMqkX.s 			page 53
+
+
+
+UNDEFINED SYMBOLS
+LCD_draw_string
+snprintf
+strlen
+FT_GetState
+FT_GetProgress
+parsing_song_buffer_to_struct
+ram_rx_started
+ram_rx_complete
+ram_rx_offset
+chord_events
+song_ram
+redirect_to_ram
+sd_list_txt_files
+fileCount
+fileList
+FT_TimeoutCheck
+FT_Abort
+homing_procedure
+FT_Init
+uart_binary_mode
