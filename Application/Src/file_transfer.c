@@ -53,6 +53,17 @@ uint8_t FT_CalculateChecksum(uint8_t *data, uint16_t length)
     return checksum;
 }
 
+
+/* Calculate XOR checksum for RAM-based file transfer */
+uint8_t RAM_CalculateChecksum(uint8_t *data, uint16_t length){
+    uint8_t checksum = 0;
+    for (uint16_t i = 0; i < length; i++)
+    {
+        checksum ^= data[i];
+    }
+    return checksum;
+}
+
 /* Send response packet to PC (blocking – responses are tiny, 2-8 bytes) */
 void FT_SendResponse(uint8_t responseCode, uint8_t *data, uint8_t dataLen)
 {
@@ -252,6 +263,47 @@ static int FT_HandleFileData(uint8_t *packet, uint16_t length)
     return 0;
 }
 
+/* Handle RAM packet data
+   Packet: [0xE1] [row_lo] [row_hi] [56 bytes = 14 floats] [checksum]
+   Total = 60 bytes
+*/
+static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
+    // Packet must be exactly 60 bytes: cmd(1) + row(2) + data(56) + checksum(1)
+    if (length != 60)
+    {
+        uint8_t nakData[] = {0, 0, FT_ERR_OVERFLOW};
+        FT_SendResponse(FT_RSP_NAK, nakData, 3);
+        return -1;
+    }
+
+    // Extract row index early so NAK responses can include it
+    uint16_t rowIndex = packet[1] | (packet[2] << 8);
+
+    // Verify checksum: XOR of bytes [0..58], compare with byte [59]
+    if (RAM_CalculateChecksum(packet, length - 1) != packet[length - 1])
+    {
+        uint8_t nakData[] = {rowIndex & 0xFF, rowIndex >> 8, FT_ERR_CHECKSUM};
+        FT_SendResponse(FT_RSP_NAK, nakData, 3);
+        return -1;
+    }
+
+    // Validate row index (0-364)
+    if (rowIndex >= 365)
+    {
+        uint8_t nakData[] = {rowIndex & 0xFF, rowIndex >> 8, FT_ERR_OVERFLOW};
+        FT_SendResponse(FT_RSP_NAK, nakData, 3);
+        return -1;
+    }
+
+    // Copy 14 floats (56 bytes) into song_ram[rowIndex]
+    memcpy(song_ram[rowIndex], &packet[3], 56);
+    ram_rx_offset += 56;
+    // Tell PC this row is OK
+    uint8_t ackData[] = {rowIndex & 0xFF, rowIndex >> 8};
+    FT_SendResponse(FT_RSP_ACK, ackData, 2);
+    return 0;
+}
+
 /* Handle FILE_END packet */
 static int FT_HandleFileEnd(uint8_t *packet, uint16_t length)
 {
@@ -347,7 +399,7 @@ static int FT_HandleFileAbort(uint8_t *packet, uint16_t length)
     return 0;
 }
 
-/* Process received packet */
+/* SD card FT - Process received packet */
 void FT_ProcessPacket(uint8_t *packet, uint16_t length)
 {
     if (length == 0)
@@ -376,6 +428,48 @@ void FT_ProcessPacket(uint8_t *packet, uint16_t length)
     default:
         FT_SendResponse(FT_RSP_ERROR, (uint8_t[]){FT_ERR_SEQUENCE}, 1);
         break;
+    }
+}
+
+/* RAM FT - Process received packet */
+void RAM_ProcessPacket(uint8_t *packet, uint16_t length)
+{
+    // Minimal length is 2, smaller means corupted data packet
+    if (length < 2)
+        return;
+
+    uint8_t command = packet[0];
+
+    switch (command)
+    {
+        case FT_CMD_RAM_START: // [0xE0] [Start Signal]
+            if (packet[1] == RAM_SENTINEL_START){
+                memset(song_ram, 0, RAM_SONG_MAX_BYTES);
+                ram_rx_started = 1;
+                ram_rx_complete = 0;
+                ram_rx_offset = 0;
+                FT_SendResponse(FT_RSP_READY, NULL, 0);
+            } else {
+                FT_SendResponse(FT_RSP_NAK, (uint8_t[]){0, 0, FT_ERR_SEQUENCE}, 3);
+            }
+            break;
+
+        case FT_CMD_RAM_DATA: // [0xE1] [row_lo] [row_hi] [56 bytes] [checksum]
+            FT_HandleRAMData(packet, length);
+            break;
+
+        case FT_CMD_RAM_END: // [0xE2] [End Signal]
+            if (packet[1] == RAM_SENTINEL_END){
+                ram_rx_complete = 1;
+                FT_SendResponse(FT_RSP_SUCCESS, (uint8_t[]){0, 0}, 2);
+            } else {
+                FT_SendResponse(FT_RSP_NAK, (uint8_t[]){0, 0, FT_ERR_SEQUENCE}, 3);
+            }
+            break;
+
+        default:
+            // Handle unknown command
+            break;
     }
 }
 

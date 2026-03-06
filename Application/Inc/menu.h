@@ -30,6 +30,8 @@ extern int active_song_index;    /* Currently selected song for playback (-1 = n
 void menu_init(void);
 void menu_update(void);
 MenuState_t menu_get_state(void);
+void menu_process_message(uint8_t *data, uint16_t len);
+int menu_try_dispatch_binary(uint8_t *data, uint16_t len);
 
 /* Page renderers */
 void menu_draw_main(void);

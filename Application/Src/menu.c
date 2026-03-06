@@ -112,6 +112,148 @@ void menu_draw_transmit(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  RAM accumulation helper (depreciated)                             */
+/* ------------------------------------------------------------------ */
+
+// static void RAM_AccumulateData(uint8_t *data, uint16_t len)
+// {
+//     if (!ram_rx_started)
+//     {
+//         const float start_sentinel = RAM_SENTINEL_START;
+//         for (int i = 0; i <= (int)len - 4; i++)
+//         {
+//             if (memcmp(&data[i], &start_sentinel, 4) == 0)
+//             {
+//                 ram_rx_started = 1;
+//                 ram_rx_offset = 0;
+//                 int remaining = len - (i + 4);
+//                 if (remaining > 0)
+//                 {
+//                     uint32_t copy_len = ((uint32_t)remaining < RAM_SONG_MAX_BYTES)
+//                                         ? (uint32_t)remaining : RAM_SONG_MAX_BYTES;
+//                     // find check sum
+//                     uint8_t checksum = RAM_CalculateChecksum(&data[i + 4], copy_len-1); // last byte is checksum for verification
+//                     if (checksum != data[i + 4 + copy_len - 1]) {
+//                         // checksum mismatch, discard data and reset state
+//                         // send NAK
+//                         HAL_UART_Transmit(&huart1, (uint8_t[]){0xFF}, 1, 50);
+//                         return;
+//                     }
+//                     // send ACK
+//                     HAL_UART_Transmit(&huart1, (uint8_t[]){0xAA}, 1, 50);
+                    
+//                     memcpy((uint8_t *)song_ram, &data[i + 4], copy_len);
+//                     ram_rx_offset = copy_len;
+//                 }
+//                 return;
+//             }
+//         }
+//         /* Not song data — treat as text command (e.g. :a to go back) */
+//         data[len] = '\0';
+//         if (len > 0 && data[len - 1] == '\n') data[len - 1] = '\0';
+//         execute_command(data);
+//     }
+//     else
+//     {
+//         uint32_t space = RAM_SONG_MAX_BYTES - ram_rx_offset;
+//         uint32_t copy_len = (len < space) ? len : space;
+//         memcpy(&((uint8_t *)song_ram)[ram_rx_offset], data, copy_len);
+//         ram_rx_offset += copy_len;
+
+//         const float end_sentinel = RAM_SENTINEL_END;
+//         if (ram_rx_offset >= 4)
+//         {
+//             float last_float;
+//             memcpy(&last_float, &((uint8_t *)song_ram)[ram_rx_offset - 4], 4);
+//             if (last_float == end_sentinel)
+//             {
+//                 ram_rx_offset -= 4;
+//                 ram_rx_complete = 1;
+//             }
+//         }
+//         if (ram_rx_offset >= RAM_SONG_MAX_BYTES)
+//             ram_rx_complete = 1;
+//     }
+// }
+
+/* ------------------------------------------------------------------ */
+/*  Dispatch incoming UART data to the right handler                  */
+/* ------------------------------------------------------------------ */
+
+void menu_process_message(uint8_t *data, uint16_t len)
+{
+    if (len == 0) return;
+
+    MenuState_t state = menu_get_state();
+
+    if (state == MENU_STATE_TRANSMIT &&
+        data[0] >= 0xF0 && data[0] <= 0xF3)
+    {
+        /* File transfer packet → SD card */
+        FT_ProcessPacket(data, len);
+    }
+    else if (state == MENU_STATE_TRANSMIT_RAM && data[0] >= 0xE0 && data[0] <= 0xE2)
+    {
+        /* Raw binary → RAM accumulation */
+        // RAM_AccumulateData(data, len);
+        RAM_ProcessPacket(data, len);
+    }
+    else
+    {
+        /* Text command */
+        data[len] = '\0';
+        if (len > 0 && data[len - 1] == '\n') data[len - 1] = '\0';
+        execute_command(data);
+    }
+}
+
+/* Try to dispatch accumulated binary bytes (called from main loop).
+   Returns 1 if data was consumed, 0 if still waiting for more bytes. */
+int menu_try_dispatch_binary(uint8_t *data, uint16_t len)
+{
+    if (len == 0) return 0;
+
+    // check for MENU in transmit state and waiting for file data packets (0xF0-0xF3)
+    if (menu_get_state() == MENU_STATE_TRANSMIT &&
+        data[0] >= 0xF0 && data[0] <= 0xF3)
+    {
+        uint16_t need = 0;
+        switch (data[0]) {
+          case FT_CMD_FILE_START: need = FT_FILE_START_SIZE; break;
+          case FT_CMD_FILE_DATA:  need = (len >= 4) ? (uint16_t)(5 + data[3]) : 0xFFFF; break;
+          case FT_CMD_FILE_END:   need = FT_FILE_END_SIZE; break;
+          case FT_CMD_FILE_ABORT: need = FT_FILE_ABORT_SIZE; break;
+        }
+        if (need == 0 || len < need)
+            return 0; /* not enough bytes yet */
+
+        menu_process_message(data, len);
+        return 1;
+    }
+
+    // check for MENU in transmit RAM state and waiting for RAM packets (0xE0-0xE2)
+    if (menu_get_state() == MENU_STATE_TRANSMIT_RAM &&
+        data[0] >= 0xE0 && data[0] <= 0xE2)
+    {
+        uint16_t need = 0;
+        switch (data[0]) {
+          case FT_CMD_RAM_START: need = 2; break;   // [0xE0] [sentinel]
+          case FT_CMD_RAM_DATA:  need = 60; break;   // [0xE1] [row_lo] [row_hi] [56 data] [checksum]
+          case FT_CMD_RAM_END:   need = 2; break;   // [0xE2] [sentinel]
+        }
+        if (need == 0 || len < need)
+            return 0; /* not enough bytes yet */
+
+        menu_process_message(data, len);
+        return 1;
+    }
+
+    /* Everything else (text commands) — dispatch immediately */
+    menu_process_message(data, len);
+    return 1;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Transmit Song (RAM) page                                          */
 /* ------------------------------------------------------------------ */
 

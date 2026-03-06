@@ -48,6 +48,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size){
                 rx_complete = 1;
                 // update the old buffer index for next use, +1 due to \0
                 old_buffer_index = (buf_pos + 1) % sizeof(rx_message_buffer);
+                rx_valid = len;
                 return;
             }
 

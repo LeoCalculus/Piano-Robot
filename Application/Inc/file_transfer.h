@@ -10,6 +10,13 @@
 #define FT_CMD_FILE_END 0xF2
 #define FT_CMD_FILE_ABORT 0xF3
 
+/* RAM protocol commands */
+#define FT_CMD_RAM_START 0xE0
+#define FT_CMD_RAM_DATA 0xE1
+#define FT_CMD_RAM_END 0xE2
+#define RAM_SENTINEL_START 0x78
+#define RAM_SENTINEL_END 0x91
+
 /* Protocol Response Codes (STM32 -> PC) */
 #define FT_RSP_ACK 0xA0
 #define FT_RSP_NAK 0xA1
@@ -40,6 +47,8 @@
 #define FT_FILE_END_SIZE 4
 #define FT_FILE_ABORT_SIZE 2
 
+// new added 2026.03.05 - Check sum only. applied to RAM based file transfer to avoid data lost.
+
 /* Transfer State Machine */
 typedef enum
 {
@@ -63,9 +72,10 @@ typedef struct
     uint8_t errorCode;
 } FT_Context_t;
 
-/* Function Prototypes */
+// public API for file transfer / RAM transfer
 void FT_Init(void);
 void FT_ProcessPacket(uint8_t *packet, uint16_t length);
+void RAM_ProcessPacket(uint8_t *packet, uint16_t length);
 void FT_TimeoutCheck(void);
 void FT_Abort(void);
 FT_State_t FT_GetState(void);
@@ -73,6 +83,7 @@ uint8_t FT_GetProgress(void);
 
 /* Internal helper functions */
 uint8_t FT_CalculateChecksum(uint8_t *data, uint16_t length);
+uint8_t RAM_CalculateChecksum(uint8_t *data, uint16_t length);
 void FT_SendResponse(uint8_t responseCode, uint8_t *data, uint8_t dataLen);
 
 #endif /* __FILE_TRANSFER_H */

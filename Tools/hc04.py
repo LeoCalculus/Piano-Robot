@@ -23,10 +23,12 @@ FT_RSP_SUCCESS = 0xA4
 
 FT_CHUNK_SIZE = 64  # Match STM32 FT_MAX_CHUNK_SIZE
 
-# RAM Transfer Sentinel Constants
-RAM_SENTINEL_START = struct.pack('<f', 514.114)
-RAM_SENTINEL_END = struct.pack('<f', 114.514)
-RAM_BT_CHUNK_SIZE = 64  # bytes per BT write to avoid overflow
+# RAM Transfer Protocol Constants (match file_transfer.h)
+FT_CMD_RAM_START = 0xE0
+FT_CMD_RAM_DATA = 0xE1
+FT_CMD_RAM_END = 0xE2
+RAM_SENTINEL_START_BYTE = 0x78
+RAM_SENTINEL_END_BYTE = 0x91
 
 
 class HC04SerialGUI:
@@ -1704,100 +1706,145 @@ class HC04SerialGUI:
         ram_thread.start()
 
     def ram_upload_thread(self):
-        """Thread: parse TXT file into floats, send with sentinels"""
+        """Thread: parse TXT file into rows of 14 floats, send with checksum + ACK/NAK"""
         try:
             filepath = self.selected_file_path
             self.root.after(0, lambda: self.upload_log_message(
                 f"RAM upload: parsing {os.path.basename(filepath)}"))
 
             # Parse TXT file: each line = 14 space/comma-separated floats
-            float_data = []
+            rows = []  # list of 14-float tuples
             with open(filepath, 'r') as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
                     if not line or line.startswith('#'):
-                        continue  # skip empty/comment lines
-                    # Support both space and comma separators, strip C-style 'f' suffix
+                        continue
                     parts = line.replace(',', ' ').split()
-                    # Remove trailing 'f'/'F' from C-style float literals (e.g. "12.0f")
                     parts = [p.rstrip('fF') for p in parts]
                     if len(parts) != 14:
                         self.root.after(0, lambda ln=line_num, n=len(parts):
                             self.upload_log_message(
                                 f"WARN: line {ln} has {n} values (expected 14), skipping"))
                         continue
-                    if len(float_data) // 14 >= 365:
+                    if len(rows) >= 365:
                         self.root.after(0, lambda: self.upload_log_message(
                             "Max 365 chords reached, truncating"))
                         break
-                    for val_str in parts:
-                        float_data.append(float(val_str))
+                    rows.append([float(v) for v in parts])
 
-            num_chords = len(float_data) // 14
-            if num_chords == 0:
+            num_rows = len(rows)
+            if num_rows == 0:
                 self.root.after(0, lambda: self.upload_log_message("ERROR: No valid chord data found"))
                 self.root.after(0, self._ram_upload_done)
                 return
 
-            self.root.after(0, lambda n=num_chords: self.upload_log_message(
-                f"Parsed {n} chords ({n*14} floats, {n*14*4} bytes)"))
+            self.root.after(0, lambda n=num_rows: self.upload_log_message(
+                f"Parsed {n} rows ({n*14} floats, {n*56} bytes)"))
 
-            # Pack floats as little-endian binary
-            payload = struct.pack(f'<{len(float_data)}f', *float_data)
-            total_bytes = len(payload) + 8  # payload + 2 sentinels
-
-            self.root.after(0, lambda t=total_bytes: self.upload_log_message(
-                f"Sending {t} bytes (incl. sentinels)..."))
-
-            # Flush stale data from buffers
+            # Flush buffers
             self.ser.reset_input_buffer()
             self.ser.reset_output_buffer()
             time.sleep(0.1)
 
-            # Send start sentinel SEPARATELY so STM32 idle-line DMA
-            # delivers it as a complete 4-byte unit (avoids BT fragmentation)
-            self.ser.write(RAM_SENTINEL_START)
-            self.ser.flush()
-            time.sleep(0.1)  # ensure idle-line fires and STM32 detects sentinel
+            # Step 1: Send RAM_START [0xE0] [0x78]
+            self.root.after(0, lambda: self.upload_log_message("Sending RAM_START..."))
+            start_ok = False
+            for attempt in range(5):
+                self.ser.reset_input_buffer()
+                self.ser.write(bytearray([FT_CMD_RAM_START, RAM_SENTINEL_START_BYTE]))
+                response = self.wait_for_response(timeout=2.0)
+                if response and response[0] == FT_RSP_READY:
+                    start_ok = True
+                    break
+                time.sleep(0.1 * (attempt + 1))
 
-            self.root.after(0, lambda: self.upload_log_message("Start sentinel sent"))
+            if not start_ok:
+                self.root.after(0, lambda: self.upload_log_message("Failed to get READY from device"))
+                self.root.after(0, self._ram_upload_done)
+                return
 
-            # Send payload in chunks to avoid BT buffer overflow
-            bytes_sent = 0
+            self.root.after(0, lambda: self.upload_log_message("Device ready, sending rows..."))
+
+            # Drain stale bytes
+            time.sleep(0.1)
+            stale = self.ser.in_waiting
+            if stale:
+                self.ser.read(stale)
+            self.ser.reset_input_buffer()
+
+            # Step 2: Send each row as [0xE1] [row_lo] [row_hi] [56 bytes] [checksum]
             start_time = time.time()
 
-            for offset in range(0, len(payload), RAM_BT_CHUNK_SIZE):
+            for row_idx in range(num_rows):
                 if self.upload_abort_flag:
                     self.root.after(0, lambda: self.upload_log_message("Upload aborted"))
                     self.root.after(0, self._ram_upload_done)
                     return
 
-                chunk = payload[offset:offset + RAM_BT_CHUNK_SIZE]
-                self.ser.write(chunk)
-                bytes_sent += len(chunk)
+                # Build packet: cmd(1) + row_index(2) + data(56) + checksum(1) = 60 bytes
+                packet = bytearray([FT_CMD_RAM_DATA])
+                packet.extend(struct.pack('<H', row_idx))
+                packet.extend(struct.pack('<14f', *rows[row_idx]))
+                packet.append(self.calculate_checksum(packet))  # XOR of first 59 bytes
 
-                # Small delay to let BT module + DMA process
-                time.sleep(0.01)
+                max_retries = 10
+                success = False
+                for retry in range(max_retries):
+                    if retry > 0:
+                        time.sleep(0.05 * (retry + 1))
+                    self.ser.reset_input_buffer()
+                    self.ser.write(packet)
+
+                    response = self.wait_for_response(timeout=1.0 + 0.2 * retry)
+                    if response and response[0] == FT_RSP_ACK:
+                        success = True
+                        time.sleep(0.002)
+                        break
+                    elif response and response[0] == FT_RSP_NAK:
+                        err = response[3] if len(response) > 3 else 0
+                        err_msgs = {1: "checksum", 2: "sequence", 8: "overflow"}
+                        print(f"[DBG] RAM row {row_idx} NAK: {err_msgs.get(err, err)}, retry {retry+1}")
+                    elif response and response[0] == FT_RSP_ERROR:
+                        err = response[1] if len(response) > 1 else 0
+                        print(f"[DBG] RAM row {row_idx} ERROR: {err}")
+                    else:
+                        print(f"[DBG] RAM row {row_idx} no ACK, retry {retry+1}")
+
+                if not success:
+                    self.root.after(0, lambda r=row_idx: self.upload_log_message(
+                        f"FAILED at row {r} after {max_retries} retries"))
+                    self.root.after(0, self._ram_upload_done)
+                    return
 
                 # Update progress
-                progress = bytes_sent / len(payload) * 100
+                progress = (row_idx + 1) / num_rows * 100
                 elapsed = time.time() - start_time
-                speed = bytes_sent / elapsed if elapsed > 0 else 0
-                self.root.after(0, lambda p=progress, s=speed: self.update_progress(
-                    p, f"{p:.0f}% | {s:.0f} B/s"))
+                speed = (row_idx + 1) * 56 / elapsed if elapsed > 0 else 0
+                self.root.after(0, lambda p=progress, r=row_idx+1, t=num_rows, s=speed:
+                    self.update_progress(p, f"{r}/{t} rows | {s:.0f} B/s"))
 
-            # Send end sentinel separately
-            self.ser.flush()
-            time.sleep(0.05)
-            self.ser.write(RAM_SENTINEL_END)
-            self.ser.flush()
+            # Step 3: Send RAM_END [0xE2] [0x91]
+            self.root.after(0, lambda: self.upload_log_message("Finalizing..."))
+            end_ok = False
+            for attempt in range(5):
+                self.ser.reset_input_buffer()
+                self.ser.write(bytearray([FT_CMD_RAM_END, RAM_SENTINEL_END_BYTE]))
+                response = self.wait_for_response(timeout=2.0)
+                if response and response[0] == FT_RSP_SUCCESS:
+                    end_ok = True
+                    break
+                time.sleep(0.2 * (attempt + 1))
 
             elapsed = time.time() - start_time
-            avg_speed = total_bytes / elapsed if elapsed > 0 else 0
-            self.root.after(0, lambda s=avg_speed, t=elapsed, n=num_chords:
-                self.upload_log_message(
-                    f"RAM upload complete! {n} chords, {s:.0f} B/s, {t:.1f}s"))
-            self.root.after(0, lambda: self.update_progress(100, "RAM Upload Complete!"))
+            avg_speed = num_rows * 56 / elapsed if elapsed > 0 else 0
+            if end_ok:
+                self.root.after(0, lambda s=avg_speed, t=elapsed, n=num_rows:
+                    self.upload_log_message(
+                        f"RAM upload complete! {n} rows, {s:.0f} B/s, {t:.1f}s"))
+                self.root.after(0, lambda: self.update_progress(100, "RAM Upload Complete!"))
+            else:
+                self.root.after(0, lambda: self.upload_log_message("Failed to finalize"))
+
             self.root.after(0, self._ram_upload_done)
 
         except ValueError as e:

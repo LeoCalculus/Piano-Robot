@@ -146,192 +146,35 @@ int main(void)
 
   sd_parse_array("music1.txt");
 
+#ifndef DEBUGMODE
   menu_init();
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) 
   {
+    // toggle LED pin to show main loop is not blocking 
     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-    // send message:
-    // hc04_send_string((uint8_t*)"Hello from STM32H5!\n");
-    // HAL_Delay(500);
-    
-    // check incoming message:
+
+#ifndef DEBUGMODE
+    // check incoming message with \n:
     if (rx_complete) {
-      // snprintf(buffer_message, sizeof(buffer_message), "Received from HC-04: %s", rx_message);
-      // hc04_send_string((uint8_t*)buffer_message); // send back the received message to HC-04 for
-      // LCD_draw_string(0, 16, buffer_message, COLOR_BLACK, COLOR_WHITE); // display received message on LCD
-
-      // execute_command(rx_message);
-      if (menu_get_state() == MENU_STATE_TRANSMIT && rx_valid > 0 && rx_message[0] >= 0xF0 && rx_message[0] <= 0xF3)
-      {
-        FT_ProcessPacket(rx_message, rx_valid);
-      }
-      else if (menu_get_state() == MENU_STATE_TRANSMIT_RAM && rx_valid > 0)
-      {
-        /* Sentinel-based RAM song accumulation */
-        if (!ram_rx_started)
-        {
-          /* Look for start sentinel (514.114f) in received data */
-          const float start_sentinel = RAM_SENTINEL_START;
-          int found = 0;
-          for (int i = 0; i <= (int)rx_valid - 4; i++)
-          {
-            if (memcmp(&rx_message[i], &start_sentinel, 4) == 0)
-            {
-              ram_rx_started = 1;
-              ram_rx_offset = 0;
-              /* Copy any data after sentinel into song_ram */
-              int remaining = rx_valid - (i + 4);
-              if (remaining > 0)
-              {
-                uint32_t copy_len = ((uint32_t)remaining < RAM_SONG_MAX_BYTES) ? (uint32_t)remaining : RAM_SONG_MAX_BYTES;
-                memcpy((uint8_t *)song_ram, &rx_message[i + 4], copy_len);
-                ram_rx_offset = copy_len;
-              }
-              found = 1;
-              break;
-            }
-          }
-          if (!found)
-          {
-            /* Not song data — treat as text command (allows :a back) */
-            execute_command(rx_message);
-          }
-        }
-        else
-        {
-          /* Accumulate song data into song_ram */
-          uint32_t space = RAM_SONG_MAX_BYTES - ram_rx_offset;
-          uint32_t copy_len = (rx_valid < space) ? rx_valid : space;
-          memcpy(&((uint8_t *)song_ram)[ram_rx_offset], rx_message, copy_len);
-          ram_rx_offset += copy_len;
-
-          /* Check last 4 bytes for end sentinel (114.514f) */
-          const float end_sentinel = RAM_SENTINEL_END;
-          if (ram_rx_offset >= 4)
-          {
-            float last_float;
-            memcpy(&last_float, &((uint8_t *)song_ram)[ram_rx_offset - 4], 4);
-            if (last_float == end_sentinel)
-            {
-              ram_rx_offset -= 4; /* Trim sentinel */
-              ram_rx_complete = 1;
-            }
-          }
-
-          /* Also complete if buffer is full */
-          if (ram_rx_offset >= RAM_SONG_MAX_BYTES)
-          {
-            ram_rx_complete = 1;
-          }
-        }
-      }
-      else
-      {
-        execute_command(rx_message); // text command
-      }
-    
+      menu_process_message(rx_message, rx_valid);
     }
-    rx_complete = 0; // reset the flag
+    rx_complete = 0;
 
-    // FT mode: process binary FT packets (wait for complete packet before processing)
-    if (menu_get_state() == MENU_STATE_TRANSMIT && rx_message_index > 0)
-    {
-      uint16_t idx = rx_message_index;
-      uint16_t need = 0;
-      if (rx_message[0] >= 0xF0 && rx_message[0] <= 0xF3)
-      {
-        switch (rx_message[0]) {
-          case FT_CMD_FILE_START: need = FT_FILE_START_SIZE; break;
-          case FT_CMD_FILE_DATA:  need = (idx >= 4) ? (uint16_t)(5 + rx_message[3]) : 0xFFFF; break;
-          case FT_CMD_FILE_END:   need = FT_FILE_END_SIZE; break;
-          case FT_CMD_FILE_ABORT: need = FT_FILE_ABORT_SIZE; break;
-        }
-        if (need > 0 && idx >= need)
-        {
-          rx_message_index = 0;
-          FT_ProcessPacket(rx_message, idx);
-        }
-      }
-      else
-      {
-        // non-FT data in binary mode — likely text command (e.g. :a to go back)
-        rx_message[idx] = '\0';
-        if (idx > 0 && rx_message[idx - 1] == '\n') rx_message[idx - 1] = '\0';
+    // ISR accumulated bytes without \n
+    if (rx_message_index > 0){
+      if (menu_try_dispatch_binary(rx_message, rx_message_index)) {
         rx_message_index = 0;
-        execute_command(rx_message);
-      }
-    }
-
-    // RAM mode: process binary data that has no \n (accumulated in rx_message via rx_message_index)
-    if (redirect_to_ram && rx_message_index > 0)
-    {
-      uint16_t bin_len = rx_message_index;
-      rx_message_index = 0; // reset so callback can accumulate new data
-
-      if (!ram_rx_started)
-      {
-        /* Look for start sentinel (514.114f) */
-        const float start_sentinel = RAM_SENTINEL_START;
-        int found = 0;
-        for (int i = 0; i <= (int)bin_len - 4; i++)
-        {
-          if (memcmp(&rx_message[i], &start_sentinel, 4) == 0)
-          {
-            ram_rx_started = 1;
-            ram_rx_offset = 0;
-            int remaining = bin_len - (i + 4);
-            if (remaining > 0)
-            {
-              uint32_t copy_len = ((uint32_t)remaining < RAM_SONG_MAX_BYTES) ? (uint32_t)remaining : RAM_SONG_MAX_BYTES;
-              memcpy((uint8_t *)song_ram, &rx_message[i + 4], copy_len);
-              ram_rx_offset = copy_len;
-            }
-            found = 1;
-            break;
-          }
-        }
-        if (!found)
-        {
-          /* Not song data — treat as text command (e.g. :a to go back) */
-          rx_message[bin_len] = '\0';
-          if (bin_len > 0 && rx_message[bin_len - 1] == '\n') rx_message[bin_len - 1] = '\0';
-          execute_command(rx_message);
-        }
-      }
-      else
-      {
-        /* Accumulate song data into song_ram */
-        uint32_t space = RAM_SONG_MAX_BYTES - ram_rx_offset;
-        uint32_t copy_len = (bin_len < space) ? bin_len : space;
-        memcpy(&((uint8_t *)song_ram)[ram_rx_offset], rx_message, copy_len);
-        ram_rx_offset += copy_len;
-
-        /* Check for end sentinel (114.514f) */
-        const float end_sentinel = RAM_SENTINEL_END;
-        if (ram_rx_offset >= 4)
-        {
-          float last_float;
-          memcpy(&last_float, &((uint8_t *)song_ram)[ram_rx_offset - 4], 4);
-          if (last_float == end_sentinel)
-          {
-            ram_rx_offset -= 4;
-            ram_rx_complete = 1;
-          }
-        }
-
-        if (ram_rx_offset >= RAM_SONG_MAX_BYTES)
-        {
-          ram_rx_complete = 1;
-        }
       }
     }
 
     // update menu display
     menu_update();
+#endif
   }
   
     

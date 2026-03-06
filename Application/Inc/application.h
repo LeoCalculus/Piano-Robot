@@ -32,8 +32,6 @@ extern LCD_Config lcd_config;
 #define PIANO_THRESHOLD   54.0f // define where the boundary of left hand and right hand is
 #define LEFT_HAND_SIZE    10.0f // size of left hand
 #define RIGHT_HAND_SIZE   10.0f // size of right hand
-#define RAM_SENTINEL_START 514.114f // start-of-song marker sent before data
-#define RAM_SENTINEL_END   114.514f // end-of-song marker sent after data
 #define RAM_SONG_MAX_BYTES (365 * 14 * 4) // 20440 bytes max
 // VOFA
 typedef struct __attribute__((packed)) VOFA_REPORT{
