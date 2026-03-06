@@ -8,6 +8,8 @@
 #include <menu.h>
 #include <command.h>
 #include <config.h>
+#include <constants.h>
+#include <encoder.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -46,6 +48,15 @@ extern volatile int ram_rx_complete; // 1 = end sentinel received, ready to pars
 extern volatile uint32_t ram_rx_offset; // byte offset into song_ram during accumulation
 __ALIGN_BEGIN extern float rx_data[5500] __ALIGN_END;
 
+// ENCODER - TIMER - AB phase:
+extern volatile int32_t encoder_count;
+extern volatile float encoder_old_position_cm; // for speed calculation
+extern volatile float encoder_speed_cm_s; // current speed in cm/s
+extern int32_t encoder_read_result;
+extern uint32_t encoder_direction;
+extern volatile float current_distance_cm;
+extern volatile int32_t counter; // general purpose counter for testing
+
 // chord struct - used to store how the song is played
 typedef struct ChordEvent {
     float positions[2]; // target position for both left hand and right hand
@@ -62,5 +73,11 @@ void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst);
 
 // run homing procedure for the robot
 void homing_procedure(void);
+
+// controller start up
+void controller_init(void);
+
+// controller step - in 1000Hz timer interrupt
+void controller_step(const float dt);
 
 #endif /* __APPLICATION_H */

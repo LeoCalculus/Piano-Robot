@@ -120,6 +120,7 @@ int main(void)
   MX_TIM3_Init();
   MX_ICACHE_Init();
   MX_TIM4_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   // init HC-04 UART receive to idle mode with DMA
   hc04_receive_to_idle_init(&huart1, rx_message_buffer, sizeof(rx_message_buffer));
@@ -146,6 +147,12 @@ int main(void)
 
   sd_parse_array("music1.txt");
 
+  HAL_TIM_Base_Start_IT(&htim5); // start controller timer interrupt
+
+  encoder_start(&htim3); // start encoder reading
+
+  controller_init(); // initialize controller state
+
 #ifndef DEBUGMODE
   menu_init();
 #endif
@@ -156,7 +163,7 @@ int main(void)
   while (1) 
   {
     // toggle LED pin to show main loop is not blocking 
-    HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+    // HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
 
 #ifndef DEBUGMODE
     // check incoming message with \n:
@@ -174,6 +181,12 @@ int main(void)
 
     // update menu display
     menu_update();
+#else 
+    // in debug mode just display the current position from encoder
+    char pos_buf[32];
+    snprintf(pos_buf, sizeof(pos_buf), "Position: %0.2f cm", current_distance_cm);
+    LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+
 #endif
   }
   

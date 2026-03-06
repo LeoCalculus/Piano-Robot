@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -32,35 +32,48 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 1
   30              	.LFB359:
    1:./Application/Src/application.c **** #include <application.h>
    2:./Application/Src/application.c **** 
-   3:./Application/Src/application.c **** uint8_t rx_message_buffer[128] = {0}; // DMA circular buffer
-   4:./Application/Src/application.c **** uint8_t rx_message[256] = {0}; // accumulation buffer for complete messages
-   5:./Application/Src/application.c **** uint16_t rx_message_index = 0; // current write position in rx_message
-   6:./Application/Src/application.c **** int old_buffer_index = 0;
-   7:./Application/Src/application.c **** int rx_complete = 0;
-   8:./Application/Src/application.c **** int rx_valid = 0;
-   9:./Application/Src/application.c **** volatile int uart_binary_mode = 0; // 1 = skip \n detection (binary file transfer)
-  10:./Application/Src/application.c **** 
-  11:./Application/Src/application.c **** // ram
-  12:./Application/Src/application.c **** volatile int redirect_to_ram = 0; // flag to indicate whether the incoming song data should be writ
-  13:./Application/Src/application.c **** volatile int ram_rx_started = 0;  // 1 = start sentinel received, accumulating
-  14:./Application/Src/application.c **** volatile int ram_rx_complete = 0; // 1 = end sentinel received, ready to parse
-  15:./Application/Src/application.c **** volatile uint32_t ram_rx_offset = 0; // byte offset into song_ram during accumulation
-  16:./Application/Src/application.c **** __ALIGN_BEGIN float rx_data[5500] __ALIGN_END;
-  17:./Application/Src/application.c **** __ALIGN_BEGIN float song_ram[365][14] __ALIGN_END; // receive buffer for RAM song transfer (20440 b
-  18:./Application/Src/application.c **** VOFA_REPORT vofa; // transmit via usb
-  19:./Application/Src/application.c **** 
-  20:./Application/Src/application.c **** ChordEvent_t chord_events[MAX_CHORD_EVENTS] = {0}; // store the whole song, max 100 chords
-  21:./Application/Src/application.c **** 
-  22:./Application/Src/application.c **** void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst) {
-  31              		.loc 1 22 72 view -0
+   3:./Application/Src/application.c **** // uart - buffer
+   4:./Application/Src/application.c **** uint8_t rx_message_buffer[128] = {0}; // DMA circular buffer
+   5:./Application/Src/application.c **** uint8_t rx_message[256] = {0}; // accumulation buffer for complete messages
+   6:./Application/Src/application.c **** uint16_t rx_message_index = 0; // current write position in rx_message
+   7:./Application/Src/application.c **** int old_buffer_index = 0;
+   8:./Application/Src/application.c **** int rx_complete = 0;
+   9:./Application/Src/application.c **** int rx_valid = 0;
+  10:./Application/Src/application.c **** volatile int uart_binary_mode = 0; // 1 = skip \n detection (binary file transfer)
+  11:./Application/Src/application.c **** 
+  12:./Application/Src/application.c **** // ram
+  13:./Application/Src/application.c **** volatile int redirect_to_ram = 0; // flag to indicate whether the incoming song data should be writ
+  14:./Application/Src/application.c **** volatile int ram_rx_started = 0;  // 1 = start sentinel received, accumulating
+  15:./Application/Src/application.c **** volatile int ram_rx_complete = 0; // 1 = end sentinel received, ready to parse
+  16:./Application/Src/application.c **** volatile uint32_t ram_rx_offset = 0; // byte offset into song_ram during accumulation
+  17:./Application/Src/application.c **** __ALIGN_BEGIN float rx_data[5500] __ALIGN_END;
+  18:./Application/Src/application.c **** __ALIGN_BEGIN float song_ram[365][14] __ALIGN_END; // receive buffer for RAM song transfer (20440 b
+  19:./Application/Src/application.c **** VOFA_REPORT vofa; // transmit via usb
+  20:./Application/Src/application.c **** 
+  21:./Application/Src/application.c **** // song struct
+  22:./Application/Src/application.c **** ChordEvent_t chord_events[MAX_CHORD_EVENTS] = {0}; // store the whole song, max 100 chords
+  23:./Application/Src/application.c **** 
+  24:./Application/Src/application.c **** // encoder global variables
+  25:./Application/Src/application.c **** volatile int32_t encoder_count = 0;
+  26:./Application/Src/application.c **** volatile float encoder_old_position_cm = 0.0f; // for speed calculation
+  27:./Application/Src/application.c **** volatile float encoder_speed_cm_s = 0.0f; // current speed in cm/s
+  28:./Application/Src/application.c **** int32_t encoder_read_result = 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 2
+
+
+  29:./Application/Src/application.c **** uint32_t encoder_direction = 0;
+  30:./Application/Src/application.c **** volatile float current_distance_cm = 0.0f;
+  31:./Application/Src/application.c **** 
+  32:./Application/Src/application.c **** // other variables
+  33:./Application/Src/application.c **** volatile int32_t counter = 0;
+  34:./Application/Src/application.c **** 
+  35:./Application/Src/application.c **** void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst) {
+  31              		.loc 1 35 72 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
-  35              		.loc 1 22 72 is_stmt 0 view .LVU1
+  35              		.loc 1 35 72 is_stmt 0 view .LVU1
   36 0000 30B5     		push	{r4, r5, lr}
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 2
-
-
   37              	.LCFI0:
   38              		.cfi_def_cfa_offset 12
   39              		.cfi_offset 4, -12
@@ -68,130 +81,130 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 1
   41              		.cfi_offset 14, -4
   42 0002 0446     		mov	r4, r0
   43 0004 0D46     		mov	r5, r1
-  23:./Application/Src/application.c ****     for (int i = 0; i < MAX_CHORD_EVENTS; i++) {
-  44              		.loc 1 23 5 is_stmt 1 view .LVU2
+  36:./Application/Src/application.c ****     for (int i = 0; i < MAX_CHORD_EVENTS; i++) {
+  44              		.loc 1 36 5 is_stmt 1 view .LVU2
   45              	.LBB2:
-  46              		.loc 1 23 10 view .LVU3
+  46              		.loc 1 36 10 view .LVU3
   47              	.LVL1:
-  48              		.loc 1 23 14 is_stmt 0 view .LVU4
+  48              		.loc 1 36 14 is_stmt 0 view .LVU4
   49 0006 4FF0000E 		mov	lr, #0
-  50              		.loc 1 23 5 view .LVU5
+  50              		.loc 1 36 5 view .LVU5
   51 000a 20E0     		b	.L2
   52              	.LVL2:
   53              	.L4:
   54              	.LBB3:
-  24:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
-  25:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
-  26:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
-  27:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
-  55              		.loc 1 27 13 is_stmt 1 view .LVU6
-  56              		.loc 1 27 43 is_stmt 0 view .LVU7
+  37:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
+  38:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+  39:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
+  40:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+  55              		.loc 1 40 13 is_stmt 1 view .LVU6
+  56              		.loc 1 40 43 is_stmt 0 view .LVU7
   57 000c 9A1C     		adds	r2, r3, #2
-  58              		.loc 1 27 40 view .LVU8
+  58              		.loc 1 40 40 view .LVU8
   59 000e 0CEB8202 		add	r2, ip, r2, lsl #2
   60 0012 D2ED007A 		vldr.32	s15, [r2]
-  61              		.loc 1 27 13 view .LVU9
+  61              		.loc 1 40 13 view .LVU9
   62 0016 F5EE407A 		vcmp.f32	s15, #0
   63 001a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
   64 001e 14BF     		ite	ne
   65 0020 0121     		movne	r1, #1
   66 0022 0021     		moveq	r1, #0
-  67              		.loc 1 27 31 view .LVU10
+  67              		.loc 1 40 31 view .LVU10
   68 0024 C218     		adds	r2, r0, r3
   69 0026 1172     		strb	r1, [r2, #8]
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
-  70              		.loc 1 26 47 is_stmt 1 discriminator 3 view .LVU11
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+  70              		.loc 1 39 47 is_stmt 1 discriminator 3 view .LVU11
   71 0028 0133     		adds	r3, r3, #1
   72              	.LVL3:
   73              	.L3:
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
-  74              		.loc 1 26 27 discriminator 1 view .LVU12
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 3
+
+
+  74              		.loc 1 39 27 discriminator 1 view .LVU12
   75 002a 092B     		cmp	r3, #9
   76 002c EEDD     		ble	.L4
   77              	.LBE3:
-  28:./Application/Src/application.c ****         }
-  29:./Application/Src/application.c ****         dst[i].duration_ms = (uint16_t)src[i][12];
-  78              		.loc 1 29 9 view .LVU13
-  79              		.loc 1 29 46 is_stmt 0 view .LVU14
+  41:./Application/Src/application.c ****         }
+  42:./Application/Src/application.c ****         dst[i].duration_ms = (uint16_t)src[i][12];
+  78              		.loc 1 42 9 view .LVU13
+  79              		.loc 1 42 46 is_stmt 0 view .LVU14
   80 002e DCED0C7A 		vldr.32	s15, [ip, #48]
-  81              		.loc 1 29 30 view .LVU15
+  81              		.loc 1 42 30 view .LVU15
   82 0032 FCEEE77A 		vcvt.u32.f32	s15, s15
-  83              		.loc 1 29 28 view .LVU16
+  83              		.loc 1 42 28 view .LVU16
   84 0036 17EE903A 		vmov	r3, s15	@ int
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 3
-
-
   85              	.LVL4:
-  86              		.loc 1 29 28 view .LVU17
+  86              		.loc 1 42 28 view .LVU17
   87 003a 4382     		strh	r3, [r0, #18]	@ movhi
-  30:./Application/Src/application.c ****         dst[i].delay_to_next_ms = (uint16_t)src[i][13];
-  88              		.loc 1 30 9 is_stmt 1 view .LVU18
-  89              		.loc 1 30 51 is_stmt 0 view .LVU19
+  43:./Application/Src/application.c ****         dst[i].delay_to_next_ms = (uint16_t)src[i][13];
+  88              		.loc 1 43 9 is_stmt 1 view .LVU18
+  89              		.loc 1 43 51 is_stmt 0 view .LVU19
   90 003c DCED0D7A 		vldr.32	s15, [ip, #52]
-  91              		.loc 1 30 35 view .LVU20
+  91              		.loc 1 43 35 view .LVU20
   92 0040 FCEEE77A 		vcvt.u32.f32	s15, s15
-  93              		.loc 1 30 33 view .LVU21
+  93              		.loc 1 43 33 view .LVU21
   94 0044 17EE903A 		vmov	r3, s15	@ int
   95 0048 8382     		strh	r3, [r0, #20]	@ movhi
-  23:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
-  96              		.loc 1 23 44 is_stmt 1 discriminator 2 view .LVU22
+  36:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
+  96              		.loc 1 36 44 is_stmt 1 discriminator 2 view .LVU22
   97 004a 0EF1010E 		add	lr, lr, #1
   98              	.LVL5:
   99              	.L2:
-  23:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
- 100              		.loc 1 23 23 discriminator 1 view .LVU23
+  36:./Application/Src/application.c ****         dst[i].positions[0] = src[i][0];
+ 100              		.loc 1 36 23 discriminator 1 view .LVU23
  101 004e BEF5B67F 		cmp	lr, #364
  102 0052 0FDC     		bgt	.L7
-  24:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
- 103              		.loc 1 24 9 view .LVU24
-  24:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
- 104              		.loc 1 24 34 is_stmt 0 view .LVU25
+  37:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+ 103              		.loc 1 37 9 view .LVU24
+  37:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+ 104              		.loc 1 37 34 is_stmt 0 view .LVU25
  105 0054 CEEBCE0C 		rsb	ip, lr, lr, lsl #3
  106 0058 04EBCC0C 		add	ip, r4, ip, lsl #3
-  24:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
- 107              		.loc 1 24 12 view .LVU26
+  37:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+ 107              		.loc 1 37 12 view .LVU26
  108 005c 0EEB4E00 		add	r0, lr, lr, lsl #1
  109 0060 05EBC000 		add	r0, r5, r0, lsl #3
-  24:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
- 110              		.loc 1 24 37 view .LVU27
+  37:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+ 110              		.loc 1 37 37 view .LVU27
  111 0064 DCF80030 		ldr	r3, [ip]	@ float
-  24:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
- 112              		.loc 1 24 29 view .LVU28
+  37:./Application/Src/application.c ****         dst[i].positions[1] = src[i][1];
+ 112              		.loc 1 37 29 view .LVU28
  113 0068 0360     		str	r3, [r0]	@ float
-  25:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
- 114              		.loc 1 25 9 is_stmt 1 view .LVU29
-  25:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
- 115              		.loc 1 25 37 is_stmt 0 view .LVU30
+  38:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
+ 114              		.loc 1 38 9 is_stmt 1 view .LVU29
+  38:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
+ 115              		.loc 1 38 37 is_stmt 0 view .LVU30
  116 006a DCF80430 		ldr	r3, [ip, #4]	@ float
-  25:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
- 117              		.loc 1 25 29 view .LVU31
+  38:./Application/Src/application.c ****         for (int j = 0; j < MAX_CHORD_NOTES; j++) {
+ 117              		.loc 1 38 29 view .LVU31
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 4
+
+
  118 006e 4360     		str	r3, [r0, #4]	@ float
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
- 119              		.loc 1 26 9 is_stmt 1 view .LVU32
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ 119              		.loc 1 39 9 is_stmt 1 view .LVU32
  120              	.LBB4:
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
- 121              		.loc 1 26 14 view .LVU33
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ 121              		.loc 1 39 14 view .LVU33
  122              	.LVL6:
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
- 123              		.loc 1 26 18 is_stmt 0 view .LVU34
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ 123              		.loc 1 39 18 is_stmt 0 view .LVU34
  124 0070 0023     		movs	r3, #0
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
- 125              		.loc 1 26 9 view .LVU35
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ 125              		.loc 1 39 9 view .LVU35
  126 0072 DAE7     		b	.L3
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 4
-
-
  127              	.LVL7:
  128              	.L7:
-  26:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
- 129              		.loc 1 26 9 view .LVU36
+  39:./Application/Src/application.c ****             dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
+ 129              		.loc 1 39 9 view .LVU36
  130              	.LBE4:
  131              	.LBE2:
-  31:./Application/Src/application.c ****     }
-  32:./Application/Src/application.c **** }
- 132              		.loc 1 32 1 view .LVU37
+  44:./Application/Src/application.c ****     }
+  45:./Application/Src/application.c **** }
+ 132              		.loc 1 45 1 view .LVU37
  133 0074 30BD     		pop	{r4, r5, pc}
- 134              		.loc 1 32 1 view .LVU38
+ 134              		.loc 1 45 1 view .LVU38
  135              		.cfi_endproc
  136              	.LFE359:
  138              		.section	.text.homing_procedure,"ax",%progbits
@@ -202,167 +215,420 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 1
  143              		.thumb_func
  145              	homing_procedure:
  146              	.LFB360:
-  33:./Application/Src/application.c **** 
-  34:./Application/Src/application.c **** void homing_procedure(void) {
- 147              		.loc 1 34 29 is_stmt 1 view -0
+  46:./Application/Src/application.c **** 
+  47:./Application/Src/application.c **** void homing_procedure(void) {
+ 147              		.loc 1 47 29 is_stmt 1 view -0
  148              		.cfi_startproc
  149              		@ args = 0, pretend = 0, frame = 0
  150              		@ frame_needed = 0, uses_anonymous_args = 0
  151              		@ link register save eliminated.
-  35:./Application/Src/application.c ****     // TODO: implement homing procedure
-  36:./Application/Src/application.c **** }
- 152              		.loc 1 36 1 view .LVU40
+  48:./Application/Src/application.c ****     // TODO: implement homing procedure
+  49:./Application/Src/application.c **** }
+ 152              		.loc 1 49 1 view .LVU40
  153 0000 7047     		bx	lr
  154              		.cfi_endproc
  155              	.LFE360:
- 157              		.global	chord_events
- 158              		.section	.bss.chord_events,"aw",%nobits
- 159              		.align	2
- 162              	chord_events:
- 163 0000 00000000 		.space	8760
- 163      00000000 
- 163      00000000 
- 163      00000000 
- 163      00000000 
- 164              		.global	vofa
- 165              		.section	.bss.vofa,"aw",%nobits
- 166              		.align	2
- 169              	vofa:
- 170 0000 00000000 		.space	44
- 170      00000000 
- 170      00000000 
- 170      00000000 
- 170      00000000 
- 171              		.global	song_ram
- 172              		.section	.bss.song_ram,"aw",%nobits
- 173              		.align	2
- 176              	song_ram:
- 177 0000 00000000 		.space	20440
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 5
+ 157              		.section	.text.controller_init,"ax",%progbits
+ 158              		.align	1
+ 159              		.global	controller_init
+ 160              		.syntax unified
+ 161              		.thumb
+ 162              		.thumb_func
+ 164              	controller_init:
+ 165              	.LFB361:
+  50:./Application/Src/application.c **** 
+  51:./Application/Src/application.c **** void controller_init(void) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 5
 
 
- 177      00000000 
- 177      00000000 
- 177      00000000 
- 177      00000000 
- 178              		.global	rx_data
- 179              		.section	.bss.rx_data,"aw",%nobits
- 180              		.align	2
- 183              	rx_data:
- 184 0000 00000000 		.space	22000
- 184      00000000 
- 184      00000000 
- 184      00000000 
- 184      00000000 
- 185              		.global	ram_rx_offset
- 186              		.section	.bss.ram_rx_offset,"aw",%nobits
- 187              		.align	2
- 190              	ram_rx_offset:
- 191 0000 00000000 		.space	4
- 192              		.global	ram_rx_complete
- 193              		.section	.bss.ram_rx_complete,"aw",%nobits
- 194              		.align	2
- 197              	ram_rx_complete:
- 198 0000 00000000 		.space	4
- 199              		.global	ram_rx_started
- 200              		.section	.bss.ram_rx_started,"aw",%nobits
- 201              		.align	2
- 204              	ram_rx_started:
- 205 0000 00000000 		.space	4
- 206              		.global	redirect_to_ram
- 207              		.section	.bss.redirect_to_ram,"aw",%nobits
- 208              		.align	2
- 211              	redirect_to_ram:
- 212 0000 00000000 		.space	4
- 213              		.global	uart_binary_mode
- 214              		.section	.bss.uart_binary_mode,"aw",%nobits
- 215              		.align	2
- 218              	uart_binary_mode:
- 219 0000 00000000 		.space	4
- 220              		.global	rx_valid
- 221              		.section	.bss.rx_valid,"aw",%nobits
- 222              		.align	2
- 225              	rx_valid:
- 226 0000 00000000 		.space	4
- 227              		.global	rx_complete
- 228              		.section	.bss.rx_complete,"aw",%nobits
- 229              		.align	2
- 232              	rx_complete:
- 233 0000 00000000 		.space	4
- 234              		.global	old_buffer_index
- 235              		.section	.bss.old_buffer_index,"aw",%nobits
- 236              		.align	2
- 239              	old_buffer_index:
- 240 0000 00000000 		.space	4
- 241              		.global	rx_message_index
- 242              		.section	.bss.rx_message_index,"aw",%nobits
- 243              		.align	1
- 246              	rx_message_index:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 6
+ 166              		.loc 1 51 28 view -0
+ 167              		.cfi_startproc
+ 168              		@ args = 0, pretend = 0, frame = 0
+ 169              		@ frame_needed = 0, uses_anonymous_args = 0
+ 170 0000 10B5     		push	{r4, lr}
+ 171              	.LCFI1:
+ 172              		.cfi_def_cfa_offset 8
+ 173              		.cfi_offset 4, -8
+ 174              		.cfi_offset 14, -4
+  52:./Application/Src/application.c ****     memset(&vofa, 0, sizeof(vofa));
+ 175              		.loc 1 52 5 view .LVU42
+ 176 0002 064C     		ldr	r4, .L11
+ 177 0004 2C22     		movs	r2, #44
+ 178 0006 0021     		movs	r1, #0
+ 179 0008 2046     		mov	r0, r4
+ 180 000a FFF7FEFF 		bl	memset
+ 181              	.LVL8:
+  53:./Application/Src/application.c ****     vofa.vofaTail[0] = 0x00;
+ 182              		.loc 1 53 5 view .LVU43
+  54:./Application/Src/application.c ****     vofa.vofaTail[1] = 0x00;
+ 183              		.loc 1 54 5 view .LVU44
+  55:./Application/Src/application.c ****     vofa.vofaTail[2] = 0x80;
+ 184              		.loc 1 55 5 view .LVU45
+ 185              		.loc 1 55 22 is_stmt 0 view .LVU46
+ 186 000e 8023     		movs	r3, #128
+ 187 0010 84F82A30 		strb	r3, [r4, #42]
+  56:./Application/Src/application.c ****     vofa.vofaTail[3] = 0x7f;
+ 188              		.loc 1 56 5 is_stmt 1 view .LVU47
+ 189              		.loc 1 56 22 is_stmt 0 view .LVU48
+ 190 0014 7F23     		movs	r3, #127
+ 191 0016 84F82B30 		strb	r3, [r4, #43]
+  57:./Application/Src/application.c **** }
+ 192              		.loc 1 57 1 view .LVU49
+ 193 001a 10BD     		pop	{r4, pc}
+ 194              	.L12:
+ 195              		.align	2
+ 196              	.L11:
+ 197 001c 00000000 		.word	vofa
+ 198              		.cfi_endproc
+ 199              	.LFE361:
+ 201              		.section	.text.controller_step,"ax",%progbits
+ 202              		.align	1
+ 203              		.global	controller_step
+ 204              		.syntax unified
+ 205              		.thumb
+ 206              		.thumb_func
+ 208              	controller_step:
+ 209              	.LVL9:
+ 210              	.LFB362:
+  58:./Application/Src/application.c **** 
+  59:./Application/Src/application.c **** void controller_step(const float dt) {
+ 211              		.loc 1 59 38 is_stmt 1 view -0
+ 212              		.cfi_startproc
+ 213              		@ args = 0, pretend = 0, frame = 8
+ 214              		@ frame_needed = 0, uses_anonymous_args = 0
+ 215              		.loc 1 59 38 is_stmt 0 view .LVU51
+ 216 0000 10B5     		push	{r4, lr}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 6
 
 
- 247 0000 0000     		.space	2
- 248              		.global	rx_message
- 249              		.section	.bss.rx_message,"aw",%nobits
- 250              		.align	2
- 253              	rx_message:
- 254 0000 00000000 		.space	256
- 254      00000000 
- 254      00000000 
- 254      00000000 
- 254      00000000 
- 255              		.global	rx_message_buffer
- 256              		.section	.bss.rx_message_buffer,"aw",%nobits
- 257              		.align	2
- 260              	rx_message_buffer:
- 261 0000 00000000 		.space	128
- 261      00000000 
- 261      00000000 
- 261      00000000 
- 261      00000000 
- 262              		.text
- 263              	.Letext0:
- 264              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 265              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 266              		.file 4 "Application/Inc/application.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s 			page 7
+ 217              	.LCFI2:
+ 218              		.cfi_def_cfa_offset 8
+ 219              		.cfi_offset 4, -8
+ 220              		.cfi_offset 14, -4
+ 221 0002 82B0     		sub	sp, sp, #8
+ 222              	.LCFI3:
+ 223              		.cfi_def_cfa_offset 16
+  60:./Application/Src/application.c ****     // read the encoder 
+  61:./Application/Src/application.c ****     uint32_t direction;
+ 224              		.loc 1 61 5 is_stmt 1 view .LVU52
+  62:./Application/Src/application.c **** 
+  63:./Application/Src/application.c ****     encoder_read_value(&htim3, &encoder_read_result, &direction);
+ 225              		.loc 1 63 5 view .LVU53
+ 226 0004 134C     		ldr	r4, .L17
+ 227 0006 01AA     		add	r2, sp, #4
+ 228 0008 2146     		mov	r1, r4
+ 229 000a 1348     		ldr	r0, .L17+4
+ 230 000c FFF7FEFF 		bl	encoder_read_value
+ 231              	.LVL10:
+  64:./Application/Src/application.c ****     current_distance_cm = encoder_parse_distance_cm(encoder_read_result);
+ 232              		.loc 1 64 5 view .LVU54
+ 233              		.loc 1 64 27 is_stmt 0 view .LVU55
+ 234 0010 2068     		ldr	r0, [r4]
+ 235 0012 FFF7FEFF 		bl	encoder_parse_distance_cm
+ 236              	.LVL11:
+ 237              		.loc 1 64 25 discriminator 1 view .LVU56
+ 238 0016 114B     		ldr	r3, .L17+8
+ 239 0018 83ED000A 		vstr.32	s0, [r3]
+  65:./Application/Src/application.c ****     vofa.val[0] = current_distance_cm;
+ 240              		.loc 1 65 5 is_stmt 1 view .LVU57
+ 241              		.loc 1 65 17 is_stmt 0 view .LVU58
+ 242 001c 1B68     		ldr	r3, [r3]	@ float
+ 243 001e 1049     		ldr	r1, .L17+12
+ 244 0020 0B60     		str	r3, [r1]	@ float
+  66:./Application/Src/application.c **** 
+  67:./Application/Src/application.c ****     HAL_UART_Transmit_DMA(&huart1, (uint8_t*)vofa.val, sizeof(vofa.val));
+ 245              		.loc 1 67 5 is_stmt 1 view .LVU59
+ 246 0022 2822     		movs	r2, #40
+ 247 0024 0F48     		ldr	r0, .L17+16
+ 248 0026 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+ 249              	.LVL12:
+  68:./Application/Src/application.c ****     if (counter >= 800){
+ 250              		.loc 1 68 5 view .LVU60
+ 251              		.loc 1 68 17 is_stmt 0 view .LVU61
+ 252 002a 0F4B     		ldr	r3, .L17+20
+ 253 002c 1B68     		ldr	r3, [r3]
+ 254              		.loc 1 68 8 view .LVU62
+ 255 002e B3F5487F 		cmp	r3, #800
+ 256 0032 05DA     		bge	.L16
+ 257              	.L14:
+  69:./Application/Src/application.c ****         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+  70:./Application/Src/application.c ****         counter = 0;
+  71:./Application/Src/application.c ****     }
+  72:./Application/Src/application.c ****     counter++;
+ 258              		.loc 1 72 5 is_stmt 1 view .LVU63
+ 259              		.loc 1 72 12 is_stmt 0 view .LVU64
+ 260 0034 0C4A     		ldr	r2, .L17+20
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 7
+
+
+ 261 0036 1368     		ldr	r3, [r2]
+ 262 0038 0133     		adds	r3, r3, #1
+ 263 003a 1360     		str	r3, [r2]
+  73:./Application/Src/application.c **** }
+ 264              		.loc 1 73 1 view .LVU65
+ 265 003c 02B0     		add	sp, sp, #8
+ 266              	.LCFI4:
+ 267              		.cfi_remember_state
+ 268              		.cfi_def_cfa_offset 8
+ 269              		@ sp needed
+ 270 003e 10BD     		pop	{r4, pc}
+ 271              	.L16:
+ 272              	.LCFI5:
+ 273              		.cfi_restore_state
+  69:./Application/Src/application.c ****         HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+ 274              		.loc 1 69 9 is_stmt 1 view .LVU66
+ 275 0040 4FF48061 		mov	r1, #1024
+ 276 0044 0948     		ldr	r0, .L17+24
+ 277 0046 FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 278              	.LVL13:
+  70:./Application/Src/application.c ****     }
+ 279              		.loc 1 70 9 view .LVU67
+  70:./Application/Src/application.c ****     }
+ 280              		.loc 1 70 17 is_stmt 0 view .LVU68
+ 281 004a 074B     		ldr	r3, .L17+20
+ 282 004c 0022     		movs	r2, #0
+ 283 004e 1A60     		str	r2, [r3]
+ 284 0050 F0E7     		b	.L14
+ 285              	.L18:
+ 286 0052 00BF     		.align	2
+ 287              	.L17:
+ 288 0054 00000000 		.word	encoder_read_result
+ 289 0058 00000000 		.word	htim3
+ 290 005c 00000000 		.word	current_distance_cm
+ 291 0060 00000000 		.word	vofa
+ 292 0064 00000000 		.word	huart1
+ 293 0068 00000000 		.word	counter
+ 294 006c 00000242 		.word	1107427328
+ 295              		.cfi_endproc
+ 296              	.LFE362:
+ 298              		.global	counter
+ 299              		.section	.bss.counter,"aw",%nobits
+ 300              		.align	2
+ 303              	counter:
+ 304 0000 00000000 		.space	4
+ 305              		.global	current_distance_cm
+ 306              		.section	.bss.current_distance_cm,"aw",%nobits
+ 307              		.align	2
+ 310              	current_distance_cm:
+ 311 0000 00000000 		.space	4
+ 312              		.global	encoder_direction
+ 313              		.section	.bss.encoder_direction,"aw",%nobits
+ 314              		.align	2
+ 317              	encoder_direction:
+ 318 0000 00000000 		.space	4
+ 319              		.global	encoder_read_result
+ 320              		.section	.bss.encoder_read_result,"aw",%nobits
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 8
+
+
+ 321              		.align	2
+ 324              	encoder_read_result:
+ 325 0000 00000000 		.space	4
+ 326              		.global	encoder_speed_cm_s
+ 327              		.section	.bss.encoder_speed_cm_s,"aw",%nobits
+ 328              		.align	2
+ 331              	encoder_speed_cm_s:
+ 332 0000 00000000 		.space	4
+ 333              		.global	encoder_old_position_cm
+ 334              		.section	.bss.encoder_old_position_cm,"aw",%nobits
+ 335              		.align	2
+ 338              	encoder_old_position_cm:
+ 339 0000 00000000 		.space	4
+ 340              		.global	encoder_count
+ 341              		.section	.bss.encoder_count,"aw",%nobits
+ 342              		.align	2
+ 345              	encoder_count:
+ 346 0000 00000000 		.space	4
+ 347              		.global	chord_events
+ 348              		.section	.bss.chord_events,"aw",%nobits
+ 349              		.align	2
+ 352              	chord_events:
+ 353 0000 00000000 		.space	8760
+ 353      00000000 
+ 353      00000000 
+ 353      00000000 
+ 353      00000000 
+ 354              		.global	vofa
+ 355              		.section	.bss.vofa,"aw",%nobits
+ 356              		.align	2
+ 359              	vofa:
+ 360 0000 00000000 		.space	44
+ 360      00000000 
+ 360      00000000 
+ 360      00000000 
+ 360      00000000 
+ 361              		.global	song_ram
+ 362              		.section	.bss.song_ram,"aw",%nobits
+ 363              		.align	2
+ 366              	song_ram:
+ 367 0000 00000000 		.space	20440
+ 367      00000000 
+ 367      00000000 
+ 367      00000000 
+ 367      00000000 
+ 368              		.global	rx_data
+ 369              		.section	.bss.rx_data,"aw",%nobits
+ 370              		.align	2
+ 373              	rx_data:
+ 374 0000 00000000 		.space	22000
+ 374      00000000 
+ 374      00000000 
+ 374      00000000 
+ 374      00000000 
+ 375              		.global	ram_rx_offset
+ 376              		.section	.bss.ram_rx_offset,"aw",%nobits
+ 377              		.align	2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 9
+
+
+ 380              	ram_rx_offset:
+ 381 0000 00000000 		.space	4
+ 382              		.global	ram_rx_complete
+ 383              		.section	.bss.ram_rx_complete,"aw",%nobits
+ 384              		.align	2
+ 387              	ram_rx_complete:
+ 388 0000 00000000 		.space	4
+ 389              		.global	ram_rx_started
+ 390              		.section	.bss.ram_rx_started,"aw",%nobits
+ 391              		.align	2
+ 394              	ram_rx_started:
+ 395 0000 00000000 		.space	4
+ 396              		.global	redirect_to_ram
+ 397              		.section	.bss.redirect_to_ram,"aw",%nobits
+ 398              		.align	2
+ 401              	redirect_to_ram:
+ 402 0000 00000000 		.space	4
+ 403              		.global	uart_binary_mode
+ 404              		.section	.bss.uart_binary_mode,"aw",%nobits
+ 405              		.align	2
+ 408              	uart_binary_mode:
+ 409 0000 00000000 		.space	4
+ 410              		.global	rx_valid
+ 411              		.section	.bss.rx_valid,"aw",%nobits
+ 412              		.align	2
+ 415              	rx_valid:
+ 416 0000 00000000 		.space	4
+ 417              		.global	rx_complete
+ 418              		.section	.bss.rx_complete,"aw",%nobits
+ 419              		.align	2
+ 422              	rx_complete:
+ 423 0000 00000000 		.space	4
+ 424              		.global	old_buffer_index
+ 425              		.section	.bss.old_buffer_index,"aw",%nobits
+ 426              		.align	2
+ 429              	old_buffer_index:
+ 430 0000 00000000 		.space	4
+ 431              		.global	rx_message_index
+ 432              		.section	.bss.rx_message_index,"aw",%nobits
+ 433              		.align	1
+ 436              	rx_message_index:
+ 437 0000 0000     		.space	2
+ 438              		.global	rx_message
+ 439              		.section	.bss.rx_message,"aw",%nobits
+ 440              		.align	2
+ 443              	rx_message:
+ 444 0000 00000000 		.space	256
+ 444      00000000 
+ 444      00000000 
+ 444      00000000 
+ 444      00000000 
+ 445              		.global	rx_message_buffer
+ 446              		.section	.bss.rx_message_buffer,"aw",%nobits
+ 447              		.align	2
+ 450              	rx_message_buffer:
+ 451 0000 00000000 		.space	128
+ 451      00000000 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 10
+
+
+ 451      00000000 
+ 451      00000000 
+ 451      00000000 
+ 452              		.text
+ 453              	.Letext0:
+ 454              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 455              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 456              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 457              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 458              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 459              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 460              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ 461              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ 462              		.file 10 "Core/Inc/usart.h"
+ 463              		.file 11 "Core/Inc/tim.h"
+ 464              		.file 12 "Application/Inc/application.h"
+ 465              		.file 13 "Application/Inc/encoder.h"
+ 466              		.file 14 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 467              		.file 15 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 468              		.file 16 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 11
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 application.c
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:22     .text.parsing_song_buffer_to_struct:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:28     .text.parsing_song_buffer_to_struct:00000000 parsing_song_buffer_to_struct
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:139    .text.homing_procedure:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:145    .text.homing_procedure:00000000 homing_procedure
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:162    .bss.chord_events:00000000 chord_events
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:159    .bss.chord_events:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:169    .bss.vofa:00000000 vofa
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:166    .bss.vofa:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:176    .bss.song_ram:00000000 song_ram
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:173    .bss.song_ram:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:183    .bss.rx_data:00000000 rx_data
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:180    .bss.rx_data:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:190    .bss.ram_rx_offset:00000000 ram_rx_offset
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:187    .bss.ram_rx_offset:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:197    .bss.ram_rx_complete:00000000 ram_rx_complete
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:194    .bss.ram_rx_complete:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:204    .bss.ram_rx_started:00000000 ram_rx_started
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:201    .bss.ram_rx_started:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:211    .bss.redirect_to_ram:00000000 redirect_to_ram
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:208    .bss.redirect_to_ram:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:218    .bss.uart_binary_mode:00000000 uart_binary_mode
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:215    .bss.uart_binary_mode:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:225    .bss.rx_valid:00000000 rx_valid
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:222    .bss.rx_valid:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:232    .bss.rx_complete:00000000 rx_complete
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:229    .bss.rx_complete:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:239    .bss.old_buffer_index:00000000 old_buffer_index
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:236    .bss.old_buffer_index:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:246    .bss.rx_message_index:00000000 rx_message_index
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:243    .bss.rx_message_index:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:253    .bss.rx_message:00000000 rx_message
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:250    .bss.rx_message:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:260    .bss.rx_message_buffer:00000000 rx_message_buffer
-C:\Users\Xuleo\AppData\Local\Temp\ccMjlGmm.s:257    .bss.rx_message_buffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:22     .text.parsing_song_buffer_to_struct:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:28     .text.parsing_song_buffer_to_struct:00000000 parsing_song_buffer_to_struct
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:139    .text.homing_procedure:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:145    .text.homing_procedure:00000000 homing_procedure
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:158    .text.controller_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:164    .text.controller_init:00000000 controller_init
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:197    .text.controller_init:0000001c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:359    .bss.vofa:00000000 vofa
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:202    .text.controller_step:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:208    .text.controller_step:00000000 controller_step
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:288    .text.controller_step:00000054 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:324    .bss.encoder_read_result:00000000 encoder_read_result
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:310    .bss.current_distance_cm:00000000 current_distance_cm
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:303    .bss.counter:00000000 counter
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:300    .bss.counter:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:307    .bss.current_distance_cm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:317    .bss.encoder_direction:00000000 encoder_direction
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:314    .bss.encoder_direction:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:321    .bss.encoder_read_result:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:331    .bss.encoder_speed_cm_s:00000000 encoder_speed_cm_s
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:328    .bss.encoder_speed_cm_s:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:338    .bss.encoder_old_position_cm:00000000 encoder_old_position_cm
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:335    .bss.encoder_old_position_cm:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:345    .bss.encoder_count:00000000 encoder_count
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:342    .bss.encoder_count:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:352    .bss.chord_events:00000000 chord_events
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:349    .bss.chord_events:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:356    .bss.vofa:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:366    .bss.song_ram:00000000 song_ram
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:363    .bss.song_ram:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:373    .bss.rx_data:00000000 rx_data
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:370    .bss.rx_data:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:380    .bss.ram_rx_offset:00000000 ram_rx_offset
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:377    .bss.ram_rx_offset:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:387    .bss.ram_rx_complete:00000000 ram_rx_complete
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:384    .bss.ram_rx_complete:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:394    .bss.ram_rx_started:00000000 ram_rx_started
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:391    .bss.ram_rx_started:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:401    .bss.redirect_to_ram:00000000 redirect_to_ram
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:398    .bss.redirect_to_ram:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:408    .bss.uart_binary_mode:00000000 uart_binary_mode
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:405    .bss.uart_binary_mode:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:415    .bss.rx_valid:00000000 rx_valid
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:412    .bss.rx_valid:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:422    .bss.rx_complete:00000000 rx_complete
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:419    .bss.rx_complete:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:429    .bss.old_buffer_index:00000000 old_buffer_index
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:426    .bss.old_buffer_index:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:436    .bss.rx_message_index:00000000 rx_message_index
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:433    .bss.rx_message_index:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:443    .bss.rx_message:00000000 rx_message
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:440    .bss.rx_message:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:450    .bss.rx_message_buffer:00000000 rx_message_buffer
+C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s:447    .bss.rx_message_buffer:00000000 $d
 
-NO UNDEFINED SYMBOLS
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccGfz0Ix.s 			page 12
+
+
+UNDEFINED SYMBOLS
+memset
+encoder_read_value
+encoder_parse_distance_cm
+HAL_UART_Transmit_DMA
+HAL_GPIO_TogglePin
+htim3
+huart1
