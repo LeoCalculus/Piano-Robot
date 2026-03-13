@@ -1,0 +1,535 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"hc04.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/hc04.c"
+  21              		.section	.text.hc04_send_char,"ax",%progbits
+  22              		.align	1
+  23              		.global	hc04_send_char
+  24              		.syntax unified
+  25              		.thumb
+  26              		.thumb_func
+  28              	hc04_send_char:
+  29              	.LVL0:
+  30              	.LFB359:
+   1:./Application/Src/hc04.c **** #include <hc04.h>
+   2:./Application/Src/hc04.c **** 
+   3:./Application/Src/hc04.c **** void hc04_send_char(uint8_t c){
+  31              		.loc 1 3 31 view -0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 8
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              		.loc 1 3 31 is_stmt 0 view .LVU1
+  36 0000 00B5     		push	{lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 4
+  39              		.cfi_offset 14, -4
+  40 0002 83B0     		sub	sp, sp, #12
+  41              	.LCFI1:
+  42              		.cfi_def_cfa_offset 16
+  43 0004 8DF80700 		strb	r0, [sp, #7]
+   4:./Application/Src/hc04.c ****     HAL_UART_Transmit_DMA(&huart1, &c, 1);
+  44              		.loc 1 4 5 is_stmt 1 view .LVU2
+  45 0008 0122     		movs	r2, #1
+  46 000a 0DF10701 		add	r1, sp, #7
+  47 000e 0248     		ldr	r0, .L3
+  48              	.LVL1:
+  49              		.loc 1 4 5 is_stmt 0 view .LVU3
+  50 0010 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+  51              	.LVL2:
+   5:./Application/Src/hc04.c **** }
+  52              		.loc 1 5 1 view .LVU4
+  53 0014 03B0     		add	sp, sp, #12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 2
+
+
+  54              	.LCFI2:
+  55              		.cfi_def_cfa_offset 4
+  56              		@ sp needed
+  57 0016 00BD     		pop	{pc}
+  58              	.L4:
+  59              		.align	2
+  60              	.L3:
+  61 0018 00000000 		.word	huart1
+  62              		.cfi_endproc
+  63              	.LFE359:
+  65              		.section	.text.hc04_send_string,"ax",%progbits
+  66              		.align	1
+  67              		.global	hc04_send_string
+  68              		.syntax unified
+  69              		.thumb
+  70              		.thumb_func
+  72              	hc04_send_string:
+  73              	.LVL3:
+  74              	.LFB360:
+   6:./Application/Src/hc04.c **** 
+   7:./Application/Src/hc04.c **** void hc04_send_string(uint8_t *str){
+  75              		.loc 1 7 36 is_stmt 1 view -0
+  76              		.cfi_startproc
+  77              		@ args = 0, pretend = 0, frame = 0
+  78              		@ frame_needed = 0, uses_anonymous_args = 0
+  79              		.loc 1 7 36 is_stmt 0 view .LVU6
+  80 0000 10B5     		push	{r4, lr}
+  81              	.LCFI3:
+  82              		.cfi_def_cfa_offset 8
+  83              		.cfi_offset 4, -8
+  84              		.cfi_offset 14, -4
+  85 0002 0446     		mov	r4, r0
+   8:./Application/Src/hc04.c ****     HAL_UART_Transmit_DMA(&huart1, str, strlen((char*)str));
+  86              		.loc 1 8 5 is_stmt 1 view .LVU7
+  87              		.loc 1 8 41 is_stmt 0 view .LVU8
+  88 0004 FFF7FEFF 		bl	strlen
+  89              	.LVL4:
+  90              		.loc 1 8 5 discriminator 1 view .LVU9
+  91 0008 82B2     		uxth	r2, r0
+  92 000a 2146     		mov	r1, r4
+  93 000c 0148     		ldr	r0, .L7
+  94 000e FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+  95              	.LVL5:
+   9:./Application/Src/hc04.c **** }
+  96              		.loc 1 9 1 view .LVU10
+  97 0012 10BD     		pop	{r4, pc}
+  98              	.LVL6:
+  99              	.L8:
+ 100              		.loc 1 9 1 view .LVU11
+ 101              		.align	2
+ 102              	.L7:
+ 103 0014 00000000 		.word	huart1
+ 104              		.cfi_endproc
+ 105              	.LFE360:
+ 107              		.section	.text.hc04_send_bytes,"ax",%progbits
+ 108              		.align	1
+ 109              		.global	hc04_send_bytes
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 3
+
+
+ 110              		.syntax unified
+ 111              		.thumb
+ 112              		.thumb_func
+ 114              	hc04_send_bytes:
+ 115              	.LVL7:
+ 116              	.LFB361:
+  10:./Application/Src/hc04.c **** 
+  11:./Application/Src/hc04.c **** void hc04_send_bytes(uint8_t *data, uint16_t len){
+ 117              		.loc 1 11 50 is_stmt 1 view -0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121              		.loc 1 11 50 is_stmt 0 view .LVU13
+ 122 0000 08B5     		push	{r3, lr}
+ 123              	.LCFI4:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 3, -8
+ 126              		.cfi_offset 14, -4
+ 127 0002 0A46     		mov	r2, r1
+  12:./Application/Src/hc04.c ****     HAL_UART_Transmit_DMA(&huart1, data, len);
+ 128              		.loc 1 12 5 is_stmt 1 view .LVU14
+ 129 0004 0146     		mov	r1, r0
+ 130              	.LVL8:
+ 131              		.loc 1 12 5 is_stmt 0 view .LVU15
+ 132 0006 0248     		ldr	r0, .L11
+ 133              	.LVL9:
+ 134              		.loc 1 12 5 view .LVU16
+ 135 0008 FFF7FEFF 		bl	HAL_UART_Transmit_DMA
+ 136              	.LVL10:
+  13:./Application/Src/hc04.c **** }
+ 137              		.loc 1 13 1 view .LVU17
+ 138 000c 08BD     		pop	{r3, pc}
+ 139              	.L12:
+ 140 000e 00BF     		.align	2
+ 141              	.L11:
+ 142 0010 00000000 		.word	huart1
+ 143              		.cfi_endproc
+ 144              	.LFE361:
+ 146              		.section	.text.hc04_receive_to_idle_init,"ax",%progbits
+ 147              		.align	1
+ 148              		.global	hc04_receive_to_idle_init
+ 149              		.syntax unified
+ 150              		.thumb
+ 151              		.thumb_func
+ 153              	hc04_receive_to_idle_init:
+ 154              	.LVL11:
+ 155              	.LFB362:
+  14:./Application/Src/hc04.c **** 
+  15:./Application/Src/hc04.c **** void hc04_receive_to_idle_init(UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t buffer_size){
+ 156              		.loc 1 15 97 is_stmt 1 view -0
+ 157              		.cfi_startproc
+ 158              		@ args = 0, pretend = 0, frame = 0
+ 159              		@ frame_needed = 0, uses_anonymous_args = 0
+ 160              		.loc 1 15 97 is_stmt 0 view .LVU19
+ 161 0000 08B5     		push	{r3, lr}
+ 162              	.LCFI5:
+ 163              		.cfi_def_cfa_offset 8
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 4
+
+
+ 164              		.cfi_offset 3, -8
+ 165              		.cfi_offset 14, -4
+  16:./Application/Src/hc04.c ****     HAL_UARTEx_ReceiveToIdle_DMA(huart, buffer, buffer_size);
+ 166              		.loc 1 16 5 is_stmt 1 view .LVU20
+ 167 0002 FFF7FEFF 		bl	HAL_UARTEx_ReceiveToIdle_DMA
+ 168              	.LVL12:
+  17:./Application/Src/hc04.c ****     // HT and TC stay enabled — the callback accumulates until \n is found
+  18:./Application/Src/hc04.c **** }
+ 169              		.loc 1 18 1 is_stmt 0 view .LVU21
+ 170 0006 08BD     		pop	{r3, pc}
+ 171              		.cfi_endproc
+ 172              	.LFE362:
+ 174              		.section	.text.HAL_UARTEx_RxEventCallback,"ax",%progbits
+ 175              		.align	1
+ 176              		.global	HAL_UARTEx_RxEventCallback
+ 177              		.syntax unified
+ 178              		.thumb
+ 179              		.thumb_func
+ 181              	HAL_UARTEx_RxEventCallback:
+ 182              	.LVL13:
+ 183              	.LFB363:
+  19:./Application/Src/hc04.c **** 
+  20:./Application/Src/hc04.c **** void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size){
+ 184              		.loc 1 20 74 is_stmt 1 view -0
+ 185              		.cfi_startproc
+ 186              		@ args = 0, pretend = 0, frame = 0
+ 187              		@ frame_needed = 0, uses_anonymous_args = 0
+  21:./Application/Src/hc04.c ****     if(huart == &huart1){
+ 188              		.loc 1 21 5 view .LVU23
+ 189              		.loc 1 21 7 is_stmt 0 view .LVU24
+ 190 0000 274B     		ldr	r3, .L29
+ 191 0002 9842     		cmp	r0, r3
+ 192 0004 00D0     		beq	.L27
+ 193 0006 7047     		bx	lr
+ 194              	.L27:
+  20:./Application/Src/hc04.c ****     if(huart == &huart1){
+ 195              		.loc 1 20 74 view .LVU25
+ 196 0008 30B5     		push	{r4, r5, lr}
+ 197              	.LCFI6:
+ 198              		.cfi_def_cfa_offset 12
+ 199              		.cfi_offset 4, -12
+ 200              		.cfi_offset 5, -8
+ 201              		.cfi_offset 14, -4
+ 202 000a 0D46     		mov	r5, r1
+ 203              	.LBB2:
+  22:./Application/Src/hc04.c ****         if (size == old_buffer_index) {
+ 204              		.loc 1 22 9 is_stmt 1 view .LVU26
+ 205              		.loc 1 22 18 is_stmt 0 view .LVU27
+ 206 000c 254B     		ldr	r3, .L29+4
+ 207 000e 1968     		ldr	r1, [r3]
+ 208              	.LVL14:
+ 209              		.loc 1 22 12 view .LVU28
+ 210 0010 8D42     		cmp	r5, r1
+ 211 0012 43D0     		beq	.L15
+  23:./Application/Src/hc04.c ****             return;
+  24:./Application/Src/hc04.c ****         }
+  25:./Application/Src/hc04.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 5
+
+
+  26:./Application/Src/hc04.c ****         // find total length and traversal the message, stop until \n is found
+  27:./Application/Src/hc04.c **** 
+  28:./Application/Src/hc04.c ****         // find total message length
+  29:./Application/Src/hc04.c ****         uint16_t len;
+ 212              		.loc 1 29 9 is_stmt 1 view .LVU29
+  30:./Application/Src/hc04.c ****         uint16_t start = old_buffer_index;
+ 213              		.loc 1 30 9 view .LVU30
+ 214              		.loc 1 30 18 is_stmt 0 view .LVU31
+ 215 0014 89B2     		uxth	r1, r1
+ 216              	.LVL15:
+  31:./Application/Src/hc04.c ****         if (size > start) {
+ 217              		.loc 1 31 9 is_stmt 1 view .LVU32
+ 218              		.loc 1 31 12 is_stmt 0 view .LVU33
+ 219 0016 8D42     		cmp	r5, r1
+ 220 0018 05D9     		bls	.L17
+  32:./Application/Src/hc04.c ****             len = size - start;
+ 221              		.loc 1 32 13 is_stmt 1 view .LVU34
+ 222              		.loc 1 32 17 is_stmt 0 view .LVU35
+ 223 001a A5EB010E 		sub	lr, r5, r1
+ 224 001e 1FFA8EFE 		uxth	lr, lr
+ 225              	.LVL16:
+ 226              	.L18:
+  33:./Application/Src/hc04.c ****         } else {
+  34:./Application/Src/hc04.c ****             // wraparound
+  35:./Application/Src/hc04.c ****             len = sizeof(rx_message_buffer) - start + size;
+  36:./Application/Src/hc04.c ****         }
+  37:./Application/Src/hc04.c **** 
+  38:./Application/Src/hc04.c ****         for (uint16_t i = 0; i < len; i++) {
+ 227              		.loc 1 38 9 is_stmt 1 view .LVU36
+ 228              	.LBB3:
+ 229              		.loc 1 38 14 view .LVU37
+ 230              		.loc 1 38 23 is_stmt 0 view .LVU38
+ 231 0022 0023     		movs	r3, #0
+ 232              		.loc 1 38 9 view .LVU39
+ 233 0024 14E0     		b	.L19
+ 234              	.LVL17:
+ 235              	.L17:
+ 236              		.loc 1 38 9 view .LVU40
+ 237              	.LBE3:
+  35:./Application/Src/hc04.c ****         }
+ 238              		.loc 1 35 13 is_stmt 1 view .LVU41
+  35:./Application/Src/hc04.c ****         }
+ 239              		.loc 1 35 53 is_stmt 0 view .LVU42
+ 240 0026 A5EB010E 		sub	lr, r5, r1
+ 241 002a 1FFA8EFE 		uxth	lr, lr
+  35:./Application/Src/hc04.c ****         }
+ 242              		.loc 1 35 17 view .LVU43
+ 243 002e 0EF1800E 		add	lr, lr, #128
+ 244 0032 1FFA8EFE 		uxth	lr, lr
+ 245 0036 F4E7     		b	.L18
+ 246              	.LVL18:
+ 247              	.L20:
+ 248              	.LBB6:
+ 249              	.LBB4:
+  39:./Application/Src/hc04.c ****             // indexing in DMA stored buffer with wraparound
+  40:./Application/Src/hc04.c ****             uint16_t buf_pos = (start + i) % sizeof(rx_message_buffer);
+  41:./Application/Src/hc04.c ****             uint8_t c = rx_message_buffer[buf_pos];
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 6
+
+
+  42:./Application/Src/hc04.c **** 
+  43:./Application/Src/hc04.c ****             if (!uart_binary_mode && c == '\n') {
+  44:./Application/Src/hc04.c ****                 // complete message found (text mode only, skipped in binary mode)
+  45:./Application/Src/hc04.c ****                 rx_message[rx_message_index] = '\0';
+  46:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+  47:./Application/Src/hc04.c ****                 rx_message_index = 0;
+  48:./Application/Src/hc04.c ****                 rx_complete = 1;
+  49:./Application/Src/hc04.c ****                 // update the old buffer index for next use, +1 due to \0
+  50:./Application/Src/hc04.c ****                 old_buffer_index = (buf_pos + 1) % sizeof(rx_message_buffer);
+  51:./Application/Src/hc04.c ****                 rx_valid = len;
+  52:./Application/Src/hc04.c ****                 return;
+  53:./Application/Src/hc04.c ****             }
+  54:./Application/Src/hc04.c **** 
+  55:./Application/Src/hc04.c ****             // if cannot find \n it will just append the message to buffer, which bypass TC and HC 
+  56:./Application/Src/hc04.c ****             // it will stop usually where \n happens like idle interrupt
+  57:./Application/Src/hc04.c ****             if (rx_message_index < sizeof(rx_message) - 1) {
+ 250              		.loc 1 57 13 is_stmt 1 view .LVU44
+ 251              		.loc 1 57 34 is_stmt 0 view .LVU45
+ 252 0038 1B4A     		ldr	r2, .L29+8
+ 253              	.LVL19:
+ 254              		.loc 1 57 34 view .LVU46
+ 255 003a 1288     		ldrh	r2, [r2]
+ 256              		.loc 1 57 16 view .LVU47
+ 257 003c FE2A     		cmp	r2, #254
+ 258 003e 05D8     		bhi	.L21
+  58:./Application/Src/hc04.c ****                 rx_message[rx_message_index++] = c;
+ 259              		.loc 1 58 17 is_stmt 1 view .LVU48
+ 260              		.loc 1 58 44 is_stmt 0 view .LVU49
+ 261 0040 541C     		adds	r4, r2, #1
+ 262 0042 1948     		ldr	r0, .L29+8
+ 263 0044 0480     		strh	r4, [r0]	@ movhi
+ 264              		.loc 1 58 48 view .LVU50
+ 265 0046 1948     		ldr	r0, .L29+12
+ 266 0048 00F802C0 		strb	ip, [r0, r2]
+ 267              	.L21:
+ 268              		.loc 1 58 48 view .LVU51
+ 269              	.LBE4:
+  38:./Application/Src/hc04.c ****             // indexing in DMA stored buffer with wraparound
+ 270              		.loc 1 38 40 is_stmt 1 discriminator 2 view .LVU52
+ 271 004c 0133     		adds	r3, r3, #1
+ 272              	.LVL20:
+  38:./Application/Src/hc04.c ****             // indexing in DMA stored buffer with wraparound
+ 273              		.loc 1 38 40 is_stmt 0 discriminator 2 view .LVU53
+ 274 004e 9BB2     		uxth	r3, r3
+ 275              	.LVL21:
+ 276              	.L19:
+  38:./Application/Src/hc04.c ****             // indexing in DMA stored buffer with wraparound
+ 277              		.loc 1 38 32 is_stmt 1 discriminator 1 view .LVU54
+ 278 0050 9E45     		cmp	lr, r3
+ 279 0052 1ED9     		bls	.L28
+ 280              	.LBB5:
+  40:./Application/Src/hc04.c ****             uint8_t c = rx_message_buffer[buf_pos];
+ 281              		.loc 1 40 13 view .LVU55
+  40:./Application/Src/hc04.c ****             uint8_t c = rx_message_buffer[buf_pos];
+ 282              		.loc 1 40 39 is_stmt 0 view .LVU56
+ 283 0054 5A18     		adds	r2, r3, r1
+  40:./Application/Src/hc04.c ****             uint8_t c = rx_message_buffer[buf_pos];
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 7
+
+
+ 284              		.loc 1 40 22 view .LVU57
+ 285 0056 02F07F02 		and	r2, r2, #127
+ 286              	.LVL22:
+  41:./Application/Src/hc04.c **** 
+ 287              		.loc 1 41 13 is_stmt 1 view .LVU58
+  41:./Application/Src/hc04.c **** 
+ 288              		.loc 1 41 21 is_stmt 0 view .LVU59
+ 289 005a 1548     		ldr	r0, .L29+16
+ 290 005c 10F802C0 		ldrb	ip, [r0, r2]	@ zero_extendqisi2
+ 291              	.LVL23:
+  43:./Application/Src/hc04.c ****                 // complete message found (text mode only, skipped in binary mode)
+ 292              		.loc 1 43 13 is_stmt 1 view .LVU60
+  43:./Application/Src/hc04.c ****                 // complete message found (text mode only, skipped in binary mode)
+ 293              		.loc 1 43 17 is_stmt 0 view .LVU61
+ 294 0060 1448     		ldr	r0, .L29+20
+ 295 0062 0068     		ldr	r0, [r0]
+  43:./Application/Src/hc04.c ****                 // complete message found (text mode only, skipped in binary mode)
+ 296              		.loc 1 43 16 view .LVU62
+ 297 0064 0028     		cmp	r0, #0
+ 298 0066 E7D1     		bne	.L20
+  43:./Application/Src/hc04.c ****                 // complete message found (text mode only, skipped in binary mode)
+ 299              		.loc 1 43 35 discriminator 1 view .LVU63
+ 300 0068 BCF10A0F 		cmp	ip, #10
+ 301 006c E4D1     		bne	.L20
+  45:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+ 302              		.loc 1 45 17 is_stmt 1 view .LVU64
+  45:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+ 303              		.loc 1 45 27 is_stmt 0 view .LVU65
+ 304 006e 0E4B     		ldr	r3, .L29+8
+ 305              	.LVL24:
+  45:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+ 306              		.loc 1 45 27 view .LVU66
+ 307 0070 1888     		ldrh	r0, [r3]
+  45:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+ 308              		.loc 1 45 46 view .LVU67
+ 309 0072 0021     		movs	r1, #0
+ 310              	.LVL25:
+  45:./Application/Src/hc04.c ****                 // overwrite the place by setting index back to 0
+ 311              		.loc 1 45 46 view .LVU68
+ 312 0074 0D4C     		ldr	r4, .L29+12
+ 313 0076 2154     		strb	r1, [r4, r0]
+  47:./Application/Src/hc04.c ****                 rx_complete = 1;
+ 314              		.loc 1 47 17 is_stmt 1 view .LVU69
+  47:./Application/Src/hc04.c ****                 rx_complete = 1;
+ 315              		.loc 1 47 34 is_stmt 0 view .LVU70
+ 316 0078 1980     		strh	r1, [r3]	@ movhi
+  48:./Application/Src/hc04.c ****                 // update the old buffer index for next use, +1 due to \0
+ 317              		.loc 1 48 17 is_stmt 1 view .LVU71
+  48:./Application/Src/hc04.c ****                 // update the old buffer index for next use, +1 due to \0
+ 318              		.loc 1 48 29 is_stmt 0 view .LVU72
+ 319 007a 0F4B     		ldr	r3, .L29+24
+ 320 007c 0121     		movs	r1, #1
+ 321 007e 1960     		str	r1, [r3]
+  50:./Application/Src/hc04.c ****                 rx_valid = len;
+ 322              		.loc 1 50 17 is_stmt 1 view .LVU73
+  50:./Application/Src/hc04.c ****                 rx_valid = len;
+ 323              		.loc 1 50 45 is_stmt 0 view .LVU74
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 8
+
+
+ 324 0080 0A44     		add	r2, r2, r1
+ 325              	.LVL26:
+  50:./Application/Src/hc04.c ****                 rx_valid = len;
+ 326              		.loc 1 50 50 view .LVU75
+ 327 0082 02F07F02 		and	r2, r2, #127
+  50:./Application/Src/hc04.c ****                 rx_valid = len;
+ 328              		.loc 1 50 34 view .LVU76
+ 329 0086 074B     		ldr	r3, .L29+4
+ 330              	.LVL27:
+  50:./Application/Src/hc04.c ****                 rx_valid = len;
+ 331              		.loc 1 50 34 view .LVU77
+ 332 0088 1A60     		str	r2, [r3]
+ 333              	.LVL28:
+  51:./Application/Src/hc04.c ****                 return;
+ 334              		.loc 1 51 17 is_stmt 1 view .LVU78
+  51:./Application/Src/hc04.c ****                 return;
+ 335              		.loc 1 51 26 is_stmt 0 view .LVU79
+ 336 008a 0C4B     		ldr	r3, .L29+28
+ 337 008c C3F800E0 		str	lr, [r3]
+  52:./Application/Src/hc04.c ****             }
+ 338              		.loc 1 52 17 is_stmt 1 view .LVU80
+ 339 0090 04E0     		b	.L15
+ 340              	.LVL29:
+ 341              	.L28:
+  52:./Application/Src/hc04.c ****             }
+ 342              		.loc 1 52 17 is_stmt 0 view .LVU81
+ 343              	.LBE5:
+ 344              	.LBE6:
+  59:./Application/Src/hc04.c ****             }
+  60:./Application/Src/hc04.c ****         }
+  61:./Application/Src/hc04.c ****         rx_valid = len;
+ 345              		.loc 1 61 9 is_stmt 1 view .LVU82
+ 346              		.loc 1 61 18 is_stmt 0 view .LVU83
+ 347 0092 0A4B     		ldr	r3, .L29+28
+ 348              	.LVL30:
+ 349              		.loc 1 61 18 view .LVU84
+ 350 0094 C3F800E0 		str	lr, [r3]
+  62:./Application/Src/hc04.c ****         old_buffer_index = size;
+ 351              		.loc 1 62 9 is_stmt 1 view .LVU85
+ 352              		.loc 1 62 26 is_stmt 0 view .LVU86
+ 353 0098 024B     		ldr	r3, .L29+4
+ 354 009a 1D60     		str	r5, [r3]
+ 355              	.LVL31:
+ 356              	.L15:
+ 357              		.loc 1 62 26 view .LVU87
+ 358              	.LBE2:
+  63:./Application/Src/hc04.c ****     }
+  64:./Application/Src/hc04.c **** }...
+ 359              		.loc 1 64 1 view .LVU88
+ 360 009c 30BD     		pop	{r4, r5, pc}
+ 361              	.L30:
+ 362 009e 00BF     		.align	2
+ 363              	.L29:
+ 364 00a0 00000000 		.word	huart1
+ 365 00a4 00000000 		.word	old_buffer_index
+ 366 00a8 00000000 		.word	rx_message_index
+ 367 00ac 00000000 		.word	rx_message
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 9
+
+
+ 368 00b0 00000000 		.word	rx_message_buffer
+ 369 00b4 00000000 		.word	uart_binary_mode
+ 370 00b8 00000000 		.word	rx_complete
+ 371 00bc 00000000 		.word	rx_valid
+ 372              		.cfi_endproc
+ 373              	.LFE363:
+ 375              		.text
+ 376              	.Letext0:
+ 377              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 378              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 379              		.file 4 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 380              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 381              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 382              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 383              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 384              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ 385              		.file 10 "Core/Inc/usart.h"
+ 386              		.file 11 "Application/Inc/application.h"
+ 387              		.file 12 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart_ex.h"
+ 388              		.file 13 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s 			page 10
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 hc04.c
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:22     .text.hc04_send_char:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:28     .text.hc04_send_char:00000000 hc04_send_char
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:61     .text.hc04_send_char:00000018 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:66     .text.hc04_send_string:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:72     .text.hc04_send_string:00000000 hc04_send_string
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:103    .text.hc04_send_string:00000014 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:108    .text.hc04_send_bytes:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:114    .text.hc04_send_bytes:00000000 hc04_send_bytes
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:142    .text.hc04_send_bytes:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:147    .text.hc04_receive_to_idle_init:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:153    .text.hc04_receive_to_idle_init:00000000 hc04_receive_to_idle_init
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:175    .text.HAL_UARTEx_RxEventCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:181    .text.HAL_UARTEx_RxEventCallback:00000000 HAL_UARTEx_RxEventCallback
+C:\Users\Xuleo\AppData\Local\Temp\cci1IHYe.s:364    .text.HAL_UARTEx_RxEventCallback:000000a0 $d
+
+UNDEFINED SYMBOLS
+HAL_UART_Transmit_DMA
+huart1
+strlen
+HAL_UARTEx_ReceiveToIdle_DMA
+old_buffer_index
+rx_message_index
+rx_message
+rx_message_buffer
+uart_binary_mode
+rx_complete
+rx_valid

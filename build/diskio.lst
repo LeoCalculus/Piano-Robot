@@ -1,0 +1,3029 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"diskio.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./ThirdParty/FatFs/Src/diskio.c"
+  21              		.section	.text.spi_begin,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	spi_begin:
+  28              	.LFB356:
+   1:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+   2:./ThirdParty/FatFs/Src/diskio.c **** /* Low level disk I/O module for FatFs - SD card over SPI (STM32H5)     */
+   3:./ThirdParty/FatFs/Src/diskio.c **** /*                                                                       */
+   4:./ThirdParty/FatFs/Src/diskio.c **** /* Uses direct SPI register access with TSIZE=0 (unlimited mode) to     */
+   5:./ThirdParty/FatFs/Src/diskio.c **** /* keep the clock running continuously. The H5 HAL starts/stops SPI     */
+   6:./ThirdParty/FatFs/Src/diskio.c **** /* per transfer call, creating clock gaps that SD cards reject.         */
+   7:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+   8:./ThirdParty/FatFs/Src/diskio.c **** 
+   9:./ThirdParty/FatFs/Src/diskio.c **** #include "ff.h"
+  10:./ThirdParty/FatFs/Src/diskio.c **** #include "diskio.h"
+  11:./ThirdParty/FatFs/Src/diskio.c **** #include "spi.h"
+  12:./ThirdParty/FatFs/Src/diskio.c **** #include "main.h"
+  13:./ThirdParty/FatFs/Src/diskio.c **** #include <string.h>
+  14:./ThirdParty/FatFs/Src/diskio.c **** 
+  15:./ThirdParty/FatFs/Src/diskio.c **** // CS pin at PE4, SPI instance: SPI4
+  16:./ThirdParty/FatFs/Src/diskio.c **** 
+  17:./ThirdParty/FatFs/Src/diskio.c **** /* SD card CS pin */
+  18:./ThirdParty/FatFs/Src/diskio.c **** #define SD_CS_PORT  GPIOE
+  19:./ThirdParty/FatFs/Src/diskio.c **** #define SD_CS_PIN   GPIO_PIN_4
+  20:./ThirdParty/FatFs/Src/diskio.c **** 
+  21:./ThirdParty/FatFs/Src/diskio.c **** #define SD_CS_LOW()   HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_RESET)
+  22:./ThirdParty/FatFs/Src/diskio.c **** #define SD_CS_HIGH()  HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_SET)
+  23:./ThirdParty/FatFs/Src/diskio.c **** 
+  24:./ThirdParty/FatFs/Src/diskio.c **** /* SD command definitions */
+  25:./ThirdParty/FatFs/Src/diskio.c **** #define CMD0    0   /* GO_IDLE_STATE */
+  26:./ThirdParty/FatFs/Src/diskio.c **** #define CMD1    1   /* SEND_OP_COND (MMC) */
+  27:./ThirdParty/FatFs/Src/diskio.c **** #define CMD8    8   /* SEND_IF_COND */
+  28:./ThirdParty/FatFs/Src/diskio.c **** #define CMD9    9   /* SEND_CSD */
+  29:./ThirdParty/FatFs/Src/diskio.c **** #define CMD10   10  /* SEND_CID */
+  30:./ThirdParty/FatFs/Src/diskio.c **** #define CMD12   12  /* STOP_TRANSMISSION */
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 2
+
+
+  31:./ThirdParty/FatFs/Src/diskio.c **** #define CMD16   16  /* SET_BLOCKLEN */
+  32:./ThirdParty/FatFs/Src/diskio.c **** #define CMD17   17  /* READ_SINGLE_BLOCK */
+  33:./ThirdParty/FatFs/Src/diskio.c **** #define CMD18   18  /* READ_MULTIPLE_BLOCK */
+  34:./ThirdParty/FatFs/Src/diskio.c **** #define CMD24   24  /* WRITE_BLOCK */
+  35:./ThirdParty/FatFs/Src/diskio.c **** #define CMD25   25  /* WRITE_MULTIPLE_BLOCK */
+  36:./ThirdParty/FatFs/Src/diskio.c **** #define CMD55   55  /* APP_CMD */
+  37:./ThirdParty/FatFs/Src/diskio.c **** #define CMD58   58  /* READ_OCR */
+  38:./ThirdParty/FatFs/Src/diskio.c **** #define ACMD41  (0x80 | 41)  /* SD_SEND_OP_COND (SDC) - bit7 flags app cmd */
+  39:./ThirdParty/FatFs/Src/diskio.c **** 
+  40:./ThirdParty/FatFs/Src/diskio.c **** /* Card type flags */
+  41:./ThirdParty/FatFs/Src/diskio.c **** #define CT_MMC   0x01  /* MMC ver 3 */
+  42:./ThirdParty/FatFs/Src/diskio.c **** #define CT_SD1   0x02  /* SD ver 1 */
+  43:./ThirdParty/FatFs/Src/diskio.c **** #define CT_SD2   0x04  /* SD ver 2 */
+  44:./ThirdParty/FatFs/Src/diskio.c **** #define CT_BLOCK 0x08  /* Block addressing */
+  45:./ThirdParty/FatFs/Src/diskio.c **** 
+  46:./ThirdParty/FatFs/Src/diskio.c **** static volatile DSTATUS Stat = STA_NOINIT;
+  47:./ThirdParty/FatFs/Src/diskio.c **** static BYTE CardType;
+  48:./ThirdParty/FatFs/Src/diskio.c **** 
+  49:./ThirdParty/FatFs/Src/diskio.c **** /* Debug: read these from main to see where init fails */
+  50:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_spi_ok;
+  51:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_hal_err;
+  52:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_cmd0;
+  53:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_cmd8;
+  54:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_acmd41;
+  55:./ThirdParty/FatFs/Src/diskio.c **** volatile uint8_t sd_dbg_cardtype;
+  56:./ThirdParty/FatFs/Src/diskio.c **** 
+  57:./ThirdParty/FatFs/Src/diskio.c **** extern SPI_HandleTypeDef hspi4;
+  58:./ThirdParty/FatFs/Src/diskio.c **** 
+  59:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+  60:./ThirdParty/FatFs/Src/diskio.c **** /* SPI low-level: register-based continuous transfer for STM32H5         */
+  61:./ThirdParty/FatFs/Src/diskio.c **** /*                                                                       */
+  62:./ThirdParty/FatFs/Src/diskio.c **** /* The H5 SPI HAL enables/disables SPE for every transfer, creating     */
+  63:./ThirdParty/FatFs/Src/diskio.c **** /* gaps in the clock. SD cards need continuous clocking within a CS      */
+  64:./ThirdParty/FatFs/Src/diskio.c **** /* assertion. We use TSIZE=0 (unlimited) mode and directly access       */
+  65:./ThirdParty/FatFs/Src/diskio.c **** /* TXDR/RXDR to keep the clock running.                                 */
+  66:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+  67:./ThirdParty/FatFs/Src/diskio.c **** 
+  68:./ThirdParty/FatFs/Src/diskio.c **** /* Start continuous SPI session (call before CS_LOW or after CS changes) */
+  69:./ThirdParty/FatFs/Src/diskio.c **** static void spi_begin(void)
+  70:./ThirdParty/FatFs/Src/diskio.c **** {
+  29              		.loc 1 70 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+  71:./ThirdParty/FatFs/Src/diskio.c **** 	SPI_TypeDef *spi = hspi4.Instance;
+  34              		.loc 1 71 2 view .LVU1
+  35              		.loc 1 71 15 is_stmt 0 view .LVU2
+  36 0000 094B     		ldr	r3, .L3
+  37 0002 1B68     		ldr	r3, [r3]
+  38              	.LVL0:
+  72:./ThirdParty/FatFs/Src/diskio.c **** 
+  73:./ThirdParty/FatFs/Src/diskio.c **** 	/* If SPI is already running, nothing to do */
+  74:./ThirdParty/FatFs/Src/diskio.c **** 	if (spi->CR1 & SPI_CR1_SPE) return;
+  39              		.loc 1 74 2 is_stmt 1 view .LVU3
+  40              		.loc 1 74 9 is_stmt 0 view .LVU4
+  41 0004 1A68     		ldr	r2, [r3]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 3
+
+
+  42              		.loc 1 74 5 view .LVU5
+  43 0006 12F0010F 		tst	r2, #1
+  44 000a 0CD1     		bne	.L1
+  75:./ThirdParty/FatFs/Src/diskio.c **** 
+  76:./ThirdParty/FatFs/Src/diskio.c **** 	/* Clear all status flags */
+  77:./ThirdParty/FatFs/Src/diskio.c **** 	spi->IFCR = 0xFFFFFFFFU;
+  45              		.loc 1 77 2 is_stmt 1 view .LVU6
+  46              		.loc 1 77 12 is_stmt 0 view .LVU7
+  47 000c 4FF0FF32 		mov	r2, #-1
+  48 0010 9A61     		str	r2, [r3, #24]
+  78:./ThirdParty/FatFs/Src/diskio.c **** 
+  79:./ThirdParty/FatFs/Src/diskio.c **** 	/* TSIZE=0: unlimited transfer - clock runs until we stop it */
+  80:./ThirdParty/FatFs/Src/diskio.c **** 	spi->CR2 = 0;
+  49              		.loc 1 80 2 is_stmt 1 view .LVU8
+  50              		.loc 1 80 11 is_stmt 0 view .LVU9
+  51 0012 0022     		movs	r2, #0
+  52 0014 5A60     		str	r2, [r3, #4]
+  81:./ThirdParty/FatFs/Src/diskio.c **** 
+  82:./ThirdParty/FatFs/Src/diskio.c **** 	/* Enable SPI and start master transfer */
+  83:./ThirdParty/FatFs/Src/diskio.c **** 	SET_BIT(spi->CR1, SPI_CR1_SPE);
+  53              		.loc 1 83 2 is_stmt 1 view .LVU10
+  54 0016 1A68     		ldr	r2, [r3]
+  55 0018 42F00102 		orr	r2, r2, #1
+  56 001c 1A60     		str	r2, [r3]
+  84:./ThirdParty/FatFs/Src/diskio.c **** 	SET_BIT(spi->CR1, SPI_CR1_CSTART);
+  57              		.loc 1 84 2 view .LVU11
+  58 001e 1A68     		ldr	r2, [r3]
+  59 0020 42F40072 		orr	r2, r2, #512
+  60 0024 1A60     		str	r2, [r3]
+  61              	.L1:
+  85:./ThirdParty/FatFs/Src/diskio.c **** }
+  62              		.loc 1 85 1 is_stmt 0 view .LVU12
+  63 0026 7047     		bx	lr
+  64              	.L4:
+  65              		.align	2
+  66              	.L3:
+  67 0028 00000000 		.word	hspi4
+  68              		.cfi_endproc
+  69              	.LFE356:
+  71              		.section	.text.spi_end,"ax",%progbits
+  72              		.align	1
+  73              		.syntax unified
+  74              		.thumb
+  75              		.thumb_func
+  77              	spi_end:
+  78              	.LFB357:
+  86:./ThirdParty/FatFs/Src/diskio.c **** 
+  87:./ThirdParty/FatFs/Src/diskio.c **** /* Stop continuous SPI session (call before CS_HIGH) */
+  88:./ThirdParty/FatFs/Src/diskio.c **** static void spi_end(void)
+  89:./ThirdParty/FatFs/Src/diskio.c **** {
+  79              		.loc 1 89 1 is_stmt 1 view -0
+  80              		.cfi_startproc
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              		@ link register save eliminated.
+  90:./ThirdParty/FatFs/Src/diskio.c **** 	SPI_TypeDef *spi = hspi4.Instance;
+  84              		.loc 1 90 2 view .LVU14
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 4
+
+
+  85              		.loc 1 90 15 is_stmt 0 view .LVU15
+  86 0000 0E4B     		ldr	r3, .L9
+  87 0002 1B68     		ldr	r3, [r3]
+  88              	.LVL1:
+  91:./ThirdParty/FatFs/Src/diskio.c **** 
+  92:./ThirdParty/FatFs/Src/diskio.c **** 	/* If SPI is not running, nothing to do */
+  93:./ThirdParty/FatFs/Src/diskio.c **** 	if (!(spi->CR1 & SPI_CR1_SPE)) return;
+  89              		.loc 1 93 2 is_stmt 1 view .LVU16
+  90              		.loc 1 93 11 is_stmt 0 view .LVU17
+  91 0004 1A68     		ldr	r2, [r3]
+  92              		.loc 1 93 5 view .LVU18
+  93 0006 12F0010F 		tst	r2, #1
+  94 000a 16D0     		beq	.L5
+  94:./ThirdParty/FatFs/Src/diskio.c **** 
+  95:./ThirdParty/FatFs/Src/diskio.c **** 	/* Request suspend and wait */
+  96:./ThirdParty/FatFs/Src/diskio.c **** 	SET_BIT(spi->CR1, SPI_CR1_CSUSP);
+  95              		.loc 1 96 2 is_stmt 1 view .LVU19
+  96 000c 1A68     		ldr	r2, [r3]
+  97 000e 42F48062 		orr	r2, r2, #1024
+  98 0012 1A60     		str	r2, [r3]
+  97:./ThirdParty/FatFs/Src/diskio.c **** 	while (!(spi->SR & SPI_SR_SUSP) && (spi->CR1 & SPI_CR1_CSTART));
+  99              		.loc 1 97 2 view .LVU20
+ 100              	.L8:
+ 101              		.loc 1 97 34 discriminator 2 view .LVU21
+ 102              		.loc 1 97 14 is_stmt 0 discriminator 2 view .LVU22
+ 103 0014 5A69     		ldr	r2, [r3, #20]
+ 104              		.loc 1 97 34 discriminator 2 view .LVU23
+ 105 0016 12F4006F 		tst	r2, #2048
+ 106 001a 03D1     		bne	.L7
+ 107              		.loc 1 97 41 discriminator 1 view .LVU24
+ 108 001c 1A68     		ldr	r2, [r3]
+ 109              		.loc 1 97 34 discriminator 1 view .LVU25
+ 110 001e 12F4007F 		tst	r2, #512
+ 111 0022 F7D1     		bne	.L8
+ 112              	.L7:
+  98:./ThirdParty/FatFs/Src/diskio.c **** 
+  99:./ThirdParty/FatFs/Src/diskio.c **** 	/* Disable SPI */
+ 100:./ThirdParty/FatFs/Src/diskio.c **** 	CLEAR_BIT(spi->CR1, SPI_CR1_SPE);
+ 113              		.loc 1 100 2 is_stmt 1 view .LVU26
+ 114 0024 1A68     		ldr	r2, [r3]
+ 115 0026 22F00102 		bic	r2, r2, #1
+ 116 002a 1A60     		str	r2, [r3]
+ 101:./ThirdParty/FatFs/Src/diskio.c **** 	spi->IFCR = 0xFFFFFFFFU;
+ 117              		.loc 1 101 2 view .LVU27
+ 118              		.loc 1 101 12 is_stmt 0 view .LVU28
+ 119 002c 4FF0FF32 		mov	r2, #-1
+ 120 0030 9A61     		str	r2, [r3, #24]
+ 102:./ThirdParty/FatFs/Src/diskio.c **** 
+ 103:./ThirdParty/FatFs/Src/diskio.c **** 	/* Keep HAL state in sync so HAL calls still work for init etc. */
+ 104:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.State = HAL_SPI_STATE_READY;
+ 121              		.loc 1 104 2 is_stmt 1 view .LVU29
+ 122              		.loc 1 104 14 is_stmt 0 view .LVU30
+ 123 0032 024B     		ldr	r3, .L9
+ 124              	.LVL2:
+ 125              		.loc 1 104 14 view .LVU31
+ 126 0034 0122     		movs	r2, #1
+ 127 0036 83F88920 		strb	r2, [r3, #137]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 5
+
+
+ 128              	.L5:
+ 105:./ThirdParty/FatFs/Src/diskio.c **** }
+ 129              		.loc 1 105 1 view .LVU32
+ 130 003a 7047     		bx	lr
+ 131              	.L10:
+ 132              		.align	2
+ 133              	.L9:
+ 134 003c 00000000 		.word	hspi4
+ 135              		.cfi_endproc
+ 136              	.LFE357:
+ 138              		.section	.text.spi_txrx,"ax",%progbits
+ 139              		.align	1
+ 140              		.syntax unified
+ 141              		.thumb
+ 142              		.thumb_func
+ 144              	spi_txrx:
+ 145              	.LVL3:
+ 146              	.LFB358:
+ 106:./ThirdParty/FatFs/Src/diskio.c **** 
+ 107:./ThirdParty/FatFs/Src/diskio.c **** /* Exchange one byte - must be called between spi_begin() and spi_end() */
+ 108:./ThirdParty/FatFs/Src/diskio.c **** static BYTE spi_txrx(BYTE data)
+ 109:./ThirdParty/FatFs/Src/diskio.c **** {
+ 147              		.loc 1 109 1 is_stmt 1 view -0
+ 148              		.cfi_startproc
+ 149              		@ args = 0, pretend = 0, frame = 0
+ 150              		@ frame_needed = 0, uses_anonymous_args = 0
+ 151              		@ link register save eliminated.
+ 110:./ThirdParty/FatFs/Src/diskio.c **** 	SPI_TypeDef *spi = hspi4.Instance;
+ 152              		.loc 1 110 2 view .LVU34
+ 153              		.loc 1 110 15 is_stmt 0 view .LVU35
+ 154 0000 074B     		ldr	r3, .L14
+ 155 0002 1B68     		ldr	r3, [r3]
+ 156              	.LVL4:
+ 111:./ThirdParty/FatFs/Src/diskio.c **** 
+ 112:./ThirdParty/FatFs/Src/diskio.c **** 	while (!(spi->SR & SPI_SR_TXP));
+ 157              		.loc 1 112 2 is_stmt 1 view .LVU36
+ 158              	.L12:
+ 159              		.loc 1 112 9 discriminator 1 view .LVU37
+ 160              		.loc 1 112 14 is_stmt 0 discriminator 1 view .LVU38
+ 161 0004 5A69     		ldr	r2, [r3, #20]
+ 162              		.loc 1 112 9 discriminator 1 view .LVU39
+ 163 0006 12F0020F 		tst	r2, #2
+ 164 000a FBD0     		beq	.L12
+ 113:./ThirdParty/FatFs/Src/diskio.c **** 	*(volatile uint8_t *)&spi->TXDR = data;
+ 165              		.loc 1 113 2 is_stmt 1 view .LVU40
+ 166              		.loc 1 113 34 is_stmt 0 view .LVU41
+ 167 000c 83F82000 		strb	r0, [r3, #32]
+ 114:./ThirdParty/FatFs/Src/diskio.c **** 	while (!(spi->SR & SPI_SR_RXP));
+ 168              		.loc 1 114 2 is_stmt 1 view .LVU42
+ 169              	.L13:
+ 170              		.loc 1 114 9 discriminator 1 view .LVU43
+ 171              		.loc 1 114 14 is_stmt 0 discriminator 1 view .LVU44
+ 172 0010 5A69     		ldr	r2, [r3, #20]
+ 173              		.loc 1 114 9 discriminator 1 view .LVU45
+ 174 0012 12F0010F 		tst	r2, #1
+ 175 0016 FBD0     		beq	.L13
+ 115:./ThirdParty/FatFs/Src/diskio.c **** 	return *(volatile uint8_t *)&spi->RXDR;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 6
+
+
+ 176              		.loc 1 115 2 is_stmt 1 view .LVU46
+ 177              		.loc 1 115 9 is_stmt 0 view .LVU47
+ 178 0018 93F83000 		ldrb	r0, [r3, #48]	@ zero_extendqisi2
+ 179              	.LVL5:
+ 116:./ThirdParty/FatFs/Src/diskio.c **** }
+ 180              		.loc 1 116 1 view .LVU48
+ 181 001c 7047     		bx	lr
+ 182              	.L15:
+ 183 001e 00BF     		.align	2
+ 184              	.L14:
+ 185 0020 00000000 		.word	hspi4
+ 186              		.cfi_endproc
+ 187              	.LFE358:
+ 189              		.section	.text.spi_tx_multi,"ax",%progbits
+ 190              		.align	1
+ 191              		.syntax unified
+ 192              		.thumb
+ 193              		.thumb_func
+ 195              	spi_tx_multi:
+ 196              	.LVL6:
+ 197              	.LFB359:
+ 117:./ThirdParty/FatFs/Src/diskio.c **** 
+ 118:./ThirdParty/FatFs/Src/diskio.c **** /* Transmit multiple bytes (discard received data) */
+ 119:./ThirdParty/FatFs/Src/diskio.c **** static void spi_tx_multi(const BYTE *buf, UINT cnt)
+ 120:./ThirdParty/FatFs/Src/diskio.c **** {
+ 198              		.loc 1 120 1 is_stmt 1 view -0
+ 199              		.cfi_startproc
+ 200              		@ args = 0, pretend = 0, frame = 0
+ 201              		@ frame_needed = 0, uses_anonymous_args = 0
+ 202              		@ link register save eliminated.
+ 121:./ThirdParty/FatFs/Src/diskio.c **** 	SPI_TypeDef *spi = hspi4.Instance;
+ 203              		.loc 1 121 2 view .LVU50
+ 204              		.loc 1 121 15 is_stmt 0 view .LVU51
+ 205 0000 0B4B     		ldr	r3, .L20
+ 206 0002 1B68     		ldr	r3, [r3]
+ 207              	.LVL7:
+ 122:./ThirdParty/FatFs/Src/diskio.c **** 	while (cnt--) {
+ 208              		.loc 1 122 2 is_stmt 1 view .LVU52
+ 209              		.loc 1 122 8 is_stmt 0 view .LVU53
+ 210 0004 0EE0     		b	.L17
+ 211              	.LVL8:
+ 212              	.L18:
+ 123:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 213              		.loc 1 123 10 is_stmt 1 discriminator 1 view .LVU54
+ 214              		.loc 1 123 15 is_stmt 0 discriminator 1 view .LVU55
+ 215 0006 5A69     		ldr	r2, [r3, #20]
+ 216              		.loc 1 123 10 discriminator 1 view .LVU56
+ 217 0008 12F0020F 		tst	r2, #2
+ 218 000c FBD0     		beq	.L18
+ 124:./ThirdParty/FatFs/Src/diskio.c **** 		*(volatile uint8_t *)&spi->TXDR = *buf++;
+ 219              		.loc 1 124 3 is_stmt 1 view .LVU57
+ 220              	.LVL9:
+ 221              		.loc 1 124 37 is_stmt 0 view .LVU58
+ 222 000e 10F8012B 		ldrb	r2, [r0], #1	@ zero_extendqisi2
+ 223              	.LVL10:
+ 224              		.loc 1 124 35 view .LVU59
+ 225 0012 83F82020 		strb	r2, [r3, #32]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 7
+
+
+ 125:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_RXP));
+ 226              		.loc 1 125 3 is_stmt 1 view .LVU60
+ 227              	.L19:
+ 228              		.loc 1 125 10 discriminator 1 view .LVU61
+ 229              		.loc 1 125 15 is_stmt 0 discriminator 1 view .LVU62
+ 230 0016 5A69     		ldr	r2, [r3, #20]
+ 231              		.loc 1 125 10 discriminator 1 view .LVU63
+ 232 0018 12F0010F 		tst	r2, #1
+ 233 001c FBD0     		beq	.L19
+ 126:./ThirdParty/FatFs/Src/diskio.c **** 		(void)*(volatile uint8_t *)&spi->RXDR;
+ 234              		.loc 1 126 3 is_stmt 1 view .LVU64
+ 235 001e 93F83020 		ldrb	r2, [r3, #48]	@ zero_extendqisi2
+ 122:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 236              		.loc 1 122 12 is_stmt 0 view .LVU65
+ 237 0022 6146     		mov	r1, ip
+ 238              	.LVL11:
+ 239              	.L17:
+ 122:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 240              		.loc 1 122 9 is_stmt 1 view .LVU66
+ 122:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 241              		.loc 1 122 12 is_stmt 0 view .LVU67
+ 242 0024 01F1FF3C 		add	ip, r1, #-1
+ 243              	.LVL12:
+ 122:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 244              		.loc 1 122 9 view .LVU68
+ 245 0028 0029     		cmp	r1, #0
+ 246 002a ECD1     		bne	.L18
+ 127:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 128:./ThirdParty/FatFs/Src/diskio.c **** }
+ 247              		.loc 1 128 1 view .LVU69
+ 248 002c 7047     		bx	lr
+ 249              	.L21:
+ 250 002e 00BF     		.align	2
+ 251              	.L20:
+ 252 0030 00000000 		.word	hspi4
+ 253              		.cfi_endproc
+ 254              	.LFE359:
+ 256              		.section	.text.spi_rx_multi,"ax",%progbits
+ 257              		.align	1
+ 258              		.syntax unified
+ 259              		.thumb
+ 260              		.thumb_func
+ 262              	spi_rx_multi:
+ 263              	.LVL13:
+ 264              	.LFB360:
+ 129:./ThirdParty/FatFs/Src/diskio.c **** 
+ 130:./ThirdParty/FatFs/Src/diskio.c **** /* Receive multiple bytes (transmit 0xFF) */
+ 131:./ThirdParty/FatFs/Src/diskio.c **** static void spi_rx_multi(BYTE *buf, UINT cnt)
+ 132:./ThirdParty/FatFs/Src/diskio.c **** {
+ 265              		.loc 1 132 1 is_stmt 1 view -0
+ 266              		.cfi_startproc
+ 267              		@ args = 0, pretend = 0, frame = 0
+ 268              		@ frame_needed = 0, uses_anonymous_args = 0
+ 269              		@ link register save eliminated.
+ 133:./ThirdParty/FatFs/Src/diskio.c **** 	SPI_TypeDef *spi = hspi4.Instance;
+ 270              		.loc 1 133 2 view .LVU71
+ 271              		.loc 1 133 15 is_stmt 0 view .LVU72
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 8
+
+
+ 272 0000 0B4B     		ldr	r3, .L26
+ 273 0002 1B68     		ldr	r3, [r3]
+ 274              	.LVL14:
+ 134:./ThirdParty/FatFs/Src/diskio.c **** 	while (cnt--) {
+ 275              		.loc 1 134 2 is_stmt 1 view .LVU73
+ 276              		.loc 1 134 8 is_stmt 0 view .LVU74
+ 277 0004 0FE0     		b	.L23
+ 278              	.LVL15:
+ 279              	.L24:
+ 135:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 280              		.loc 1 135 10 is_stmt 1 discriminator 1 view .LVU75
+ 281              		.loc 1 135 15 is_stmt 0 discriminator 1 view .LVU76
+ 282 0006 5A69     		ldr	r2, [r3, #20]
+ 283              		.loc 1 135 10 discriminator 1 view .LVU77
+ 284 0008 12F0020F 		tst	r2, #2
+ 285 000c FBD0     		beq	.L24
+ 136:./ThirdParty/FatFs/Src/diskio.c **** 		*(volatile uint8_t *)&spi->TXDR = 0xFF;
+ 286              		.loc 1 136 3 is_stmt 1 view .LVU78
+ 287              		.loc 1 136 35 is_stmt 0 view .LVU79
+ 288 000e FF22     		movs	r2, #255
+ 289 0010 83F82020 		strb	r2, [r3, #32]
+ 137:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_RXP));
+ 290              		.loc 1 137 3 is_stmt 1 view .LVU80
+ 291              	.L25:
+ 292              		.loc 1 137 10 discriminator 1 view .LVU81
+ 293              		.loc 1 137 15 is_stmt 0 discriminator 1 view .LVU82
+ 294 0014 5A69     		ldr	r2, [r3, #20]
+ 295              		.loc 1 137 10 discriminator 1 view .LVU83
+ 296 0016 12F0010F 		tst	r2, #1
+ 297 001a FBD0     		beq	.L25
+ 138:./ThirdParty/FatFs/Src/diskio.c **** 		*buf++ = *(volatile uint8_t *)&spi->RXDR;
+ 298              		.loc 1 138 3 is_stmt 1 view .LVU84
+ 299              	.LVL16:
+ 300              		.loc 1 138 12 is_stmt 0 view .LVU85
+ 301 001c 93F83020 		ldrb	r2, [r3, #48]	@ zero_extendqisi2
+ 302              		.loc 1 138 10 view .LVU86
+ 303 0020 00F8012B 		strb	r2, [r0], #1
+ 304              	.LVL17:
+ 134:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 305              		.loc 1 134 12 view .LVU87
+ 306 0024 6146     		mov	r1, ip
+ 307              	.LVL18:
+ 308              	.L23:
+ 134:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 309              		.loc 1 134 9 is_stmt 1 view .LVU88
+ 134:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 310              		.loc 1 134 12 is_stmt 0 view .LVU89
+ 311 0026 01F1FF3C 		add	ip, r1, #-1
+ 312              	.LVL19:
+ 134:./ThirdParty/FatFs/Src/diskio.c **** 		while (!(spi->SR & SPI_SR_TXP));
+ 313              		.loc 1 134 9 view .LVU90
+ 314 002a 0029     		cmp	r1, #0
+ 315 002c EBD1     		bne	.L24
+ 139:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 140:./ThirdParty/FatFs/Src/diskio.c **** }
+ 316              		.loc 1 140 1 view .LVU91
+ 317 002e 7047     		bx	lr
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 9
+
+
+ 318              	.L27:
+ 319              		.align	2
+ 320              	.L26:
+ 321 0030 00000000 		.word	hspi4
+ 322              		.cfi_endproc
+ 323              	.LFE360:
+ 325              		.section	.text.deselect,"ax",%progbits
+ 326              		.align	1
+ 327              		.syntax unified
+ 328              		.thumb
+ 329              		.thumb_func
+ 331              	deselect:
+ 332              	.LFB362:
+ 141:./ThirdParty/FatFs/Src/diskio.c **** 
+ 142:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 143:./ThirdParty/FatFs/Src/diskio.c **** /* Wait for card ready                                                   */
+ 144:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 145:./ThirdParty/FatFs/Src/diskio.c **** 
+ 146:./ThirdParty/FatFs/Src/diskio.c **** static int wait_ready(UINT timeout_ms)
+ 147:./ThirdParty/FatFs/Src/diskio.c **** {
+ 148:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE d;
+ 149:./ThirdParty/FatFs/Src/diskio.c **** 	uint32_t start = HAL_GetTick();
+ 150:./ThirdParty/FatFs/Src/diskio.c **** 
+ 151:./ThirdParty/FatFs/Src/diskio.c **** 	do {
+ 152:./ThirdParty/FatFs/Src/diskio.c **** 		d = spi_txrx(0xFF);
+ 153:./ThirdParty/FatFs/Src/diskio.c **** 		if (d == 0xFF) return 1;
+ 154:./ThirdParty/FatFs/Src/diskio.c **** 	} while ((HAL_GetTick() - start) < timeout_ms);
+ 155:./ThirdParty/FatFs/Src/diskio.c **** 
+ 156:./ThirdParty/FatFs/Src/diskio.c **** 	return 0;
+ 157:./ThirdParty/FatFs/Src/diskio.c **** }
+ 158:./ThirdParty/FatFs/Src/diskio.c **** 
+ 159:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 160:./ThirdParty/FatFs/Src/diskio.c **** /* Deselect card and release SPI                                         */
+ 161:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 162:./ThirdParty/FatFs/Src/diskio.c **** 
+ 163:./ThirdParty/FatFs/Src/diskio.c **** static void deselect(void)
+ 164:./ThirdParty/FatFs/Src/diskio.c **** {
+ 333              		.loc 1 164 1 is_stmt 1 view -0
+ 334              		.cfi_startproc
+ 335              		@ args = 0, pretend = 0, frame = 0
+ 336              		@ frame_needed = 0, uses_anonymous_args = 0
+ 337 0000 08B5     		push	{r3, lr}
+ 338              	.LCFI0:
+ 339              		.cfi_def_cfa_offset 8
+ 340              		.cfi_offset 3, -8
+ 341              		.cfi_offset 14, -4
+ 165:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 342              		.loc 1 165 2 view .LVU93
+ 343 0002 FFF7FEFF 		bl	spi_end
+ 344              	.LVL20:
+ 166:./ThirdParty/FatFs/Src/diskio.c **** 	SD_CS_HIGH();
+ 345              		.loc 1 166 2 view .LVU94
+ 346 0006 0122     		movs	r2, #1
+ 347 0008 1021     		movs	r1, #16
+ 348 000a 0548     		ldr	r0, .L30
+ 349 000c FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 350              	.LVL21:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 10
+
+
+ 167:./ThirdParty/FatFs/Src/diskio.c **** 	/* Send release byte with CS high */
+ 168:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 351              		.loc 1 168 2 view .LVU95
+ 352 0010 FFF7FEFF 		bl	spi_begin
+ 353              	.LVL22:
+ 169:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 354              		.loc 1 169 2 view .LVU96
+ 355 0014 FF20     		movs	r0, #255
+ 356 0016 FFF7FEFF 		bl	spi_txrx
+ 357              	.LVL23:
+ 170:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 358              		.loc 1 170 2 view .LVU97
+ 359 001a FFF7FEFF 		bl	spi_end
+ 360              	.LVL24:
+ 171:./ThirdParty/FatFs/Src/diskio.c **** }
+ 361              		.loc 1 171 1 is_stmt 0 view .LVU98
+ 362 001e 08BD     		pop	{r3, pc}
+ 363              	.L31:
+ 364              		.align	2
+ 365              	.L30:
+ 366 0020 00100242 		.word	1107431424
+ 367              		.cfi_endproc
+ 368              	.LFE362:
+ 370              		.section	.text.wait_ready,"ax",%progbits
+ 371              		.align	1
+ 372              		.syntax unified
+ 373              		.thumb
+ 374              		.thumb_func
+ 376              	wait_ready:
+ 377              	.LVL25:
+ 378              	.LFB361:
+ 147:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE d;
+ 379              		.loc 1 147 1 is_stmt 1 view -0
+ 380              		.cfi_startproc
+ 381              		@ args = 0, pretend = 0, frame = 0
+ 382              		@ frame_needed = 0, uses_anonymous_args = 0
+ 147:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE d;
+ 383              		.loc 1 147 1 is_stmt 0 view .LVU100
+ 384 0000 38B5     		push	{r3, r4, r5, lr}
+ 385              	.LCFI1:
+ 386              		.cfi_def_cfa_offset 16
+ 387              		.cfi_offset 3, -16
+ 388              		.cfi_offset 4, -12
+ 389              		.cfi_offset 5, -8
+ 390              		.cfi_offset 14, -4
+ 391 0002 0546     		mov	r5, r0
+ 148:./ThirdParty/FatFs/Src/diskio.c **** 	uint32_t start = HAL_GetTick();
+ 392              		.loc 1 148 2 is_stmt 1 view .LVU101
+ 149:./ThirdParty/FatFs/Src/diskio.c **** 
+ 393              		.loc 1 149 2 view .LVU102
+ 149:./ThirdParty/FatFs/Src/diskio.c **** 
+ 394              		.loc 1 149 19 is_stmt 0 view .LVU103
+ 395 0004 FFF7FEFF 		bl	HAL_GetTick
+ 396              	.LVL26:
+ 149:./ThirdParty/FatFs/Src/diskio.c **** 
+ 397              		.loc 1 149 19 view .LVU104
+ 398 0008 0446     		mov	r4, r0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 11
+
+
+ 399              	.LVL27:
+ 400              	.L34:
+ 151:./ThirdParty/FatFs/Src/diskio.c **** 		d = spi_txrx(0xFF);
+ 401              		.loc 1 151 2 is_stmt 1 view .LVU105
+ 152:./ThirdParty/FatFs/Src/diskio.c **** 		if (d == 0xFF) return 1;
+ 402              		.loc 1 152 3 view .LVU106
+ 152:./ThirdParty/FatFs/Src/diskio.c **** 		if (d == 0xFF) return 1;
+ 403              		.loc 1 152 7 is_stmt 0 view .LVU107
+ 404 000a FF20     		movs	r0, #255
+ 405 000c FFF7FEFF 		bl	spi_txrx
+ 406              	.LVL28:
+ 153:./ThirdParty/FatFs/Src/diskio.c **** 	} while ((HAL_GetTick() - start) < timeout_ms);
+ 407              		.loc 1 153 3 is_stmt 1 view .LVU108
+ 153:./ThirdParty/FatFs/Src/diskio.c **** 	} while ((HAL_GetTick() - start) < timeout_ms);
+ 408              		.loc 1 153 6 is_stmt 0 view .LVU109
+ 409 0010 FF28     		cmp	r0, #255
+ 410 0012 06D0     		beq	.L35
+ 154:./ThirdParty/FatFs/Src/diskio.c **** 
+ 411              		.loc 1 154 35 is_stmt 1 view .LVU110
+ 154:./ThirdParty/FatFs/Src/diskio.c **** 
+ 412              		.loc 1 154 12 is_stmt 0 view .LVU111
+ 413 0014 FFF7FEFF 		bl	HAL_GetTick
+ 414              	.LVL29:
+ 154:./ThirdParty/FatFs/Src/diskio.c **** 
+ 415              		.loc 1 154 26 discriminator 1 view .LVU112
+ 416 0018 001B     		subs	r0, r0, r4
+ 154:./ThirdParty/FatFs/Src/diskio.c **** 
+ 417              		.loc 1 154 35 discriminator 1 view .LVU113
+ 418 001a A842     		cmp	r0, r5
+ 419 001c F5D3     		bcc	.L34
+ 156:./ThirdParty/FatFs/Src/diskio.c **** }
+ 420              		.loc 1 156 9 view .LVU114
+ 421 001e 0020     		movs	r0, #0
+ 422 0020 00E0     		b	.L32
+ 423              	.LVL30:
+ 424              	.L35:
+ 153:./ThirdParty/FatFs/Src/diskio.c **** 	} while ((HAL_GetTick() - start) < timeout_ms);
+ 425              		.loc 1 153 25 discriminator 1 view .LVU115
+ 426 0022 0120     		movs	r0, #1
+ 427              	.LVL31:
+ 428              	.L32:
+ 157:./ThirdParty/FatFs/Src/diskio.c **** 
+ 429              		.loc 1 157 1 view .LVU116
+ 430 0024 38BD     		pop	{r3, r4, r5, pc}
+ 157:./ThirdParty/FatFs/Src/diskio.c **** 
+ 431              		.loc 1 157 1 view .LVU117
+ 432              		.cfi_endproc
+ 433              	.LFE361:
+ 435              		.section	.text.select,"ax",%progbits
+ 436              		.align	1
+ 437              		.syntax unified
+ 438              		.thumb
+ 439              		.thumb_func
+ 441              	select:
+ 442              	.LFB363:
+ 172:./ThirdParty/FatFs/Src/diskio.c **** 
+ 173:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 12
+
+
+ 174:./ThirdParty/FatFs/Src/diskio.c **** /* Select card and wait for ready                                        */
+ 175:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 176:./ThirdParty/FatFs/Src/diskio.c **** 
+ 177:./ThirdParty/FatFs/Src/diskio.c **** static int select(void)
+ 178:./ThirdParty/FatFs/Src/diskio.c **** {
+ 443              		.loc 1 178 1 is_stmt 1 view -0
+ 444              		.cfi_startproc
+ 445              		@ args = 0, pretend = 0, frame = 0
+ 446              		@ frame_needed = 0, uses_anonymous_args = 0
+ 447 0000 10B5     		push	{r4, lr}
+ 448              	.LCFI2:
+ 449              		.cfi_def_cfa_offset 8
+ 450              		.cfi_offset 4, -8
+ 451              		.cfi_offset 14, -4
+ 179:./ThirdParty/FatFs/Src/diskio.c **** 	SD_CS_LOW();
+ 452              		.loc 1 179 2 view .LVU119
+ 453 0002 0022     		movs	r2, #0
+ 454 0004 1021     		movs	r1, #16
+ 455 0006 1048     		ldr	r0, .L42
+ 456 0008 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 457              	.LVL32:
+ 180:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 458              		.loc 1 180 2 view .LVU120
+ 459 000c FFF7FEFF 		bl	spi_begin
+ 460              	.LVL33:
+ 181:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 461              		.loc 1 181 2 view .LVU121
+ 462 0010 FF20     		movs	r0, #255
+ 463 0012 FFF7FEFF 		bl	spi_txrx
+ 464              	.LVL34:
+ 182:./ThirdParty/FatFs/Src/diskio.c **** 	if (wait_ready(500)) return 1;  /* SPI stays running */
+ 465              		.loc 1 182 2 view .LVU122
+ 466              		.loc 1 182 6 is_stmt 0 view .LVU123
+ 467 0016 4FF4FA70 		mov	r0, #500
+ 468 001a FFF7FEFF 		bl	wait_ready
+ 469              	.LVL35:
+ 470              		.loc 1 182 5 discriminator 1 view .LVU124
+ 471 001e 18B1     		cbz	r0, .L41
+ 472              		.loc 1 182 30 discriminator 2 view .LVU125
+ 473 0020 0123     		movs	r3, #1
+ 474 0022 1C46     		mov	r4, r3
+ 475              	.L37:
+ 183:./ThirdParty/FatFs/Src/diskio.c **** 	/* Timed out - release */
+ 184:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 185:./ThirdParty/FatFs/Src/diskio.c **** 	SD_CS_HIGH();
+ 186:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 187:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 188:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 189:./ThirdParty/FatFs/Src/diskio.c **** 	return 0;
+ 190:./ThirdParty/FatFs/Src/diskio.c **** }
+ 476              		.loc 1 190 1 view .LVU126
+ 477 0024 2046     		mov	r0, r4
+ 478 0026 10BD     		pop	{r4, pc}
+ 479              	.L41:
+ 480 0028 0446     		mov	r4, r0
+ 184:./ThirdParty/FatFs/Src/diskio.c **** 	SD_CS_HIGH();
+ 481              		.loc 1 184 2 is_stmt 1 view .LVU127
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 13
+
+
+ 482 002a FFF7FEFF 		bl	spi_end
+ 483              	.LVL36:
+ 185:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 484              		.loc 1 185 2 view .LVU128
+ 485 002e 0122     		movs	r2, #1
+ 486 0030 1021     		movs	r1, #16
+ 487 0032 0548     		ldr	r0, .L42
+ 488 0034 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 489              	.LVL37:
+ 186:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 490              		.loc 1 186 2 view .LVU129
+ 491 0038 FFF7FEFF 		bl	spi_begin
+ 492              	.LVL38:
+ 187:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 493              		.loc 1 187 2 view .LVU130
+ 494 003c FF20     		movs	r0, #255
+ 495 003e FFF7FEFF 		bl	spi_txrx
+ 496              	.LVL39:
+ 188:./ThirdParty/FatFs/Src/diskio.c **** 	return 0;
+ 497              		.loc 1 188 2 view .LVU131
+ 498 0042 FFF7FEFF 		bl	spi_end
+ 499              	.LVL40:
+ 189:./ThirdParty/FatFs/Src/diskio.c **** }
+ 500              		.loc 1 189 2 view .LVU132
+ 189:./ThirdParty/FatFs/Src/diskio.c **** }
+ 501              		.loc 1 189 9 is_stmt 0 view .LVU133
+ 502 0046 EDE7     		b	.L37
+ 503              	.L43:
+ 504              		.align	2
+ 505              	.L42:
+ 506 0048 00100242 		.word	1107431424
+ 507              		.cfi_endproc
+ 508              	.LFE363:
+ 510              		.section	.text.send_cmd,"ax",%progbits
+ 511              		.align	1
+ 512              		.syntax unified
+ 513              		.thumb
+ 514              		.thumb_func
+ 516              	send_cmd:
+ 517              	.LVL41:
+ 518              	.LFB366:
+ 191:./ThirdParty/FatFs/Src/diskio.c **** 
+ 192:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 193:./ThirdParty/FatFs/Src/diskio.c **** /* Receive a data packet from the card                                   */
+ 194:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 195:./ThirdParty/FatFs/Src/diskio.c **** 
+ 196:./ThirdParty/FatFs/Src/diskio.c **** static int rcvr_datablock(BYTE *buff, UINT btr)
+ 197:./ThirdParty/FatFs/Src/diskio.c **** {
+ 198:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE token;
+ 199:./ThirdParty/FatFs/Src/diskio.c **** 	uint32_t start = HAL_GetTick();
+ 200:./ThirdParty/FatFs/Src/diskio.c **** 
+ 201:./ThirdParty/FatFs/Src/diskio.c **** 	do {
+ 202:./ThirdParty/FatFs/Src/diskio.c **** 		token = spi_txrx(0xFF);
+ 203:./ThirdParty/FatFs/Src/diskio.c **** 	} while (token == 0xFF && (HAL_GetTick() - start) < 200);
+ 204:./ThirdParty/FatFs/Src/diskio.c **** 
+ 205:./ThirdParty/FatFs/Src/diskio.c **** 	if (token != 0xFE) return 0;
+ 206:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 14
+
+
+ 207:./ThirdParty/FatFs/Src/diskio.c **** 	spi_rx_multi(buff, btr);
+ 208:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);  /* Discard CRC */
+ 209:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 210:./ThirdParty/FatFs/Src/diskio.c **** 
+ 211:./ThirdParty/FatFs/Src/diskio.c **** 	return 1;
+ 212:./ThirdParty/FatFs/Src/diskio.c **** }
+ 213:./ThirdParty/FatFs/Src/diskio.c **** 
+ 214:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 215:./ThirdParty/FatFs/Src/diskio.c **** /* Send a data packet to the card                                        */
+ 216:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 217:./ThirdParty/FatFs/Src/diskio.c **** 
+ 218:./ThirdParty/FatFs/Src/diskio.c **** #if FF_FS_READONLY == 0
+ 219:./ThirdParty/FatFs/Src/diskio.c **** static int xmit_datablock(const BYTE *buff, BYTE token)
+ 220:./ThirdParty/FatFs/Src/diskio.c **** {
+ 221:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE resp;
+ 222:./ThirdParty/FatFs/Src/diskio.c **** 
+ 223:./ThirdParty/FatFs/Src/diskio.c **** 	if (!wait_ready(500)) return 0;
+ 224:./ThirdParty/FatFs/Src/diskio.c **** 
+ 225:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(token);
+ 226:./ThirdParty/FatFs/Src/diskio.c **** 	if (token != 0xFD) {
+ 227:./ThirdParty/FatFs/Src/diskio.c **** 		spi_tx_multi(buff, 512);
+ 228:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);  /* Dummy CRC */
+ 229:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 230:./ThirdParty/FatFs/Src/diskio.c **** 		resp = spi_txrx(0xFF);
+ 231:./ThirdParty/FatFs/Src/diskio.c **** 		if ((resp & 0x1F) != 0x05) return 0;
+ 232:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 233:./ThirdParty/FatFs/Src/diskio.c **** 
+ 234:./ThirdParty/FatFs/Src/diskio.c **** 	return 1;
+ 235:./ThirdParty/FatFs/Src/diskio.c **** }
+ 236:./ThirdParty/FatFs/Src/diskio.c **** #endif
+ 237:./ThirdParty/FatFs/Src/diskio.c **** 
+ 238:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 239:./ThirdParty/FatFs/Src/diskio.c **** /* Send a command packet to the card                                     */
+ 240:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 241:./ThirdParty/FatFs/Src/diskio.c **** 
+ 242:./ThirdParty/FatFs/Src/diskio.c **** static BYTE send_cmd(BYTE cmd, DWORD arg)
+ 243:./ThirdParty/FatFs/Src/diskio.c **** {
+ 519              		.loc 1 243 1 is_stmt 1 view -0
+ 520              		.cfi_startproc
+ 521              		@ args = 0, pretend = 0, frame = 0
+ 522              		@ frame_needed = 0, uses_anonymous_args = 0
+ 523              		.loc 1 243 1 is_stmt 0 view .LVU135
+ 524 0000 38B5     		push	{r3, r4, r5, lr}
+ 525              	.LCFI3:
+ 526              		.cfi_def_cfa_offset 16
+ 527              		.cfi_offset 3, -16
+ 528              		.cfi_offset 4, -12
+ 529              		.cfi_offset 5, -8
+ 530              		.cfi_offset 14, -4
+ 531 0002 0446     		mov	r4, r0
+ 532 0004 0D46     		mov	r5, r1
+ 244:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE n, res;
+ 533              		.loc 1 244 2 is_stmt 1 view .LVU136
+ 245:./ThirdParty/FatFs/Src/diskio.c **** 
+ 246:./ThirdParty/FatFs/Src/diskio.c **** 	/* ACMD<n> is CMD55 + CMD<n> */
+ 247:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd & 0x80) {
+ 534              		.loc 1 247 2 view .LVU137
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 15
+
+
+ 535              		.loc 1 247 5 is_stmt 0 view .LVU138
+ 536 0006 10F0800F 		tst	r0, #128
+ 537 000a 1DD1     		bne	.L55
+ 538              	.LVL42:
+ 539              	.L45:
+ 248:./ThirdParty/FatFs/Src/diskio.c **** 		cmd &= 0x7F;
+ 249:./ThirdParty/FatFs/Src/diskio.c **** 		res = send_cmd(CMD55, 0);
+ 250:./ThirdParty/FatFs/Src/diskio.c **** 		if (res > 1) return res;
+ 251:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 252:./ThirdParty/FatFs/Src/diskio.c **** 
+ 253:./ThirdParty/FatFs/Src/diskio.c **** 	/* Select the card and wait for ready (except CMD12) */
+ 254:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd != CMD12) {
+ 540              		.loc 1 254 2 is_stmt 1 view .LVU139
+ 541              		.loc 1 254 5 is_stmt 0 view .LVU140
+ 542 000c 0C2C     		cmp	r4, #12
+ 543 000e 04D0     		beq	.L47
+ 255:./ThirdParty/FatFs/Src/diskio.c **** 		deselect();
+ 544              		.loc 1 255 3 is_stmt 1 view .LVU141
+ 545 0010 FFF7FEFF 		bl	deselect
+ 546              	.LVL43:
+ 256:./ThirdParty/FatFs/Src/diskio.c **** 		if (!select()) return 0xFF;
+ 547              		.loc 1 256 3 view .LVU142
+ 548              		.loc 1 256 8 is_stmt 0 view .LVU143
+ 549 0014 FFF7FEFF 		bl	select
+ 550              	.LVL44:
+ 551              		.loc 1 256 6 discriminator 1 view .LVU144
+ 552 0018 B0B3     		cbz	r0, .L51
+ 553              	.L47:
+ 257:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 258:./ThirdParty/FatFs/Src/diskio.c **** 
+ 259:./ThirdParty/FatFs/Src/diskio.c **** 	/* Send command packet (SPI is running from select()) */
+ 260:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0x40 | cmd);
+ 554              		.loc 1 260 2 is_stmt 1 view .LVU145
+ 555 001a 44F04000 		orr	r0, r4, #64
+ 556 001e FFF7FEFF 		bl	spi_txrx
+ 557              	.LVL45:
+ 261:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx((BYTE)(arg >> 24));
+ 558              		.loc 1 261 2 view .LVU146
+ 559 0022 280E     		lsrs	r0, r5, #24
+ 560 0024 FFF7FEFF 		bl	spi_txrx
+ 561              	.LVL46:
+ 262:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx((BYTE)(arg >> 16));
+ 562              		.loc 1 262 2 view .LVU147
+ 563 0028 C5F30740 		ubfx	r0, r5, #16, #8
+ 564 002c FFF7FEFF 		bl	spi_txrx
+ 565              	.LVL47:
+ 263:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx((BYTE)(arg >> 8));
+ 566              		.loc 1 263 2 view .LVU148
+ 567 0030 C5F30720 		ubfx	r0, r5, #8, #8
+ 568 0034 FFF7FEFF 		bl	spi_txrx
+ 569              	.LVL48:
+ 264:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx((BYTE)arg);
+ 570              		.loc 1 264 2 view .LVU149
+ 571 0038 E8B2     		uxtb	r0, r5
+ 572 003a FFF7FEFF 		bl	spi_txrx
+ 573              	.LVL49:
+ 265:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 16
+
+
+ 266:./ThirdParty/FatFs/Src/diskio.c **** 	n = 0x01;  /* Dummy CRC + Stop */
+ 574              		.loc 1 266 2 view .LVU150
+ 267:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd == CMD0) n = 0x95;
+ 575              		.loc 1 267 2 view .LVU151
+ 576              		.loc 1 267 5 is_stmt 0 view .LVU152
+ 577 003e 64B1     		cbz	r4, .L52
+ 268:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd == CMD8) n = 0x87;
+ 578              		.loc 1 268 2 is_stmt 1 view .LVU153
+ 579              		.loc 1 268 5 is_stmt 0 view .LVU154
+ 580 0040 082C     		cmp	r4, #8
+ 581 0042 1BD0     		beq	.L53
+ 582 0044 0120     		movs	r0, #1
+ 583 0046 09E0     		b	.L48
+ 584              	.LVL50:
+ 585              	.L55:
+ 248:./ThirdParty/FatFs/Src/diskio.c **** 		res = send_cmd(CMD55, 0);
+ 586              		.loc 1 248 3 is_stmt 1 view .LVU155
+ 248:./ThirdParty/FatFs/Src/diskio.c **** 		res = send_cmd(CMD55, 0);
+ 587              		.loc 1 248 7 is_stmt 0 view .LVU156
+ 588 0048 00F07F04 		and	r4, r0, #127
+ 589              	.LVL51:
+ 249:./ThirdParty/FatFs/Src/diskio.c **** 		if (res > 1) return res;
+ 590              		.loc 1 249 3 is_stmt 1 view .LVU157
+ 249:./ThirdParty/FatFs/Src/diskio.c **** 		if (res > 1) return res;
+ 591              		.loc 1 249 9 is_stmt 0 view .LVU158
+ 592 004c 0021     		movs	r1, #0
+ 593              	.LVL52:
+ 249:./ThirdParty/FatFs/Src/diskio.c **** 		if (res > 1) return res;
+ 594              		.loc 1 249 9 view .LVU159
+ 595 004e 3720     		movs	r0, #55
+ 596 0050 FFF7D6FF 		bl	send_cmd
+ 597              	.LVL53:
+ 250:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 598              		.loc 1 250 3 is_stmt 1 view .LVU160
+ 250:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 599              		.loc 1 250 6 is_stmt 0 view .LVU161
+ 600 0054 0128     		cmp	r0, #1
+ 601 0056 D9D9     		bls	.L45
+ 602 0058 0FE0     		b	.L46
+ 603              	.LVL54:
+ 604              	.L52:
+ 267:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd == CMD8) n = 0x87;
+ 605              		.loc 1 267 21 discriminator 1 view .LVU162
+ 606 005a 9520     		movs	r0, #149
+ 607              	.L48:
+ 608              	.LVL55:
+ 269:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(n);
+ 609              		.loc 1 269 2 is_stmt 1 view .LVU163
+ 610 005c FFF7FEFF 		bl	spi_txrx
+ 611              	.LVL56:
+ 270:./ThirdParty/FatFs/Src/diskio.c **** 
+ 271:./ThirdParty/FatFs/Src/diskio.c **** 	/* Receive command response */
+ 272:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd == CMD12) spi_txrx(0xFF);
+ 612              		.loc 1 272 2 view .LVU164
+ 613              		.loc 1 272 5 is_stmt 0 view .LVU165
+ 614 0060 0C2C     		cmp	r4, #12
+ 615 0062 0DD0     		beq	.L56
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 17
+
+
+ 616              	.L49:
+ 267:./ThirdParty/FatFs/Src/diskio.c **** 	if (cmd == CMD8) n = 0x87;
+ 617              		.loc 1 267 21 discriminator 1 view .LVU166
+ 618 0064 0A24     		movs	r4, #10
+ 619              	.LVL57:
+ 620              	.L50:
+ 273:./ThirdParty/FatFs/Src/diskio.c **** 
+ 274:./ThirdParty/FatFs/Src/diskio.c **** 	n = 10;
+ 275:./ThirdParty/FatFs/Src/diskio.c **** 	do {
+ 621              		.loc 1 275 2 is_stmt 1 view .LVU167
+ 276:./ThirdParty/FatFs/Src/diskio.c **** 		res = spi_txrx(0xFF);
+ 622              		.loc 1 276 3 view .LVU168
+ 623              		.loc 1 276 9 is_stmt 0 view .LVU169
+ 624 0066 FF20     		movs	r0, #255
+ 625 0068 FFF7FEFF 		bl	spi_txrx
+ 626              	.LVL58:
+ 277:./ThirdParty/FatFs/Src/diskio.c **** 	} while ((res & 0x80) && --n);
+ 627              		.loc 1 277 24 is_stmt 1 discriminator 2 view .LVU170
+ 628 006c 10F0800F 		tst	r0, #128
+ 629 0070 03D0     		beq	.L46
+ 630              		.loc 1 277 24 is_stmt 0 discriminator 1 view .LVU171
+ 631 0072 631E     		subs	r3, r4, #1
+ 632              	.LVL59:
+ 633              		.loc 1 277 24 discriminator 1 view .LVU172
+ 634 0074 13F0FF04 		ands	r4, r3, #255
+ 635 0078 F5D1     		bne	.L50
+ 636              	.LVL60:
+ 637              	.L46:
+ 278:./ThirdParty/FatFs/Src/diskio.c **** 
+ 279:./ThirdParty/FatFs/Src/diskio.c **** 	return res;
+ 280:./ThirdParty/FatFs/Src/diskio.c **** }
+ 638              		.loc 1 280 1 view .LVU173
+ 639 007a 38BD     		pop	{r3, r4, r5, pc}
+ 640              	.LVL61:
+ 641              	.L53:
+ 268:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(n);
+ 642              		.loc 1 268 21 discriminator 1 view .LVU174
+ 643 007c 8720     		movs	r0, #135
+ 644 007e EDE7     		b	.L48
+ 645              	.LVL62:
+ 646              	.L56:
+ 272:./ThirdParty/FatFs/Src/diskio.c **** 
+ 647              		.loc 1 272 20 is_stmt 1 discriminator 1 view .LVU175
+ 648 0080 FF20     		movs	r0, #255
+ 649 0082 FFF7FEFF 		bl	spi_txrx
+ 650              	.LVL63:
+ 651 0086 EDE7     		b	.L49
+ 652              	.LVL64:
+ 653              	.L51:
+ 256:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 654              		.loc 1 256 25 is_stmt 0 discriminator 2 view .LVU176
+ 655 0088 FF20     		movs	r0, #255
+ 656 008a F6E7     		b	.L46
+ 657              		.cfi_endproc
+ 658              	.LFE366:
+ 660              		.section	.text.xmit_datablock,"ax",%progbits
+ 661              		.align	1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 18
+
+
+ 662              		.syntax unified
+ 663              		.thumb
+ 664              		.thumb_func
+ 666              	xmit_datablock:
+ 667              	.LVL65:
+ 668              	.LFB365:
+ 220:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE resp;
+ 669              		.loc 1 220 1 is_stmt 1 view -0
+ 670              		.cfi_startproc
+ 671              		@ args = 0, pretend = 0, frame = 0
+ 672              		@ frame_needed = 0, uses_anonymous_args = 0
+ 220:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE resp;
+ 673              		.loc 1 220 1 is_stmt 0 view .LVU178
+ 674 0000 38B5     		push	{r3, r4, r5, lr}
+ 675              	.LCFI4:
+ 676              		.cfi_def_cfa_offset 16
+ 677              		.cfi_offset 3, -16
+ 678              		.cfi_offset 4, -12
+ 679              		.cfi_offset 5, -8
+ 680              		.cfi_offset 14, -4
+ 681 0002 0546     		mov	r5, r0
+ 682 0004 0C46     		mov	r4, r1
+ 221:./ThirdParty/FatFs/Src/diskio.c **** 
+ 683              		.loc 1 221 2 is_stmt 1 view .LVU179
+ 223:./ThirdParty/FatFs/Src/diskio.c **** 
+ 684              		.loc 1 223 2 view .LVU180
+ 223:./ThirdParty/FatFs/Src/diskio.c **** 
+ 685              		.loc 1 223 7 is_stmt 0 view .LVU181
+ 686 0006 4FF4FA70 		mov	r0, #500
+ 687              	.LVL66:
+ 223:./ThirdParty/FatFs/Src/diskio.c **** 
+ 688              		.loc 1 223 7 view .LVU182
+ 689 000a FFF7FEFF 		bl	wait_ready
+ 690              	.LVL67:
+ 223:./ThirdParty/FatFs/Src/diskio.c **** 
+ 691              		.loc 1 223 5 discriminator 1 view .LVU183
+ 692 000e 00B9     		cbnz	r0, .L62
+ 693              	.L57:
+ 235:./ThirdParty/FatFs/Src/diskio.c **** #endif
+ 694              		.loc 1 235 1 view .LVU184
+ 695 0010 38BD     		pop	{r3, r4, r5, pc}
+ 696              	.LVL68:
+ 697              	.L62:
+ 225:./ThirdParty/FatFs/Src/diskio.c **** 	if (token != 0xFD) {
+ 698              		.loc 1 225 2 is_stmt 1 view .LVU185
+ 699 0012 2046     		mov	r0, r4
+ 700 0014 FFF7FEFF 		bl	spi_txrx
+ 701              	.LVL69:
+ 226:./ThirdParty/FatFs/Src/diskio.c **** 		spi_tx_multi(buff, 512);
+ 702              		.loc 1 226 2 view .LVU186
+ 226:./ThirdParty/FatFs/Src/diskio.c **** 		spi_tx_multi(buff, 512);
+ 703              		.loc 1 226 5 is_stmt 0 view .LVU187
+ 704 0018 FD2C     		cmp	r4, #253
+ 705 001a 01D1     		bne	.L63
+ 234:./ThirdParty/FatFs/Src/diskio.c **** }
+ 706              		.loc 1 234 9 view .LVU188
+ 707 001c 0120     		movs	r0, #1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 19
+
+
+ 708 001e F7E7     		b	.L57
+ 709              	.L63:
+ 227:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);  /* Dummy CRC */
+ 710              		.loc 1 227 3 is_stmt 1 view .LVU189
+ 711 0020 4FF40071 		mov	r1, #512
+ 712 0024 2846     		mov	r0, r5
+ 713 0026 FFF7FEFF 		bl	spi_tx_multi
+ 714              	.LVL70:
+ 228:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 715              		.loc 1 228 3 view .LVU190
+ 716 002a FF20     		movs	r0, #255
+ 717 002c FFF7FEFF 		bl	spi_txrx
+ 718              	.LVL71:
+ 229:./ThirdParty/FatFs/Src/diskio.c **** 		resp = spi_txrx(0xFF);
+ 719              		.loc 1 229 3 view .LVU191
+ 720 0030 FF20     		movs	r0, #255
+ 721 0032 FFF7FEFF 		bl	spi_txrx
+ 722              	.LVL72:
+ 230:./ThirdParty/FatFs/Src/diskio.c **** 		if ((resp & 0x1F) != 0x05) return 0;
+ 723              		.loc 1 230 3 view .LVU192
+ 230:./ThirdParty/FatFs/Src/diskio.c **** 		if ((resp & 0x1F) != 0x05) return 0;
+ 724              		.loc 1 230 10 is_stmt 0 view .LVU193
+ 725 0036 FF20     		movs	r0, #255
+ 726 0038 FFF7FEFF 		bl	spi_txrx
+ 727              	.LVL73:
+ 231:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 728              		.loc 1 231 3 is_stmt 1 view .LVU194
+ 231:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 729              		.loc 1 231 6 is_stmt 0 view .LVU195
+ 730 003c 00F01F00 		and	r0, r0, #31
+ 731              	.LVL74:
+ 231:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 732              		.loc 1 231 6 view .LVU196
+ 733 0040 0528     		cmp	r0, #5
+ 734 0042 01D1     		bne	.L60
+ 234:./ThirdParty/FatFs/Src/diskio.c **** }
+ 735              		.loc 1 234 9 view .LVU197
+ 736 0044 0120     		movs	r0, #1
+ 737 0046 E3E7     		b	.L57
+ 738              	.L60:
+ 231:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 739              		.loc 1 231 37 discriminator 1 view .LVU198
+ 740 0048 0020     		movs	r0, #0
+ 741 004a E1E7     		b	.L57
+ 742              		.cfi_endproc
+ 743              	.LFE365:
+ 745              		.section	.text.rcvr_datablock,"ax",%progbits
+ 746              		.align	1
+ 747              		.syntax unified
+ 748              		.thumb
+ 749              		.thumb_func
+ 751              	rcvr_datablock:
+ 752              	.LVL75:
+ 753              	.LFB364:
+ 197:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE token;
+ 754              		.loc 1 197 1 is_stmt 1 view -0
+ 755              		.cfi_startproc
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 20
+
+
+ 756              		@ args = 0, pretend = 0, frame = 0
+ 757              		@ frame_needed = 0, uses_anonymous_args = 0
+ 197:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE token;
+ 758              		.loc 1 197 1 is_stmt 0 view .LVU200
+ 759 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 760              	.LCFI5:
+ 761              		.cfi_def_cfa_offset 24
+ 762              		.cfi_offset 3, -24
+ 763              		.cfi_offset 4, -20
+ 764              		.cfi_offset 5, -16
+ 765              		.cfi_offset 6, -12
+ 766              		.cfi_offset 7, -8
+ 767              		.cfi_offset 14, -4
+ 768 0002 0646     		mov	r6, r0
+ 769 0004 0F46     		mov	r7, r1
+ 198:./ThirdParty/FatFs/Src/diskio.c **** 	uint32_t start = HAL_GetTick();
+ 770              		.loc 1 198 2 is_stmt 1 view .LVU201
+ 199:./ThirdParty/FatFs/Src/diskio.c **** 
+ 771              		.loc 1 199 2 view .LVU202
+ 199:./ThirdParty/FatFs/Src/diskio.c **** 
+ 772              		.loc 1 199 19 is_stmt 0 view .LVU203
+ 773 0006 FFF7FEFF 		bl	HAL_GetTick
+ 774              	.LVL76:
+ 199:./ThirdParty/FatFs/Src/diskio.c **** 
+ 775              		.loc 1 199 19 view .LVU204
+ 776 000a 0546     		mov	r5, r0
+ 777              	.LVL77:
+ 778              	.L66:
+ 201:./ThirdParty/FatFs/Src/diskio.c **** 		token = spi_txrx(0xFF);
+ 779              		.loc 1 201 2 is_stmt 1 view .LVU205
+ 202:./ThirdParty/FatFs/Src/diskio.c **** 	} while (token == 0xFF && (HAL_GetTick() - start) < 200);
+ 780              		.loc 1 202 3 view .LVU206
+ 202:./ThirdParty/FatFs/Src/diskio.c **** 	} while (token == 0xFF && (HAL_GetTick() - start) < 200);
+ 781              		.loc 1 202 11 is_stmt 0 view .LVU207
+ 782 000c FF20     		movs	r0, #255
+ 783 000e FFF7FEFF 		bl	spi_txrx
+ 784              	.LVL78:
+ 785 0012 0446     		mov	r4, r0
+ 786              	.LVL79:
+ 203:./ThirdParty/FatFs/Src/diskio.c **** 
+ 787              		.loc 1 203 25 is_stmt 1 discriminator 3 view .LVU208
+ 788 0014 FF28     		cmp	r0, #255
+ 789 0016 04D1     		bne	.L65
+ 203:./ThirdParty/FatFs/Src/diskio.c **** 
+ 790              		.loc 1 203 29 is_stmt 0 discriminator 1 view .LVU209
+ 791 0018 FFF7FEFF 		bl	HAL_GetTick
+ 792              	.LVL80:
+ 203:./ThirdParty/FatFs/Src/diskio.c **** 
+ 793              		.loc 1 203 43 discriminator 2 view .LVU210
+ 794 001c 401B     		subs	r0, r0, r5
+ 203:./ThirdParty/FatFs/Src/diskio.c **** 
+ 795              		.loc 1 203 25 discriminator 2 view .LVU211
+ 796 001e C728     		cmp	r0, #199
+ 797 0020 F4D9     		bls	.L66
+ 798              	.L65:
+ 205:./ThirdParty/FatFs/Src/diskio.c **** 
+ 799              		.loc 1 205 2 is_stmt 1 view .LVU212
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 21
+
+
+ 205:./ThirdParty/FatFs/Src/diskio.c **** 
+ 800              		.loc 1 205 5 is_stmt 0 view .LVU213
+ 801 0022 FE2C     		cmp	r4, #254
+ 802 0024 01D0     		beq	.L70
+ 205:./ThirdParty/FatFs/Src/diskio.c **** 
+ 803              		.loc 1 205 28 discriminator 1 view .LVU214
+ 804 0026 0020     		movs	r0, #0
+ 805              	.L64:
+ 212:./ThirdParty/FatFs/Src/diskio.c **** 
+ 806              		.loc 1 212 1 view .LVU215
+ 807 0028 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 808              	.LVL81:
+ 809              	.L70:
+ 207:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);  /* Discard CRC */
+ 810              		.loc 1 207 2 is_stmt 1 view .LVU216
+ 811 002a 3946     		mov	r1, r7
+ 812 002c 3046     		mov	r0, r6
+ 813 002e FFF7FEFF 		bl	spi_rx_multi
+ 814              	.LVL82:
+ 208:./ThirdParty/FatFs/Src/diskio.c **** 	spi_txrx(0xFF);
+ 815              		.loc 1 208 2 view .LVU217
+ 816 0032 FF20     		movs	r0, #255
+ 817 0034 FFF7FEFF 		bl	spi_txrx
+ 818              	.LVL83:
+ 209:./ThirdParty/FatFs/Src/diskio.c **** 
+ 819              		.loc 1 209 2 view .LVU218
+ 820 0038 FF20     		movs	r0, #255
+ 821 003a FFF7FEFF 		bl	spi_txrx
+ 822              	.LVL84:
+ 211:./ThirdParty/FatFs/Src/diskio.c **** }
+ 823              		.loc 1 211 2 view .LVU219
+ 211:./ThirdParty/FatFs/Src/diskio.c **** }
+ 824              		.loc 1 211 9 is_stmt 0 view .LVU220
+ 825 003e 0120     		movs	r0, #1
+ 826 0040 F2E7     		b	.L64
+ 827              		.cfi_endproc
+ 828              	.LFE364:
+ 830              		.section	.text.disk_status,"ax",%progbits
+ 831              		.align	1
+ 832              		.global	disk_status
+ 833              		.syntax unified
+ 834              		.thumb
+ 835              		.thumb_func
+ 837              	disk_status:
+ 838              	.LVL85:
+ 839              	.LFB367:
+ 281:./ThirdParty/FatFs/Src/diskio.c **** 
+ 282:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 283:./ThirdParty/FatFs/Src/diskio.c **** /* Get Drive Status                                                      */
+ 284:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 285:./ThirdParty/FatFs/Src/diskio.c **** 
+ 286:./ThirdParty/FatFs/Src/diskio.c **** DSTATUS disk_status(BYTE pdrv)
+ 287:./ThirdParty/FatFs/Src/diskio.c **** {
+ 840              		.loc 1 287 1 is_stmt 1 view -0
+ 841              		.cfi_startproc
+ 842              		@ args = 0, pretend = 0, frame = 0
+ 843              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 22
+
+
+ 844              		@ link register save eliminated.
+ 288:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0) return STA_NOINIT;
+ 845              		.loc 1 288 2 view .LVU222
+ 846              		.loc 1 288 5 is_stmt 0 view .LVU223
+ 847 0000 18B9     		cbnz	r0, .L73
+ 289:./ThirdParty/FatFs/Src/diskio.c **** 	return Stat;
+ 848              		.loc 1 289 2 is_stmt 1 view .LVU224
+ 849              		.loc 1 289 9 is_stmt 0 view .LVU225
+ 850 0002 034B     		ldr	r3, .L74
+ 851 0004 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 852              	.LVL86:
+ 853              		.loc 1 289 9 view .LVU226
+ 854 0006 C0B2     		uxtb	r0, r0
+ 855 0008 7047     		bx	lr
+ 856              	.LVL87:
+ 857              	.L73:
+ 288:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0) return STA_NOINIT;
+ 858              		.loc 1 288 24 discriminator 1 view .LVU227
+ 859 000a 0120     		movs	r0, #1
+ 860              	.LVL88:
+ 290:./ThirdParty/FatFs/Src/diskio.c **** }
+ 861              		.loc 1 290 1 view .LVU228
+ 862 000c 7047     		bx	lr
+ 863              	.L75:
+ 864 000e 00BF     		.align	2
+ 865              	.L74:
+ 866 0010 00000000 		.word	Stat
+ 867              		.cfi_endproc
+ 868              	.LFE367:
+ 870              		.section	.text.disk_initialize,"ax",%progbits
+ 871              		.align	1
+ 872              		.global	disk_initialize
+ 873              		.syntax unified
+ 874              		.thumb
+ 875              		.thumb_func
+ 877              	disk_initialize:
+ 878              	.LVL89:
+ 879              	.LFB368:
+ 291:./ThirdParty/FatFs/Src/diskio.c **** 
+ 292:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 293:./ThirdParty/FatFs/Src/diskio.c **** /* Initialize a Drive                                                    */
+ 294:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 295:./ThirdParty/FatFs/Src/diskio.c **** 
+ 296:./ThirdParty/FatFs/Src/diskio.c **** DSTATUS disk_initialize(BYTE pdrv)
+ 297:./ThirdParty/FatFs/Src/diskio.c **** {
+ 880              		.loc 1 297 1 is_stmt 1 view -0
+ 881              		.cfi_startproc
+ 882              		@ args = 0, pretend = 0, frame = 8
+ 883              		@ frame_needed = 0, uses_anonymous_args = 0
+ 298:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE n, cmd, ty, ocr[4], resp;
+ 884              		.loc 1 298 2 view .LVU230
+ 299:./ThirdParty/FatFs/Src/diskio.c **** 	uint32_t start;
+ 885              		.loc 1 299 2 view .LVU231
+ 300:./ThirdParty/FatFs/Src/diskio.c **** 
+ 301:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0) return STA_NOINIT;
+ 886              		.loc 1 301 2 view .LVU232
+ 887              		.loc 1 301 5 is_stmt 0 view .LVU233
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 23
+
+
+ 888 0000 08B1     		cbz	r0, .L109
+ 889              		.loc 1 301 24 discriminator 1 view .LVU234
+ 890 0002 0120     		movs	r0, #1
+ 891              	.LVL90:
+ 302:./ThirdParty/FatFs/Src/diskio.c **** 
+ 303:./ThirdParty/FatFs/Src/diskio.c **** 	/* Disable NSSP mode, ensure 8-bit, and re-init SPI (one-time setup) */
+ 304:./ThirdParty/FatFs/Src/diskio.c **** 	HAL_SPI_DeInit(&hspi4);
+ 305:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+ 306:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+ 307:./ThirdParty/FatFs/Src/diskio.c **** 	HAL_SPI_Init(&hspi4);
+ 308:./ThirdParty/FatFs/Src/diskio.c **** 
+ 309:./ThirdParty/FatFs/Src/diskio.c **** 	/* Power-up delay */
+ 310:./ThirdParty/FatFs/Src/diskio.c **** 	HAL_Delay(50);
+ 311:./ThirdParty/FatFs/Src/diskio.c **** 
+ 312:./ThirdParty/FatFs/Src/diskio.c **** 	/* Send 80+ clock pulses with CS high to put card in SPI mode */
+ 313:./ThirdParty/FatFs/Src/diskio.c **** 	SD_CS_HIGH();
+ 314:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	for (n = 0; n < 20; n++) spi_txrx(0xFF);
+ 316:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 317:./ThirdParty/FatFs/Src/diskio.c **** 
+ 318:./ThirdParty/FatFs/Src/diskio.c **** 	/* SPI sanity check */
+ 319:./ThirdParty/FatFs/Src/diskio.c **** 	{
+ 320:./ThirdParty/FatFs/Src/diskio.c **** 		BYTE rx;
+ 321:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 322:./ThirdParty/FatFs/Src/diskio.c **** 		rx = spi_txrx(0xFF);
+ 323:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ 324:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_spi_ok = (rx == 0xFF) ? 1 : 0;
+ 325:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_hal_err = 0;
+ 326:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 327:./ThirdParty/FatFs/Src/diskio.c **** 
+ 328:./ThirdParty/FatFs/Src/diskio.c **** 	/* CMD0: GO_IDLE_STATE */
+ 329:./ThirdParty/FatFs/Src/diskio.c **** 	resp = 0xFF;
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 	for (n = 0; n < 10 && resp != 1; n++) {
+ 331:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 332:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 333:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 334:./ThirdParty/FatFs/Src/diskio.c **** 
+ 335:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x40 | CMD0);
+ 336:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 337:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 338:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 339:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 340:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x95);
+ 341:./ThirdParty/FatFs/Src/diskio.c **** 
+ 342:./ThirdParty/FatFs/Src/diskio.c **** 		{
+ 343:./ThirdParty/FatFs/Src/diskio.c **** 			BYTE i;
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 			for (i = 0; i < 10; i++) {
+ 345:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 346:./ThirdParty/FatFs/Src/diskio.c **** 				if (!(resp & 0x80)) break;
+ 347:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 348:./ThirdParty/FatFs/Src/diskio.c **** 		}
+ 349:./ThirdParty/FatFs/Src/diskio.c **** 
+ 350:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ 351:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_HIGH();
+ 352:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 353:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 354:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 24
+
+
+ 355:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 356:./ThirdParty/FatFs/Src/diskio.c **** 	sd_dbg_cmd0 = resp;
+ 357:./ThirdParty/FatFs/Src/diskio.c **** 
+ 358:./ThirdParty/FatFs/Src/diskio.c **** 	ty = 0;
+ 359:./ThirdParty/FatFs/Src/diskio.c **** 	if (resp == 1) {  /* Card is in idle state */
+ 360:./ThirdParty/FatFs/Src/diskio.c **** 		start = HAL_GetTick();
+ 361:./ThirdParty/FatFs/Src/diskio.c **** 
+ 362:./ThirdParty/FatFs/Src/diskio.c **** 		resp = send_cmd(CMD8, 0x1AA);
+ 363:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_cmd8 = resp;
+ 364:./ThirdParty/FatFs/Src/diskio.c **** 
+ 365:./ThirdParty/FatFs/Src/diskio.c **** 		if (resp == 1) {  /* SDv2 */
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 			for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 367:./ThirdParty/FatFs/Src/diskio.c **** 
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 			if (ocr[2] == 0x01 && ocr[3] == 0xAA) {
+ 369:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 370:./ThirdParty/FatFs/Src/diskio.c **** 				do {
+ 371:./ThirdParty/FatFs/Src/diskio.c **** 					resp = send_cmd(ACMD41, 1UL << 30);
+ 372:./ThirdParty/FatFs/Src/diskio.c **** 					sd_dbg_acmd41 = resp;
+ 373:./ThirdParty/FatFs/Src/diskio.c **** 				} while (resp && (HAL_GetTick() - start) < 2000);
+ 374:./ThirdParty/FatFs/Src/diskio.c **** 
+ 375:./ThirdParty/FatFs/Src/diskio.c **** 				if (resp == 0 && send_cmd(CMD58, 0) == 0) {
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 378:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ 379:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 380:./ThirdParty/FatFs/Src/diskio.c **** 		} else {  /* SDv1 or MMCv3 */
+ 381:./ThirdParty/FatFs/Src/diskio.c **** 			if (send_cmd(ACMD41, 0) <= 1) {
+ 382:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_SD1;
+ 383:./ThirdParty/FatFs/Src/diskio.c **** 				cmd = ACMD41;
+ 384:./ThirdParty/FatFs/Src/diskio.c **** 			} else {
+ 385:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_MMC;
+ 386:./ThirdParty/FatFs/Src/diskio.c **** 				cmd = CMD1;
+ 387:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 388:./ThirdParty/FatFs/Src/diskio.c **** 			/* Wait for leaving idle state */
+ 389:./ThirdParty/FatFs/Src/diskio.c **** 			do {
+ 390:./ThirdParty/FatFs/Src/diskio.c **** 				resp = send_cmd(cmd, 0);
+ 391:./ThirdParty/FatFs/Src/diskio.c **** 				sd_dbg_acmd41 = resp;
+ 392:./ThirdParty/FatFs/Src/diskio.c **** 			} while (resp && (HAL_GetTick() - start) < 2000);
+ 393:./ThirdParty/FatFs/Src/diskio.c **** 
+ 394:./ThirdParty/FatFs/Src/diskio.c **** 			/* Set block length to 512 */
+ 395:./ThirdParty/FatFs/Src/diskio.c **** 			if (resp != 0 || send_cmd(CMD16, 512) != 0)
+ 396:./ThirdParty/FatFs/Src/diskio.c **** 				ty = 0;
+ 397:./ThirdParty/FatFs/Src/diskio.c **** 		}
+ 398:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 399:./ThirdParty/FatFs/Src/diskio.c **** 
+ 400:./ThirdParty/FatFs/Src/diskio.c **** 	CardType = ty;
+ 401:./ThirdParty/FatFs/Src/diskio.c **** 	sd_dbg_cardtype = ty;
+ 402:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 403:./ThirdParty/FatFs/Src/diskio.c **** 
+ 404:./ThirdParty/FatFs/Src/diskio.c **** 	if (ty) {
+ 405:./ThirdParty/FatFs/Src/diskio.c **** 		Stat &= ~STA_NOINIT;
+ 406:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ 407:./ThirdParty/FatFs/Src/diskio.c **** 		Stat = STA_NOINIT;
+ 408:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 409:./ThirdParty/FatFs/Src/diskio.c **** 
+ 410:./ThirdParty/FatFs/Src/diskio.c **** 	return Stat;
+ 411:./ThirdParty/FatFs/Src/diskio.c **** }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 25
+
+
+ 892              		.loc 1 411 1 view .LVU235
+ 893 0004 7047     		bx	lr
+ 894              	.LVL91:
+ 895              	.L109:
+ 297:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE n, cmd, ty, ocr[4], resp;
+ 896              		.loc 1 297 1 view .LVU236
+ 897 0006 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 898              	.LCFI6:
+ 899              		.cfi_def_cfa_offset 24
+ 900              		.cfi_offset 4, -24
+ 901              		.cfi_offset 5, -20
+ 902              		.cfi_offset 6, -16
+ 903              		.cfi_offset 7, -12
+ 904              		.cfi_offset 8, -8
+ 905              		.cfi_offset 14, -4
+ 906 000a 82B0     		sub	sp, sp, #8
+ 907              	.LCFI7:
+ 908              		.cfi_def_cfa_offset 32
+ 909 000c 0746     		mov	r7, r0
+ 304:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+ 910              		.loc 1 304 2 is_stmt 1 view .LVU237
+ 911 000e 804C     		ldr	r4, .L113
+ 912 0010 2046     		mov	r0, r4
+ 913              	.LVL92:
+ 304:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+ 914              		.loc 1 304 2 is_stmt 0 view .LVU238
+ 915 0012 FFF7FEFF 		bl	HAL_SPI_DeInit
+ 916              	.LVL93:
+ 305:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+ 917              		.loc 1 305 2 is_stmt 1 view .LVU239
+ 305:./ThirdParty/FatFs/Src/diskio.c **** 	hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
+ 918              		.loc 1 305 22 is_stmt 0 view .LVU240
+ 919 0016 0023     		movs	r3, #0
+ 920 0018 6363     		str	r3, [r4, #52]
+ 306:./ThirdParty/FatFs/Src/diskio.c **** 	HAL_SPI_Init(&hspi4);
+ 921              		.loc 1 306 2 is_stmt 1 view .LVU241
+ 306:./ThirdParty/FatFs/Src/diskio.c **** 	HAL_SPI_Init(&hspi4);
+ 922              		.loc 1 306 22 is_stmt 0 view .LVU242
+ 923 001a 0723     		movs	r3, #7
+ 924 001c E360     		str	r3, [r4, #12]
+ 307:./ThirdParty/FatFs/Src/diskio.c **** 
+ 925              		.loc 1 307 2 is_stmt 1 view .LVU243
+ 926 001e 2046     		mov	r0, r4
+ 927 0020 FFF7FEFF 		bl	HAL_SPI_Init
+ 928              	.LVL94:
+ 310:./ThirdParty/FatFs/Src/diskio.c **** 
+ 929              		.loc 1 310 2 view .LVU244
+ 930 0024 3220     		movs	r0, #50
+ 931 0026 FFF7FEFF 		bl	HAL_Delay
+ 932              	.LVL95:
+ 313:./ThirdParty/FatFs/Src/diskio.c **** 	spi_begin();
+ 933              		.loc 1 313 2 view .LVU245
+ 934 002a 0122     		movs	r2, #1
+ 935 002c 1021     		movs	r1, #16
+ 936 002e 7948     		ldr	r0, .L113+4
+ 937 0030 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 938              	.LVL96:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 26
+
+
+ 314:./ThirdParty/FatFs/Src/diskio.c **** 	for (n = 0; n < 20; n++) spi_txrx(0xFF);
+ 939              		.loc 1 314 2 view .LVU246
+ 940 0034 FFF7FEFF 		bl	spi_begin
+ 941              	.LVL97:
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 942              		.loc 1 315 2 view .LVU247
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 943              		.loc 1 315 9 is_stmt 0 view .LVU248
+ 944 0038 3C46     		mov	r4, r7
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 945              		.loc 1 315 2 view .LVU249
+ 946 003a 04E0     		b	.L78
+ 947              	.LVL98:
+ 948              	.L79:
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 949              		.loc 1 315 27 is_stmt 1 discriminator 4 view .LVU250
+ 950 003c FF20     		movs	r0, #255
+ 951 003e FFF7FEFF 		bl	spi_txrx
+ 952              	.LVL99:
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 953              		.loc 1 315 23 discriminator 4 view .LVU251
+ 954 0042 0134     		adds	r4, r4, #1
+ 955              	.LVL100:
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 956              		.loc 1 315 23 is_stmt 0 discriminator 4 view .LVU252
+ 957 0044 E4B2     		uxtb	r4, r4
+ 958              	.LVL101:
+ 959              	.L78:
+ 315:./ThirdParty/FatFs/Src/diskio.c **** 	spi_end();
+ 960              		.loc 1 315 16 is_stmt 1 discriminator 3 view .LVU253
+ 961 0046 132C     		cmp	r4, #19
+ 962 0048 F8D9     		bls	.L79
+ 316:./ThirdParty/FatFs/Src/diskio.c **** 
+ 963              		.loc 1 316 2 view .LVU254
+ 964 004a FFF7FEFF 		bl	spi_end
+ 965              	.LVL102:
+ 966              	.LBB2:
+ 320:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 967              		.loc 1 320 3 view .LVU255
+ 321:./ThirdParty/FatFs/Src/diskio.c **** 		rx = spi_txrx(0xFF);
+ 968              		.loc 1 321 3 view .LVU256
+ 969 004e FFF7FEFF 		bl	spi_begin
+ 970              	.LVL103:
+ 322:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ 971              		.loc 1 322 3 view .LVU257
+ 322:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ 972              		.loc 1 322 8 is_stmt 0 view .LVU258
+ 973 0052 FF20     		movs	r0, #255
+ 974 0054 FFF7FEFF 		bl	spi_txrx
+ 975              	.LVL104:
+ 976 0058 0446     		mov	r4, r0
+ 977              	.LVL105:
+ 323:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_spi_ok = (rx == 0xFF) ? 1 : 0;
+ 978              		.loc 1 323 3 is_stmt 1 view .LVU259
+ 979 005a FFF7FEFF 		bl	spi_end
+ 980              	.LVL106:
+ 324:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_hal_err = 0;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 27
+
+
+ 981              		.loc 1 324 3 view .LVU260
+ 324:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_hal_err = 0;
+ 982              		.loc 1 324 36 is_stmt 0 view .LVU261
+ 983 005e FF2C     		cmp	r4, #255
+ 984 0060 14BF     		ite	ne
+ 985 0062 0024     		movne	r4, #0
+ 986              	.LVL107:
+ 324:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_hal_err = 0;
+ 987              		.loc 1 324 36 view .LVU262
+ 988 0064 0124     		moveq	r4, #1
+ 324:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_hal_err = 0;
+ 989              		.loc 1 324 17 view .LVU263
+ 990 0066 6C4B     		ldr	r3, .L113+8
+ 991 0068 1C70     		strb	r4, [r3]
+ 325:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 992              		.loc 1 325 3 is_stmt 1 view .LVU264
+ 325:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 993              		.loc 1 325 18 is_stmt 0 view .LVU265
+ 994 006a 6C4B     		ldr	r3, .L113+12
+ 995 006c 0022     		movs	r2, #0
+ 996 006e 1A70     		strb	r2, [r3]
+ 997              	.LBE2:
+ 329:./ThirdParty/FatFs/Src/diskio.c **** 	for (n = 0; n < 10 && resp != 1; n++) {
+ 998              		.loc 1 329 2 is_stmt 1 view .LVU266
+ 999              	.LVL108:
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1000              		.loc 1 330 2 view .LVU267
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1001              		.loc 1 330 9 is_stmt 0 view .LVU268
+ 1002 0070 3E46     		mov	r6, r7
+ 329:./ThirdParty/FatFs/Src/diskio.c **** 	for (n = 0; n < 10 && resp != 1; n++) {
+ 1003              		.loc 1 329 7 view .LVU269
+ 1004 0072 FF25     		movs	r5, #255
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1005              		.loc 1 330 2 view .LVU270
+ 1006 0074 0FE0     		b	.L80
+ 1007              	.LVL109:
+ 1008              	.L82:
+ 350:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_HIGH();
+ 1009              		.loc 1 350 3 is_stmt 1 view .LVU271
+ 1010 0076 FFF7FEFF 		bl	spi_end
+ 1011              	.LVL110:
+ 351:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 1012              		.loc 1 351 3 view .LVU272
+ 1013 007a 0122     		movs	r2, #1
+ 1014 007c 1021     		movs	r1, #16
+ 1015 007e 6548     		ldr	r0, .L113+4
+ 1016 0080 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1017              	.LVL111:
+ 352:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 1018              		.loc 1 352 3 view .LVU273
+ 1019 0084 FFF7FEFF 		bl	spi_begin
+ 1020              	.LVL112:
+ 353:./ThirdParty/FatFs/Src/diskio.c **** 		spi_end();
+ 1021              		.loc 1 353 3 view .LVU274
+ 1022 0088 FF20     		movs	r0, #255
+ 1023 008a FFF7FEFF 		bl	spi_txrx
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 28
+
+
+ 1024              	.LVL113:
+ 354:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 1025              		.loc 1 354 3 view .LVU275
+ 1026 008e FFF7FEFF 		bl	spi_end
+ 1027              	.LVL114:
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1028              		.loc 1 330 36 discriminator 2 view .LVU276
+ 1029 0092 0136     		adds	r6, r6, #1
+ 1030              	.LVL115:
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1031              		.loc 1 330 36 is_stmt 0 discriminator 2 view .LVU277
+ 1032 0094 F6B2     		uxtb	r6, r6
+ 1033              	.LVL116:
+ 1034              	.L80:
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1035              		.loc 1 330 21 is_stmt 1 discriminator 1 view .LVU278
+ 1036 0096 092E     		cmp	r6, #9
+ 1037 0098 2AD8     		bhi	.L84
+ 330:./ThirdParty/FatFs/Src/diskio.c **** 		SD_CS_LOW();
+ 1038              		.loc 1 330 21 is_stmt 0 discriminator 3 view .LVU279
+ 1039 009a 012D     		cmp	r5, #1
+ 1040 009c 28D0     		beq	.L84
+ 331:./ThirdParty/FatFs/Src/diskio.c **** 		spi_begin();
+ 1041              		.loc 1 331 3 is_stmt 1 view .LVU280
+ 1042 009e 0022     		movs	r2, #0
+ 1043 00a0 1021     		movs	r1, #16
+ 1044 00a2 5C48     		ldr	r0, .L113+4
+ 1045 00a4 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 1046              	.LVL117:
+ 332:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0xFF);
+ 1047              		.loc 1 332 3 view .LVU281
+ 1048 00a8 FFF7FEFF 		bl	spi_begin
+ 1049              	.LVL118:
+ 333:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1050              		.loc 1 333 3 view .LVU282
+ 1051 00ac FF20     		movs	r0, #255
+ 1052 00ae FFF7FEFF 		bl	spi_txrx
+ 1053              	.LVL119:
+ 335:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 1054              		.loc 1 335 3 view .LVU283
+ 1055 00b2 4020     		movs	r0, #64
+ 1056 00b4 FFF7FEFF 		bl	spi_txrx
+ 1057              	.LVL120:
+ 336:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 1058              		.loc 1 336 3 view .LVU284
+ 1059 00b8 0020     		movs	r0, #0
+ 1060 00ba FFF7FEFF 		bl	spi_txrx
+ 1061              	.LVL121:
+ 337:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 1062              		.loc 1 337 3 view .LVU285
+ 1063 00be 0020     		movs	r0, #0
+ 1064 00c0 FFF7FEFF 		bl	spi_txrx
+ 1065              	.LVL122:
+ 338:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x00);
+ 1066              		.loc 1 338 3 view .LVU286
+ 1067 00c4 0020     		movs	r0, #0
+ 1068 00c6 FFF7FEFF 		bl	spi_txrx
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 29
+
+
+ 1069              	.LVL123:
+ 339:./ThirdParty/FatFs/Src/diskio.c **** 		spi_txrx(0x95);
+ 1070              		.loc 1 339 3 view .LVU287
+ 1071 00ca 0020     		movs	r0, #0
+ 1072 00cc FFF7FEFF 		bl	spi_txrx
+ 1073              	.LVL124:
+ 340:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1074              		.loc 1 340 3 view .LVU288
+ 1075 00d0 9520     		movs	r0, #149
+ 1076 00d2 FFF7FEFF 		bl	spi_txrx
+ 1077              	.LVL125:
+ 1078              	.LBB3:
+ 343:./ThirdParty/FatFs/Src/diskio.c **** 			for (i = 0; i < 10; i++) {
+ 1079              		.loc 1 343 4 view .LVU289
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1080              		.loc 1 344 4 view .LVU290
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1081              		.loc 1 344 11 is_stmt 0 view .LVU291
+ 1082 00d6 3C46     		mov	r4, r7
+ 1083              	.LVL126:
+ 1084              	.L81:
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1085              		.loc 1 344 18 is_stmt 1 discriminator 1 view .LVU292
+ 1086 00d8 092C     		cmp	r4, #9
+ 1087 00da CCD8     		bhi	.L82
+ 345:./ThirdParty/FatFs/Src/diskio.c **** 				if (!(resp & 0x80)) break;
+ 1088              		.loc 1 345 5 view .LVU293
+ 345:./ThirdParty/FatFs/Src/diskio.c **** 				if (!(resp & 0x80)) break;
+ 1089              		.loc 1 345 12 is_stmt 0 view .LVU294
+ 1090 00dc FF20     		movs	r0, #255
+ 1091 00de FFF7FEFF 		bl	spi_txrx
+ 1092              	.LVL127:
+ 1093 00e2 0546     		mov	r5, r0
+ 1094              	.LVL128:
+ 346:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 1095              		.loc 1 346 5 is_stmt 1 view .LVU295
+ 346:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 1096              		.loc 1 346 8 is_stmt 0 view .LVU296
+ 1097 00e4 10F0800F 		tst	r0, #128
+ 1098 00e8 C5D0     		beq	.L82
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1099              		.loc 1 344 25 is_stmt 1 discriminator 2 view .LVU297
+ 1100 00ea 0134     		adds	r4, r4, #1
+ 1101              	.LVL129:
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1102              		.loc 1 344 25 is_stmt 0 discriminator 2 view .LVU298
+ 1103 00ec E4B2     		uxtb	r4, r4
+ 1104              	.LVL130:
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1105              		.loc 1 344 25 discriminator 2 view .LVU299
+ 1106 00ee F3E7     		b	.L81
+ 1107              	.LVL131:
+ 1108              	.L84:
+ 344:./ThirdParty/FatFs/Src/diskio.c **** 				resp = spi_txrx(0xFF);
+ 1109              		.loc 1 344 25 discriminator 2 view .LVU300
+ 1110              	.LBE3:
+ 356:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 30
+
+
+ 1111              		.loc 1 356 2 is_stmt 1 view .LVU301
+ 356:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1112              		.loc 1 356 14 is_stmt 0 view .LVU302
+ 1113 00f0 4B4B     		ldr	r3, .L113+16
+ 1114 00f2 1D70     		strb	r5, [r3]
+ 358:./ThirdParty/FatFs/Src/diskio.c **** 	if (resp == 1) {  /* Card is in idle state */
+ 1115              		.loc 1 358 2 is_stmt 1 view .LVU303
+ 1116              	.LVL132:
+ 359:./ThirdParty/FatFs/Src/diskio.c **** 		start = HAL_GetTick();
+ 1117              		.loc 1 359 2 view .LVU304
+ 359:./ThirdParty/FatFs/Src/diskio.c **** 		start = HAL_GetTick();
+ 1118              		.loc 1 359 5 is_stmt 0 view .LVU305
+ 1119 00f4 012D     		cmp	r5, #1
+ 1120 00f6 12D0     		beq	.L110
+ 1121              	.LVL133:
+ 1122              	.L86:
+ 400:./ThirdParty/FatFs/Src/diskio.c **** 	sd_dbg_cardtype = ty;
+ 1123              		.loc 1 400 2 is_stmt 1 view .LVU306
+ 400:./ThirdParty/FatFs/Src/diskio.c **** 	sd_dbg_cardtype = ty;
+ 1124              		.loc 1 400 11 is_stmt 0 view .LVU307
+ 1125 00f8 4A4B     		ldr	r3, .L113+20
+ 1126 00fa 1F70     		strb	r7, [r3]
+ 401:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 1127              		.loc 1 401 2 is_stmt 1 view .LVU308
+ 401:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 1128              		.loc 1 401 18 is_stmt 0 view .LVU309
+ 1129 00fc 4A4B     		ldr	r3, .L113+24
+ 1130 00fe 1F70     		strb	r7, [r3]
+ 402:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1131              		.loc 1 402 2 is_stmt 1 view .LVU310
+ 1132 0100 FFF7FEFF 		bl	deselect
+ 1133              	.LVL134:
+ 404:./ThirdParty/FatFs/Src/diskio.c **** 		Stat &= ~STA_NOINIT;
+ 1134              		.loc 1 404 2 view .LVU311
+ 404:./ThirdParty/FatFs/Src/diskio.c **** 		Stat &= ~STA_NOINIT;
+ 1135              		.loc 1 404 5 is_stmt 0 view .LVU312
+ 1136 0104 002F     		cmp	r7, #0
+ 1137 0106 7FD0     		beq	.L97
+ 405:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ 1138              		.loc 1 405 3 is_stmt 1 view .LVU313
+ 405:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ 1139              		.loc 1 405 8 is_stmt 0 view .LVU314
+ 1140 0108 484A     		ldr	r2, .L113+28
+ 1141 010a 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 1142 010c 03F0FE03 		and	r3, r3, #254
+ 1143 0110 1370     		strb	r3, [r2]
+ 1144              	.L98:
+ 410:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1145              		.loc 1 410 2 is_stmt 1 view .LVU315
+ 410:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1146              		.loc 1 410 9 is_stmt 0 view .LVU316
+ 1147 0112 464B     		ldr	r3, .L113+28
+ 1148 0114 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 1149 0116 C0B2     		uxtb	r0, r0
+ 1150              		.loc 1 411 1 view .LVU317
+ 1151 0118 02B0     		add	sp, sp, #8
+ 1152              	.LCFI8:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 31
+
+
+ 1153              		.cfi_remember_state
+ 1154              		.cfi_def_cfa_offset 24
+ 1155              		@ sp needed
+ 1156 011a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1157              	.LVL135:
+ 1158              	.L110:
+ 1159              	.LCFI9:
+ 1160              		.cfi_restore_state
+ 360:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1161              		.loc 1 360 3 is_stmt 1 view .LVU318
+ 360:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1162              		.loc 1 360 11 is_stmt 0 view .LVU319
+ 1163 011e FFF7FEFF 		bl	HAL_GetTick
+ 1164              	.LVL136:
+ 1165 0122 0646     		mov	r6, r0
+ 1166              	.LVL137:
+ 362:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_cmd8 = resp;
+ 1167              		.loc 1 362 3 is_stmt 1 view .LVU320
+ 362:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_cmd8 = resp;
+ 1168              		.loc 1 362 10 is_stmt 0 view .LVU321
+ 1169 0124 4FF4D571 		mov	r1, #426
+ 1170 0128 0820     		movs	r0, #8
+ 1171              	.LVL138:
+ 362:./ThirdParty/FatFs/Src/diskio.c **** 		sd_dbg_cmd8 = resp;
+ 1172              		.loc 1 362 10 view .LVU322
+ 1173 012a FFF7FEFF 		bl	send_cmd
+ 1174              	.LVL139:
+ 363:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1175              		.loc 1 363 3 is_stmt 1 view .LVU323
+ 363:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1176              		.loc 1 363 15 is_stmt 0 view .LVU324
+ 1177 012e 404B     		ldr	r3, .L113+32
+ 1178 0130 1870     		strb	r0, [r3]
+ 365:./ThirdParty/FatFs/Src/diskio.c **** 			for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1179              		.loc 1 365 3 is_stmt 1 view .LVU325
+ 365:./ThirdParty/FatFs/Src/diskio.c **** 			for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1180              		.loc 1 365 6 is_stmt 0 view .LVU326
+ 1181 0132 0128     		cmp	r0, #1
+ 1182 0134 41D1     		bne	.L111
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1183              		.loc 1 366 11 view .LVU327
+ 1184 0136 3C46     		mov	r4, r7
+ 1185 0138 09E0     		b	.L87
+ 1186              	.LVL140:
+ 1187              	.L89:
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1188              		.loc 1 366 28 is_stmt 1 discriminator 4 view .LVU328
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1189              		.loc 1 366 37 is_stmt 0 discriminator 4 view .LVU329
+ 1190 013a FF20     		movs	r0, #255
+ 1191 013c FFF7FEFF 		bl	spi_txrx
+ 1192              	.LVL141:
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1193              		.loc 1 366 35 discriminator 4 view .LVU330
+ 1194 0140 04F10803 		add	r3, r4, #8
+ 1195 0144 6B44     		add	r3, sp, r3
+ 1196 0146 03F8040C 		strb	r0, [r3, #-4]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 32
+
+
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1197              		.loc 1 366 24 is_stmt 1 discriminator 4 view .LVU331
+ 1198 014a 0134     		adds	r4, r4, #1
+ 1199              	.LVL142:
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1200              		.loc 1 366 24 is_stmt 0 discriminator 4 view .LVU332
+ 1201 014c E4B2     		uxtb	r4, r4
+ 1202              	.LVL143:
+ 1203              	.L87:
+ 366:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1204              		.loc 1 366 18 is_stmt 1 discriminator 3 view .LVU333
+ 1205 014e 032C     		cmp	r4, #3
+ 1206 0150 F3D9     		bls	.L89
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 1207              		.loc 1 368 4 view .LVU334
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 1208              		.loc 1 368 11 is_stmt 0 view .LVU335
+ 1209 0152 9DF80630 		ldrb	r3, [sp, #6]	@ zero_extendqisi2
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 1210              		.loc 1 368 7 view .LVU336
+ 1211 0156 012B     		cmp	r3, #1
+ 1212 0158 CED1     		bne	.L86
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 1213              		.loc 1 368 29 discriminator 1 view .LVU337
+ 1214 015a 9DF80730 		ldrb	r3, [sp, #7]	@ zero_extendqisi2
+ 368:./ThirdParty/FatFs/Src/diskio.c **** 				/* Wait for leaving idle state (ACMD41 with HCS bit) */
+ 1215              		.loc 1 368 23 discriminator 1 view .LVU338
+ 1216 015e AA2B     		cmp	r3, #170
+ 1217 0160 CAD1     		bne	.L86
+ 1218              	.LVL144:
+ 1219              	.L91:
+ 370:./ThirdParty/FatFs/Src/diskio.c **** 					resp = send_cmd(ACMD41, 1UL << 30);
+ 1220              		.loc 1 370 5 is_stmt 1 view .LVU339
+ 371:./ThirdParty/FatFs/Src/diskio.c **** 					sd_dbg_acmd41 = resp;
+ 1221              		.loc 1 371 6 view .LVU340
+ 371:./ThirdParty/FatFs/Src/diskio.c **** 					sd_dbg_acmd41 = resp;
+ 1222              		.loc 1 371 13 is_stmt 0 view .LVU341
+ 1223 0162 4FF08041 		mov	r1, #1073741824
+ 1224 0166 A920     		movs	r0, #169
+ 1225 0168 FFF7FEFF 		bl	send_cmd
+ 1226              	.LVL145:
+ 1227 016c 0446     		mov	r4, r0
+ 1228              	.LVL146:
+ 372:./ThirdParty/FatFs/Src/diskio.c **** 				} while (resp && (HAL_GetTick() - start) < 2000);
+ 1229              		.loc 1 372 6 is_stmt 1 view .LVU342
+ 372:./ThirdParty/FatFs/Src/diskio.c **** 				} while (resp && (HAL_GetTick() - start) < 2000);
+ 1230              		.loc 1 372 20 is_stmt 0 view .LVU343
+ 1231 016e 314B     		ldr	r3, .L113+36
+ 1232 0170 1870     		strb	r0, [r3]
+ 373:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1233              		.loc 1 373 19 is_stmt 1 discriminator 3 view .LVU344
+ 1234 0172 28B1     		cbz	r0, .L90
+ 373:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1235              		.loc 1 373 23 is_stmt 0 discriminator 1 view .LVU345
+ 1236 0174 FFF7FEFF 		bl	HAL_GetTick
+ 1237              	.LVL147:
+ 373:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 33
+
+
+ 1238              		.loc 1 373 37 discriminator 2 view .LVU346
+ 1239 0178 831B     		subs	r3, r0, r6
+ 373:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1240              		.loc 1 373 19 discriminator 2 view .LVU347
+ 1241 017a B3F5FA6F 		cmp	r3, #2000
+ 1242 017e F0D3     		bcc	.L91
+ 1243              	.L90:
+ 375:./ThirdParty/FatFs/Src/diskio.c **** 					for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1244              		.loc 1 375 5 is_stmt 1 view .LVU348
+ 375:./ThirdParty/FatFs/Src/diskio.c **** 					for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1245              		.loc 1 375 8 is_stmt 0 view .LVU349
+ 1246 0180 002C     		cmp	r4, #0
+ 1247 0182 B9D1     		bne	.L86
+ 375:./ThirdParty/FatFs/Src/diskio.c **** 					for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1248              		.loc 1 375 22 discriminator 1 view .LVU350
+ 1249 0184 2146     		mov	r1, r4
+ 1250 0186 3A20     		movs	r0, #58
+ 1251 0188 FFF7FEFF 		bl	send_cmd
+ 1252              	.LVL148:
+ 375:./ThirdParty/FatFs/Src/diskio.c **** 					for (n = 0; n < 4; n++) ocr[n] = spi_txrx(0xFF);
+ 1253              		.loc 1 375 19 discriminator 2 view .LVU351
+ 1254 018c 0546     		mov	r5, r0
+ 1255 018e 58B1     		cbz	r0, .L92
+ 358:./ThirdParty/FatFs/Src/diskio.c **** 	if (resp == 1) {  /* Card is in idle state */
+ 1256              		.loc 1 358 5 view .LVU352
+ 1257 0190 2746     		mov	r7, r4
+ 1258 0192 B1E7     		b	.L86
+ 1259              	.LVL149:
+ 1260              	.L93:
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1261              		.loc 1 376 30 is_stmt 1 discriminator 4 view .LVU353
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1262              		.loc 1 376 39 is_stmt 0 discriminator 4 view .LVU354
+ 1263 0194 FF20     		movs	r0, #255
+ 1264 0196 FFF7FEFF 		bl	spi_txrx
+ 1265              	.LVL150:
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1266              		.loc 1 376 37 discriminator 4 view .LVU355
+ 1267 019a 05F10803 		add	r3, r5, #8
+ 1268 019e 6B44     		add	r3, sp, r3
+ 1269 01a0 03F8040C 		strb	r0, [r3, #-4]
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1270              		.loc 1 376 26 is_stmt 1 discriminator 4 view .LVU356
+ 1271 01a4 0135     		adds	r5, r5, #1
+ 1272              	.LVL151:
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1273              		.loc 1 376 26 is_stmt 0 discriminator 4 view .LVU357
+ 1274 01a6 EDB2     		uxtb	r5, r5
+ 1275              	.LVL152:
+ 1276              	.L92:
+ 376:./ThirdParty/FatFs/Src/diskio.c **** 					ty = (ocr[0] & 0x40) ? CT_SD2 | CT_BLOCK : CT_SD2;
+ 1277              		.loc 1 376 20 is_stmt 1 discriminator 3 view .LVU358
+ 1278 01a8 032D     		cmp	r5, #3
+ 1279 01aa F3D9     		bls	.L93
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ 1280              		.loc 1 377 6 view .LVU359
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 34
+
+
+ 1281              		.loc 1 377 15 is_stmt 0 view .LVU360
+ 1282 01ac 9DF80430 		ldrb	r3, [sp, #4]	@ zero_extendqisi2
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ 1283              		.loc 1 377 9 view .LVU361
+ 1284 01b0 13F0400F 		tst	r3, #64
+ 1285 01b4 24D0     		beq	.L101
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ 1286              		.loc 1 377 9 discriminator 1 view .LVU362
+ 1287 01b6 0C27     		movs	r7, #12
+ 1288 01b8 9EE7     		b	.L86
+ 1289              	.LVL153:
+ 1290              	.L111:
+ 381:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_SD1;
+ 1291              		.loc 1 381 4 is_stmt 1 view .LVU363
+ 381:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_SD1;
+ 1292              		.loc 1 381 8 is_stmt 0 view .LVU364
+ 1293 01ba 0021     		movs	r1, #0
+ 1294 01bc A920     		movs	r0, #169
+ 1295              	.LVL154:
+ 381:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_SD1;
+ 1296              		.loc 1 381 8 view .LVU365
+ 1297 01be FFF7FEFF 		bl	send_cmd
+ 1298              	.LVL155:
+ 381:./ThirdParty/FatFs/Src/diskio.c **** 				ty = CT_SD1;
+ 1299              		.loc 1 381 7 discriminator 1 view .LVU366
+ 1300 01c2 0128     		cmp	r0, #1
+ 1301 01c4 18D9     		bls	.L112
+ 385:./ThirdParty/FatFs/Src/diskio.c **** 				cmd = CMD1;
+ 1302              		.loc 1 385 8 view .LVU367
+ 1303 01c6 A846     		mov	r8, r5
+ 1304              	.LVL156:
+ 1305              	.L96:
+ 389:./ThirdParty/FatFs/Src/diskio.c **** 				resp = send_cmd(cmd, 0);
+ 1306              		.loc 1 389 4 is_stmt 1 view .LVU368
+ 390:./ThirdParty/FatFs/Src/diskio.c **** 				sd_dbg_acmd41 = resp;
+ 1307              		.loc 1 390 5 view .LVU369
+ 390:./ThirdParty/FatFs/Src/diskio.c **** 				sd_dbg_acmd41 = resp;
+ 1308              		.loc 1 390 12 is_stmt 0 view .LVU370
+ 1309 01c8 0021     		movs	r1, #0
+ 1310 01ca 2846     		mov	r0, r5
+ 1311 01cc FFF7FEFF 		bl	send_cmd
+ 1312              	.LVL157:
+ 1313 01d0 0446     		mov	r4, r0
+ 1314              	.LVL158:
+ 391:./ThirdParty/FatFs/Src/diskio.c **** 			} while (resp && (HAL_GetTick() - start) < 2000);
+ 1315              		.loc 1 391 5 is_stmt 1 view .LVU371
+ 391:./ThirdParty/FatFs/Src/diskio.c **** 			} while (resp && (HAL_GetTick() - start) < 2000);
+ 1316              		.loc 1 391 19 is_stmt 0 view .LVU372
+ 1317 01d2 184B     		ldr	r3, .L113+36
+ 1318 01d4 1870     		strb	r0, [r3]
+ 392:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1319              		.loc 1 392 18 is_stmt 1 discriminator 3 view .LVU373
+ 1320 01d6 28B1     		cbz	r0, .L95
+ 392:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1321              		.loc 1 392 22 is_stmt 0 discriminator 1 view .LVU374
+ 1322 01d8 FFF7FEFF 		bl	HAL_GetTick
+ 1323              	.LVL159:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 35
+
+
+ 392:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1324              		.loc 1 392 36 discriminator 2 view .LVU375
+ 1325 01dc 831B     		subs	r3, r0, r6
+ 392:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1326              		.loc 1 392 18 discriminator 2 view .LVU376
+ 1327 01de B3F5FA6F 		cmp	r3, #2000
+ 1328 01e2 F1D3     		bcc	.L96
+ 1329              	.L95:
+ 395:./ThirdParty/FatFs/Src/diskio.c **** 				ty = 0;
+ 1330              		.loc 1 395 4 is_stmt 1 view .LVU377
+ 395:./ThirdParty/FatFs/Src/diskio.c **** 				ty = 0;
+ 1331              		.loc 1 395 7 is_stmt 0 view .LVU378
+ 1332 01e4 002C     		cmp	r4, #0
+ 1333 01e6 87D1     		bne	.L86
+ 395:./ThirdParty/FatFs/Src/diskio.c **** 				ty = 0;
+ 1334              		.loc 1 395 21 discriminator 1 view .LVU379
+ 1335 01e8 4FF40071 		mov	r1, #512
+ 1336 01ec 1020     		movs	r0, #16
+ 1337 01ee FFF7FEFF 		bl	send_cmd
+ 1338              	.LVL160:
+ 395:./ThirdParty/FatFs/Src/diskio.c **** 				ty = 0;
+ 1339              		.loc 1 395 18 discriminator 2 view .LVU380
+ 1340 01f2 38B9     		cbnz	r0, .L103
+ 1341 01f4 4746     		mov	r7, r8
+ 1342 01f6 7FE7     		b	.L86
+ 1343              	.LVL161:
+ 1344              	.L112:
+ 382:./ThirdParty/FatFs/Src/diskio.c **** 				cmd = ACMD41;
+ 1345              		.loc 1 382 8 view .LVU381
+ 1346 01f8 0223     		movs	r3, #2
+ 1347 01fa 9846     		mov	r8, r3
+ 383:./ThirdParty/FatFs/Src/diskio.c **** 			} else {
+ 1348              		.loc 1 383 9 view .LVU382
+ 1349 01fc A925     		movs	r5, #169
+ 1350 01fe E3E7     		b	.L96
+ 1351              	.LVL162:
+ 1352              	.L101:
+ 377:./ThirdParty/FatFs/Src/diskio.c **** 				}
+ 1353              		.loc 1 377 9 discriminator 2 view .LVU383
+ 1354 0200 0427     		movs	r7, #4
+ 1355 0202 79E7     		b	.L86
+ 1356              	.LVL163:
+ 1357              	.L103:
+ 396:./ThirdParty/FatFs/Src/diskio.c **** 		}
+ 1358              		.loc 1 396 8 view .LVU384
+ 1359 0204 2746     		mov	r7, r4
+ 1360 0206 77E7     		b	.L86
+ 1361              	.LVL164:
+ 1362              	.L97:
+ 407:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 1363              		.loc 1 407 3 is_stmt 1 view .LVU385
+ 407:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 1364              		.loc 1 407 8 is_stmt 0 view .LVU386
+ 1365 0208 084B     		ldr	r3, .L113+28
+ 1366 020a 0122     		movs	r2, #1
+ 1367 020c 1A70     		strb	r2, [r3]
+ 1368 020e 80E7     		b	.L98
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 36
+
+
+ 1369              	.L114:
+ 1370              		.align	2
+ 1371              	.L113:
+ 1372 0210 00000000 		.word	hspi4
+ 1373 0214 00100242 		.word	1107431424
+ 1374 0218 00000000 		.word	sd_dbg_spi_ok
+ 1375 021c 00000000 		.word	sd_dbg_hal_err
+ 1376 0220 00000000 		.word	sd_dbg_cmd0
+ 1377 0224 00000000 		.word	CardType
+ 1378 0228 00000000 		.word	sd_dbg_cardtype
+ 1379 022c 00000000 		.word	Stat
+ 1380 0230 00000000 		.word	sd_dbg_cmd8
+ 1381 0234 00000000 		.word	sd_dbg_acmd41
+ 1382              		.cfi_endproc
+ 1383              	.LFE368:
+ 1385              		.section	.text.disk_read,"ax",%progbits
+ 1386              		.align	1
+ 1387              		.global	disk_read
+ 1388              		.syntax unified
+ 1389              		.thumb
+ 1390              		.thumb_func
+ 1392              	disk_read:
+ 1393              	.LVL165:
+ 1394              	.LFB369:
+ 412:./ThirdParty/FatFs/Src/diskio.c **** 
+ 413:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 414:./ThirdParty/FatFs/Src/diskio.c **** /* Read Sector(s)                                                        */
+ 415:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 416:./ThirdParty/FatFs/Src/diskio.c **** 
+ 417:./ThirdParty/FatFs/Src/diskio.c **** DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count)
+ 418:./ThirdParty/FatFs/Src/diskio.c **** {
+ 1395              		.loc 1 418 1 is_stmt 1 view -0
+ 1396              		.cfi_startproc
+ 1397              		@ args = 0, pretend = 0, frame = 0
+ 1398              		@ frame_needed = 0, uses_anonymous_args = 0
+ 419:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE cmd;
+ 1399              		.loc 1 419 2 view .LVU388
+ 420:./ThirdParty/FatFs/Src/diskio.c **** 
+ 421:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0 || count == 0) return RES_PARERR;
+ 1400              		.loc 1 421 2 view .LVU389
+ 1401              		.loc 1 421 5 is_stmt 0 view .LVU390
+ 1402 0000 88BB     		cbnz	r0, .L122
+ 418:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE cmd;
+ 1403              		.loc 1 418 1 view .LVU391
+ 1404 0002 70B5     		push	{r4, r5, r6, lr}
+ 1405              	.LCFI10:
+ 1406              		.cfi_def_cfa_offset 16
+ 1407              		.cfi_offset 4, -16
+ 1408              		.cfi_offset 5, -12
+ 1409              		.cfi_offset 6, -8
+ 1410              		.cfi_offset 14, -4
+ 1411 0004 0D46     		mov	r5, r1
+ 1412 0006 1C46     		mov	r4, r3
+ 1413              		.loc 1 421 16 discriminator 2 view .LVU392
+ 1414 0008 7BB3     		cbz	r3, .L123
+ 422:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1415              		.loc 1 422 2 is_stmt 1 view .LVU393
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 37
+
+
+ 1416              		.loc 1 422 11 is_stmt 0 view .LVU394
+ 1417 000a 1A4B     		ldr	r3, .L131
+ 1418              	.LVL166:
+ 1419              		.loc 1 422 11 view .LVU395
+ 1420 000c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1421              		.loc 1 422 5 view .LVU396
+ 1422 000e 13F0010F 		tst	r3, #1
+ 1423 0012 2CD1     		bne	.L124
+ 423:./ThirdParty/FatFs/Src/diskio.c **** 
+ 424:./ThirdParty/FatFs/Src/diskio.c **** 	if (!(CardType & CT_BLOCK)) sector *= 512;
+ 1424              		.loc 1 424 2 is_stmt 1 view .LVU397
+ 1425              		.loc 1 424 17 is_stmt 0 view .LVU398
+ 1426 0014 184B     		ldr	r3, .L131+4
+ 1427 0016 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1428              		.loc 1 424 5 view .LVU399
+ 1429 0018 13F0080F 		tst	r3, #8
+ 1430 001c 00D1     		bne	.L117
+ 1431              		.loc 1 424 30 is_stmt 1 discriminator 1 view .LVU400
+ 1432              		.loc 1 424 37 is_stmt 0 discriminator 1 view .LVU401
+ 1433 001e 5202     		lsls	r2, r2, #9
+ 1434              	.LVL167:
+ 1435              	.L117:
+ 425:./ThirdParty/FatFs/Src/diskio.c **** 
+ 426:./ThirdParty/FatFs/Src/diskio.c **** 	cmd = (count > 1) ? CMD18 : CMD17;
+ 1436              		.loc 1 426 2 is_stmt 1 view .LVU402
+ 1437              		.loc 1 426 6 is_stmt 0 view .LVU403
+ 1438 0020 012C     		cmp	r4, #1
+ 1439 0022 18D9     		bls	.L125
+ 1440              		.loc 1 426 6 discriminator 1 view .LVU404
+ 1441 0024 1223     		movs	r3, #18
+ 1442 0026 1E46     		mov	r6, r3
+ 1443              	.L118:
+ 1444              	.LVL168:
+ 427:./ThirdParty/FatFs/Src/diskio.c **** 	if (send_cmd(cmd, sector) == 0) {
+ 1445              		.loc 1 427 2 is_stmt 1 view .LVU405
+ 1446              		.loc 1 427 6 is_stmt 0 view .LVU406
+ 1447 0028 1146     		mov	r1, r2
+ 1448              	.LVL169:
+ 1449              		.loc 1 427 6 view .LVU407
+ 1450 002a 3046     		mov	r0, r6
+ 1451              	.LVL170:
+ 1452              		.loc 1 427 6 view .LVU408
+ 1453 002c FFF7FEFF 		bl	send_cmd
+ 1454              	.LVL171:
+ 1455              		.loc 1 427 5 discriminator 1 view .LVU409
+ 1456 0030 58B9     		cbnz	r0, .L119
+ 1457              	.L121:
+ 428:./ThirdParty/FatFs/Src/diskio.c **** 		do {
+ 1458              		.loc 1 428 3 is_stmt 1 view .LVU410
+ 429:./ThirdParty/FatFs/Src/diskio.c **** 			if (!rcvr_datablock(buff, 512)) break;
+ 1459              		.loc 1 429 4 view .LVU411
+ 1460              		.loc 1 429 9 is_stmt 0 view .LVU412
+ 1461 0032 4FF40071 		mov	r1, #512
+ 1462 0036 2846     		mov	r0, r5
+ 1463 0038 FFF7FEFF 		bl	rcvr_datablock
+ 1464              	.LVL172:
+ 1465              		.loc 1 429 7 discriminator 1 view .LVU413
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 38
+
+
+ 1466 003c 18B1     		cbz	r0, .L120
+ 430:./ThirdParty/FatFs/Src/diskio.c **** 			buff += 512;
+ 1467              		.loc 1 430 4 is_stmt 1 view .LVU414
+ 1468              		.loc 1 430 9 is_stmt 0 view .LVU415
+ 1469 003e 05F50075 		add	r5, r5, #512
+ 1470              	.LVL173:
+ 431:./ThirdParty/FatFs/Src/diskio.c **** 		} while (--count);
+ 1471              		.loc 1 431 12 is_stmt 1 view .LVU416
+ 1472              		.loc 1 431 12 is_stmt 0 view .LVU417
+ 1473 0042 013C     		subs	r4, r4, #1
+ 1474              	.LVL174:
+ 1475              		.loc 1 431 12 view .LVU418
+ 1476 0044 F5D1     		bne	.L121
+ 1477              	.L120:
+ 432:./ThirdParty/FatFs/Src/diskio.c **** 		if (cmd == CMD18) send_cmd(CMD12, 0);
+ 1478              		.loc 1 432 3 is_stmt 1 view .LVU419
+ 1479              		.loc 1 432 6 is_stmt 0 view .LVU420
+ 1480 0046 122E     		cmp	r6, #18
+ 1481 0048 08D0     		beq	.L130
+ 1482              	.L119:
+ 433:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 434:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 1483              		.loc 1 434 2 is_stmt 1 view .LVU421
+ 1484 004a FFF7FEFF 		bl	deselect
+ 1485              	.LVL175:
+ 435:./ThirdParty/FatFs/Src/diskio.c **** 
+ 436:./ThirdParty/FatFs/Src/diskio.c **** 	return count ? RES_ERROR : RES_OK;
+ 1486              		.loc 1 436 2 view .LVU422
+ 1487              		.loc 1 436 27 is_stmt 0 view .LVU423
+ 1488 004e 201E     		subs	r0, r4, #0
+ 1489 0050 18BF     		it	ne
+ 1490 0052 0120     		movne	r0, #1
+ 1491              	.LVL176:
+ 1492              	.L116:
+ 437:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1493              		.loc 1 437 1 view .LVU424
+ 1494 0054 70BD     		pop	{r4, r5, r6, pc}
+ 1495              	.LVL177:
+ 1496              	.L125:
+ 426:./ThirdParty/FatFs/Src/diskio.c **** 	if (send_cmd(cmd, sector) == 0) {
+ 1497              		.loc 1 426 6 discriminator 2 view .LVU425
+ 1498 0056 1123     		movs	r3, #17
+ 1499 0058 1E46     		mov	r6, r3
+ 1500 005a E5E7     		b	.L118
+ 1501              	.LVL178:
+ 1502              	.L130:
+ 432:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 1503              		.loc 1 432 21 is_stmt 1 discriminator 1 view .LVU426
+ 1504 005c 0021     		movs	r1, #0
+ 1505 005e 0C20     		movs	r0, #12
+ 1506 0060 FFF7FEFF 		bl	send_cmd
+ 1507              	.LVL179:
+ 1508 0064 F1E7     		b	.L119
+ 1509              	.LVL180:
+ 1510              	.L122:
+ 1511              	.LCFI11:
+ 1512              		.cfi_def_cfa_offset 0
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 39
+
+
+ 1513              		.cfi_restore 4
+ 1514              		.cfi_restore 5
+ 1515              		.cfi_restore 6
+ 1516              		.cfi_restore 14
+ 421:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1517              		.loc 1 421 38 is_stmt 0 discriminator 3 view .LVU427
+ 1518 0066 0420     		movs	r0, #4
+ 1519              	.LVL181:
+ 1520              		.loc 1 437 1 view .LVU428
+ 1521 0068 7047     		bx	lr
+ 1522              	.LVL182:
+ 1523              	.L123:
+ 1524              	.LCFI12:
+ 1525              		.cfi_def_cfa_offset 16
+ 1526              		.cfi_offset 4, -16
+ 1527              		.cfi_offset 5, -12
+ 1528              		.cfi_offset 6, -8
+ 1529              		.cfi_offset 14, -4
+ 421:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1530              		.loc 1 421 38 discriminator 3 view .LVU429
+ 1531 006a 0420     		movs	r0, #4
+ 1532              	.LVL183:
+ 421:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1533              		.loc 1 421 38 discriminator 3 view .LVU430
+ 1534 006c F2E7     		b	.L116
+ 1535              	.LVL184:
+ 1536              	.L124:
+ 422:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1537              		.loc 1 422 32 discriminator 1 view .LVU431
+ 1538 006e 0320     		movs	r0, #3
+ 1539              	.LVL185:
+ 422:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1540              		.loc 1 422 32 discriminator 1 view .LVU432
+ 1541 0070 F0E7     		b	.L116
+ 1542              	.L132:
+ 1543 0072 00BF     		.align	2
+ 1544              	.L131:
+ 1545 0074 00000000 		.word	Stat
+ 1546 0078 00000000 		.word	CardType
+ 1547              		.cfi_endproc
+ 1548              	.LFE369:
+ 1550              		.section	.text.disk_write,"ax",%progbits
+ 1551              		.align	1
+ 1552              		.global	disk_write
+ 1553              		.syntax unified
+ 1554              		.thumb
+ 1555              		.thumb_func
+ 1557              	disk_write:
+ 1558              	.LVL186:
+ 1559              	.LFB370:
+ 438:./ThirdParty/FatFs/Src/diskio.c **** 
+ 439:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 440:./ThirdParty/FatFs/Src/diskio.c **** /* Write Sector(s)                                                       */
+ 441:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 442:./ThirdParty/FatFs/Src/diskio.c **** 
+ 443:./ThirdParty/FatFs/Src/diskio.c **** #if FF_FS_READONLY == 0
+ 444:./ThirdParty/FatFs/Src/diskio.c **** DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count)
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 40
+
+
+ 445:./ThirdParty/FatFs/Src/diskio.c **** {
+ 1560              		.loc 1 445 1 is_stmt 1 view -0
+ 1561              		.cfi_startproc
+ 1562              		@ args = 0, pretend = 0, frame = 0
+ 1563              		@ frame_needed = 0, uses_anonymous_args = 0
+ 446:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0 || count == 0) return RES_PARERR;
+ 1564              		.loc 1 446 2 view .LVU434
+ 1565              		.loc 1 446 5 is_stmt 0 view .LVU435
+ 1566 0000 0028     		cmp	r0, #0
+ 1567 0002 39D1     		bne	.L140
+ 445:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0 || count == 0) return RES_PARERR;
+ 1568              		.loc 1 445 1 view .LVU436
+ 1569 0004 38B5     		push	{r3, r4, r5, lr}
+ 1570              	.LCFI13:
+ 1571              		.cfi_def_cfa_offset 16
+ 1572              		.cfi_offset 3, -16
+ 1573              		.cfi_offset 4, -12
+ 1574              		.cfi_offset 5, -8
+ 1575              		.cfi_offset 14, -4
+ 1576 0006 0D46     		mov	r5, r1
+ 1577 0008 1C46     		mov	r4, r3
+ 1578              		.loc 1 446 16 discriminator 2 view .LVU437
+ 1579 000a 002B     		cmp	r3, #0
+ 1580 000c 36D0     		beq	.L141
+ 447:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1581              		.loc 1 447 2 is_stmt 1 view .LVU438
+ 1582              		.loc 1 447 11 is_stmt 0 view .LVU439
+ 1583 000e 1D4B     		ldr	r3, .L151
+ 1584              	.LVL187:
+ 1585              		.loc 1 447 11 view .LVU440
+ 1586 0010 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1587              		.loc 1 447 5 view .LVU441
+ 1588 0012 13F0010F 		tst	r3, #1
+ 1589 0016 33D1     		bne	.L142
+ 448:./ThirdParty/FatFs/Src/diskio.c **** 
+ 449:./ThirdParty/FatFs/Src/diskio.c **** 	if (!(CardType & CT_BLOCK)) sector *= 512;
+ 1590              		.loc 1 449 2 is_stmt 1 view .LVU442
+ 1591              		.loc 1 449 17 is_stmt 0 view .LVU443
+ 1592 0018 1B4B     		ldr	r3, .L151+4
+ 1593 001a 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1594              		.loc 1 449 5 view .LVU444
+ 1595 001c 13F0080F 		tst	r3, #8
+ 1596 0020 00D1     		bne	.L135
+ 1597              		.loc 1 449 30 is_stmt 1 discriminator 1 view .LVU445
+ 1598              		.loc 1 449 37 is_stmt 0 discriminator 1 view .LVU446
+ 1599 0022 5202     		lsls	r2, r2, #9
+ 1600              	.LVL188:
+ 1601              	.L135:
+ 450:./ThirdParty/FatFs/Src/diskio.c **** 
+ 451:./ThirdParty/FatFs/Src/diskio.c **** 	if (count == 1) {
+ 1602              		.loc 1 451 2 is_stmt 1 view .LVU447
+ 1603              		.loc 1 451 5 is_stmt 0 view .LVU448
+ 1604 0024 012C     		cmp	r4, #1
+ 1605 0026 14D0     		beq	.L149
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 		if (send_cmd(CMD24, sector) == 0 && xmit_datablock(buff, 0xFE))
+ 453:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 454:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 41
+
+
+ 455:./ThirdParty/FatFs/Src/diskio.c **** 		if (send_cmd(CMD25, sector) == 0) {
+ 1606              		.loc 1 455 3 is_stmt 1 view .LVU449
+ 1607              		.loc 1 455 7 is_stmt 0 view .LVU450
+ 1608 0028 1146     		mov	r1, r2
+ 1609              	.LVL189:
+ 1610              		.loc 1 455 7 view .LVU451
+ 1611 002a 1920     		movs	r0, #25
+ 1612              	.LVL190:
+ 1613              		.loc 1 455 7 view .LVU452
+ 1614 002c FFF7FEFF 		bl	send_cmd
+ 1615              	.LVL191:
+ 1616              		.loc 1 455 6 discriminator 1 view .LVU453
+ 1617 0030 A0B9     		cbnz	r0, .L137
+ 1618              	.L139:
+ 456:./ThirdParty/FatFs/Src/diskio.c **** 			do {
+ 1619              		.loc 1 456 4 is_stmt 1 view .LVU454
+ 457:./ThirdParty/FatFs/Src/diskio.c **** 				if (!xmit_datablock(buff, 0xFC)) break;
+ 1620              		.loc 1 457 5 view .LVU455
+ 1621              		.loc 1 457 10 is_stmt 0 view .LVU456
+ 1622 0032 FC21     		movs	r1, #252
+ 1623 0034 2846     		mov	r0, r5
+ 1624 0036 FFF7FEFF 		bl	xmit_datablock
+ 1625              	.LVL192:
+ 1626              		.loc 1 457 8 discriminator 1 view .LVU457
+ 1627 003a 18B1     		cbz	r0, .L138
+ 458:./ThirdParty/FatFs/Src/diskio.c **** 				buff += 512;
+ 1628              		.loc 1 458 5 is_stmt 1 view .LVU458
+ 1629              		.loc 1 458 10 is_stmt 0 view .LVU459
+ 1630 003c 05F50075 		add	r5, r5, #512
+ 1631              	.LVL193:
+ 459:./ThirdParty/FatFs/Src/diskio.c **** 			} while (--count);
+ 1632              		.loc 1 459 13 is_stmt 1 view .LVU460
+ 1633              		.loc 1 459 13 is_stmt 0 view .LVU461
+ 1634 0040 013C     		subs	r4, r4, #1
+ 1635              	.LVL194:
+ 1636              		.loc 1 459 13 view .LVU462
+ 1637 0042 F6D1     		bne	.L139
+ 1638              	.L138:
+ 460:./ThirdParty/FatFs/Src/diskio.c **** 			if (!xmit_datablock(0, 0xFD))
+ 1639              		.loc 1 460 4 is_stmt 1 view .LVU463
+ 1640              		.loc 1 460 9 is_stmt 0 view .LVU464
+ 1641 0044 FD21     		movs	r1, #253
+ 1642 0046 0020     		movs	r0, #0
+ 1643 0048 FFF7FEFF 		bl	xmit_datablock
+ 1644              	.LVL195:
+ 1645              		.loc 1 460 7 discriminator 1 view .LVU465
+ 1646 004c 30B9     		cbnz	r0, .L137
+ 461:./ThirdParty/FatFs/Src/diskio.c **** 				count = 1;
+ 1647              		.loc 1 461 11 view .LVU466
+ 1648 004e 0124     		movs	r4, #1
+ 1649              	.LVL196:
+ 1650              		.loc 1 461 11 view .LVU467
+ 1651 0050 04E0     		b	.L137
+ 1652              	.LVL197:
+ 1653              	.L149:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1654              		.loc 1 452 3 is_stmt 1 view .LVU468
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 42
+
+
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1655              		.loc 1 452 7 is_stmt 0 view .LVU469
+ 1656 0052 1146     		mov	r1, r2
+ 1657              	.LVL198:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1658              		.loc 1 452 7 view .LVU470
+ 1659 0054 1820     		movs	r0, #24
+ 1660              	.LVL199:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1661              		.loc 1 452 7 view .LVU471
+ 1662 0056 FFF7FEFF 		bl	send_cmd
+ 1663              	.LVL200:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1664              		.loc 1 452 6 discriminator 1 view .LVU472
+ 1665 005a 28B1     		cbz	r0, .L150
+ 1666              	.LVL201:
+ 1667              	.L137:
+ 462:./ThirdParty/FatFs/Src/diskio.c **** 		}
+ 463:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 464:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 1668              		.loc 1 464 2 is_stmt 1 view .LVU473
+ 1669 005c FFF7FEFF 		bl	deselect
+ 1670              	.LVL202:
+ 465:./ThirdParty/FatFs/Src/diskio.c **** 
+ 466:./ThirdParty/FatFs/Src/diskio.c **** 	return count ? RES_ERROR : RES_OK;
+ 1671              		.loc 1 466 2 view .LVU474
+ 1672              		.loc 1 466 27 is_stmt 0 view .LVU475
+ 1673 0060 201E     		subs	r0, r4, #0
+ 1674 0062 18BF     		it	ne
+ 1675 0064 0120     		movne	r0, #1
+ 1676              	.LVL203:
+ 1677              	.L134:
+ 467:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1678              		.loc 1 467 1 view .LVU476
+ 1679 0066 38BD     		pop	{r3, r4, r5, pc}
+ 1680              	.LVL204:
+ 1681              	.L150:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1682              		.loc 1 452 39 discriminator 2 view .LVU477
+ 1683 0068 FE21     		movs	r1, #254
+ 1684 006a 2846     		mov	r0, r5
+ 1685 006c FFF7FEFF 		bl	xmit_datablock
+ 1686              	.LVL205:
+ 452:./ThirdParty/FatFs/Src/diskio.c **** 			count = 0;
+ 1687              		.loc 1 452 36 discriminator 3 view .LVU478
+ 1688 0070 0028     		cmp	r0, #0
+ 1689 0072 F3D0     		beq	.L137
+ 453:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ 1690              		.loc 1 453 10 view .LVU479
+ 1691 0074 0024     		movs	r4, #0
+ 1692              	.LVL206:
+ 453:./ThirdParty/FatFs/Src/diskio.c **** 	} else {
+ 1693              		.loc 1 453 10 view .LVU480
+ 1694 0076 F1E7     		b	.L137
+ 1695              	.LVL207:
+ 1696              	.L140:
+ 1697              	.LCFI14:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 43
+
+
+ 1698              		.cfi_def_cfa_offset 0
+ 1699              		.cfi_restore 3
+ 1700              		.cfi_restore 4
+ 1701              		.cfi_restore 5
+ 1702              		.cfi_restore 14
+ 446:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1703              		.loc 1 446 38 discriminator 3 view .LVU481
+ 1704 0078 0420     		movs	r0, #4
+ 1705              	.LVL208:
+ 1706              		.loc 1 467 1 view .LVU482
+ 1707 007a 7047     		bx	lr
+ 1708              	.LVL209:
+ 1709              	.L141:
+ 1710              	.LCFI15:
+ 1711              		.cfi_def_cfa_offset 16
+ 1712              		.cfi_offset 3, -16
+ 1713              		.cfi_offset 4, -12
+ 1714              		.cfi_offset 5, -8
+ 1715              		.cfi_offset 14, -4
+ 446:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1716              		.loc 1 446 38 discriminator 3 view .LVU483
+ 1717 007c 0420     		movs	r0, #4
+ 1718              	.LVL210:
+ 446:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1719              		.loc 1 446 38 discriminator 3 view .LVU484
+ 1720 007e F2E7     		b	.L134
+ 1721              	.LVL211:
+ 1722              	.L142:
+ 447:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1723              		.loc 1 447 32 discriminator 1 view .LVU485
+ 1724 0080 0320     		movs	r0, #3
+ 1725              	.LVL212:
+ 447:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1726              		.loc 1 447 32 discriminator 1 view .LVU486
+ 1727 0082 F0E7     		b	.L134
+ 1728              	.L152:
+ 1729              		.align	2
+ 1730              	.L151:
+ 1731 0084 00000000 		.word	Stat
+ 1732 0088 00000000 		.word	CardType
+ 1733              		.cfi_endproc
+ 1734              	.LFE370:
+ 1736              		.section	.text.disk_ioctl,"ax",%progbits
+ 1737              		.align	1
+ 1738              		.global	disk_ioctl
+ 1739              		.syntax unified
+ 1740              		.thumb
+ 1741              		.thumb_func
+ 1743              	disk_ioctl:
+ 1744              	.LVL213:
+ 1745              	.LFB371:
+ 468:./ThirdParty/FatFs/Src/diskio.c **** #endif
+ 469:./ThirdParty/FatFs/Src/diskio.c **** 
+ 470:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 471:./ThirdParty/FatFs/Src/diskio.c **** /* Miscellaneous Functions                                               */
+ 472:./ThirdParty/FatFs/Src/diskio.c **** /*-----------------------------------------------------------------------*/
+ 473:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 44
+
+
+ 474:./ThirdParty/FatFs/Src/diskio.c **** DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
+ 475:./ThirdParty/FatFs/Src/diskio.c **** {
+ 1746              		.loc 1 475 1 is_stmt 1 view -0
+ 1747              		.cfi_startproc
+ 1748              		@ args = 0, pretend = 0, frame = 16
+ 1749              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1750              		.loc 1 475 1 is_stmt 0 view .LVU488
+ 1751 0000 70B5     		push	{r4, r5, r6, lr}
+ 1752              	.LCFI16:
+ 1753              		.cfi_def_cfa_offset 16
+ 1754              		.cfi_offset 4, -16
+ 1755              		.cfi_offset 5, -12
+ 1756              		.cfi_offset 6, -8
+ 1757              		.cfi_offset 14, -4
+ 1758 0002 84B0     		sub	sp, sp, #16
+ 1759              	.LCFI17:
+ 1760              		.cfi_def_cfa_offset 32
+ 476:./ThirdParty/FatFs/Src/diskio.c **** 	DRESULT res;
+ 1761              		.loc 1 476 2 is_stmt 1 view .LVU489
+ 477:./ThirdParty/FatFs/Src/diskio.c **** 	BYTE n, csd[16];
+ 1762              		.loc 1 477 2 view .LVU490
+ 478:./ThirdParty/FatFs/Src/diskio.c **** 	DWORD csize;
+ 1763              		.loc 1 478 2 view .LVU491
+ 479:./ThirdParty/FatFs/Src/diskio.c **** 
+ 480:./ThirdParty/FatFs/Src/diskio.c **** 	if (pdrv != 0) return RES_PARERR;
+ 1764              		.loc 1 480 2 view .LVU492
+ 1765              		.loc 1 480 5 is_stmt 0 view .LVU493
+ 1766 0004 0028     		cmp	r0, #0
+ 1767 0006 62D1     		bne	.L159
+ 1768 0008 0D46     		mov	r5, r1
+ 1769 000a 1646     		mov	r6, r2
+ 481:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1770              		.loc 1 481 2 is_stmt 1 view .LVU494
+ 1771              		.loc 1 481 11 is_stmt 0 view .LVU495
+ 1772 000c 324B     		ldr	r3, .L168
+ 1773 000e 1C78     		ldrb	r4, [r3]	@ zero_extendqisi2
+ 1774              		.loc 1 481 5 view .LVU496
+ 1775 0010 14F00104 		ands	r4, r4, #1
+ 1776 0014 5DD1     		bne	.L160
+ 482:./ThirdParty/FatFs/Src/diskio.c **** 
+ 483:./ThirdParty/FatFs/Src/diskio.c **** 	res = RES_ERROR;
+ 1777              		.loc 1 483 2 is_stmt 1 view .LVU497
+ 1778              	.LVL214:
+ 484:./ThirdParty/FatFs/Src/diskio.c **** 
+ 485:./ThirdParty/FatFs/Src/diskio.c **** 	switch (cmd) {
+ 1779              		.loc 1 485 2 view .LVU498
+ 1780 0016 0129     		cmp	r1, #1
+ 1781 0018 09D0     		beq	.L155
+ 1782 001a 0329     		cmp	r1, #3
+ 1783 001c 4AD0     		beq	.L156
+ 1784 001e 0029     		cmp	r1, #0
+ 1785 0020 4FD1     		bne	.L161
+ 486:./ThirdParty/FatFs/Src/diskio.c **** 	case CTRL_SYNC:
+ 487:./ThirdParty/FatFs/Src/diskio.c **** 		if (select()) res = RES_OK;
+ 1786              		.loc 1 487 3 view .LVU499
+ 1787              		.loc 1 487 7 is_stmt 0 view .LVU500
+ 1788 0022 FFF7FEFF 		bl	select
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 45
+
+
+ 1789              	.LVL215:
+ 1790              		.loc 1 487 6 discriminator 1 view .LVU501
+ 1791 0026 0028     		cmp	r0, #0
+ 1792 0028 4DD1     		bne	.L162
+ 483:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1793              		.loc 1 483 6 view .LVU502
+ 1794 002a 0124     		movs	r4, #1
+ 1795 002c 44E0     		b	.L157
+ 1796              	.LVL216:
+ 1797              	.L155:
+ 488:./ThirdParty/FatFs/Src/diskio.c **** 		break;
+ 489:./ThirdParty/FatFs/Src/diskio.c **** 
+ 490:./ThirdParty/FatFs/Src/diskio.c **** 	case GET_SECTOR_COUNT:
+ 491:./ThirdParty/FatFs/Src/diskio.c **** 		if (send_cmd(CMD9, 0) == 0 && rcvr_datablock(csd, 16)) {
+ 1798              		.loc 1 491 3 is_stmt 1 view .LVU503
+ 1799              		.loc 1 491 7 is_stmt 0 view .LVU504
+ 1800 002e 0021     		movs	r1, #0
+ 1801              	.LVL217:
+ 1802              		.loc 1 491 7 view .LVU505
+ 1803 0030 0920     		movs	r0, #9
+ 1804              	.LVL218:
+ 1805              		.loc 1 491 7 view .LVU506
+ 1806 0032 FFF7FEFF 		bl	send_cmd
+ 1807              	.LVL219:
+ 1808              		.loc 1 491 6 discriminator 1 view .LVU507
+ 1809 0036 0446     		mov	r4, r0
+ 1810 0038 08B1     		cbz	r0, .L166
+ 483:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1811              		.loc 1 483 6 view .LVU508
+ 1812 003a 2C46     		mov	r4, r5
+ 1813 003c 3CE0     		b	.L157
+ 1814              	.L166:
+ 1815              		.loc 1 491 33 discriminator 2 view .LVU509
+ 1816 003e 1021     		movs	r1, #16
+ 1817 0040 6846     		mov	r0, sp
+ 1818 0042 FFF7FEFF 		bl	rcvr_datablock
+ 1819              	.LVL220:
+ 1820              		.loc 1 491 30 discriminator 3 view .LVU510
+ 1821 0046 0028     		cmp	r0, #0
+ 1822 0048 3FD0     		beq	.L164
+ 492:./ThirdParty/FatFs/Src/diskio.c **** 			if ((csd[0] >> 6) == 1) {  /* SDC ver 2.00 */
+ 1823              		.loc 1 492 4 is_stmt 1 view .LVU511
+ 1824              		.loc 1 492 12 is_stmt 0 view .LVU512
+ 1825 004a 9DF80030 		ldrb	r3, [sp]	@ zero_extendqisi2
+ 1826              		.loc 1 492 22 view .LVU513
+ 1827 004e 9B09     		lsrs	r3, r3, #6
+ 1828              		.loc 1 492 7 view .LVU514
+ 1829 0050 012B     		cmp	r3, #1
+ 1830 0052 1FD0     		beq	.L167
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 494:./ThirdParty/FatFs/Src/diskio.c **** 				*(LBA_t *)buff = csize << 10;
+ 495:./ThirdParty/FatFs/Src/diskio.c **** 			} else {  /* SDC ver 1.XX or MMC ver 3 */
+ 496:./ThirdParty/FatFs/Src/diskio.c **** 				n = (csd[5] & 15) + ((csd[10] & 128) >> 7) + ((csd[9] & 3) << 1) + 2;
+ 1831              		.loc 1 496 5 is_stmt 1 view .LVU515
+ 1832              		.loc 1 496 13 is_stmt 0 view .LVU516
+ 1833 0054 9DF80520 		ldrb	r2, [sp, #5]	@ zero_extendqisi2
+ 1834              		.loc 1 496 17 view .LVU517
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 46
+
+
+ 1835 0058 02F00F02 		and	r2, r2, #15
+ 1836              		.loc 1 496 30 view .LVU518
+ 1837 005c 9DF80A30 		ldrb	r3, [sp, #10]	@ zero_extendqisi2
+ 1838              		.loc 1 496 23 view .LVU519
+ 1839 0060 02EBD312 		add	r2, r2, r3, lsr #7
+ 1840              		.loc 1 496 55 view .LVU520
+ 1841 0064 9DF80930 		ldrb	r3, [sp, #9]	@ zero_extendqisi2
+ 1842              		.loc 1 496 64 view .LVU521
+ 1843 0068 5B00     		lsls	r3, r3, #1
+ 1844 006a 03F00603 		and	r3, r3, #6
+ 1845              		.loc 1 496 48 view .LVU522
+ 1846 006e 1A44     		add	r2, r2, r3
+ 1847              	.LVL221:
+ 497:./ThirdParty/FatFs/Src/diskio.c **** 				csize = (csd[8] >> 6) + ((WORD)csd[7] << 2) + ((WORD)(csd[6] & 3) << 10) + 1;
+ 1848              		.loc 1 497 5 is_stmt 1 view .LVU523
+ 1849              		.loc 1 497 17 is_stmt 0 view .LVU524
+ 1850 0070 9DF80810 		ldrb	r1, [sp, #8]	@ zero_extendqisi2
+ 1851              		.loc 1 497 39 view .LVU525
+ 1852 0074 9DF80730 		ldrb	r3, [sp, #7]	@ zero_extendqisi2
+ 1853              		.loc 1 497 43 view .LVU526
+ 1854 0078 9B00     		lsls	r3, r3, #2
+ 1855              		.loc 1 497 27 view .LVU527
+ 1856 007a 03EB9113 		add	r3, r3, r1, lsr #6
+ 1857              		.loc 1 497 62 view .LVU528
+ 1858 007e 9DF80610 		ldrb	r1, [sp, #6]	@ zero_extendqisi2
+ 1859              		.loc 1 497 71 view .LVU529
+ 1860 0082 8902     		lsls	r1, r1, #10
+ 1861 0084 01F44061 		and	r1, r1, #3072
+ 1862              		.loc 1 497 49 view .LVU530
+ 1863 0088 0B44     		add	r3, r3, r1
+ 1864              		.loc 1 497 78 view .LVU531
+ 1865 008a 0133     		adds	r3, r3, #1
+ 1866              	.LVL222:
+ 498:./ThirdParty/FatFs/Src/diskio.c **** 				*(LBA_t *)buff = csize << (n - 9);
+ 1867              		.loc 1 498 5 is_stmt 1 view .LVU532
+ 1868              		.loc 1 498 34 is_stmt 0 view .LVU533
+ 1869 008c 073A     		subs	r2, r2, #7
+ 1870              	.LVL223:
+ 1871              		.loc 1 498 28 view .LVU534
+ 1872 008e 9340     		lsls	r3, r3, r2
+ 1873              	.LVL224:
+ 1874              		.loc 1 498 20 view .LVU535
+ 1875 0090 3360     		str	r3, [r6]
+ 1876              	.LVL225:
+ 1877              		.loc 1 498 20 view .LVU536
+ 1878 0092 11E0     		b	.L157
+ 1879              	.LVL226:
+ 1880              	.L167:
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1881              		.loc 1 493 5 is_stmt 1 view .LVU537
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1882              		.loc 1 493 16 is_stmt 0 view .LVU538
+ 1883 0094 9DF80930 		ldrb	r3, [sp, #9]	@ zero_extendqisi2
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1884              		.loc 1 493 32 view .LVU539
+ 1885 0098 9DF80820 		ldrb	r2, [sp, #8]	@ zero_extendqisi2
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 47
+
+
+ 1886              		.loc 1 493 20 view .LVU540
+ 1887 009c 03EB0223 		add	r3, r3, r2, lsl #8
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1888              		.loc 1 493 56 view .LVU541
+ 1889 00a0 9DF80720 		ldrb	r2, [sp, #7]	@ zero_extendqisi2
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1890              		.loc 1 493 66 view .LVU542
+ 1891 00a4 1204     		lsls	r2, r2, #16
+ 1892 00a6 02F47C12 		and	r2, r2, #4128768
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1893              		.loc 1 493 42 view .LVU543
+ 1894 00aa 1344     		add	r3, r3, r2
+ 493:./ThirdParty/FatFs/Src/diskio.c **** 				csize = csd[9] + ((WORD)csd[8] << 8) + ((DWORD)(csd[7] & 63) << 16) + 1;
+ 1895              		.loc 1 493 11 view .LVU544
+ 1896 00ac 0133     		adds	r3, r3, #1
+ 1897              	.LVL227:
+ 494:./ThirdParty/FatFs/Src/diskio.c **** 			} else {  /* SDC ver 1.XX or MMC ver 3 */
+ 1898              		.loc 1 494 5 is_stmt 1 view .LVU545
+ 494:./ThirdParty/FatFs/Src/diskio.c **** 			} else {  /* SDC ver 1.XX or MMC ver 3 */
+ 1899              		.loc 1 494 28 is_stmt 0 view .LVU546
+ 1900 00ae 9B02     		lsls	r3, r3, #10
+ 1901              	.LVL228:
+ 494:./ThirdParty/FatFs/Src/diskio.c **** 			} else {  /* SDC ver 1.XX or MMC ver 3 */
+ 1902              		.loc 1 494 20 view .LVU547
+ 1903 00b0 3360     		str	r3, [r6]
+ 1904              	.LVL229:
+ 494:./ThirdParty/FatFs/Src/diskio.c **** 			} else {  /* SDC ver 1.XX or MMC ver 3 */
+ 1905              		.loc 1 494 20 view .LVU548
+ 1906 00b2 01E0     		b	.L157
+ 1907              	.LVL230:
+ 1908              	.L156:
+ 499:./ThirdParty/FatFs/Src/diskio.c **** 			}
+ 500:./ThirdParty/FatFs/Src/diskio.c **** 			res = RES_OK;
+ 501:./ThirdParty/FatFs/Src/diskio.c **** 		}
+ 502:./ThirdParty/FatFs/Src/diskio.c **** 		break;
+ 503:./ThirdParty/FatFs/Src/diskio.c **** 
+ 504:./ThirdParty/FatFs/Src/diskio.c **** 	case GET_BLOCK_SIZE:
+ 505:./ThirdParty/FatFs/Src/diskio.c **** 		*(DWORD *)buff = 128;
+ 1909              		.loc 1 505 3 is_stmt 1 view .LVU549
+ 1910              		.loc 1 505 18 is_stmt 0 view .LVU550
+ 1911 00b4 8023     		movs	r3, #128
+ 1912 00b6 1360     		str	r3, [r2]
+ 506:./ThirdParty/FatFs/Src/diskio.c **** 		res = RES_OK;
+ 1913              		.loc 1 506 3 is_stmt 1 view .LVU551
+ 1914              	.LVL231:
+ 507:./ThirdParty/FatFs/Src/diskio.c **** 		break;
+ 1915              		.loc 1 507 3 view .LVU552
+ 1916              	.L157:
+ 508:./ThirdParty/FatFs/Src/diskio.c **** 
+ 509:./ThirdParty/FatFs/Src/diskio.c **** 	default:
+ 510:./ThirdParty/FatFs/Src/diskio.c **** 		res = RES_PARERR;
+ 511:./ThirdParty/FatFs/Src/diskio.c **** 	}
+ 512:./ThirdParty/FatFs/Src/diskio.c **** 
+ 513:./ThirdParty/FatFs/Src/diskio.c **** 	deselect();
+ 1917              		.loc 1 513 2 view .LVU553
+ 1918 00b8 FFF7FEFF 		bl	deselect
+ 1919              	.LVL232:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 48
+
+
+ 514:./ThirdParty/FatFs/Src/diskio.c **** 	return res;
+ 1920              		.loc 1 514 2 view .LVU554
+ 1921              	.L154:
+ 515:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1922              		.loc 1 515 1 is_stmt 0 view .LVU555
+ 1923 00bc 2046     		mov	r0, r4
+ 1924 00be 04B0     		add	sp, sp, #16
+ 1925              	.LCFI18:
+ 1926              		.cfi_remember_state
+ 1927              		.cfi_def_cfa_offset 16
+ 1928              		@ sp needed
+ 1929 00c0 70BD     		pop	{r4, r5, r6, pc}
+ 1930              	.LVL233:
+ 1931              	.L161:
+ 1932              	.LCFI19:
+ 1933              		.cfi_restore_state
+ 485:./ThirdParty/FatFs/Src/diskio.c **** 	case CTRL_SYNC:
+ 1934              		.loc 1 485 2 view .LVU556
+ 1935 00c2 0424     		movs	r4, #4
+ 1936 00c4 F8E7     		b	.L157
+ 1937              	.LVL234:
+ 1938              	.L162:
+ 487:./ThirdParty/FatFs/Src/diskio.c **** 		break;
+ 1939              		.loc 1 487 21 discriminator 2 view .LVU557
+ 1940 00c6 2C46     		mov	r4, r5
+ 1941 00c8 F6E7     		b	.L157
+ 1942              	.L164:
+ 483:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1943              		.loc 1 483 6 view .LVU558
+ 1944 00ca 2C46     		mov	r4, r5
+ 1945 00cc F4E7     		b	.L157
+ 1946              	.LVL235:
+ 1947              	.L159:
+ 480:./ThirdParty/FatFs/Src/diskio.c **** 	if (Stat & STA_NOINIT) return RES_NOTRDY;
+ 1948              		.loc 1 480 24 discriminator 1 view .LVU559
+ 1949 00ce 0424     		movs	r4, #4
+ 1950 00d0 F4E7     		b	.L154
+ 1951              	.L160:
+ 481:./ThirdParty/FatFs/Src/diskio.c **** 
+ 1952              		.loc 1 481 32 discriminator 1 view .LVU560
+ 1953 00d2 0324     		movs	r4, #3
+ 1954 00d4 F2E7     		b	.L154
+ 1955              	.L169:
+ 1956 00d6 00BF     		.align	2
+ 1957              	.L168:
+ 1958 00d8 00000000 		.word	Stat
+ 1959              		.cfi_endproc
+ 1960              	.LFE371:
+ 1962              		.section	.text.get_fattime,"ax",%progbits
+ 1963              		.align	1
+ 1964              		.global	get_fattime
+ 1965              		.syntax unified
+ 1966              		.thumb
+ 1967              		.thumb_func
+ 1969              	get_fattime:
+ 1970              	.LFB372:
+ 516:./ThirdParty/FatFs/Src/diskio.c **** 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 49
+
+
+ 517:./ThirdParty/FatFs/Src/diskio.c **** DWORD get_fattime(void)
+ 518:./ThirdParty/FatFs/Src/diskio.c **** {
+ 1971              		.loc 1 518 1 is_stmt 1 view -0
+ 1972              		.cfi_startproc
+ 1973              		@ args = 0, pretend = 0, frame = 0
+ 1974              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1975              		@ link register save eliminated.
+ 519:./ThirdParty/FatFs/Src/diskio.c **** 	return ((DWORD)(2026 - 1980) << 25)
+ 1976              		.loc 1 519 2 view .LVU562
+ 520:./ThirdParty/FatFs/Src/diskio.c **** 	     | ((DWORD)1 << 21)
+ 521:./ThirdParty/FatFs/Src/diskio.c **** 	     | ((DWORD)1 << 16);
+ 522:./ThirdParty/FatFs/Src/diskio.c **** }
+ 1977              		.loc 1 522 1 is_stmt 0 view .LVU563
+ 1978 0000 0048     		ldr	r0, .L171
+ 1979 0002 7047     		bx	lr
+ 1980              	.L172:
+ 1981              		.align	2
+ 1982              	.L171:
+ 1983 0004 0000215C 		.word	1545666560
+ 1984              		.cfi_endproc
+ 1985              	.LFE372:
+ 1987              		.global	sd_dbg_cardtype
+ 1988              		.section	.bss.sd_dbg_cardtype,"aw",%nobits
+ 1991              	sd_dbg_cardtype:
+ 1992 0000 00       		.space	1
+ 1993              		.global	sd_dbg_acmd41
+ 1994              		.section	.bss.sd_dbg_acmd41,"aw",%nobits
+ 1997              	sd_dbg_acmd41:
+ 1998 0000 00       		.space	1
+ 1999              		.global	sd_dbg_cmd8
+ 2000              		.section	.bss.sd_dbg_cmd8,"aw",%nobits
+ 2003              	sd_dbg_cmd8:
+ 2004 0000 00       		.space	1
+ 2005              		.global	sd_dbg_cmd0
+ 2006              		.section	.bss.sd_dbg_cmd0,"aw",%nobits
+ 2009              	sd_dbg_cmd0:
+ 2010 0000 00       		.space	1
+ 2011              		.global	sd_dbg_hal_err
+ 2012              		.section	.bss.sd_dbg_hal_err,"aw",%nobits
+ 2015              	sd_dbg_hal_err:
+ 2016 0000 00       		.space	1
+ 2017              		.global	sd_dbg_spi_ok
+ 2018              		.section	.bss.sd_dbg_spi_ok,"aw",%nobits
+ 2021              	sd_dbg_spi_ok:
+ 2022 0000 00       		.space	1
+ 2023              		.section	.bss.CardType,"aw",%nobits
+ 2026              	CardType:
+ 2027 0000 00       		.space	1
+ 2028              		.section	.data.Stat,"aw"
+ 2031              	Stat:
+ 2032 0000 01       		.byte	1
+ 2033              		.text
+ 2034              	.Letext0:
+ 2035              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 2036              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 2037              		.file 4 "ThirdParty/FatFs/Inc/ff.h"
+ 2038              		.file 5 "ThirdParty/FatFs/Inc/diskio.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 50
+
+
+ 2039              		.file 6 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 2040              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 2041              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 2042              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 2043              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 2044              		.file 11 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_spi.h"
+ 2045              		.file 12 "Core/Inc/spi.h"
+ 2046              		.file 13 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 51
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 diskio.c
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:22     .text.spi_begin:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:27     .text.spi_begin:00000000 spi_begin
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:67     .text.spi_begin:00000028 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:72     .text.spi_end:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:77     .text.spi_end:00000000 spi_end
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:134    .text.spi_end:0000003c $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:139    .text.spi_txrx:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:144    .text.spi_txrx:00000000 spi_txrx
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:185    .text.spi_txrx:00000020 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:190    .text.spi_tx_multi:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:195    .text.spi_tx_multi:00000000 spi_tx_multi
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:252    .text.spi_tx_multi:00000030 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:257    .text.spi_rx_multi:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:262    .text.spi_rx_multi:00000000 spi_rx_multi
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:321    .text.spi_rx_multi:00000030 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:326    .text.deselect:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:331    .text.deselect:00000000 deselect
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:366    .text.deselect:00000020 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:371    .text.wait_ready:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:376    .text.wait_ready:00000000 wait_ready
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:436    .text.select:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:441    .text.select:00000000 select
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:506    .text.select:00000048 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:511    .text.send_cmd:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:516    .text.send_cmd:00000000 send_cmd
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:661    .text.xmit_datablock:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:666    .text.xmit_datablock:00000000 xmit_datablock
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:746    .text.rcvr_datablock:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:751    .text.rcvr_datablock:00000000 rcvr_datablock
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:831    .text.disk_status:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:837    .text.disk_status:00000000 disk_status
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:866    .text.disk_status:00000010 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2031   .data.Stat:00000000 Stat
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:871    .text.disk_initialize:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:877    .text.disk_initialize:00000000 disk_initialize
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1372   .text.disk_initialize:00000210 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2021   .bss.sd_dbg_spi_ok:00000000 sd_dbg_spi_ok
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2015   .bss.sd_dbg_hal_err:00000000 sd_dbg_hal_err
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2009   .bss.sd_dbg_cmd0:00000000 sd_dbg_cmd0
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2026   .bss.CardType:00000000 CardType
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1991   .bss.sd_dbg_cardtype:00000000 sd_dbg_cardtype
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2003   .bss.sd_dbg_cmd8:00000000 sd_dbg_cmd8
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1997   .bss.sd_dbg_acmd41:00000000 sd_dbg_acmd41
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1386   .text.disk_read:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1392   .text.disk_read:00000000 disk_read
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1545   .text.disk_read:00000074 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1551   .text.disk_write:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1557   .text.disk_write:00000000 disk_write
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1731   .text.disk_write:00000084 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1737   .text.disk_ioctl:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1743   .text.disk_ioctl:00000000 disk_ioctl
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1958   .text.disk_ioctl:000000d8 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1963   .text.get_fattime:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1969   .text.get_fattime:00000000 get_fattime
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1983   .text.get_fattime:00000004 $d
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s 			page 52
+
+
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1992   .bss.sd_dbg_cardtype:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:1998   .bss.sd_dbg_acmd41:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2004   .bss.sd_dbg_cmd8:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2010   .bss.sd_dbg_cmd0:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2016   .bss.sd_dbg_hal_err:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2022   .bss.sd_dbg_spi_ok:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cci741Qm.s:2027   .bss.CardType:00000000 $d
+
+UNDEFINED SYMBOLS
+hspi4
+HAL_GPIO_WritePin
+HAL_GetTick
+HAL_SPI_DeInit
+HAL_SPI_Init
+HAL_Delay

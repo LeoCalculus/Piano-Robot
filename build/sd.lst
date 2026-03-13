@@ -1,0 +1,1157 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"sd.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/sd.c"
+  21              		.section	.rodata.sd_list_txt_files.str1.4,"aMS",%progbits,1
+  22              		.align	2
+  23              	.LC0:
+  24 0000 2F00     		.ascii	"/\000"
+  25 0002 0000     		.align	2
+  26              	.LC1:
+  27 0004 2E747874 		.ascii	".txt\000"
+  27      00
+  28 0009 000000   		.align	2
+  29              	.LC2:
+  30 000c 2E545854 		.ascii	".TXT\000"
+  30      00
+  31              		.section	.text.sd_list_txt_files,"ax",%progbits
+  32              		.align	1
+  33              		.global	sd_list_txt_files
+  34              		.syntax unified
+  35              		.thumb
+  36              		.thumb_func
+  38              	sd_list_txt_files:
+  39              	.LFB359:
+   1:./Application/Src/sd.c **** #include <sd.h>
+   2:./Application/Src/sd.c **** 
+   3:./Application/Src/sd.c **** static char sd_buf[128];
+   4:./Application/Src/sd.c **** static char sd_msg[280];
+   5:./Application/Src/sd.c **** 
+   6:./Application/Src/sd.c **** sd_file_info_t fileList[SD_MAX_FILES];
+   7:./Application/Src/sd.c **** int fileCount = 0;
+   8:./Application/Src/sd.c **** 
+   9:./Application/Src/sd.c **** void sd_list_txt_files(void) {
+  40              		.loc 1 9 30 view -0
+  41              		.cfi_startproc
+  42              		@ args = 0, pretend = 0, frame = 72
+  43              		@ frame_needed = 0, uses_anonymous_args = 0
+  44 0000 70B5     		push	{r4, r5, r6, lr}
+  45              	.LCFI0:
+  46              		.cfi_def_cfa_offset 16
+  47              		.cfi_offset 4, -16
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 2
+
+
+  48              		.cfi_offset 5, -12
+  49              		.cfi_offset 6, -8
+  50              		.cfi_offset 14, -4
+  51 0002 92B0     		sub	sp, sp, #72
+  52              	.LCFI1:
+  53              		.cfi_def_cfa_offset 88
+  10:./Application/Src/sd.c ****     DIR dir;
+  54              		.loc 1 10 5 view .LVU1
+  11:./Application/Src/sd.c ****     FILINFO fno;
+  55              		.loc 1 11 5 view .LVU2
+  12:./Application/Src/sd.c ****     FRESULT res;
+  56              		.loc 1 12 5 view .LVU3
+  13:./Application/Src/sd.c **** 
+  14:./Application/Src/sd.c ****     fileCount = 0;
+  57              		.loc 1 14 5 view .LVU4
+  58              		.loc 1 14 15 is_stmt 0 view .LVU5
+  59 0004 224B     		ldr	r3, .L9
+  60 0006 0022     		movs	r2, #0
+  61 0008 1A60     		str	r2, [r3]
+  15:./Application/Src/sd.c ****     res = f_opendir(&dir, "/");
+  62              		.loc 1 15 5 is_stmt 1 view .LVU6
+  63              		.loc 1 15 11 is_stmt 0 view .LVU7
+  64 000a 2249     		ldr	r1, .L9+4
+  65 000c 07A8     		add	r0, sp, #28
+  66 000e FFF7FEFF 		bl	f_opendir
+  67              	.LVL0:
+  16:./Application/Src/sd.c ****     if (res != FR_OK) return;
+  68              		.loc 1 16 5 is_stmt 1 view .LVU8
+  69              		.loc 1 16 8 is_stmt 0 view .LVU9
+  70 0012 98B1     		cbz	r0, .L2
+  71 0014 3AE0     		b	.L1
+  72              	.LVL1:
+  73              	.L6:
+  74              	.LBB2:
+  17:./Application/Src/sd.c **** 
+  18:./Application/Src/sd.c ****     while (fileCount < SD_MAX_FILES) {
+  19:./Application/Src/sd.c ****         res = f_readdir(&dir, &fno);
+  20:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+  21:./Application/Src/sd.c ****         if (fno.fattrib & AM_DIR) continue;
+  22:./Application/Src/sd.c **** 
+  23:./Application/Src/sd.c ****         /* Check for .txt extension */
+  24:./Application/Src/sd.c ****         const char *dot = strrchr(fno.fname, '.');
+  25:./Application/Src/sd.c ****         if (dot && (strcmp(dot, ".txt") == 0 || strcmp(dot, ".TXT") == 0)) {
+  26:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+  75              		.loc 1 26 13 is_stmt 1 view .LVU10
+  76              		.loc 1 26 40 is_stmt 0 view .LVU11
+  77 0016 1E4E     		ldr	r6, .L9
+  78 0018 3468     		ldr	r4, [r6]
+  79              	.LVL2:
+  80              		.loc 1 26 40 view .LVU12
+  81 001a 04EB8403 		add	r3, r4, r4, lsl #2
+  82 001e 1E4D     		ldr	r5, .L9+8
+  83 0020 05EB8305 		add	r5, r5, r3, lsl #2
+  84              		.loc 1 26 13 view .LVU13
+  85 0024 0C22     		movs	r2, #12
+  86 0026 0DF10D01 		add	r1, sp, #13
+  87 002a 2846     		mov	r0, r5
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 3
+
+
+  88 002c FFF7FEFF 		bl	strncpy
+  89              	.LVL3:
+  27:./Application/Src/sd.c ****             fileList[fileCount].name[12] = '\0';
+  90              		.loc 1 27 13 is_stmt 1 view .LVU14
+  91              		.loc 1 27 42 is_stmt 0 view .LVU15
+  92 0030 0023     		movs	r3, #0
+  93 0032 2B73     		strb	r3, [r5, #12]
+  28:./Application/Src/sd.c ****             fileList[fileCount].size = fno.fsize;
+  94              		.loc 1 28 13 is_stmt 1 view .LVU16
+  95              		.loc 1 28 43 is_stmt 0 view .LVU17
+  96 0034 019B     		ldr	r3, [sp, #4]
+  97              		.loc 1 28 38 view .LVU18
+  98 0036 2B61     		str	r3, [r5, #16]
+  29:./Application/Src/sd.c ****             fileCount++;
+  99              		.loc 1 29 13 is_stmt 1 view .LVU19
+ 100              		.loc 1 29 22 is_stmt 0 view .LVU20
+ 101 0038 0134     		adds	r4, r4, #1
+ 102 003a 3460     		str	r4, [r6]
+ 103              	.LVL4:
+ 104              	.L2:
+ 105              		.loc 1 29 22 view .LVU21
+ 106              	.LBE2:
+  18:./Application/Src/sd.c ****         res = f_readdir(&dir, &fno);
+ 107              		.loc 1 18 22 is_stmt 1 view .LVU22
+ 108 003c 144B     		ldr	r3, .L9
+ 109 003e 1B68     		ldr	r3, [r3]
+ 110 0040 1F2B     		cmp	r3, #31
+ 111 0042 20DC     		bgt	.L4
+ 112              	.LBB3:
+  19:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+ 113              		.loc 1 19 9 view .LVU23
+  19:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+ 114              		.loc 1 19 15 is_stmt 0 view .LVU24
+ 115 0044 01A9     		add	r1, sp, #4
+ 116 0046 07A8     		add	r0, sp, #28
+ 117 0048 FFF7FEFF 		bl	f_readdir
+ 118              	.LVL5:
+  20:./Application/Src/sd.c ****         if (fno.fattrib & AM_DIR) continue;
+ 119              		.loc 1 20 9 is_stmt 1 view .LVU25
+  20:./Application/Src/sd.c ****         if (fno.fattrib & AM_DIR) continue;
+ 120              		.loc 1 20 12 is_stmt 0 view .LVU26
+ 121 004c D8B9     		cbnz	r0, .L4
+  20:./Application/Src/sd.c ****         if (fno.fattrib & AM_DIR) continue;
+ 122              		.loc 1 20 38 discriminator 1 view .LVU27
+ 123 004e 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+  20:./Application/Src/sd.c ****         if (fno.fattrib & AM_DIR) continue;
+ 124              		.loc 1 20 26 discriminator 1 view .LVU28
+ 125 0052 C3B1     		cbz	r3, .L4
+  21:./Application/Src/sd.c **** 
+ 126              		.loc 1 21 9 is_stmt 1 view .LVU29
+  21:./Application/Src/sd.c **** 
+ 127              		.loc 1 21 16 is_stmt 0 view .LVU30
+ 128 0054 9DF80C30 		ldrb	r3, [sp, #12]	@ zero_extendqisi2
+  21:./Application/Src/sd.c **** 
+ 129              		.loc 1 21 12 view .LVU31
+ 130 0058 13F0100F 		tst	r3, #16
+ 131 005c EED1     		bne	.L2
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 4
+
+
+  24:./Application/Src/sd.c ****         if (dot && (strcmp(dot, ".txt") == 0 || strcmp(dot, ".TXT") == 0)) {
+ 132              		.loc 1 24 9 is_stmt 1 view .LVU32
+  24:./Application/Src/sd.c ****         if (dot && (strcmp(dot, ".txt") == 0 || strcmp(dot, ".TXT") == 0)) {
+ 133              		.loc 1 24 27 is_stmt 0 view .LVU33
+ 134 005e 2E21     		movs	r1, #46
+ 135 0060 0DF10D00 		add	r0, sp, #13
+ 136              	.LVL6:
+  24:./Application/Src/sd.c ****         if (dot && (strcmp(dot, ".txt") == 0 || strcmp(dot, ".TXT") == 0)) {
+ 137              		.loc 1 24 27 view .LVU34
+ 138 0064 FFF7FEFF 		bl	strrchr
+ 139              	.LVL7:
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 140              		.loc 1 25 9 is_stmt 1 view .LVU35
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 141              		.loc 1 25 12 is_stmt 0 view .LVU36
+ 142 0068 0446     		mov	r4, r0
+ 143 006a 0028     		cmp	r0, #0
+ 144 006c E6D0     		beq	.L2
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 145              		.loc 1 25 21 discriminator 1 view .LVU37
+ 146 006e 0B49     		ldr	r1, .L9+12
+ 147 0070 FFF7FEFF 		bl	strcmp
+ 148              	.LVL8:
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 149              		.loc 1 25 17 discriminator 2 view .LVU38
+ 150 0074 0028     		cmp	r0, #0
+ 151 0076 CED0     		beq	.L6
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 152              		.loc 1 25 49 discriminator 3 view .LVU39
+ 153 0078 0949     		ldr	r1, .L9+16
+ 154 007a 2046     		mov	r0, r4
+ 155 007c FFF7FEFF 		bl	strcmp
+ 156              	.LVL9:
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 157              		.loc 1 25 46 discriminator 4 view .LVU40
+ 158 0080 0028     		cmp	r0, #0
+ 159 0082 DBD1     		bne	.L2
+ 160 0084 C7E7     		b	.L6
+ 161              	.LVL10:
+ 162              	.L4:
+  25:./Application/Src/sd.c ****             strncpy(fileList[fileCount].name, fno.fname, 12);
+ 163              		.loc 1 25 46 discriminator 4 view .LVU41
+ 164              	.LBE3:
+  30:./Application/Src/sd.c ****         }
+  31:./Application/Src/sd.c ****     }
+  32:./Application/Src/sd.c ****     f_closedir(&dir);
+ 165              		.loc 1 32 5 is_stmt 1 view .LVU42
+ 166 0086 07A8     		add	r0, sp, #28
+ 167 0088 FFF7FEFF 		bl	f_closedir
+ 168              	.LVL11:
+ 169              	.L1:
+  33:./Application/Src/sd.c **** }
+ 170              		.loc 1 33 1 is_stmt 0 view .LVU43
+ 171 008c 12B0     		add	sp, sp, #72
+ 172              	.LCFI2:
+ 173              		.cfi_def_cfa_offset 16
+ 174              		@ sp needed
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 5
+
+
+ 175 008e 70BD     		pop	{r4, r5, r6, pc}
+ 176              	.L10:
+ 177              		.align	2
+ 178              	.L9:
+ 179 0090 00000000 		.word	fileCount
+ 180 0094 00000000 		.word	.LC0
+ 181 0098 00000000 		.word	fileList
+ 182 009c 04000000 		.word	.LC1
+ 183 00a0 0C000000 		.word	.LC2
+ 184              		.cfi_endproc
+ 185              	.LFE359:
+ 187              		.section	.rodata.sd_list_files.str1.4,"aMS",%progbits,1
+ 188              		.align	2
+ 189              	.LC3:
+ 190 0000 6F70656E 		.ascii	"opendir failed: %d\000"
+ 190      64697220 
+ 190      6661696C 
+ 190      65643A20 
+ 190      256400
+ 191 0013 00       		.align	2
+ 192              	.LC4:
+ 193 0014 3D3D3D20 		.ascii	"=== Files on SD ===\000"
+ 193      46696C65 
+ 193      73206F6E 
+ 193      20534420 
+ 193      3D3D3D00 
+ 194              		.align	2
+ 195              	.LC5:
+ 196 0028 25732020 		.ascii	"%s  %lu bytes\012\000"
+ 196      256C7520 
+ 196      62797465 
+ 196      730A00
+ 197              		.section	.text.sd_list_files,"ax",%progbits
+ 198              		.align	1
+ 199              		.global	sd_list_files
+ 200              		.syntax unified
+ 201              		.thumb
+ 202              		.thumb_func
+ 204              	sd_list_files:
+ 205              	.LFB360:
+  34:./Application/Src/sd.c **** 
+  35:./Application/Src/sd.c **** void sd_list_files(void) {
+ 206              		.loc 1 35 26 is_stmt 1 view -0
+ 207              		.cfi_startproc
+ 208              		@ args = 0, pretend = 0, frame = 72
+ 209              		@ frame_needed = 0, uses_anonymous_args = 0
+ 210 0000 10B5     		push	{r4, lr}
+ 211              	.LCFI3:
+ 212              		.cfi_def_cfa_offset 8
+ 213              		.cfi_offset 4, -8
+ 214              		.cfi_offset 14, -4
+ 215 0002 94B0     		sub	sp, sp, #80
+ 216              	.LCFI4:
+ 217              		.cfi_def_cfa_offset 88
+  36:./Application/Src/sd.c ****     DIR dir;
+ 218              		.loc 1 36 5 view .LVU45
+  37:./Application/Src/sd.c ****     FILINFO fno;
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 6
+
+
+ 219              		.loc 1 37 5 view .LVU46
+  38:./Application/Src/sd.c ****     FRESULT res;
+ 220              		.loc 1 38 5 view .LVU47
+  39:./Application/Src/sd.c **** 
+  40:./Application/Src/sd.c ****     res = f_opendir(&dir, "/");
+ 221              		.loc 1 40 5 view .LVU48
+ 222              		.loc 1 40 11 is_stmt 0 view .LVU49
+ 223 0004 1949     		ldr	r1, .L18
+ 224 0006 09A8     		add	r0, sp, #36
+ 225 0008 FFF7FEFF 		bl	f_opendir
+ 226              	.LVL12:
+  41:./Application/Src/sd.c ****     if (res != FR_OK) {
+ 227              		.loc 1 41 5 is_stmt 1 view .LVU50
+ 228              		.loc 1 41 8 is_stmt 0 view .LVU51
+ 229 000c E0B9     		cbnz	r0, .L17
+  42:./Application/Src/sd.c ****         snprintf(sd_msg, sizeof(sd_msg), "opendir failed: %d", res);
+  43:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+  44:./Application/Src/sd.c ****         return;
+  45:./Application/Src/sd.c ****     }
+  46:./Application/Src/sd.c **** 
+  47:./Application/Src/sd.c ****     hc04_send_string((uint8_t*)"=== Files on SD ===");
+ 230              		.loc 1 47 5 is_stmt 1 view .LVU52
+ 231 000e 1848     		ldr	r0, .L18+4
+ 232              	.LVL13:
+ 233              		.loc 1 47 5 is_stmt 0 view .LVU53
+ 234 0010 FFF7FEFF 		bl	hc04_send_string
+ 235              	.LVL14:
+ 236              	.L15:
+  48:./Application/Src/sd.c ****     while (1) {
+ 237              		.loc 1 48 5 is_stmt 1 view .LVU54
+  49:./Application/Src/sd.c ****         res = f_readdir(&dir, &fno);
+ 238              		.loc 1 49 9 view .LVU55
+ 239              		.loc 1 49 15 is_stmt 0 view .LVU56
+ 240 0014 03A9     		add	r1, sp, #12
+ 241 0016 09A8     		add	r0, sp, #36
+ 242 0018 FFF7FEFF 		bl	f_readdir
+ 243              	.LVL15:
+  50:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+ 244              		.loc 1 50 9 is_stmt 1 view .LVU57
+ 245              		.loc 1 50 12 is_stmt 0 view .LVU58
+ 246 001c 00BB     		cbnz	r0, .L14
+ 247              		.loc 1 50 38 discriminator 1 view .LVU59
+ 248 001e 9DF81530 		ldrb	r3, [sp, #21]	@ zero_extendqisi2
+ 249              		.loc 1 50 26 discriminator 1 view .LVU60
+ 250 0022 EBB1     		cbz	r3, .L14
+  51:./Application/Src/sd.c **** 
+  52:./Application/Src/sd.c ****         snprintf(sd_msg, sizeof(sd_msg), "%s  %lu bytes\n",
+ 251              		.loc 1 52 9 is_stmt 1 view .LVU61
+ 252 0024 134C     		ldr	r4, .L18+8
+ 253 0026 039B     		ldr	r3, [sp, #12]
+ 254 0028 0093     		str	r3, [sp]
+ 255 002a 0DF11503 		add	r3, sp, #21
+ 256 002e 124A     		ldr	r2, .L18+12
+ 257 0030 4FF48C71 		mov	r1, #280
+ 258 0034 2046     		mov	r0, r4
+ 259              	.LVL16:
+ 260              		.loc 1 52 9 is_stmt 0 view .LVU62
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 7
+
+
+ 261 0036 FFF7FEFF 		bl	snprintf
+ 262              	.LVL17:
+  53:./Application/Src/sd.c ****                  fno.fname, fno.fsize);
+  54:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 263              		.loc 1 54 9 is_stmt 1 view .LVU63
+ 264 003a 2046     		mov	r0, r4
+ 265 003c FFF7FEFF 		bl	hc04_send_string
+ 266              	.LVL18:
+  55:./Application/Src/sd.c ****         HAL_Delay(50);
+ 267              		.loc 1 55 9 view .LVU64
+ 268 0040 3220     		movs	r0, #50
+ 269 0042 FFF7FEFF 		bl	HAL_Delay
+ 270              	.LVL19:
+  48:./Application/Src/sd.c ****         res = f_readdir(&dir, &fno);
+ 271              		.loc 1 48 11 view .LVU65
+  49:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+ 272              		.loc 1 49 13 is_stmt 0 view .LVU66
+ 273 0046 E5E7     		b	.L15
+ 274              	.LVL20:
+ 275              	.L17:
+  49:./Application/Src/sd.c ****         if (res != FR_OK || fno.fname[0] == 0) break;
+ 276              		.loc 1 49 13 view .LVU67
+ 277 0048 0346     		mov	r3, r0
+  42:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 278              		.loc 1 42 9 is_stmt 1 view .LVU68
+ 279 004a 0A4C     		ldr	r4, .L18+8
+ 280 004c 0B4A     		ldr	r2, .L18+16
+ 281 004e 4FF48C71 		mov	r1, #280
+ 282 0052 2046     		mov	r0, r4
+ 283              	.LVL21:
+  42:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 284              		.loc 1 42 9 is_stmt 0 view .LVU69
+ 285 0054 FFF7FEFF 		bl	snprintf
+ 286              	.LVL22:
+  43:./Application/Src/sd.c ****         return;
+ 287              		.loc 1 43 9 is_stmt 1 view .LVU70
+ 288 0058 2046     		mov	r0, r4
+ 289 005a FFF7FEFF 		bl	hc04_send_string
+ 290              	.LVL23:
+  44:./Application/Src/sd.c ****     }
+ 291              		.loc 1 44 9 view .LVU71
+ 292 005e 02E0     		b	.L11
+ 293              	.LVL24:
+ 294              	.L14:
+  56:./Application/Src/sd.c ****     }
+  57:./Application/Src/sd.c ****     f_closedir(&dir);
+ 295              		.loc 1 57 5 view .LVU72
+ 296 0060 09A8     		add	r0, sp, #36
+ 297              	.LVL25:
+ 298              		.loc 1 57 5 is_stmt 0 view .LVU73
+ 299 0062 FFF7FEFF 		bl	f_closedir
+ 300              	.LVL26:
+ 301              	.L11:
+  58:./Application/Src/sd.c **** }
+ 302              		.loc 1 58 1 view .LVU74
+ 303 0066 14B0     		add	sp, sp, #80
+ 304              	.LCFI5:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 8
+
+
+ 305              		.cfi_def_cfa_offset 8
+ 306              		@ sp needed
+ 307 0068 10BD     		pop	{r4, pc}
+ 308              	.L19:
+ 309 006a 00BF     		.align	2
+ 310              	.L18:
+ 311 006c 00000000 		.word	.LC0
+ 312 0070 14000000 		.word	.LC4
+ 313 0074 00000000 		.word	sd_msg
+ 314 0078 28000000 		.word	.LC5
+ 315 007c 00000000 		.word	.LC3
+ 316              		.cfi_endproc
+ 317              	.LFE360:
+ 319              		.section	.rodata.sd_print_file.str1.4,"aMS",%progbits,1
+ 320              		.align	2
+ 321              	.LC6:
+ 322 0000 6F70656E 		.ascii	"open failed: %d\000"
+ 322      20666169 
+ 322      6C65643A 
+ 322      20256400 
+ 323              		.align	2
+ 324              	.LC7:
+ 325 0010 3D3D3D20 		.ascii	"=== %s ===\012\000"
+ 325      2573203D 
+ 325      3D3D0A00 
+ 326              		.section	.text.sd_print_file,"ax",%progbits
+ 327              		.align	1
+ 328              		.global	sd_print_file
+ 329              		.syntax unified
+ 330              		.thumb
+ 331              		.thumb_func
+ 333              	sd_print_file:
+ 334              	.LVL27:
+ 335              	.LFB361:
+  59:./Application/Src/sd.c **** 
+  60:./Application/Src/sd.c **** void sd_print_file(const char *filename) {
+ 336              		.loc 1 60 42 is_stmt 1 view -0
+ 337              		.cfi_startproc
+ 338              		@ args = 0, pretend = 0, frame = 552
+ 339              		@ frame_needed = 0, uses_anonymous_args = 0
+ 340              		.loc 1 60 42 is_stmt 0 view .LVU76
+ 341 0000 10B5     		push	{r4, lr}
+ 342              	.LCFI6:
+ 343              		.cfi_def_cfa_offset 8
+ 344              		.cfi_offset 4, -8
+ 345              		.cfi_offset 14, -4
+ 346 0002 ADF50A7D 		sub	sp, sp, #552
+ 347              	.LCFI7:
+ 348              		.cfi_def_cfa_offset 560
+ 349 0006 0146     		mov	r1, r0
+ 350 0008 0446     		mov	r4, r0
+  61:./Application/Src/sd.c ****     FIL file;
+ 351              		.loc 1 61 5 is_stmt 1 view .LVU77
+  62:./Application/Src/sd.c ****     FRESULT res;
+ 352              		.loc 1 62 5 view .LVU78
+  63:./Application/Src/sd.c **** 
+  64:./Application/Src/sd.c ****     res = f_open(&file, filename, FA_READ);
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 9
+
+
+ 353              		.loc 1 64 5 view .LVU79
+ 354              		.loc 1 64 11 is_stmt 0 view .LVU80
+ 355 000a 0122     		movs	r2, #1
+ 356 000c 6846     		mov	r0, sp
+ 357              	.LVL28:
+ 358              		.loc 1 64 11 view .LVU81
+ 359 000e FFF7FEFF 		bl	f_open
+ 360              	.LVL29:
+  65:./Application/Src/sd.c ****     if (res != FR_OK) {
+ 361              		.loc 1 65 5 is_stmt 1 view .LVU82
+ 362              		.loc 1 65 8 is_stmt 0 view .LVU83
+ 363 0012 50B9     		cbnz	r0, .L26
+  66:./Application/Src/sd.c ****         snprintf(sd_msg, sizeof(sd_msg), "open failed: %d", res);
+  67:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+  68:./Application/Src/sd.c ****         return;
+  69:./Application/Src/sd.c ****     }
+  70:./Application/Src/sd.c **** 
+  71:./Application/Src/sd.c ****     snprintf(sd_msg, sizeof(sd_msg), "=== %s ===\n", filename);
+ 364              		.loc 1 71 5 is_stmt 1 view .LVU84
+ 365 0014 2346     		mov	r3, r4
+ 366 0016 144A     		ldr	r2, .L27
+ 367 0018 4FF48C71 		mov	r1, #280
+ 368 001c 1348     		ldr	r0, .L27+4
+ 369              	.LVL30:
+ 370              		.loc 1 71 5 is_stmt 0 view .LVU85
+ 371 001e FFF7FEFF 		bl	snprintf
+ 372              	.LVL31:
+  72:./Application/Src/sd.c ****     hc04_send_string((uint8_t*)sd_msg);
+ 373              		.loc 1 72 5 is_stmt 1 view .LVU86
+ 374 0022 1248     		ldr	r0, .L27+4
+ 375 0024 FFF7FEFF 		bl	hc04_send_string
+ 376              	.LVL32:
+  73:./Application/Src/sd.c **** 
+  74:./Application/Src/sd.c ****     // read file line by line
+  75:./Application/Src/sd.c ****     while (f_gets(sd_buf, sizeof(sd_buf), &file) != NULL) {
+ 377              		.loc 1 75 5 view .LVU87
+ 378              		.loc 1 75 11 is_stmt 0 view .LVU88
+ 379 0028 10E0     		b	.L23
+ 380              	.LVL33:
+ 381              	.L26:
+ 382              		.loc 1 75 11 view .LVU89
+ 383 002a 0346     		mov	r3, r0
+  66:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 384              		.loc 1 66 9 is_stmt 1 view .LVU90
+ 385 002c 104A     		ldr	r2, .L27+8
+ 386 002e 4FF48C71 		mov	r1, #280
+ 387 0032 0E48     		ldr	r0, .L27+4
+ 388              	.LVL34:
+  66:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 389              		.loc 1 66 9 is_stmt 0 view .LVU91
+ 390 0034 FFF7FEFF 		bl	snprintf
+ 391              	.LVL35:
+  67:./Application/Src/sd.c ****         return;
+ 392              		.loc 1 67 9 is_stmt 1 view .LVU92
+ 393 0038 0C48     		ldr	r0, .L27+4
+ 394 003a FFF7FEFF 		bl	hc04_send_string
+ 395              	.LVL36:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 10
+
+
+  68:./Application/Src/sd.c ****     }
+ 396              		.loc 1 68 9 view .LVU93
+ 397 003e 0FE0     		b	.L20
+ 398              	.L24:
+  76:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_buf);
+ 399              		.loc 1 76 9 view .LVU94
+ 400 0040 0C48     		ldr	r0, .L27+12
+ 401 0042 FFF7FEFF 		bl	hc04_send_string
+ 402              	.LVL37:
+  77:./Application/Src/sd.c ****         HAL_Delay(50);
+ 403              		.loc 1 77 9 view .LVU95
+ 404 0046 3220     		movs	r0, #50
+ 405 0048 FFF7FEFF 		bl	HAL_Delay
+ 406              	.LVL38:
+ 407              	.L23:
+  75:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_buf);
+ 408              		.loc 1 75 50 view .LVU96
+  75:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_buf);
+ 409              		.loc 1 75 12 is_stmt 0 view .LVU97
+ 410 004c 6A46     		mov	r2, sp
+ 411 004e 8021     		movs	r1, #128
+ 412 0050 0848     		ldr	r0, .L27+12
+ 413 0052 FFF7FEFF 		bl	f_gets
+ 414              	.LVL39:
+  75:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_buf);
+ 415              		.loc 1 75 50 discriminator 1 view .LVU98
+ 416 0056 0028     		cmp	r0, #0
+ 417 0058 F2D1     		bne	.L24
+  78:./Application/Src/sd.c ****     }
+  79:./Application/Src/sd.c ****     f_close(&file);
+ 418              		.loc 1 79 5 is_stmt 1 view .LVU99
+ 419 005a 6846     		mov	r0, sp
+ 420 005c FFF7FEFF 		bl	f_close
+ 421              	.LVL40:
+ 422              	.L20:
+  80:./Application/Src/sd.c **** }
+ 423              		.loc 1 80 1 is_stmt 0 view .LVU100
+ 424 0060 0DF50A7D 		add	sp, sp, #552
+ 425              	.LCFI8:
+ 426              		.cfi_def_cfa_offset 8
+ 427              		@ sp needed
+ 428 0064 10BD     		pop	{r4, pc}
+ 429              	.LVL41:
+ 430              	.L28:
+ 431              		.loc 1 80 1 view .LVU101
+ 432 0066 00BF     		.align	2
+ 433              	.L27:
+ 434 0068 10000000 		.word	.LC7
+ 435 006c 00000000 		.word	sd_msg
+ 436 0070 00000000 		.word	.LC6
+ 437 0074 00000000 		.word	sd_buf
+ 438              		.cfi_endproc
+ 439              	.LFE361:
+ 441              		.section	.rodata.sd_write_file.str1.4,"aMS",%progbits,1
+ 442              		.align	2
+ 443              	.LC8:
+ 444 0000 63726561 		.ascii	"create failed: %d\000"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 11
+
+
+ 444      74652066 
+ 444      61696C65 
+ 444      643A2025 
+ 444      6400
+ 445 0012 0000     		.align	2
+ 446              	.LC9:
+ 447 0014 57726F74 		.ascii	"Wrote %u bytes to %s\000"
+ 447      65202575 
+ 447      20627974 
+ 447      65732074 
+ 447      6F202573 
+ 448              		.section	.text.sd_write_file,"ax",%progbits
+ 449              		.align	1
+ 450              		.global	sd_write_file
+ 451              		.syntax unified
+ 452              		.thumb
+ 453              		.thumb_func
+ 455              	sd_write_file:
+ 456              	.LVL42:
+ 457              	.LFB362:
+  81:./Application/Src/sd.c **** 
+  82:./Application/Src/sd.c **** void sd_write_file(const char *filename, const char *text) {
+ 458              		.loc 1 82 60 is_stmt 1 view -0
+ 459              		.cfi_startproc
+ 460              		@ args = 0, pretend = 0, frame = 560
+ 461              		@ frame_needed = 0, uses_anonymous_args = 0
+ 462              		.loc 1 82 60 is_stmt 0 view .LVU103
+ 463 0000 30B5     		push	{r4, r5, lr}
+ 464              	.LCFI9:
+ 465              		.cfi_def_cfa_offset 12
+ 466              		.cfi_offset 4, -12
+ 467              		.cfi_offset 5, -8
+ 468              		.cfi_offset 14, -4
+ 469 0002 ADF50F7D 		sub	sp, sp, #572
+ 470              	.LCFI10:
+ 471              		.cfi_def_cfa_offset 584
+ 472 0006 0546     		mov	r5, r0
+ 473 0008 0C46     		mov	r4, r1
+  83:./Application/Src/sd.c ****     FIL file;
+ 474              		.loc 1 83 5 is_stmt 1 view .LVU104
+  84:./Application/Src/sd.c ****     FRESULT res;
+ 475              		.loc 1 84 5 view .LVU105
+  85:./Application/Src/sd.c ****     UINT bytes_written;
+ 476              		.loc 1 85 5 view .LVU106
+  86:./Application/Src/sd.c **** 
+  87:./Application/Src/sd.c ****     res = f_open(&file, filename, FA_WRITE | FA_CREATE_ALWAYS);
+ 477              		.loc 1 87 5 view .LVU107
+ 478              		.loc 1 87 11 is_stmt 0 view .LVU108
+ 479 000a 0A22     		movs	r2, #10
+ 480 000c 0146     		mov	r1, r0
+ 481              	.LVL43:
+ 482              		.loc 1 87 11 view .LVU109
+ 483 000e 04A8     		add	r0, sp, #16
+ 484              	.LVL44:
+ 485              		.loc 1 87 11 view .LVU110
+ 486 0010 FFF7FEFF 		bl	f_open
+ 487              	.LVL45:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 12
+
+
+  88:./Application/Src/sd.c ****     if (res != FR_OK) {
+ 488              		.loc 1 88 5 is_stmt 1 view .LVU111
+ 489              		.loc 1 88 8 is_stmt 0 view .LVU112
+ 490 0014 C8B9     		cbnz	r0, .L33
+  89:./Application/Src/sd.c ****         snprintf(sd_msg, sizeof(sd_msg), "create failed: %d", res);
+  90:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+  91:./Application/Src/sd.c ****         return;
+  92:./Application/Src/sd.c ****     }
+  93:./Application/Src/sd.c **** 
+  94:./Application/Src/sd.c ****     f_write(&file, text, strlen(text), &bytes_written);
+ 491              		.loc 1 94 5 is_stmt 1 view .LVU113
+ 492              		.loc 1 94 26 is_stmt 0 view .LVU114
+ 493 0016 2046     		mov	r0, r4
+ 494              	.LVL46:
+ 495              		.loc 1 94 26 view .LVU115
+ 496 0018 FFF7FEFF 		bl	strlen
+ 497              	.LVL47:
+ 498 001c 0246     		mov	r2, r0
+ 499              		.loc 1 94 5 discriminator 1 view .LVU116
+ 500 001e 03AB     		add	r3, sp, #12
+ 501 0020 2146     		mov	r1, r4
+ 502 0022 04A8     		add	r0, sp, #16
+ 503 0024 FFF7FEFF 		bl	f_write
+ 504              	.LVL48:
+  95:./Application/Src/sd.c ****     f_close(&file);
+ 505              		.loc 1 95 5 is_stmt 1 view .LVU117
+ 506 0028 04A8     		add	r0, sp, #16
+ 507 002a FFF7FEFF 		bl	f_close
+ 508              	.LVL49:
+  96:./Application/Src/sd.c **** 
+  97:./Application/Src/sd.c ****     snprintf(sd_msg, sizeof(sd_msg), "Wrote %u bytes to %s", bytes_written, filename);
+ 509              		.loc 1 97 5 view .LVU118
+ 510 002e 0095     		str	r5, [sp]
+ 511 0030 039B     		ldr	r3, [sp, #12]
+ 512 0032 0B4A     		ldr	r2, .L34
+ 513 0034 4FF48C71 		mov	r1, #280
+ 514 0038 0A48     		ldr	r0, .L34+4
+ 515 003a FFF7FEFF 		bl	snprintf
+ 516              	.LVL50:
+  98:./Application/Src/sd.c ****     hc04_send_string((uint8_t*)sd_msg);
+ 517              		.loc 1 98 5 view .LVU119
+ 518 003e 0948     		ldr	r0, .L34+4
+ 519 0040 FFF7FEFF 		bl	hc04_send_string
+ 520              	.LVL51:
+ 521              	.L29:
+  99:./Application/Src/sd.c **** }
+ 522              		.loc 1 99 1 is_stmt 0 view .LVU120
+ 523 0044 0DF50F7D 		add	sp, sp, #572
+ 524              	.LCFI11:
+ 525              		.cfi_remember_state
+ 526              		.cfi_def_cfa_offset 12
+ 527              		@ sp needed
+ 528 0048 30BD     		pop	{r4, r5, pc}
+ 529              	.LVL52:
+ 530              	.L33:
+ 531              	.LCFI12:
+ 532              		.cfi_restore_state
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 13
+
+
+ 533              		.loc 1 99 1 view .LVU121
+ 534 004a 0346     		mov	r3, r0
+  89:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 535              		.loc 1 89 9 is_stmt 1 view .LVU122
+ 536 004c 064A     		ldr	r2, .L34+8
+ 537 004e 4FF48C71 		mov	r1, #280
+ 538 0052 0448     		ldr	r0, .L34+4
+ 539              	.LVL53:
+  89:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 540              		.loc 1 89 9 is_stmt 0 view .LVU123
+ 541 0054 FFF7FEFF 		bl	snprintf
+ 542              	.LVL54:
+  90:./Application/Src/sd.c ****         return;
+ 543              		.loc 1 90 9 is_stmt 1 view .LVU124
+ 544 0058 0248     		ldr	r0, .L34+4
+ 545 005a FFF7FEFF 		bl	hc04_send_string
+ 546              	.LVL55:
+  91:./Application/Src/sd.c ****     }
+ 547              		.loc 1 91 9 view .LVU125
+ 548 005e F1E7     		b	.L29
+ 549              	.L35:
+ 550              		.align	2
+ 551              	.L34:
+ 552 0060 14000000 		.word	.LC9
+ 553 0064 00000000 		.word	sd_msg
+ 554 0068 00000000 		.word	.LC8
+ 555              		.cfi_endproc
+ 556              	.LFE362:
+ 558              		.section	.rodata.sd_parse_array.str1.4,"aMS",%progbits,1
+ 559              		.align	2
+ 560              	.LC10:
+ 561 0000 2000     		.ascii	" \000"
+ 562              		.section	.text.sd_parse_array,"ax",%progbits
+ 563              		.align	1
+ 564              		.global	sd_parse_array
+ 565              		.syntax unified
+ 566              		.thumb
+ 567              		.thumb_func
+ 569              	sd_parse_array:
+ 570              	.LVL56:
+ 571              	.LFB363:
+ 100:./Application/Src/sd.c **** 
+ 101:./Application/Src/sd.c **** void sd_parse_array(const char *filename){
+ 572              		.loc 1 101 42 view -0
+ 573              		.cfi_startproc
+ 574              		@ args = 0, pretend = 0, frame = 552
+ 575              		@ frame_needed = 0, uses_anonymous_args = 0
+ 576              		.loc 1 101 42 is_stmt 0 view .LVU127
+ 577 0000 30B5     		push	{r4, r5, lr}
+ 578              	.LCFI13:
+ 579              		.cfi_def_cfa_offset 12
+ 580              		.cfi_offset 4, -12
+ 581              		.cfi_offset 5, -8
+ 582              		.cfi_offset 14, -4
+ 583 0002 ADF50B7D 		sub	sp, sp, #556
+ 584              	.LCFI14:
+ 585              		.cfi_def_cfa_offset 568
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 14
+
+
+ 586 0006 0146     		mov	r1, r0
+ 102:./Application/Src/sd.c ****     FIL file;
+ 587              		.loc 1 102 5 is_stmt 1 view .LVU128
+ 103:./Application/Src/sd.c ****     FRESULT res;
+ 588              		.loc 1 103 5 view .LVU129
+ 104:./Application/Src/sd.c ****     int index = 0; // used to index for chord_events array
+ 589              		.loc 1 104 5 view .LVU130
+ 590              	.LVL57:
+ 105:./Application/Src/sd.c **** 
+ 106:./Application/Src/sd.c ****     res = f_open(&file, filename, FA_READ);
+ 591              		.loc 1 106 5 view .LVU131
+ 592              		.loc 1 106 11 is_stmt 0 view .LVU132
+ 593 0008 0122     		movs	r2, #1
+ 594 000a 6846     		mov	r0, sp
+ 595              	.LVL58:
+ 596              		.loc 1 106 11 view .LVU133
+ 597 000c FFF7FEFF 		bl	f_open
+ 598              	.LVL59:
+ 107:./Application/Src/sd.c ****     if (res != FR_OK) {
+ 599              		.loc 1 107 5 is_stmt 1 view .LVU134
+ 600              		.loc 1 107 8 is_stmt 0 view .LVU135
+ 601 0010 08B9     		cbnz	r0, .L50
+ 104:./Application/Src/sd.c ****     int index = 0; // used to index for chord_events array
+ 602              		.loc 1 104 9 view .LVU136
+ 603 0012 0546     		mov	r5, r0
+ 604 0014 49E0     		b	.L37
+ 605              	.L50:
+ 606 0016 0346     		mov	r3, r0
+ 108:./Application/Src/sd.c ****         snprintf(sd_msg, sizeof(sd_msg), "open failed: %d", res);
+ 607              		.loc 1 108 9 is_stmt 1 view .LVU137
+ 608 0018 2E4C     		ldr	r4, .L56
+ 609 001a 2F4A     		ldr	r2, .L56+4
+ 610 001c 4FF48C71 		mov	r1, #280
+ 611 0020 2046     		mov	r0, r4
+ 612              	.LVL60:
+ 613              		.loc 1 108 9 is_stmt 0 view .LVU138
+ 614 0022 FFF7FEFF 		bl	snprintf
+ 615              	.LVL61:
+ 109:./Application/Src/sd.c ****         hc04_send_string((uint8_t*)sd_msg);
+ 616              		.loc 1 109 9 is_stmt 1 view .LVU139
+ 617 0026 2046     		mov	r0, r4
+ 618 0028 FFF7FEFF 		bl	hc04_send_string
+ 619              	.LVL62:
+ 110:./Application/Src/sd.c ****         return;
+ 620              		.loc 1 110 9 view .LVU140
+ 621 002c 4EE0     		b	.L36
+ 622              	.LVL63:
+ 623              	.L51:
+ 624              	.LBB4:
+ 625              	.LBB5:
+ 111:./Application/Src/sd.c ****     }
+ 112:./Application/Src/sd.c **** 
+ 113:./Application/Src/sd.c ****     // parse and store chord events in the file, format example:
+ 114:./Application/Src/sd.c ****     while (f_gets(sd_buf, sizeof(sd_buf), &file) != NULL) {
+ 115:./Application/Src/sd.c ****         // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
+ 116:./Application/Src/sd.c ****         char *token = strtok(sd_buf, " ");
+ 117:./Application/Src/sd.c ****         while (token != NULL) {
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 15
+
+
+ 118:./Application/Src/sd.c ****             // parse the token and store in chord_events[index]
+ 119:./Application/Src/sd.c ****             // for simplicity, we assume the format is always correct and there are always 14 token
+ 120:./Application/Src/sd.c ****             // in real application, you should add error checking here
+ 121:./Application/Src/sd.c ****             int token_index = 0;
+ 122:./Application/Src/sd.c ****             while (token != NULL) {
+ 123:./Application/Src/sd.c ****                 if (token_index < 2) { // first 2 tokens are positions, using strtof to convert str
+ 124:./Application/Src/sd.c ****                     chord_events[index].positions[token_index] = strtof(token, NULL);
+ 626              		.loc 1 124 21 view .LVU141
+ 627              		.loc 1 124 66 is_stmt 0 view .LVU142
+ 628 002e 0021     		movs	r1, #0
+ 629 0030 FFF7FEFF 		bl	strtof
+ 630              	.LVL64:
+ 631              		.loc 1 124 64 discriminator 1 view .LVU143
+ 632 0034 05EB4502 		add	r2, r5, r5, lsl #1
+ 633 0038 04EB4202 		add	r2, r4, r2, lsl #1
+ 634 003c 274B     		ldr	r3, .L56+8
+ 635 003e 03EB8203 		add	r3, r3, r2, lsl #2
+ 636 0042 83ED000A 		vstr.32	s0, [r3]
+ 637              	.L41:
+ 125:./Application/Src/sd.c ****                 } else if (token_index < 2 + MAX_CHORD_NOTES) {
+ 126:./Application/Src/sd.c ****                     // use atoi to convert "0" or "1" to int, and then store as bool
+ 127:./Application/Src/sd.c ****                     chord_events[index].pressed[token_index - 2] = atoi(token) != 0;
+ 128:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 129:./Application/Src/sd.c ****                     chord_events[index].duration_ms = atoi(token);
+ 130:./Application/Src/sd.c ****                 } else if (token_index == 3 + MAX_CHORD_NOTES) {
+ 131:./Application/Src/sd.c ****                     chord_events[index].delay_to_next_ms = atoi(token);
+ 132:./Application/Src/sd.c ****                 }
+ 133:./Application/Src/sd.c ****                 token = strtok(NULL, " ");
+ 638              		.loc 1 133 17 is_stmt 1 view .LVU144
+ 639              		.loc 1 133 25 is_stmt 0 view .LVU145
+ 640 0046 2649     		ldr	r1, .L56+12
+ 641 0048 0020     		movs	r0, #0
+ 642 004a FFF7FEFF 		bl	strtok
+ 643              	.LVL65:
+ 134:./Application/Src/sd.c ****                 token_index++;
+ 644              		.loc 1 134 17 is_stmt 1 view .LVU146
+ 645              		.loc 1 134 28 is_stmt 0 view .LVU147
+ 646 004e 0134     		adds	r4, r4, #1
+ 647              	.LVL66:
+ 648              	.L45:
+ 122:./Application/Src/sd.c ****                 if (token_index < 2) { // first 2 tokens are positions, using strtof to convert str
+ 649              		.loc 1 122 26 is_stmt 1 view .LVU148
+ 650 0050 A8B3     		cbz	r0, .L39
+ 123:./Application/Src/sd.c ****                     chord_events[index].positions[token_index] = strtof(token, NULL);
+ 651              		.loc 1 123 17 view .LVU149
+ 123:./Application/Src/sd.c ****                     chord_events[index].positions[token_index] = strtof(token, NULL);
+ 652              		.loc 1 123 20 is_stmt 0 view .LVU150
+ 653 0052 012C     		cmp	r4, #1
+ 654 0054 EBDD     		ble	.L51
+ 125:./Application/Src/sd.c ****                     // use atoi to convert "0" or "1" to int, and then store as bool
+ 655              		.loc 1 125 24 is_stmt 1 view .LVU151
+ 125:./Application/Src/sd.c ****                     // use atoi to convert "0" or "1" to int, and then store as bool
+ 656              		.loc 1 125 27 is_stmt 0 view .LVU152
+ 657 0056 0B2C     		cmp	r4, #11
+ 658 0058 0CDD     		ble	.L52
+ 128:./Application/Src/sd.c ****                     chord_events[index].duration_ms = atoi(token);
+ 659              		.loc 1 128 24 is_stmt 1 view .LVU153
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 16
+
+
+ 128:./Application/Src/sd.c ****                     chord_events[index].duration_ms = atoi(token);
+ 660              		.loc 1 128 27 is_stmt 0 view .LVU154
+ 661 005a 0C2C     		cmp	r4, #12
+ 662 005c 18D0     		beq	.L53
+ 130:./Application/Src/sd.c ****                     chord_events[index].delay_to_next_ms = atoi(token);
+ 663              		.loc 1 130 24 is_stmt 1 view .LVU155
+ 130:./Application/Src/sd.c ****                     chord_events[index].delay_to_next_ms = atoi(token);
+ 664              		.loc 1 130 27 is_stmt 0 view .LVU156
+ 665 005e 0D2C     		cmp	r4, #13
+ 666 0060 F1D1     		bne	.L41
+ 131:./Application/Src/sd.c ****                 }
+ 667              		.loc 1 131 21 is_stmt 1 view .LVU157
+ 131:./Application/Src/sd.c ****                 }
+ 668              		.loc 1 131 60 is_stmt 0 view .LVU158
+ 669 0062 FFF7FEFF 		bl	atoi
+ 670              	.LVL67:
+ 131:./Application/Src/sd.c ****                 }
+ 671              		.loc 1 131 58 discriminator 1 view .LVU159
+ 672 0066 05EB4502 		add	r2, r5, r5, lsl #1
+ 673 006a 1C4B     		ldr	r3, .L56+8
+ 674 006c 03EBC203 		add	r3, r3, r2, lsl #3
+ 675 0070 9882     		strh	r0, [r3, #20]	@ movhi
+ 676 0072 E8E7     		b	.L41
+ 677              	.LVL68:
+ 678              	.L52:
+ 127:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 679              		.loc 1 127 21 is_stmt 1 view .LVU160
+ 127:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 680              		.loc 1 127 68 is_stmt 0 view .LVU161
+ 681 0074 FFF7FEFF 		bl	atoi
+ 682              	.LVL69:
+ 127:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 683              		.loc 1 127 61 discriminator 1 view .LVU162
+ 684 0078 A21E     		subs	r2, r4, #2
+ 127:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 685              		.loc 1 127 21 discriminator 1 view .LVU163
+ 686 007a 0038     		subs	r0, r0, #0
+ 687 007c 18BF     		it	ne
+ 688 007e 0120     		movne	r0, #1
+ 127:./Application/Src/sd.c ****                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
+ 689              		.loc 1 127 66 discriminator 1 view .LVU164
+ 690 0080 05EB4501 		add	r1, r5, r5, lsl #1
+ 691 0084 154B     		ldr	r3, .L56+8
+ 692 0086 03EBC103 		add	r3, r3, r1, lsl #3
+ 693 008a 1344     		add	r3, r3, r2
+ 694 008c 1872     		strb	r0, [r3, #8]
+ 695 008e DAE7     		b	.L41
+ 696              	.LVL70:
+ 697              	.L53:
+ 129:./Application/Src/sd.c ****                 } else if (token_index == 3 + MAX_CHORD_NOTES) {
+ 698              		.loc 1 129 21 is_stmt 1 view .LVU165
+ 129:./Application/Src/sd.c ****                 } else if (token_index == 3 + MAX_CHORD_NOTES) {
+ 699              		.loc 1 129 55 is_stmt 0 view .LVU166
+ 700 0090 FFF7FEFF 		bl	atoi
+ 701              	.LVL71:
+ 129:./Application/Src/sd.c ****                 } else if (token_index == 3 + MAX_CHORD_NOTES) {
+ 702              		.loc 1 129 53 discriminator 1 view .LVU167
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 17
+
+
+ 703 0094 05EB4502 		add	r2, r5, r5, lsl #1
+ 704 0098 104B     		ldr	r3, .L56+8
+ 705 009a 03EBC203 		add	r3, r3, r2, lsl #3
+ 706 009e 5882     		strh	r0, [r3, #18]	@ movhi
+ 707 00a0 D1E7     		b	.L41
+ 708              	.LVL72:
+ 709              	.L55:
+ 129:./Application/Src/sd.c ****                 } else if (token_index == 3 + MAX_CHORD_NOTES) {
+ 710              		.loc 1 129 53 discriminator 1 view .LVU168
+ 711              	.LBE5:
+ 135:./Application/Src/sd.c ****             }
+ 136:./Application/Src/sd.c ****         }
+ 137:./Application/Src/sd.c **** 
+ 138:./Application/Src/sd.c ****         index++;
+ 712              		.loc 1 138 9 is_stmt 1 view .LVU169
+ 713              		.loc 1 138 14 is_stmt 0 view .LVU170
+ 714 00a2 0135     		adds	r5, r5, #1
+ 715              	.LVL73:
+ 139:./Application/Src/sd.c ****         HAL_Delay(50);
+ 716              		.loc 1 139 9 is_stmt 1 view .LVU171
+ 717 00a4 3220     		movs	r0, #50
+ 718              	.LVL74:
+ 719              		.loc 1 139 9 is_stmt 0 view .LVU172
+ 720 00a6 FFF7FEFF 		bl	HAL_Delay
+ 721              	.LVL75:
+ 722              	.L37:
+ 723              		.loc 1 139 9 view .LVU173
+ 724              	.LBE4:
+ 114:./Application/Src/sd.c ****         // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
+ 725              		.loc 1 114 50 is_stmt 1 view .LVU174
+ 114:./Application/Src/sd.c ****         // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
+ 726              		.loc 1 114 12 is_stmt 0 view .LVU175
+ 727 00aa 6A46     		mov	r2, sp
+ 728 00ac 8021     		movs	r1, #128
+ 729 00ae 0D48     		ldr	r0, .L56+16
+ 730 00b0 FFF7FEFF 		bl	f_gets
+ 731              	.LVL76:
+ 114:./Application/Src/sd.c ****         // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
+ 732              		.loc 1 114 50 discriminator 1 view .LVU176
+ 733 00b4 38B1     		cbz	r0, .L54
+ 734              	.LBB7:
+ 116:./Application/Src/sd.c ****         while (token != NULL) {
+ 735              		.loc 1 116 9 is_stmt 1 view .LVU177
+ 116:./Application/Src/sd.c ****         while (token != NULL) {
+ 736              		.loc 1 116 23 is_stmt 0 view .LVU178
+ 737 00b6 0A49     		ldr	r1, .L56+12
+ 738 00b8 0A48     		ldr	r0, .L56+16
+ 739 00ba FFF7FEFF 		bl	strtok
+ 740              	.LVL77:
+ 117:./Application/Src/sd.c ****             // parse the token and store in chord_events[index]
+ 741              		.loc 1 117 9 is_stmt 1 view .LVU179
+ 742              	.L39:
+ 117:./Application/Src/sd.c ****             // parse the token and store in chord_events[index]
+ 743              		.loc 1 117 22 view .LVU180
+ 744 00be 0028     		cmp	r0, #0
+ 745 00c0 EFD0     		beq	.L55
+ 746              	.LBB6:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 18
+
+
+ 121:./Application/Src/sd.c ****             while (token != NULL) {
+ 747              		.loc 1 121 17 is_stmt 0 view .LVU181
+ 748 00c2 0024     		movs	r4, #0
+ 749 00c4 C4E7     		b	.L45
+ 750              	.LVL78:
+ 751              	.L54:
+ 121:./Application/Src/sd.c ****             while (token != NULL) {
+ 752              		.loc 1 121 17 view .LVU182
+ 753              	.LBE6:
+ 754              	.LBE7:
+ 140:./Application/Src/sd.c ****     }
+ 141:./Application/Src/sd.c ****     f_close(&file);
+ 755              		.loc 1 141 5 is_stmt 1 view .LVU183
+ 756 00c6 6846     		mov	r0, sp
+ 757 00c8 FFF7FEFF 		bl	f_close
+ 758              	.LVL79:
+ 759              	.L36:
+ 142:./Application/Src/sd.c **** 
+ 143:./Application/Src/sd.c **** }...
+ 760              		.loc 1 143 1 is_stmt 0 view .LVU184
+ 761 00cc 0DF50B7D 		add	sp, sp, #556
+ 762              	.LCFI15:
+ 763              		.cfi_def_cfa_offset 12
+ 764              		@ sp needed
+ 765 00d0 30BD     		pop	{r4, r5, pc}
+ 766              	.L57:
+ 767 00d2 00BF     		.align	2
+ 768              	.L56:
+ 769 00d4 00000000 		.word	sd_msg
+ 770 00d8 00000000 		.word	.LC6
+ 771 00dc 00000000 		.word	chord_events
+ 772 00e0 00000000 		.word	.LC10
+ 773 00e4 00000000 		.word	sd_buf
+ 774              		.cfi_endproc
+ 775              	.LFE363:
+ 777              		.global	fileCount
+ 778              		.section	.bss.fileCount,"aw",%nobits
+ 779              		.align	2
+ 782              	fileCount:
+ 783 0000 00000000 		.space	4
+ 784              		.global	fileList
+ 785              		.section	.bss.fileList,"aw",%nobits
+ 786              		.align	2
+ 789              	fileList:
+ 790 0000 00000000 		.space	640
+ 790      00000000 
+ 790      00000000 
+ 790      00000000 
+ 790      00000000 
+ 791              		.section	.bss.sd_msg,"aw",%nobits
+ 792              		.align	2
+ 795              	sd_msg:
+ 796 0000 00000000 		.space	280
+ 796      00000000 
+ 796      00000000 
+ 796      00000000 
+ 796      00000000 
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 19
+
+
+ 797              		.section	.bss.sd_buf,"aw",%nobits
+ 798              		.align	2
+ 801              	sd_buf:
+ 802 0000 00000000 		.space	128
+ 802      00000000 
+ 802      00000000 
+ 802      00000000 
+ 802      00000000 
+ 803              		.text
+ 804              	.Letext0:
+ 805              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 806              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 807              		.file 4 "ThirdParty/FatFs/Inc/ff.h"
+ 808              		.file 5 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/lib/gcc/arm-none-eabi/15.2.1/include/stddef.h"
+ 809              		.file 6 "Application/Inc/application.h"
+ 810              		.file 7 "Application/Inc/sd.h"
+ 811              		.file 8 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdlib.h"
+ 812              		.file 9 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 813              		.file 10 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ 814              		.file 11 "Application/Inc/hc04.h"
+ 815              		.file 12 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/stdio.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s 			page 20
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 sd.c
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:22     .rodata.sd_list_txt_files.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:32     .text.sd_list_txt_files:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:38     .text.sd_list_txt_files:00000000 sd_list_txt_files
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:179    .text.sd_list_txt_files:00000090 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:782    .bss.fileCount:00000000 fileCount
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:789    .bss.fileList:00000000 fileList
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:188    .rodata.sd_list_files.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:198    .text.sd_list_files:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:204    .text.sd_list_files:00000000 sd_list_files
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:311    .text.sd_list_files:0000006c $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:795    .bss.sd_msg:00000000 sd_msg
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:320    .rodata.sd_print_file.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:327    .text.sd_print_file:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:333    .text.sd_print_file:00000000 sd_print_file
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:434    .text.sd_print_file:00000068 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:801    .bss.sd_buf:00000000 sd_buf
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:442    .rodata.sd_write_file.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:449    .text.sd_write_file:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:455    .text.sd_write_file:00000000 sd_write_file
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:552    .text.sd_write_file:00000060 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:559    .rodata.sd_parse_array.str1.4:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:563    .text.sd_parse_array:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:569    .text.sd_parse_array:00000000 sd_parse_array
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:769    .text.sd_parse_array:000000d4 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:779    .bss.fileCount:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:786    .bss.fileList:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:792    .bss.sd_msg:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cccMWeVn.s:798    .bss.sd_buf:00000000 $d
+
+UNDEFINED SYMBOLS
+f_opendir
+strncpy
+f_readdir
+strrchr
+strcmp
+f_closedir
+hc04_send_string
+snprintf
+HAL_Delay
+f_open
+f_gets
+f_close
+strlen
+f_write
+strtof
+strtok
+atoi
+chord_events
