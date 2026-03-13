@@ -126,7 +126,13 @@ int main(void)
   hc04_receive_to_idle_init(&huart1, rx_message_buffer, sizeof(rx_message_buffer));
   // init LCD
   LCD_init();
+  
+  // calib the ADC
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+  // start ADC with DMA (also enables conversion complete interrupt)
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_dma_buffer, 3);
 
+#ifndef DEBUGMODE // debug mode do not use SD card or menu
   // SD card init
   hc04_send_string((uint8_t*)"Mounting SD card...");
   HAL_Delay(1000);
@@ -146,10 +152,27 @@ int main(void)
   sd_print_file("HEY.txt");
 
   sd_parse_array("music1.txt");
-
+#endif
   HAL_TIM_Base_Start_IT(&htim5); // start controller timer interrupt
 
   encoder_start(&htim3); // start encoder reading
+
+  // enable pwm:
+
+  // HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  // HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
+
+  // initially not moving, so set compare to 500 (0% duty cycle)
+  // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+
+  // // test for current
+  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
+  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, GPIO_PIN_SET);
+  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_SET);
+  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
 
   controller_init(); // initialize controller state
 
@@ -183,9 +206,26 @@ int main(void)
     menu_update();
 #else 
     // in debug mode just display the current position from encoder
-    char pos_buf[32];
-    snprintf(pos_buf, sizeof(pos_buf), "Position: %0.2f cm", current_distance_cm);
-    LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+    // disable the DEBUG on LCD rn
+    // char pos_buf[32];
+    // snprintf(pos_buf, sizeof(pos_buf), "Position: %0.2f mm", current_distance_mm);
+    // LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+
+    // // also read the ADC value:
+    // ADC_voltage = (float)ADC_dma_buffer[0] * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
+    // const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
+    // char adc_buf[32];
+    // snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.2f A", ADC_current);
+    // LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
+
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 100); // set to 80% duty cycle for testing
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 100);
+    HAL_Delay(5000);
+    HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+    HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
+    // HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
+    // HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_2);
+    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
 
 #endif
   }
@@ -216,17 +256,14 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE
-                              |RCC_OSCILLATORTYPE_CSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
-  RCC_OscInitStruct.CSIState = RCC_CSI_ON;
-  RCC_OscInitStruct.CSICalibrationValue = RCC_CSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_CSI;
-  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 2;
   RCC_OscInitStruct.PLL.PLLN = 125;
   RCC_OscInitStruct.PLL.PLLP = 2;
   RCC_OscInitStruct.PLL.PLLQ = 2;

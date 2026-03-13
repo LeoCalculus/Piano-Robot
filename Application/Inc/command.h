@@ -14,8 +14,8 @@ void execute_command(uint8_t *command);
 // print text on LCD screen
 void set_text(uint8_t *displayedText);
 
-// set the target position (in cm)
-void set_pos(float targetPos);
+// set the target position (in mm)
+void set_pos(float target_pos);
 
 // reset the old position
 void reset_pos(TIM_HandleTypeDef *htim);

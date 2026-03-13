@@ -23,14 +23,38 @@ ChordEvent_t chord_events[MAX_CHORD_EVENTS] = {0}; // store the whole song, max 
 
 // encoder global variables
 volatile int32_t encoder_count = 0;
-volatile float encoder_old_position_cm = 0.0f; // for speed calculation
-volatile float encoder_speed_cm_s = 0.0f; // current speed in cm/s
+volatile float encoder_old_position_mm = 0.0f; // for speed calculation
+volatile float encoder_speed_mm_s = 0.0f; // current speed in mm/s
 int32_t encoder_read_result = 0;
 uint32_t encoder_direction = 0;
-volatile float current_distance_cm = 0.0f;
+volatile float current_distance_mm = 0.0f;
+volatile float target_position_mm = 0.0f;
 
 // other variables
 volatile int32_t counter = 0;
+
+// PID parameters
+PID_t left_motor = {
+    .Kp = 5.0f,
+    .Ki = 0.01f,
+    .Kd = 0.13f, //0.001
+    .Integral_max = 0.01f // 0.5
+};
+
+void pid_cycle(PID_t* target_system, float error, const float dt){
+    float derivative = (error - target_system->last_error) / dt;
+    
+    target_system->Integral += error*dt;
+    // bound the integral
+    if (target_system->Integral > target_system->Integral_max){
+        target_system->Integral = target_system->Integral_max;
+    } else if (target_system->Integral < -target_system->Integral_max) {
+        target_system->Integral = -target_system->Integral_max;
+    }
+    target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral + target_system->Kd * derivative;
+    target_system->last_error = error;
+}
+
 
 void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst) {
     for (int i = 0; i < MAX_CHORD_EVENTS; i++) {
@@ -57,17 +81,49 @@ void controller_init(void) {
 }
 
 void controller_step(const float dt) {
+#ifndef USECONTROLLER
     // read the encoder 
     uint32_t direction;
 
     encoder_read_value(&htim3, &encoder_read_result, &direction);
-    current_distance_cm = encoder_parse_distance_cm(encoder_read_result);
-    vofa.val[0] = current_distance_cm;
+    current_distance_mm = encoder_parse_distance_mm(encoder_read_result);
+    vofa.val[0] = current_distance_mm;
+
+    // pid implementation
+    float motor_left_error = target_position_mm - current_distance_mm;
+    motor_left_error = 0.0f; // disable the controller
+    pid_cycle(&left_motor, motor_left_error, dt);
+
+    float pwm_output = 0.0f;
+
+    if (motor_left_error > -ERROR_DEADBAND && motor_left_error < ERROR_DEADBAND) {
+        // close enough - stop motor
+        // controller debug using 0 and 1000 
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 900);
+        left_motor.Integral = 0.0f;  // reset integral to prevent windup
+        left_motor.output = 0.0f;
+    } else {
+        pid_cycle(&left_motor, motor_left_error, dt);
+
+        // convert pid output to pwm, clamp to valid range 0-999
+        pwm_output = left_motor.output;
+        if (pwm_output > 999.0f) pwm_output = 999.0f;
+        if (pwm_output < 0.0f) pwm_output = 0.0f;
+
+        // direction based on error -> check error so it knows where to move
+        if (motor_left_error > ERROR_DEADBAND) {
+            uint32_t pwm = (pwm_output < PWM_MIN_LEFT) ? (uint32_t)PWM_MIN_LEFT : (uint32_t)pwm_output;
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwm);
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
+        } else if (motor_left_error < -ERROR_DEADBAND) {
+            uint32_t pwm = (-pwm_output < PWM_MIN_RIGHT) ? (uint32_t)PWM_MIN_RIGHT : (uint32_t)(-pwm_output);
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pwm);
+        }
+    }
+
 
     HAL_UART_Transmit_DMA(&huart1, (uint8_t*)vofa.val, sizeof(vofa.val));
-    if (counter >= 800){
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
-        counter = 0;
-    }
-    counter++;
+#endif
 }

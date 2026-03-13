@@ -2,5 +2,6 @@
 #define __CONFIG_H
 
 #define DEBUGMODE
+#define USECONTROLLER
 
 #endif

@@ -16,11 +16,11 @@ void encoder_start(TIM_HandleTypeDef* tim);
 void encoder_read_value(TIM_HandleTypeDef* tim, int32_t* read_result, uint32_t* direction);
 
 // using encoder value and other parameter to find the distance travelled
-float encoder_parse_distance_cm(int32_t encoder_count);
+float encoder_parse_distance_mm(int32_t encoder_count);
 
 // based on distance value find the velocity (need to be careful about direction!)
 // dt according to controller
-float encoder_calc_speed_cm_s(float new_read_distance, float dt);
+float encoder_calc_speed_mm_s(float new_read_distance, float dt);
 
 
 #endif

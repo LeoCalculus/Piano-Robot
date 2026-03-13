@@ -90,14 +90,14 @@ void set_text(uint8_t *displayedText)
     LCD_draw_string(0, 13, (char *)displayedText, COLOR_BLACK, COLOR_WHITE);
 }
 
-void set_pos(float targetPos)
+void set_pos(float target_pos)
 {
-    // target_position_cm = targetPos;
+    target_position_mm = target_pos;
 }
 
 void reset_pos(TIM_HandleTypeDef *htim)
 {
-    // encoder_old_position_cm = 0.0f;
+    // encoder_old_position_mm = 0.0f;
     __HAL_TIM_SET_COUNTER(htim, 0);
 }
 

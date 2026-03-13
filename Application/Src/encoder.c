@@ -22,16 +22,16 @@ void encoder_read_value(TIM_HandleTypeDef* htim, int32_t* read_result, uint32_t*
     *direction = (htim->Instance->CR1 >> 4) & 0x1;  // DIR bit is bit 4 in CR1
 }
 
-float encoder_parse_distance_cm(int32_t encoder_count){
+float encoder_parse_distance_mm(int32_t encoder_count){
     float resolution = (float)encoder_count / (ENCODER_CPR * GEAR_RATIO);
     float distance = resolution * (PI * WHEEL_DIAMETER_CM);
-    return distance; // in cm
+    return distance * 10.0f; // in mm
 }
 
 
-float encoder_calc_speed_cm_s(float encoder_new_parsed_distance_cm, float dt){
-    float change_in_distance = encoder_new_parsed_distance_cm - encoder_old_position_cm;
+float encoder_calc_speed_mm_s(float encoder_new_parsed_distance_mm, float dt){
+    float change_in_distance = encoder_new_parsed_distance_mm - encoder_old_position_mm;
     float velocity = change_in_distance / dt;
-    encoder_old_position_cm = encoder_new_parsed_distance_cm;  // update for next call
+    encoder_old_position_mm = encoder_new_parsed_distance_mm;  // update for next call
     return velocity;
 }
