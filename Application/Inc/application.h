@@ -52,7 +52,7 @@ typedef struct __attribute__((packed)) VOFA_REPORT{
 }VOFA_REPORT;
 
 // ============================= RAM song storage ======================================
-extern float song_ram[365][14]; // 365 chords with 14 values for each chord, used for transmit song to RAM
+extern float song_ram[365][14]; // 365 chords with 14 values for each chord, used for transmit song to RAM or SD card read
 extern volatile int redirect_to_ram; // flag to indicate whether the incoming song data should be written to RAM
 extern volatile int ram_rx_started;  // 1 = start sentinel received, accumulating
 extern volatile int ram_rx_complete; // 1 = end sentinel received, ready to parse
@@ -80,6 +80,10 @@ typedef struct ChordEvent {
 extern ChordEvent_t chord_events[MAX_CHORD_EVENTS]; // store the whole song, max 100 chords
 extern VOFA_REPORT vofa;
 extern volatile float target_position_mm; // for PID control, set by the song, read by the controller step function
+extern volatile int controller_enabled; // flag to enable/disable the controller, set by the song, read by the controller step function
+extern volatile int song_ram_ready;
+extern volatile int controller_play_song;
+
 
 // ============================================= PID struct ===============================================
 typedef struct {

@@ -110,7 +110,7 @@ void sd_parse_array(const char *filename){
         return;
     }
 
-    // parse and store chord events in the file, format example:
+    // retrieve each line and parse into chord_events struct
     while (f_gets(sd_buf, sizeof(sd_buf), &file) != NULL) {
         // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
         char *token = strtok(sd_buf, " ");

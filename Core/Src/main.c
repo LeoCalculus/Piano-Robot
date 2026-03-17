@@ -159,13 +159,13 @@ int main(void)
 
   // enable pwm:
 
-  // HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  // HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 
   // initially not moving, so set compare to 500 (0% duty cycle)
-  // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
 
   // // test for current
@@ -211,18 +211,29 @@ int main(void)
     // snprintf(pos_buf, sizeof(pos_buf), "Position: %0.2f mm", current_distance_mm);
     // LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
 
-    // // also read the ADC value:
-    // ADC_voltage = (float)ADC_dma_buffer[0] * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
+    // // also read the ADC value (use safe copy from callback, not DMA buffer directly):
+    // ADC_voltage = (float)ADC_raw[0] * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
     // const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
     // char adc_buf[32];
     // snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.2f A", ADC_current);
     // LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
 
-    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 100); // set to 80% duty cycle for testing
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 900); 
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 900);
+    HAL_Delay(5000);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+    HAL_Delay(500);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 100); 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 100);
     HAL_Delay(5000);
-    HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-    HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+    HAL_Delay(2000);
+
+
+    // HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
+    // HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
     // HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
     // HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_2);
     // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);

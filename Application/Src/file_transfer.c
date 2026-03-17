@@ -16,6 +16,8 @@ static uint16_t ftWriteBufferIndex = 0;
 /* Track last completed transfer for duplicate FILE_END handling */
 static uint16_t lastCompletedBytes = 0;
 static uint32_t lastCompletedTime = 0;
+volatile int RAM_track_index = 0;
+volatile int RAM_transfer_complete = 0;
 
 /* Flush write buffer to SD card */
 static int FT_FlushWriteBuffer(void)
@@ -298,6 +300,8 @@ static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
     // Copy 14 floats (56 bytes) into song_ram[rowIndex]
     memcpy(song_ram[rowIndex], &packet[3], 56);
     ram_rx_offset += 56;
+
+    RAM_track_index++;
     // Tell PC this row is OK
     uint8_t ackData[] = {rowIndex & 0xFF, rowIndex >> 8};
     FT_SendResponse(FT_RSP_ACK, ackData, 2);
@@ -448,6 +452,7 @@ void RAM_ProcessPacket(uint8_t *packet, uint16_t length)
                 ram_rx_started = 1;
                 ram_rx_complete = 0;
                 ram_rx_offset = 0;
+                RAM_track_index = 0; // reset track index at start of new RAM transfer
                 FT_SendResponse(FT_RSP_READY, NULL, 0);
             } else {
                 FT_SendResponse(FT_RSP_NAK, (uint8_t[]){0, 0, FT_ERR_SEQUENCE}, 3);
@@ -461,6 +466,7 @@ void RAM_ProcessPacket(uint8_t *packet, uint16_t length)
         case FT_CMD_RAM_END: // [0xE2] [End Signal]
             if (packet[1] == RAM_SENTINEL_END){
                 ram_rx_complete = 1;
+                RAM_transfer_complete = 1;
                 FT_SendResponse(FT_RSP_SUCCESS, (uint8_t[]){0, 0}, 2);
             } else {
                 FT_SendResponse(FT_RSP_NAK, (uint8_t[]){0, 0, FT_ERR_SEQUENCE}, 3);

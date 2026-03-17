@@ -49,6 +49,9 @@
 
 // new added 2026.03.05 - Check sum only. applied to RAM based file transfer to avoid data lost.
 
+extern volatile int RAM_track_index;
+extern volatile int RAM_transfer_complete;
+
 /* Transfer State Machine */
 typedef enum
 {

@@ -8,6 +8,9 @@ int old_buffer_index = 0;
 int rx_complete = 0;
 int rx_valid = 0;
 volatile int uart_binary_mode = 0; // 1 = skip \n detection (binary file transfer)
+volatile int controller_enabled = 0; // flag to enable/disable the controller
+volatile int song_ram_ready = 0;
+volatile int controller_play_song = 0;
 
 // ram
 volatile int redirect_to_ram = 0; // flag to indicate whether the incoming song data should be written to RAM
@@ -66,6 +69,8 @@ void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst) {
         dst[i].duration_ms = (uint16_t)src[i][12];
         dst[i].delay_to_next_ms = (uint16_t)src[i][13];
     }
+    song_ram_ready = 1; // set flag to indicate song is ready to play
+
 }
 
 void homing_procedure(void) {
@@ -78,52 +83,70 @@ void controller_init(void) {
     vofa.vofaTail[1] = 0x00;
     vofa.vofaTail[2] = 0x80;
     vofa.vofaTail[3] = 0x7f;
+    controller_enabled = 0; // disable by default, wait for command to enable
 }
 
 void controller_step(const float dt) {
-#ifndef USECONTROLLER
-    // read the encoder 
     uint32_t direction;
-
+    // encoder test code
     encoder_read_value(&htim3, &encoder_read_result, &direction);
     current_distance_mm = encoder_parse_distance_mm(encoder_read_result);
-    vofa.val[0] = current_distance_mm;
 
-    // pid implementation
-    float motor_left_error = target_position_mm - current_distance_mm;
-    motor_left_error = 0.0f; // disable the controller
-    pid_cycle(&left_motor, motor_left_error, dt);
-
-    float pwm_output = 0.0f;
-
-    if (motor_left_error > -ERROR_DEADBAND && motor_left_error < ERROR_DEADBAND) {
-        // close enough - stop motor
-        // controller debug using 0 and 1000 
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 900);
-        left_motor.Integral = 0.0f;  // reset integral to prevent windup
-        left_motor.output = 0.0f;
-    } else {
-        pid_cycle(&left_motor, motor_left_error, dt);
-
-        // convert pid output to pwm, clamp to valid range 0-999
-        pwm_output = left_motor.output;
-        if (pwm_output > 999.0f) pwm_output = 999.0f;
-        if (pwm_output < 0.0f) pwm_output = 0.0f;
-
-        // direction based on error -> check error so it knows where to move
-        if (motor_left_error > ERROR_DEADBAND) {
-            uint32_t pwm = (pwm_output < PWM_MIN_LEFT) ? (uint32_t)PWM_MIN_LEFT : (uint32_t)pwm_output;
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwm);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
-        } else if (motor_left_error < -ERROR_DEADBAND) {
-            uint32_t pwm = (-pwm_output < PWM_MIN_RIGHT) ? (uint32_t)PWM_MIN_RIGHT : (uint32_t)(-pwm_output);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pwm);
-        }
+    counter++;
+    if (counter >= 500) {
+        counter = 0;
+        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
     }
 
+    ADC_voltage = (float)ADC_raw[0] * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
+    const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
+    vofa.val[0] = ADC_current;
+    vofa.val[1] = 23.0f;
 
-    HAL_UART_Transmit_DMA(&huart1, (uint8_t*)vofa.val, sizeof(vofa.val));
-#endif
+    if (controller_enabled) {
+        // read the encoder 
+        uint32_t direction;
+
+        encoder_read_value(&htim3, &encoder_read_result, &direction);
+        current_distance_mm = encoder_parse_distance_mm(encoder_read_result);
+        vofa.val[0] = current_distance_mm;
+
+        // pid implementation
+        float motor_left_error = target_position_mm - current_distance_mm;
+        motor_left_error = 0.0f; // disable the controller
+        pid_cycle(&left_motor, motor_left_error, dt);
+
+        float pwm_output = 0.0f;
+
+        if (motor_left_error > -ERROR_DEADBAND && motor_left_error < ERROR_DEADBAND) {
+            // close enough - stop motor
+            // controller debug using 0 and 1000 
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 900);
+            left_motor.Integral = 0.0f;  // reset integral to prevent windup
+            left_motor.output = 0.0f;
+        } else {
+            pid_cycle(&left_motor, motor_left_error, dt);
+
+            // convert pid output to pwm, clamp to valid range 0-999
+            pwm_output = left_motor.output;
+            if (pwm_output > 999.0f) pwm_output = 999.0f;
+            if (pwm_output < 0.0f) pwm_output = 0.0f;
+
+            // direction based on error -> check error so it knows where to move
+            if (motor_left_error > ERROR_DEADBAND) {
+                uint32_t pwm = (pwm_output < PWM_MIN_LEFT) ? (uint32_t)PWM_MIN_LEFT : (uint32_t)pwm_output;
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwm);
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
+            } else if (motor_left_error < -ERROR_DEADBAND) {
+                uint32_t pwm = (-pwm_output < PWM_MIN_RIGHT) ? (uint32_t)PWM_MIN_RIGHT : (uint32_t)(-pwm_output);
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
+                __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pwm);
+            }
+        }
+
+        if (huart1.gState == HAL_UART_STATE_READY) {
+            HAL_UART_Transmit_DMA(&huart1, (uint8_t*)&vofa, sizeof(vofa));
+        }
+    }
 }

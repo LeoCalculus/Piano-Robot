@@ -197,6 +197,11 @@ void menu_process_message(uint8_t *data, uint16_t len)
         /* Raw binary → RAM accumulation */
         // RAM_AccumulateData(data, len);
         RAM_ProcessPacket(data, len);
+        // check for flag if ok then we parse the song and store the data in the struct:
+        if (RAM_transfer_complete) {
+            parsing_song_buffer_to_struct(song_ram, chord_events);
+            RAM_transfer_complete = 0; // reset flag
+        }
     }
     else
     {
@@ -465,10 +470,12 @@ void menu_update(void)
             {
                 case 0: /* Play Song */
                     /* Only play if a song is selected */
-                    if (active_song_index >= 0 && active_song_index < fileCount)
+                    if ((active_song_index >= 0 && active_song_index < fileCount) || song_ram_ready) // select from SD or RAM
                     {
                         LCD_draw_string(0, 9, "Playing song...         ", COLOR_BLACK, COLOR_WHITE);
                         /* TODO: hook into traversal_song with the selected file */
+                        // send controller start playing information
+                        controller_play_song = 1;
                     }
                     else
                     {

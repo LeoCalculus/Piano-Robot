@@ -10,13 +10,13 @@
 
 int parse_command(uint8_t *cmd)
 {
-    /* ---- Colon commands (:p, :w, :s, :r, :d, :a) ---- */
+    // commands
     if (cmd[0] == ':')
     {
         switch (cmd[1])
         {
             case 'p':
-            { /* :p <value> — set position in mm */
+            { // :p <float> — set target position
                 char *arg = (char *)cmd + 2;
                 while (*arg == ' ')
                     arg++;
@@ -26,22 +26,22 @@ int parse_command(uint8_t *cmd)
                 set_pos(pos);
                 return 0;
             }
-            case 'w': /* :w — menu move up */
+            case 'w': // :w — menu move up
                 menu_move_up = 1;
                 return 0;
-            case 's': /* :s — menu move down */
+            case 's': // :s — menu move down
                 menu_move_down = 1;
                 return 0;
-            case 'r': /* :r — reset encoder position */
+            case 'r': // :r — reset encoder position
                 // reset_pos(&htim2);
                 return 0;
-            case 'd': /* :d — enter / select current menu item */
+            case 'd': // :d — enter / select current menu item
                 menu_enter = 1;
                 return 0;
-            case 'a': /* :a — back to main menu */
+            case 'a': // :a — back to main menu
                 menu_back = 1;
                 return 0;
-            case 't': // set text in LCD
+            case 't': // :t <text> — set text in LCD
                 char *arg = (char *)cmd + 2;
                 while (*arg == ' ')
                     arg++;
@@ -49,11 +49,14 @@ int parse_command(uint8_t *cmd)
                     return 3; /* incomplete */
                 set_text((uint8_t *)arg);
                 return 0;
-            case 'o': // reset position
+            case 'o': // :o — reset position
                 // reset_pos(&htim2);
                 return 0;
-            case 'l':
+            case 'l': // :l — list files over Bluetooth
                 // list_files_over_bt();
+                return 0;
+            case 'c': // :c — enable controller
+                controller_enabled = 1;
                 return 0;
 
             default:

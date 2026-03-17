@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -34,96 +34,140 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s 			page 1
    2:./Application/Src/protection.c **** volatile float ADC_converted_value = 0.0f; // initialize global variable
    3:./Application/Src/protection.c **** volatile float ADC_voltage = 0.0f; // initialize global variable
    4:./Application/Src/protection.c **** volatile uint32_t ADC_dma_buffer[3] = {0}; // initialize DMA buffer
-   5:./Application/Src/protection.c **** 
-   6:./Application/Src/protection.c **** 
-   7:./Application/Src/protection.c **** void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
-  31              		.loc 1 7 55 view -0
+   5:./Application/Src/protection.c **** volatile uint32_t ADC_raw[3] = {0}; // safe copy of ADC values
+   6:./Application/Src/protection.c **** volatile uint8_t ADC_data_ready = 0; // flag: new data available
+   7:./Application/Src/protection.c **** 
+   8:./Application/Src/protection.c **** void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+  31              		.loc 1 8 55 view -0
   32              		.cfi_startproc
   33              		@ args = 0, pretend = 0, frame = 0
   34              		@ frame_needed = 0, uses_anonymous_args = 0
   35              		@ link register save eliminated.
-   8:./Application/Src/protection.c ****     if (hadc->Instance == ADC1) {
-  36              		.loc 1 8 5 view .LVU1
-  37              		.loc 1 8 13 is_stmt 0 view .LVU2
+   9:./Application/Src/protection.c ****     if (hadc->Instance == ADC1) {
+  36              		.loc 1 9 5 view .LVU1
+  37              		.loc 1 9 13 is_stmt 0 view .LVU2
   38 0000 0268     		ldr	r2, [r0]
-  39              		.loc 1 8 8 view .LVU3
-  40 0002 064B     		ldr	r3, .L4
+  39              		.loc 1 9 8 view .LVU3
+  40 0002 084B     		ldr	r3, .L4
   41 0004 9A42     		cmp	r2, r3
   42 0006 00D0     		beq	.L3
   43              	.L1:
-   9:./Application/Src/protection.c ****         // only read one for now:
-  10:./Application/Src/protection.c ****         ADC_converted_value = ADC_dma_buffer[2]; // read the converted value
-  11:./Application/Src/protection.c ****     }
-  12:./Application/Src/protection.c **** 
-  13:./Application/Src/protection.c **** }...
-  44              		.loc 1 13 1 view .LVU4
+  10:./Application/Src/protection.c ****         // copy all channels when DMA transfer is complete (safe to read)
+  11:./Application/Src/protection.c ****         ADC_raw[0] = ADC_dma_buffer[0];
+  12:./Application/Src/protection.c ****         ADC_raw[1] = ADC_dma_buffer[1];
+  13:./Application/Src/protection.c ****         ADC_raw[2] = ADC_dma_buffer[2];
+  14:./Application/Src/protection.c ****         ADC_data_ready = 1;
+  15:./Application/Src/protection.c ****     }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s 			page 2
+
+
+  16:./Application/Src/protection.c **** }...
+  44              		.loc 1 16 1 view .LVU4
   45 0008 7047     		bx	lr
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s 			page 2
-
-
   46              	.L3:
-  10:./Application/Src/protection.c ****         ADC_converted_value = ADC_dma_buffer[2]; // read the converted value
-  47              		.loc 1 10 9 is_stmt 1 view .LVU5
-  10:./Application/Src/protection.c ****         ADC_converted_value = ADC_dma_buffer[2]; // read the converted value
-  48              		.loc 1 10 45 is_stmt 0 view .LVU6
-  49 000a 054B     		ldr	r3, .L4+4
-  50 000c D3ED027A 		vldr.32	s15, [r3, #8]	@ int
-  10:./Application/Src/protection.c ****         ADC_converted_value = ADC_dma_buffer[2]; // read the converted value
-  51              		.loc 1 10 29 view .LVU7
-  52 0010 F8EE677A 		vcvt.f32.u32	s15, s15
-  53 0014 034B     		ldr	r3, .L4+8
-  54 0016 C3ED007A 		vstr.32	s15, [r3]
-  55              		.loc 1 13 1 view .LVU8
-  56 001a F5E7     		b	.L1
-  57              	.L5:
-  58              		.align	2
-  59              	.L4:
-  60 001c 00800242 		.word	1107460096
-  61 0020 00000000 		.word	ADC_dma_buffer
-  62 0024 00000000 		.word	ADC_converted_value
-  63              		.cfi_endproc
-  64              	.LFE356:
-  66              		.global	ADC_dma_buffer
-  67              		.section	.bss.ADC_dma_buffer,"aw",%nobits
-  68              		.align	2
-  71              	ADC_dma_buffer:
-  72 0000 00000000 		.space	12
-  72      00000000 
-  72      00000000 
-  73              		.global	ADC_voltage
-  74              		.section	.bss.ADC_voltage,"aw",%nobits
-  75              		.align	2
-  78              	ADC_voltage:
-  79 0000 00000000 		.space	4
-  80              		.global	ADC_converted_value
-  81              		.section	.bss.ADC_converted_value,"aw",%nobits
-  82              		.align	2
-  85              	ADC_converted_value:
-  86 0000 00000000 		.space	4
-  87              		.text
-  88              	.Letext0:
-  89              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
-  90              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
-  91              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
-  92              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h5xx.h"
-  93              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
-  94              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
-  95              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
-  96              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_adc.h"
-  97              		.file 10 "Application/Inc/protection.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s 			page 3
+  11:./Application/Src/protection.c ****         ADC_raw[0] = ADC_dma_buffer[0];
+  47              		.loc 1 11 9 is_stmt 1 view .LVU5
+  11:./Application/Src/protection.c ****         ADC_raw[0] = ADC_dma_buffer[0];
+  48              		.loc 1 11 36 is_stmt 0 view .LVU6
+  49 000a 074A     		ldr	r2, .L4+4
+  50 000c 1168     		ldr	r1, [r2]
+  11:./Application/Src/protection.c ****         ADC_raw[0] = ADC_dma_buffer[0];
+  51              		.loc 1 11 20 view .LVU7
+  52 000e 074B     		ldr	r3, .L4+8
+  53 0010 1960     		str	r1, [r3]
+  12:./Application/Src/protection.c ****         ADC_raw[1] = ADC_dma_buffer[1];
+  54              		.loc 1 12 9 is_stmt 1 view .LVU8
+  12:./Application/Src/protection.c ****         ADC_raw[1] = ADC_dma_buffer[1];
+  55              		.loc 1 12 36 is_stmt 0 view .LVU9
+  56 0012 5168     		ldr	r1, [r2, #4]
+  12:./Application/Src/protection.c ****         ADC_raw[1] = ADC_dma_buffer[1];
+  57              		.loc 1 12 20 view .LVU10
+  58 0014 5960     		str	r1, [r3, #4]
+  13:./Application/Src/protection.c ****         ADC_raw[2] = ADC_dma_buffer[2];
+  59              		.loc 1 13 9 is_stmt 1 view .LVU11
+  13:./Application/Src/protection.c ****         ADC_raw[2] = ADC_dma_buffer[2];
+  60              		.loc 1 13 36 is_stmt 0 view .LVU12
+  61 0016 9268     		ldr	r2, [r2, #8]
+  13:./Application/Src/protection.c ****         ADC_raw[2] = ADC_dma_buffer[2];
+  62              		.loc 1 13 20 view .LVU13
+  63 0018 9A60     		str	r2, [r3, #8]
+  14:./Application/Src/protection.c ****         ADC_data_ready = 1;
+  64              		.loc 1 14 9 is_stmt 1 view .LVU14
+  14:./Application/Src/protection.c ****         ADC_data_ready = 1;
+  65              		.loc 1 14 24 is_stmt 0 view .LVU15
+  66 001a 054B     		ldr	r3, .L4+12
+  67 001c 0122     		movs	r2, #1
+  68 001e 1A70     		strb	r2, [r3]
+  69              		.loc 1 16 1 view .LVU16
+  70 0020 F2E7     		b	.L1
+  71              	.L5:
+  72 0022 00BF     		.align	2
+  73              	.L4:
+  74 0024 00800242 		.word	1107460096
+  75 0028 00000000 		.word	ADC_dma_buffer
+  76 002c 00000000 		.word	ADC_raw
+  77 0030 00000000 		.word	ADC_data_ready
+  78              		.cfi_endproc
+  79              	.LFE356:
+  81              		.global	ADC_data_ready
+  82              		.section	.bss.ADC_data_ready,"aw",%nobits
+  85              	ADC_data_ready:
+  86 0000 00       		.space	1
+  87              		.global	ADC_raw
+  88              		.section	.bss.ADC_raw,"aw",%nobits
+  89              		.align	2
+  92              	ADC_raw:
+  93 0000 00000000 		.space	12
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s 			page 3
+
+
+  93      00000000 
+  93      00000000 
+  94              		.global	ADC_dma_buffer
+  95              		.section	.bss.ADC_dma_buffer,"aw",%nobits
+  96              		.align	2
+  99              	ADC_dma_buffer:
+ 100 0000 00000000 		.space	12
+ 100      00000000 
+ 100      00000000 
+ 101              		.global	ADC_voltage
+ 102              		.section	.bss.ADC_voltage,"aw",%nobits
+ 103              		.align	2
+ 106              	ADC_voltage:
+ 107 0000 00000000 		.space	4
+ 108              		.global	ADC_converted_value
+ 109              		.section	.bss.ADC_converted_value,"aw",%nobits
+ 110              		.align	2
+ 113              	ADC_converted_value:
+ 114 0000 00000000 		.space	4
+ 115              		.text
+ 116              	.Letext0:
+ 117              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 118              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 119              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 120              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h5xx.h"
+ 121              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 122              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 123              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 124              		.file 9 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_adc.h"
+ 125              		.file 10 "Application/Inc/protection.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s 			page 4
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 protection.c
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:22     .text.HAL_ADC_ConvCpltCallback:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:28     .text.HAL_ADC_ConvCpltCallback:00000000 HAL_ADC_ConvCpltCallback
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:60     .text.HAL_ADC_ConvCpltCallback:0000001c $d
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:71     .bss.ADC_dma_buffer:00000000 ADC_dma_buffer
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:85     .bss.ADC_converted_value:00000000 ADC_converted_value
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:68     .bss.ADC_dma_buffer:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:78     .bss.ADC_voltage:00000000 ADC_voltage
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:75     .bss.ADC_voltage:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\cc2Qwscl.s:82     .bss.ADC_converted_value:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:22     .text.HAL_ADC_ConvCpltCallback:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:28     .text.HAL_ADC_ConvCpltCallback:00000000 HAL_ADC_ConvCpltCallback
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:74     .text.HAL_ADC_ConvCpltCallback:00000024 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:99     .bss.ADC_dma_buffer:00000000 ADC_dma_buffer
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:92     .bss.ADC_raw:00000000 ADC_raw
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:85     .bss.ADC_data_ready:00000000 ADC_data_ready
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:86     .bss.ADC_data_ready:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:89     .bss.ADC_raw:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:96     .bss.ADC_dma_buffer:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:106    .bss.ADC_voltage:00000000 ADC_voltage
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:103    .bss.ADC_voltage:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:113    .bss.ADC_converted_value:00000000 ADC_converted_value
+C:\Users\Xuleo\AppData\Local\Temp\ccf105Ka.s:110    .bss.ADC_converted_value:00000000 $d
 
 NO UNDEFINED SYMBOLS
