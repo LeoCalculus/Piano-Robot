@@ -1,13 +1,13 @@
 # Author: Liwei Xue 2024.3.20
 # Flash script for makefile project, using OPENOCD.
 
-SCRIPTS_PATH = C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.debug.openocd_2.3.200.202510310951/resources/openocd/st_scripts
+SCRIPTS_PATH = C:/ST/STM32CubeIDE_2.1.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.debug.openocd_2.3.300.202602021527/resources/openocd/st_scripts
 
 PROJECT = ELEC391
 TARGET = stm32h5x
 INTERFACE = stlink-dap
 
-OCD = C:/ST/STM32CubeIDE_2.0.0/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.openocd.win32_2.4.300.202509300731/tools/bin/openocd
+OCD = C:/ST/STM32CubeIDE_2.1.1/STM32CubeIDE/plugins/com.st.stm32cube.ide.mcu.externaltools.openocd.win32_2.4.400.202601091506/tools/bin/openocd
 ELF = build/$(PROJECT).elf
 
 default: load
