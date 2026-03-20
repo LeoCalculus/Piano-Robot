@@ -10,22 +10,16 @@ void encoder_start(TIM_HandleTypeDef* htim){
     encoder_accumulated = 0;
 }
 
-void encoder_read_value(TIM_HandleTypeDef* htim, int32_t* read_result, uint32_t* direction){
-    uint16_t current_count = __HAL_TIM_GET_COUNTER(htim);
-    // calculate delta as signed 16-bit to handle wraparound correctly
-    int16_t delta = (int16_t)(current_count - encoder_last_count);
-    encoder_accumulated += delta;
-    encoder_last_count = current_count;
-
-    *read_result = encoder_accumulated;
-    // TIM_CR1_DIR is not defined in tim.h file, read from register directly
-    *direction = (htim->Instance->CR1 >> 4) & 0x1;  // DIR bit is bit 4 in CR1
+int16_t encoder_read_value(TIM_HandleTypeDef* htim){
+    uint16_t delta_count = __HAL_TIM_GET_COUNTER(htim);
+    __HAL_TIM_SetCounter(htim, 0);
+    return (int16_t) delta_count;
 }
 
 float encoder_parse_distance_mm(int32_t encoder_count){
-    float resolution = (float)encoder_count / (ENCODER_CPR * GEAR_RATIO);
-    float distance = resolution * (PI * WHEEL_DIAMETER_CM);
-    return distance * 10.0f; // in mm
+    float revolution = (float) encoder_count / (ENCODER_CPR * GEAR_RATIO);
+    float distance = revolution * REV_LENGTH;
+    return distance; // in mm
 }
 
 

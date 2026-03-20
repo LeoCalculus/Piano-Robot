@@ -1,0 +1,251 @@
+ARM GAS  C:\Users\admin\AppData\Local\Temp\ccwLmZua.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"user_timer.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/user_timer.c"
+  21              		.section	.text.user_timer_tick_init,"ax",%progbits
+  22              		.align	1
+  23              		.global	user_timer_tick_init
+  24              		.syntax unified
+  25              		.thumb
+  26              		.thumb_func
+  28              	user_timer_tick_init:
+  29              	.LFB359:
+   1:./Application/Src/user_timer.c **** #include <user_timer.h>
+   2:./Application/Src/user_timer.c **** 
+   3:./Application/Src/user_timer.c **** uint8_t timer2_tick;
+   4:./Application/Src/user_timer.c **** uint8_t timer5_tick;
+   5:./Application/Src/user_timer.c **** uint8_t menu_update_flag;
+   6:./Application/Src/user_timer.c **** 
+   7:./Application/Src/user_timer.c **** void user_timer_tick_init(){
+  30              		.loc 1 7 28 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   8:./Application/Src/user_timer.c ****     timer2_tick = 0;
+  35              		.loc 1 8 5 view .LVU1
+  36              		.loc 1 8 17 is_stmt 0 view .LVU2
+  37 0000 0023     		movs	r3, #0
+  38 0002 034A     		ldr	r2, .L2
+  39 0004 1370     		strb	r3, [r2]
+   9:./Application/Src/user_timer.c ****     timer5_tick = 0;
+  40              		.loc 1 9 5 is_stmt 1 view .LVU3
+  41              		.loc 1 9 17 is_stmt 0 view .LVU4
+  42 0006 034A     		ldr	r2, .L2+4
+  43 0008 1370     		strb	r3, [r2]
+  10:./Application/Src/user_timer.c ****     menu_update_flag = 0;
+  44              		.loc 1 10 5 is_stmt 1 view .LVU5
+  45              		.loc 1 10 22 is_stmt 0 view .LVU6
+  46 000a 034A     		ldr	r2, .L2+8
+  47 000c 1370     		strb	r3, [r2]
+  11:./Application/Src/user_timer.c **** }
+ARM GAS  C:\Users\admin\AppData\Local\Temp\ccwLmZua.s 			page 2
+
+
+  48              		.loc 1 11 1 view .LVU7
+  49 000e 7047     		bx	lr
+  50              	.L3:
+  51              		.align	2
+  52              	.L2:
+  53 0010 00000000 		.word	timer2_tick
+  54 0014 00000000 		.word	timer5_tick
+  55 0018 00000000 		.word	menu_update_flag
+  56              		.cfi_endproc
+  57              	.LFE359:
+  59              		.section	.text.user_timer2_ISR,"ax",%progbits
+  60              		.align	1
+  61              		.global	user_timer2_ISR
+  62              		.syntax unified
+  63              		.thumb
+  64              		.thumb_func
+  66              	user_timer2_ISR:
+  67              	.LFB360:
+  12:./Application/Src/user_timer.c **** 
+  13:./Application/Src/user_timer.c **** void user_timer2_ISR(){
+  68              		.loc 1 13 23 is_stmt 1 view -0
+  69              		.cfi_startproc
+  70              		@ args = 0, pretend = 0, frame = 0
+  71              		@ frame_needed = 0, uses_anonymous_args = 0
+  72              		@ link register save eliminated.
+  14:./Application/Src/user_timer.c ****     
+  15:./Application/Src/user_timer.c ****     timer2_tick++;
+  73              		.loc 1 15 5 view .LVU9
+  74              		.loc 1 15 16 is_stmt 0 view .LVU10
+  75 0000 064A     		ldr	r2, .L6
+  76 0002 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+  77 0004 0133     		adds	r3, r3, #1
+  78 0006 DBB2     		uxtb	r3, r3
+  79 0008 1370     		strb	r3, [r2]
+  16:./Application/Src/user_timer.c **** 
+  17:./Application/Src/user_timer.c ****     if(timer2_tick >= MENU_FRAME_RATE){
+  80              		.loc 1 17 5 is_stmt 1 view .LVU11
+  81              		.loc 1 17 7 is_stmt 0 view .LVU12
+  82 000a 312B     		cmp	r3, #49
+  83 000c 05D9     		bls	.L4
+  18:./Application/Src/user_timer.c ****         menu_update_flag = 1;
+  84              		.loc 1 18 9 is_stmt 1 view .LVU13
+  85              		.loc 1 18 26 is_stmt 0 view .LVU14
+  86 000e 044B     		ldr	r3, .L6+4
+  87 0010 0122     		movs	r2, #1
+  88 0012 1A70     		strb	r2, [r3]
+  19:./Application/Src/user_timer.c ****         timer2_tick = 0;
+  89              		.loc 1 19 9 is_stmt 1 view .LVU15
+  90              		.loc 1 19 21 is_stmt 0 view .LVU16
+  91 0014 014B     		ldr	r3, .L6
+  92 0016 0022     		movs	r2, #0
+  93 0018 1A70     		strb	r2, [r3]
+  94              	.L4:
+  20:./Application/Src/user_timer.c ****     }
+  21:./Application/Src/user_timer.c **** }
+  95              		.loc 1 21 1 view .LVU17
+  96 001a 7047     		bx	lr
+ARM GAS  C:\Users\admin\AppData\Local\Temp\ccwLmZua.s 			page 3
+
+
+  97              	.L7:
+  98              		.align	2
+  99              	.L6:
+ 100 001c 00000000 		.word	timer2_tick
+ 101 0020 00000000 		.word	menu_update_flag
+ 102              		.cfi_endproc
+ 103              	.LFE360:
+ 105              		.section	.text.user_timer5_ISR,"ax",%progbits
+ 106              		.align	1
+ 107              		.global	user_timer5_ISR
+ 108              		.syntax unified
+ 109              		.thumb
+ 110              		.thumb_func
+ 112              	user_timer5_ISR:
+ 113              	.LFB361:
+  22:./Application/Src/user_timer.c **** 
+  23:./Application/Src/user_timer.c **** void user_timer5_ISR(){
+ 114              		.loc 1 23 23 is_stmt 1 view -0
+ 115              		.cfi_startproc
+ 116              		@ args = 0, pretend = 0, frame = 0
+ 117              		@ frame_needed = 0, uses_anonymous_args = 0
+ 118 0000 38B5     		push	{r3, r4, r5, lr}
+ 119              	.LCFI0:
+ 120              		.cfi_def_cfa_offset 16
+ 121              		.cfi_offset 3, -16
+ 122              		.cfi_offset 4, -12
+ 123              		.cfi_offset 5, -8
+ 124              		.cfi_offset 14, -4
+  24:./Application/Src/user_timer.c **** 
+  25:./Application/Src/user_timer.c ****     timer5_tick++;
+ 125              		.loc 1 25 5 view .LVU19
+ 126              		.loc 1 25 16 is_stmt 0 view .LVU20
+ 127 0002 0E4C     		ldr	r4, .L10
+ 128 0004 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 129 0006 0133     		adds	r3, r3, #1
+ 130 0008 2370     		strb	r3, [r4]
+  26:./Application/Src/user_timer.c ****     
+  27:./Application/Src/user_timer.c ****     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, SET);
+ 131              		.loc 1 27 5 is_stmt 1 view .LVU21
+ 132 000a 0D4D     		ldr	r5, .L10+4
+ 133 000c 0122     		movs	r2, #1
+ 134 000e 4FF48051 		mov	r1, #4096
+ 135 0012 2846     		mov	r0, r5
+ 136 0014 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 137              	.LVL0:
+  28:./Application/Src/user_timer.c ****     controller_step(0.001f);
+ 138              		.loc 1 28 5 view .LVU22
+ 139 0018 9FED0A0A 		vldr.32	s0, .L10+8
+ 140 001c FFF7FEFF 		bl	controller_step
+ 141              	.LVL1:
+  29:./Application/Src/user_timer.c ****     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, RESET);
+ 142              		.loc 1 29 5 view .LVU23
+ 143 0020 0022     		movs	r2, #0
+ 144 0022 4FF48051 		mov	r1, #4096
+ 145 0026 2846     		mov	r0, r5
+ 146 0028 FFF7FEFF 		bl	HAL_GPIO_WritePin
+ 147              	.LVL2:
+ARM GAS  C:\Users\admin\AppData\Local\Temp\ccwLmZua.s 			page 4
+
+
+  30:./Application/Src/user_timer.c ****     HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+ 148              		.loc 1 30 5 view .LVU24
+ 149 002c 4FF48061 		mov	r1, #1024
+ 150 0030 0548     		ldr	r0, .L10+12
+ 151 0032 FFF7FEFF 		bl	HAL_GPIO_TogglePin
+ 152              	.LVL3:
+  31:./Application/Src/user_timer.c ****     timer5_tick = 0;
+ 153              		.loc 1 31 5 view .LVU25
+ 154              		.loc 1 31 17 is_stmt 0 view .LVU26
+ 155 0036 0023     		movs	r3, #0
+ 156 0038 2370     		strb	r3, [r4]
+  32:./Application/Src/user_timer.c **** }...
+ 157              		.loc 1 32 1 view .LVU27
+ 158 003a 38BD     		pop	{r3, r4, r5, pc}
+ 159              	.L11:
+ 160              		.align	2
+ 161              	.L10:
+ 162 003c 00000000 		.word	timer5_tick
+ 163 0040 00080242 		.word	1107429376
+ 164 0044 6F12833A 		.word	981668463
+ 165 0048 00000242 		.word	1107427328
+ 166              		.cfi_endproc
+ 167              	.LFE361:
+ 169              		.global	menu_update_flag
+ 170              		.section	.bss.menu_update_flag,"aw",%nobits
+ 173              	menu_update_flag:
+ 174 0000 00       		.space	1
+ 175              		.global	timer5_tick
+ 176              		.section	.bss.timer5_tick,"aw",%nobits
+ 179              	timer5_tick:
+ 180 0000 00       		.space	1
+ 181              		.global	timer2_tick
+ 182              		.section	.bss.timer2_tick,"aw",%nobits
+ 185              	timer2_tick:
+ 186 0000 00       		.space	1
+ 187              		.text
+ 188              	.Letext0:
+ 189              		.file 2 "C:/arm-bare-metal/arm-none-eabi/include/machine/_default_types.h"
+ 190              		.file 3 "C:/arm-bare-metal/arm-none-eabi/include/sys/_stdint.h"
+ 191              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 192              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h5xx.h"
+ 193              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ 194              		.file 7 "Application/Inc/application.h"
+ARM GAS  C:\Users\admin\AppData\Local\Temp\ccwLmZua.s 			page 5
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 user_timer.c
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:22     .text.user_timer_tick_init:00000000 $t
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:28     .text.user_timer_tick_init:00000000 user_timer_tick_init
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:53     .text.user_timer_tick_init:00000010 $d
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:185    .bss.timer2_tick:00000000 timer2_tick
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:179    .bss.timer5_tick:00000000 timer5_tick
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:173    .bss.menu_update_flag:00000000 menu_update_flag
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:60     .text.user_timer2_ISR:00000000 $t
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:66     .text.user_timer2_ISR:00000000 user_timer2_ISR
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:100    .text.user_timer2_ISR:0000001c $d
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:106    .text.user_timer5_ISR:00000000 $t
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:112    .text.user_timer5_ISR:00000000 user_timer5_ISR
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:162    .text.user_timer5_ISR:0000003c $d
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:174    .bss.menu_update_flag:00000000 $d
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:180    .bss.timer5_tick:00000000 $d
+C:\Users\admin\AppData\Local\Temp\ccwLmZua.s:186    .bss.timer2_tick:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GPIO_WritePin
+controller_step
+HAL_GPIO_TogglePin

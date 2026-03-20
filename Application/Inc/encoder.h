@@ -6,14 +6,14 @@
 #include <stdint.h>
 
 #define ENCODER_CPR 64 // 16 CPR * 4 (quadrature mode counts all edges)
-#define GEAR_RATIO 43.8f
-#define WHEEL_DIAMETER_CM 5.0f
+#define GEAR_RATIO 6.25f
+#define REV_LENGTH 73.0f
 
 // enable the encoder - in initialization stage
 void encoder_start(TIM_HandleTypeDef* tim);
 
 // read encoder value
-void encoder_read_value(TIM_HandleTypeDef* tim, int32_t* read_result, uint32_t* direction);
+int16_t encoder_read_value(TIM_HandleTypeDef* tim);
 
 // using encoder value and other parameter to find the distance travelled
 float encoder_parse_distance_mm(int32_t encoder_count);

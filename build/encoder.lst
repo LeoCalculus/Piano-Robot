@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 1
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cc0utQx9.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -58,7 +58,7 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 1
   47              		.loc 1 9 26 is_stmt 0 view .LVU4
   48 000a 2368     		ldr	r3, [r4]
   49 000c 5A6A     		ldr	r2, [r3, #36]
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 2
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cc0utQx9.s 			page 2
 
 
   50              		.loc 1 9 24 view .LVU5
@@ -92,243 +92,165 @@ ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 1
   78              	.LVL3:
   79              	.LFB360:
   12:./Application/Src/encoder.c **** 
-  13:./Application/Src/encoder.c **** void encoder_read_value(TIM_HandleTypeDef* htim, int32_t* read_result, uint32_t* direction){
-  80              		.loc 1 13 92 is_stmt 1 view -0
+  13:./Application/Src/encoder.c **** int16_t encoder_read_value(TIM_HandleTypeDef* htim){
+  80              		.loc 1 13 52 is_stmt 1 view -0
   81              		.cfi_startproc
   82              		@ args = 0, pretend = 0, frame = 0
   83              		@ frame_needed = 0, uses_anonymous_args = 0
-  84              		.loc 1 13 92 is_stmt 0 view .LVU11
-  85 0000 30B5     		push	{r4, r5, lr}
-  86              	.LCFI1:
-  87              		.cfi_def_cfa_offset 12
-  88              		.cfi_offset 4, -12
-  89              		.cfi_offset 5, -8
-  90              		.cfi_offset 14, -4
-  91 0002 1546     		mov	r5, r2
-  14:./Application/Src/encoder.c ****     uint16_t current_count = __HAL_TIM_GET_COUNTER(htim);
-  92              		.loc 1 14 5 is_stmt 1 view .LVU12
-  93              		.loc 1 14 30 is_stmt 0 view .LVU13
-  94 0004 0368     		ldr	r3, [r0]
-  95 0006 5B6A     		ldr	r3, [r3, #36]
-  96              		.loc 1 14 14 view .LVU14
-  97 0008 1FFA83FC 		uxth	ip, r3
-  98              	.LVL4:
-  15:./Application/Src/encoder.c ****     // calculate delta as signed 16-bit to handle wraparound correctly
-  16:./Application/Src/encoder.c ****     int16_t delta = (int16_t)(current_count - encoder_last_count);
-  99              		.loc 1 16 5 is_stmt 1 view .LVU15
- 100              		.loc 1 16 45 is_stmt 0 view .LVU16
- 101 000c DFF828E0 		ldr	lr, .L7+4
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 3
+  84              		@ link register save eliminated.
+  14:./Application/Src/encoder.c ****     uint16_t delta_count = __HAL_TIM_GET_COUNTER(htim);
+  85              		.loc 1 14 5 view .LVU11
+  86              		.loc 1 14 28 is_stmt 0 view .LVU12
+  87 0000 0368     		ldr	r3, [r0]
+  88 0002 586A     		ldr	r0, [r3, #36]
+  89              	.LVL4:
+  15:./Application/Src/encoder.c ****     __HAL_TIM_SetCounter(htim, 0);
+  90              		.loc 1 15 5 is_stmt 1 view .LVU13
+  91 0004 0022     		movs	r2, #0
+  92 0006 5A62     		str	r2, [r3, #36]
+  16:./Application/Src/encoder.c ****     return (int16_t) delta_count;
+  93              		.loc 1 16 5 view .LVU14
+  17:./Application/Src/encoder.c **** }
+  94              		.loc 1 17 1 is_stmt 0 view .LVU15
+  95 0008 00B2     		sxth	r0, r0
+  96              		.loc 1 17 1 view .LVU16
+  97 000a 7047     		bx	lr
+  98              		.cfi_endproc
+  99              	.LFE360:
+ 101              		.section	.text.encoder_parse_distance_mm,"ax",%progbits
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cc0utQx9.s 			page 3
 
 
- 102 0010 BEF80030 		ldrh	r3, [lr]
- 103 0014 ACEB0303 		sub	r3, ip, r3
- 104              	.LVL5:
-  17:./Application/Src/encoder.c ****     encoder_accumulated += delta;
- 105              		.loc 1 17 5 is_stmt 1 view .LVU17
- 106              		.loc 1 17 25 is_stmt 0 view .LVU18
- 107 0018 064A     		ldr	r2, .L7
- 108              	.LVL6:
- 109              		.loc 1 17 25 view .LVU19
- 110 001a 1468     		ldr	r4, [r2]
- 111 001c 04FA83F3 		sxtah	r3, r4, r3
- 112              	.LVL7:
- 113              		.loc 1 17 25 view .LVU20
- 114 0020 1360     		str	r3, [r2]
-  18:./Application/Src/encoder.c ****     encoder_last_count = current_count;
- 115              		.loc 1 18 5 is_stmt 1 view .LVU21
- 116              		.loc 1 18 24 is_stmt 0 view .LVU22
- 117 0022 AEF800C0 		strh	ip, [lr]	@ movhi
- 118              	.LVL8:
-  19:./Application/Src/encoder.c **** 
-  20:./Application/Src/encoder.c ****     *read_result = encoder_accumulated;
- 119              		.loc 1 20 5 is_stmt 1 view .LVU23
- 120              		.loc 1 20 18 is_stmt 0 view .LVU24
- 121 0026 0B60     		str	r3, [r1]
-  21:./Application/Src/encoder.c ****     // TIM_CR1_DIR is not defined in tim.h file, read from register directly
-  22:./Application/Src/encoder.c ****     *direction = (htim->Instance->CR1 >> 4) & 0x1;  // DIR bit is bit 4 in CR1
- 122              		.loc 1 22 5 is_stmt 1 view .LVU25
- 123              		.loc 1 22 23 is_stmt 0 view .LVU26
- 124 0028 0368     		ldr	r3, [r0]
- 125              		.loc 1 22 33 view .LVU27
- 126 002a 1B68     		ldr	r3, [r3]
- 127              		.loc 1 22 45 view .LVU28
- 128 002c C3F30013 		ubfx	r3, r3, #4, #1
- 129              		.loc 1 22 16 view .LVU29
- 130 0030 2B60     		str	r3, [r5]
+ 102              		.align	1
+ 103              		.global	encoder_parse_distance_mm
+ 104              		.syntax unified
+ 105              		.thumb
+ 106              		.thumb_func
+ 108              	encoder_parse_distance_mm:
+ 109              	.LVL5:
+ 110              	.LFB361:
+  18:./Application/Src/encoder.c **** 
+  19:./Application/Src/encoder.c **** float encoder_parse_distance_mm(int32_t encoder_count){
+ 111              		.loc 1 19 55 is_stmt 1 view -0
+ 112              		.cfi_startproc
+ 113              		@ args = 0, pretend = 0, frame = 0
+ 114              		@ frame_needed = 0, uses_anonymous_args = 0
+ 115              		@ link register save eliminated.
+ 116              		.loc 1 19 55 is_stmt 0 view .LVU18
+ 117 0000 07EE900A 		vmov	s15, r0	@ int
+  20:./Application/Src/encoder.c ****     float revolution = (float) encoder_count / (ENCODER_CPR * GEAR_RATIO);
+ 118              		.loc 1 20 5 is_stmt 1 view .LVU19
+ 119              		.loc 1 20 24 is_stmt 0 view .LVU20
+ 120 0004 F8EEE77A 		vcvt.f32.s32	s15, s15
+ 121              		.loc 1 20 11 view .LVU21
+ 122 0008 9FED047A 		vldr.32	s14, .L7
+ 123 000c 87EE870A 		vdiv.f32	s0, s15, s14
+ 124              	.LVL6:
+  21:./Application/Src/encoder.c ****     float distance = revolution * REV_LENGTH;
+ 125              		.loc 1 21 5 is_stmt 1 view .LVU22
+  22:./Application/Src/encoder.c ****     return distance; // in mm
+ 126              		.loc 1 22 5 view .LVU23
   23:./Application/Src/encoder.c **** }
- 131              		.loc 1 23 1 view .LVU30
- 132 0032 30BD     		pop	{r4, r5, pc}
- 133              	.LVL9:
- 134              	.L8:
- 135              		.loc 1 23 1 view .LVU31
- 136              		.align	2
- 137              	.L7:
- 138 0034 00000000 		.word	encoder_accumulated
- 139 0038 00000000 		.word	encoder_last_count
- 140              		.cfi_endproc
- 141              	.LFE360:
- 143              		.section	.text.encoder_parse_distance_mm,"ax",%progbits
- 144              		.align	1
- 145              		.global	encoder_parse_distance_mm
- 146              		.syntax unified
- 147              		.thumb
- 148              		.thumb_func
- 150              	encoder_parse_distance_mm:
- 151              	.LVL10:
- 152              	.LFB361:
+ 127              		.loc 1 23 1 is_stmt 0 view .LVU24
+ 128 0010 DFED037A 		vldr.32	s15, .L7+4
+ 129 0014 20EE270A 		vmul.f32	s0, s0, s15
+ 130              	.LVL7:
+ 131              		.loc 1 23 1 view .LVU25
+ 132 0018 7047     		bx	lr
+ 133              	.L8:
+ 134 001a 00BF     		.align	2
+ 135              	.L7:
+ 136 001c 0000C843 		.word	1137180672
+ 137 0020 00009242 		.word	1116864512
+ 138              		.cfi_endproc
+ 139              	.LFE361:
+ 141              		.section	.text.encoder_calc_speed_mm_s,"ax",%progbits
+ 142              		.align	1
+ 143              		.global	encoder_calc_speed_mm_s
+ 144              		.syntax unified
+ 145              		.thumb
+ 146              		.thumb_func
+ 148              	encoder_calc_speed_mm_s:
+ 149              	.LVL8:
+ 150              	.LFB362:
   24:./Application/Src/encoder.c **** 
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 4
+  25:./Application/Src/encoder.c **** 
+  26:./Application/Src/encoder.c **** float encoder_calc_speed_mm_s(float encoder_new_parsed_distance_mm, float dt){
+ 151              		.loc 1 26 78 is_stmt 1 view -0
+ 152              		.cfi_startproc
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cc0utQx9.s 			page 4
 
 
-  25:./Application/Src/encoder.c **** float encoder_parse_distance_mm(int32_t encoder_count){
- 153              		.loc 1 25 55 is_stmt 1 view -0
- 154              		.cfi_startproc
- 155              		@ args = 0, pretend = 0, frame = 0
- 156              		@ frame_needed = 0, uses_anonymous_args = 0
- 157              		.loc 1 25 55 is_stmt 0 view .LVU33
- 158 0000 08B5     		push	{r3, lr}
- 159              	.LCFI2:
- 160              		.cfi_def_cfa_offset 8
- 161              		.cfi_offset 3, -8
- 162              		.cfi_offset 14, -4
- 163 0002 07EE900A 		vmov	s15, r0	@ int
-  26:./Application/Src/encoder.c ****     float resolution = (float)encoder_count / (ENCODER_CPR * GEAR_RATIO);
- 164              		.loc 1 26 5 is_stmt 1 view .LVU34
- 165              		.loc 1 26 24 is_stmt 0 view .LVU35
- 166 0006 F8EEE77A 		vcvt.f32.s32	s15, s15
- 167              	.LVL11:
-  27:./Application/Src/encoder.c ****     float distance = resolution * (PI * WHEEL_DIAMETER_CM);
- 168              		.loc 1 27 5 is_stmt 1 view .LVU36
- 169              		.loc 1 27 33 is_stmt 0 view .LVU37
- 170 000a 9FED0D7A 		vldr.32	s14, .L11+8
- 171 000e C7EE877A 		vdiv.f32	s15, s15, s14
- 172              	.LVL12:
- 173              		.loc 1 27 33 view .LVU38
- 174 0012 17EE900A 		vmov	r0, s15
- 175              	.LVL13:
- 176              		.loc 1 27 33 view .LVU39
- 177 0016 FFF7FEFF 		bl	__aeabi_f2d
- 178              	.LVL14:
- 179              		.loc 1 27 33 view .LVU40
- 180 001a 07A3     		adr	r3, .L11
- 181 001c D3E90023 		ldrd	r2, [r3]
- 182 0020 FFF7FEFF 		bl	__aeabi_dmul
- 183              	.LVL15:
- 184              		.loc 1 27 11 view .LVU41
- 185 0024 FFF7FEFF 		bl	__aeabi_d2f
- 186              	.LVL16:
- 187 0028 00EE100A 		vmov	s0, r0
- 188              	.LVL17:
-  28:./Application/Src/encoder.c ****     return distance * 10.0f; // in mm
- 189              		.loc 1 28 5 is_stmt 1 view .LVU42
-  29:./Application/Src/encoder.c **** }
- 190              		.loc 1 29 1 is_stmt 0 view .LVU43
- 191 002c F2EE047A 		vmov.f32	s15, #1.0e+1
- 192 0030 20EE270A 		vmul.f32	s0, s0, s15
- 193 0034 08BD     		pop	{r3, pc}
- 194              	.L12:
- 195 0036 00BF     		.align	3
- 196              	.L11:
- 197 0038 0A68226C 		.word	1814194186
- 198 003c 786A2F40 		.word	1076849272
- 199 0040 33332F45 		.word	1160721203
- 200              		.cfi_endproc
- 201              	.LFE361:
- 203              		.section	.text.encoder_calc_speed_mm_s,"ax",%progbits
- 204              		.align	1
- 205              		.global	encoder_calc_speed_mm_s
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 5
-
-
- 206              		.syntax unified
- 207              		.thumb
- 208              		.thumb_func
- 210              	encoder_calc_speed_mm_s:
- 211              	.LVL18:
- 212              	.LFB362:
-  30:./Application/Src/encoder.c **** 
-  31:./Application/Src/encoder.c **** 
-  32:./Application/Src/encoder.c **** float encoder_calc_speed_mm_s(float encoder_new_parsed_distance_mm, float dt){
- 213              		.loc 1 32 78 is_stmt 1 view -0
- 214              		.cfi_startproc
- 215              		@ args = 0, pretend = 0, frame = 0
- 216              		@ frame_needed = 0, uses_anonymous_args = 0
- 217              		@ link register save eliminated.
-  33:./Application/Src/encoder.c ****     float change_in_distance = encoder_new_parsed_distance_mm - encoder_old_position_mm;
- 218              		.loc 1 33 5 view .LVU45
- 219              		.loc 1 33 63 is_stmt 0 view .LVU46
- 220 0000 044B     		ldr	r3, .L14
- 221 0002 D3ED007A 		vldr.32	s15, [r3]
- 222              		.loc 1 33 11 view .LVU47
- 223 0006 70EE677A 		vsub.f32	s15, s0, s15
- 224              	.LVL19:
-  34:./Application/Src/encoder.c ****     float velocity = change_in_distance / dt;
- 225              		.loc 1 34 5 is_stmt 1 view .LVU48
-  35:./Application/Src/encoder.c ****     encoder_old_position_mm = encoder_new_parsed_distance_mm;  // update for next call
- 226              		.loc 1 35 5 view .LVU49
- 227              		.loc 1 35 29 is_stmt 0 view .LVU50
- 228 000a 83ED000A 		vstr.32	s0, [r3]
-  36:./Application/Src/encoder.c ****     return velocity;
- 229              		.loc 1 36 5 is_stmt 1 view .LVU51
-  37:./Application/Src/encoder.c **** }...
- 230              		.loc 1 37 1 is_stmt 0 view .LVU52
- 231 000e 87EEA00A 		vdiv.f32	s0, s15, s1
- 232              	.LVL20:
- 233              		.loc 1 37 1 view .LVU53
- 234 0012 7047     		bx	lr
- 235              	.L15:
- 236              		.align	2
- 237              	.L14:
- 238 0014 00000000 		.word	encoder_old_position_mm
- 239              		.cfi_endproc
- 240              	.LFE362:
- 242              		.section	.bss.encoder_accumulated,"aw",%nobits
- 243              		.align	2
- 246              	encoder_accumulated:
- 247 0000 00000000 		.space	4
- 248              		.section	.bss.encoder_last_count,"aw",%nobits
- 249              		.align	1
- 252              	encoder_last_count:
- 253 0000 0000     		.space	2
- 254              		.text
- 255              	.Letext0:
- 256              		.file 2 "C:/arm-bare-metal/arm-none-eabi/include/machine/_default_types.h"
- 257              		.file 3 "C:/arm-bare-metal/arm-none-eabi/include/sys/_stdint.h"
- 258              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
- 259              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
- 260              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 6
-
-
- 261              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
- 262              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
- 263              		.file 9 "Application/Inc/application.h"
-ARM GAS  C:\Users\admin\AppData\Local\Temp\ccA4kjof.s 			page 7
+ 153              		@ args = 0, pretend = 0, frame = 0
+ 154              		@ frame_needed = 0, uses_anonymous_args = 0
+ 155              		@ link register save eliminated.
+  27:./Application/Src/encoder.c ****     float change_in_distance = encoder_new_parsed_distance_mm - encoder_old_position_mm;
+ 156              		.loc 1 27 5 view .LVU27
+ 157              		.loc 1 27 63 is_stmt 0 view .LVU28
+ 158 0000 044B     		ldr	r3, .L10
+ 159 0002 D3ED007A 		vldr.32	s15, [r3]
+ 160              		.loc 1 27 11 view .LVU29
+ 161 0006 70EE677A 		vsub.f32	s15, s0, s15
+ 162              	.LVL9:
+  28:./Application/Src/encoder.c ****     float velocity = change_in_distance / dt;
+ 163              		.loc 1 28 5 is_stmt 1 view .LVU30
+  29:./Application/Src/encoder.c ****     encoder_old_position_mm = encoder_new_parsed_distance_mm;  // update for next call
+ 164              		.loc 1 29 5 view .LVU31
+ 165              		.loc 1 29 29 is_stmt 0 view .LVU32
+ 166 000a 83ED000A 		vstr.32	s0, [r3]
+  30:./Application/Src/encoder.c ****     return velocity;
+ 167              		.loc 1 30 5 is_stmt 1 view .LVU33
+  31:./Application/Src/encoder.c **** }...
+ 168              		.loc 1 31 1 is_stmt 0 view .LVU34
+ 169 000e 87EEA00A 		vdiv.f32	s0, s15, s1
+ 170              	.LVL10:
+ 171              		.loc 1 31 1 view .LVU35
+ 172 0012 7047     		bx	lr
+ 173              	.L11:
+ 174              		.align	2
+ 175              	.L10:
+ 176 0014 00000000 		.word	encoder_old_position_mm
+ 177              		.cfi_endproc
+ 178              	.LFE362:
+ 180              		.section	.bss.encoder_accumulated,"aw",%nobits
+ 181              		.align	2
+ 184              	encoder_accumulated:
+ 185 0000 00000000 		.space	4
+ 186              		.section	.bss.encoder_last_count,"aw",%nobits
+ 187              		.align	1
+ 190              	encoder_last_count:
+ 191 0000 0000     		.space	2
+ 192              		.text
+ 193              	.Letext0:
+ 194              		.file 2 "C:/arm-bare-metal/arm-none-eabi/include/machine/_default_types.h"
+ 195              		.file 3 "C:/arm-bare-metal/arm-none-eabi/include/sys/_stdint.h"
+ 196              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 197              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 198              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 199              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 200              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ 201              		.file 9 "Application/Inc/application.h"
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cc0utQx9.s 			page 5
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 encoder.c
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:22     .text.encoder_start:00000000 $t
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:28     .text.encoder_start:00000000 encoder_start
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:65     .text.encoder_start:0000001c $d
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:252    .bss.encoder_last_count:00000000 encoder_last_count
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:246    .bss.encoder_accumulated:00000000 encoder_accumulated
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:71     .text.encoder_read_value:00000000 $t
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:77     .text.encoder_read_value:00000000 encoder_read_value
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:138    .text.encoder_read_value:00000034 $d
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:144    .text.encoder_parse_distance_mm:00000000 $t
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:150    .text.encoder_parse_distance_mm:00000000 encoder_parse_distance_mm
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:197    .text.encoder_parse_distance_mm:00000038 $d
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:204    .text.encoder_calc_speed_mm_s:00000000 $t
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:210    .text.encoder_calc_speed_mm_s:00000000 encoder_calc_speed_mm_s
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:238    .text.encoder_calc_speed_mm_s:00000014 $d
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:243    .bss.encoder_accumulated:00000000 $d
-C:\Users\admin\AppData\Local\Temp\ccA4kjof.s:249    .bss.encoder_last_count:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:22     .text.encoder_start:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:28     .text.encoder_start:00000000 encoder_start
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:65     .text.encoder_start:0000001c $d
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:190    .bss.encoder_last_count:00000000 encoder_last_count
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:184    .bss.encoder_accumulated:00000000 encoder_accumulated
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:71     .text.encoder_read_value:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:77     .text.encoder_read_value:00000000 encoder_read_value
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:102    .text.encoder_parse_distance_mm:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:108    .text.encoder_parse_distance_mm:00000000 encoder_parse_distance_mm
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:136    .text.encoder_parse_distance_mm:0000001c $d
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:142    .text.encoder_calc_speed_mm_s:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:148    .text.encoder_calc_speed_mm_s:00000000 encoder_calc_speed_mm_s
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:176    .text.encoder_calc_speed_mm_s:00000014 $d
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:181    .bss.encoder_accumulated:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cc0utQx9.s:187    .bss.encoder_last_count:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_TIM_Encoder_Start
-__aeabi_f2d
-__aeabi_dmul
-__aeabi_d2f
 encoder_old_position_mm

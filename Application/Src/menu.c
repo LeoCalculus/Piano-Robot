@@ -3,6 +3,10 @@
 #include <file_transfer.h>
 #include <string.h>
 #include <stdio.h>
+#include <application.h>
+
+extern PID_t left_motor;
+extern PID_t right_motor;
 
 /* Menu state */
 static MenuState_t menu_state = MENU_STATE_MAIN;
@@ -46,9 +50,10 @@ void menu_draw_main(void)
         "2. Transmit Song(SD)",
         "3. Transmit Song(RAM)",
         "4. Select Song",
-        "5. Homing"};
+        "5. Homing",
+        "6. Debug"};
     char line[25];
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {
         snprintf(line, sizeof(line), "%s %s", (i == menu_index) ? ">" : " ", items[i]);
         /* Pad to clear old text */
@@ -405,6 +410,7 @@ void menu_init(void)
 void menu_update(void)
 {
 
+    char line_buf[32];
     /* ---- Handle BACK in any sub-page ---- */
     if (menu_back)
     {
@@ -447,7 +453,7 @@ void menu_update(void)
         if (menu_move_down)
         {
             menu_index++;
-            if (menu_index > 4)
+            if (menu_index > 5)
                 menu_index = 0;
         }
         if (menu_move_up)
@@ -460,7 +466,6 @@ void menu_update(void)
         /* Enter */
         if (menu_enter)
         {
-            menu_enter = 0;
             switch (menu_index)
             {
                 case 0: /* Play Song */
@@ -499,7 +504,25 @@ void menu_update(void)
                     homing_procedure();
                     LCD_draw_string(0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
                     break;
+                case 5: /* Debug */
+                    LCD_draw_string(0, 7,  "System Debug Page       ", COLOR_BLACK, COLOR_WHITE);
+                    snprintf(line_buf, sizeof(line_buf), "Enc1: %ld    Enc2: %ld      ", left_motor.encoder_cnt, right_motor.encoder_cnt);
+                    LCD_draw_string(0, 8, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    snprintf(line_buf, sizeof(line_buf), "Tar1: %.2f Tar2: %.2f       ", left_motor.target_pos, right_motor.target_pos);
+                    LCD_draw_string(0, 9, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    snprintf(line_buf, sizeof(line_buf), "Pos1: %.2f Pos2: %.2f       ", left_motor.current_pos, right_motor.current_pos);
+                    LCD_draw_string(0, 10, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    snprintf(line_buf, sizeof(line_buf), "%.3f %.3f %.3f              ", left_motor.Kp, left_motor.Ki, left_motor.Kd);
+                    LCD_draw_string(0, 11, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    snprintf(line_buf, sizeof(line_buf), "%.3f %.3f %.3f              ", right_motor.Kp, right_motor.Ki, right_motor.Kd);
+                    LCD_draw_string(0, 11, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    break;
             }
+        }
+
+        else{
+            for(int i = 9; i<14; i++)
+                LCD_draw_string(0, i,  "                         ", COLOR_BLACK, COLOR_WHITE);
         }
 
         menu_draw_main();

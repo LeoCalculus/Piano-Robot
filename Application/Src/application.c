@@ -35,24 +35,61 @@ volatile int32_t counter = 0;
 
 // PID parameters
 PID_t left_motor = {
-    .Kp = 5.0f,
-    .Ki = 0.01f,
-    .Kd = 0.13f, //0.001
-    .Integral_max = 0.01f // 0.5
+    .Kp = 0.085f,
+    .Ki = 0.015f,
+    .Kd = 3.2f, //0.001
+    .encoder_cnt = 0, // 0.5
+    .current_pos = 0,
+    .output_pwm = 500,
+    .integral_max = 20.50f
 };
 
-void pid_cycle(PID_t* target_system, float error, const float dt){
-    float derivative = (error - target_system->last_error) / dt;
+PID_t right_motor = {
+    .Kp = 0.085f,
+    .Ki = 0.015f,
+    .Kd = 3.2f, //0.001
+    .encoder_cnt = 0, // 0.5
+    .current_pos = 0,
+    .output_pwm = 500,
+    .integral_max = 20.50f
+};
+
+void pid_cycle(PID_t* target_system){
+
+    target_system->current_error = target_system->target_pos - target_system->current_pos;
+
+    float derivative = target_system->current_error - target_system->last_error;
     
-    target_system->Integral += error*dt;
-    // bound the integral
-    if (target_system->Integral > target_system->Integral_max){
-        target_system->Integral = target_system->Integral_max;
-    } else if (target_system->Integral < -target_system->Integral_max) {
-        target_system->Integral = -target_system->Integral_max;
+    if(target_system->current_error < 1.5f && target_system->current_error > -1.5f){
+        target_system->integral += target_system->current_error;
     }
-    target_system->output = target_system->Kp * error + target_system->Ki * target_system->Integral + target_system->Kd * derivative;
-    target_system->last_error = error;
+    else{
+        target_system->integral = 0;
+    }
+    // bound the integral
+    if (target_system->integral > target_system->integral_max){
+        target_system->integral = target_system->integral_max;
+    } else if (target_system->integral < -target_system->integral_max) {
+        target_system->integral = -target_system->integral_max;
+    }
+    float voltage = target_system->Kp * target_system->current_error + target_system->Ki * target_system->integral + target_system->Kd * derivative;
+    target_system->last_error = target_system->current_error;
+
+    int32_t pwm_temp = 500 * (voltage/12.0f + 1);
+
+    if (target_system->current_error > -ERROR_DEADBAND && target_system->current_error < ERROR_DEADBAND) {
+        pwm_temp = 500;
+        target_system->integral *= 0.95f;  // reset integral to prevent windup
+    }
+
+    if (pwm_temp > 1000) pwm_temp = 1000;
+    if (pwm_temp < 0)   pwm_temp = 0;
+
+    if (pwm_temp < 499 && pwm_temp > 300) pwm_temp = 300;
+    if (pwm_temp > 501 && pwm_temp < 700) pwm_temp = 700;
+    target_system->output_pwm = pwm_temp;
+    
+    return;
 }
 
 
@@ -81,49 +118,29 @@ void controller_init(void) {
 }
 
 void controller_step(const float dt) {
-#ifndef USECONTROLLER
+#ifdef USECONTROLLER
     // read the encoder 
-    uint32_t direction;
 
-    encoder_read_value(&htim3, &encoder_read_result, &direction);
-    current_distance_mm = encoder_parse_distance_mm(encoder_read_result);
-    vofa.val[0] = current_distance_mm;
+    left_motor.encoder_cnt += encoder_read_value(&htim4);
+    left_motor.current_pos = encoder_parse_distance_mm(left_motor.encoder_cnt);
+    vofa.val[0] = left_motor.current_pos;
+    vofa.val[1] = left_motor.target_pos;
 
-    // pid implementation
-    float motor_left_error = target_position_mm - current_distance_mm;
-    motor_left_error = 0.0f; // disable the controller
-    pid_cycle(&left_motor, motor_left_error, dt);
+    right_motor.encoder_cnt += encoder_read_value(&htim3);
+    right_motor.current_pos = encoder_parse_distance_mm(right_motor.encoder_cnt);
+    vofa.val[5] = right_motor.current_pos;
+    vofa.val[6] = right_motor.target_pos;
 
-    float pwm_output = 0.0f;
+    pid_cycle(&left_motor);
+    pid_cycle(&right_motor);
+    vofa.val[2] = left_motor.output_pwm;
+    vofa.val[7] = right_motor.output_pwm;
 
-    if (motor_left_error > -ERROR_DEADBAND && motor_left_error < ERROR_DEADBAND) {
-        // close enough - stop motor
-        // controller debug using 0 and 1000 
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 900);
-        left_motor.Integral = 0.0f;  // reset integral to prevent windup
-        left_motor.output = 0.0f;
-    } else {
-        pid_cycle(&left_motor, motor_left_error, dt);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, right_motor.output_pwm);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, left_motor.output_pwm);
 
-        // convert pid output to pwm, clamp to valid range 0-999
-        pwm_output = left_motor.output;
-        if (pwm_output > 999.0f) pwm_output = 999.0f;
-        if (pwm_output < 0.0f) pwm_output = 0.0f;
-
-        // direction based on error -> check error so it knows where to move
-        if (motor_left_error > ERROR_DEADBAND) {
-            uint32_t pwm = (pwm_output < PWM_MIN_LEFT) ? (uint32_t)PWM_MIN_LEFT : (uint32_t)pwm_output;
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, pwm);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 0);
-        } else if (motor_left_error < -ERROR_DEADBAND) {
-            uint32_t pwm = (-pwm_output < PWM_MIN_RIGHT) ? (uint32_t)PWM_MIN_RIGHT : (uint32_t)(-pwm_output);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 0);
-            __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pwm);
-        }
+    if (huart1.gState == HAL_UART_STATE_READY) {
+            HAL_UART_Transmit_DMA(&huart1, (uint8_t*)&vofa, sizeof(vofa));
     }
-
-
-    HAL_UART_Transmit_DMA(&huart1, (uint8_t*)vofa.val, sizeof(vofa.val));
 #endif
 }

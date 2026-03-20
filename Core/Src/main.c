@@ -31,6 +31,8 @@
 /* USER CODE BEGIN Includes */
 #include <application.h>
 #include <ff.h>
+#include <config.h>
+#include <user_timer.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +63,11 @@ FATFS fs; // file system object
 FIL file; // file object
 FRESULT res; // result code from file operations
 UINT bytes_written; // number of bytes written
+
+// state machine variables
+uint8_t state = 0; // state of the system
+
+extern uint8_t menu_update_flag;
 
 /* USER CODE END PV */
 
@@ -121,12 +128,13 @@ int main(void)
   MX_ICACHE_Init();
   MX_TIM4_Init();
   MX_TIM5_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   // init HC-04 UART receive to idle mode with DMA
   hc04_receive_to_idle_init(&huart1, rx_message_buffer, sizeof(rx_message_buffer));
   // init LCD
   LCD_init();
-  
+  LCD_draw_string(0, 1, "Loading...       ", COLOR_BLACK, COLOR_WHITE);
   // calib the ADC
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
   // start ADC with DMA (also enables conversion complete interrupt)
@@ -153,19 +161,27 @@ int main(void)
 
   sd_parse_array("music1.txt");
 #endif
-  HAL_TIM_Base_Start_IT(&htim5); // start controller timer interrupt
+  // timer tick init
+  user_timer_tick_init();
 
-  encoder_start(&htim3); // start encoder reading
+  // Timer5 0.5 ms for measurements
+  HAL_TIM_Base_Start_IT(&htim5); 
+
+  // Timer2 1 ms for general timing 
+  HAL_TIM_Base_Start_IT(&htim2); 
+
+  // Encoders
+  encoder_start(&htim3); 
+  encoder_start(&htim4); 
 
   // enable pwm:
-
-  // HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  // HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 
   // initially not moving, so set compare to 500 (0% duty cycle)
-  // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
 
   // // test for current
@@ -203,30 +219,27 @@ int main(void)
     }
 
     // update menu display
-    menu_update();
+    if(menu_update_flag == 1){
+      menu_update();
+      menu_update_flag = 0; 
+    }
 #else 
     // in debug mode just display the current position from encoder
     // disable the DEBUG on LCD rn
-    // char pos_buf[32];
-    // snprintf(pos_buf, sizeof(pos_buf), "Position: %0.2f mm", current_distance_mm);
-    // LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+    char pos_buf[32];
+    int32_t temp;
+    encoder_read_value(&htim4, &temp);
+    current_distance_mm = encoder_parse_distance_mm(temp);
+    snprintf(pos_buf, sizeof(pos_buf), "Position cnt: %d mm", temp);
+    LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+    
 
-    // // also read the ADC value:
-    // ADC_voltage = (float)ADC_dma_buffer[0] * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
-    // const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
-    // char adc_buf[32];
-    // snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.2f A", ADC_current);
-    // LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
-
-    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 100); // set to 80% duty cycle for testing
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 100);
-    HAL_Delay(5000);
-    HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_3);
-    HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_3);
-    // HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_2);
-    // HAL_TIMEx_PWMN_Stop(&htim1, TIM_CHANNEL_2);
-    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-
+    // also read the ADC value:
+    ADC_voltage = (float)(ADC_dma_buffer[0] + ADC_dma_buffer[1] + ADC_dma_buffer[2]) * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
+    const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
+    char adc_buf[32];
+    snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.4f A", ADC_current);
+    LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
 #endif
   }
   
@@ -333,8 +346,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.

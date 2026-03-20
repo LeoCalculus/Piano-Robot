@@ -19,7 +19,9 @@
 #include <stm32h5xx_hal_tim.h>
 
 // ================================== DEFINES =========================================
-#define ERROR_DEADBAND 2.0f
+#define ERROR_DEADBAND 1.2f
+#define INT_ON 50.0f
+#define I_ON_ZONE 2.0f
 #define PWM_MIN_LEFT 300
 #define PWM_MIN_RIGHT 700
 
@@ -83,20 +85,24 @@ extern volatile float target_position_mm; // for PID control, set by the song, r
 
 // ============================================= PID struct ===============================================
 typedef struct {
-    const float Kp;
-    const float Ki;
-    const float Kd;
-    const float Integral_max; // avoid too big for integral results
-    float Integral; // integral should be bounded by integral max
+    float Kp;
+    float Ki;
+    float Kd;
+    const float integral_max; // avoid too big for integral results
+    int32_t encoder_cnt;
+    float target_pos;
+    float current_pos;
+    float integral; // integral should be bounded by integral max
+    float current_error;
     float last_error;
-    float output;
+    uint16_t output_pwm;
 } PID_t;
 
 
 
 // REMAINING FUNCTIONS:
 // target system is for the motor's struct, error = target - actual, dt = 1000Hz timer interrupt period
-void pid_cycle(PID_t* target_system, float error, const float dt);
+void pid_cycle(PID_t* target_system);
 
 // parse flat float buffer (song_ram) into ChordEvent_t array
 void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst);
