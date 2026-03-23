@@ -140,10 +140,12 @@ void execute_command(uint8_t *command)
     if (result == 0)
     {
         LCD_draw_string(0, 14, "OK.                      ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(0, 15, "                         ", COLOR_BLACK, COLOR_WHITE);
     }
     else if (result == 1)
     {
         LCD_draw_string(0, 14, "Cannot parse!            ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(0, 15, (char*)command, COLOR_BLACK, COLOR_WHITE);
     }
     else if (result == 2)
     {
@@ -152,6 +154,7 @@ void execute_command(uint8_t *command)
     else if (result == 3)
     {
         LCD_draw_string(0, 14, "Incomplete command!      ", COLOR_BLACK, COLOR_WHITE);
+        LCD_draw_string(0, 15, (char*)command, COLOR_BLACK, COLOR_WHITE);
     }
 }
 

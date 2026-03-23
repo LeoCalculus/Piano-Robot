@@ -43,12 +43,12 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size){
             if (!uart_binary_mode && c == '\n') {
                 // complete message found (text mode only, skipped in binary mode)
                 rx_message[rx_message_index] = '\0';
+                rx_valid = rx_message_index; // store TOTAL accumulated length
                 // overwrite the place by setting index back to 0
                 rx_message_index = 0;
                 rx_complete = 1;
                 // update the old buffer index for next use, +1 due to \0
                 old_buffer_index = (buf_pos + 1) % sizeof(rx_message_buffer);
-                rx_valid = len;
                 return;
             }
 
@@ -58,7 +58,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size){
                 rx_message[rx_message_index++] = c;
             }
         }
-        rx_valid = len;
         old_buffer_index = size;
     }
 }

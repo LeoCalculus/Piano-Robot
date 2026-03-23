@@ -85,8 +85,8 @@ void pid_cycle(PID_t* target_system){
     if (pwm_temp > 1000) pwm_temp = 1000;
     if (pwm_temp < 0)   pwm_temp = 0;
 
-    if (pwm_temp < 499 && pwm_temp > 300) pwm_temp = 300;
-    if (pwm_temp > 501 && pwm_temp < 700) pwm_temp = 700;
+    if (pwm_temp < 499 && pwm_temp > 250) pwm_temp = 250;
+    if (pwm_temp > 501 && pwm_temp < 750) pwm_temp = 750;
     target_system->output_pwm = pwm_temp;
     
     return;
@@ -115,6 +115,11 @@ void controller_init(void) {
     vofa.vofaTail[1] = 0x00;
     vofa.vofaTail[2] = 0x80;
     vofa.vofaTail[3] = 0x7f;
+
+    // // disable idle interrupt half and full interrupt
+    // extern DMA_HandleTypeDef handle_GPDMA1_Channel1;
+    // __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_HT);
+    // __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_TC); 
 }
 
 void controller_step(const float dt) {

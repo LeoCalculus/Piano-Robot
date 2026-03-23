@@ -4,3 +4,19 @@
 3. Flash elf with specific destination: make -f flash.mk load ELF= <target destination>
 
 
+Error: critical data lost, while sending from VOFA to MCU
+
+Test for UART:
+
+
+1. FIFO enabled
+2. disable the half / full interrupt
+
+
+Missing data due to uart losing packet, does not affect what it actually did.
+
+
+Fixed using VOFA sending data, reason: the DMA chunk save the latest data wrap around length, did not save the full length, when error length passed to command system, the incorrect length leads to data loss and command error.
+
+
+

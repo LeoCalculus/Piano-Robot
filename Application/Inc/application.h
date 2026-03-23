@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stm32h5xx_hal_tim.h>
+#include <usart.h>
 
 // ================================== DEFINES =========================================
 #define ERROR_DEADBAND 1.2f

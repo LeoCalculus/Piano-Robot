@@ -207,9 +207,13 @@ int main(void)
 #ifndef DEBUGMODE
     // check incoming message with \n:
     if (rx_complete) {
-      menu_process_message(rx_message, rx_valid);
+      // copy message locally so ISR can safely start receiving next one
+      static uint8_t cmd_copy[256];
+      uint16_t cmd_len = rx_valid;
+      memcpy(cmd_copy, rx_message, cmd_len + 1); // +1 for '\0'
+      rx_complete = 0; // clear AFTER copy, INSIDE the if block
+      menu_process_message(cmd_copy, cmd_len);
     }
-    rx_complete = 0;
 
     // ISR accumulated bytes without \n
     if (rx_message_index > 0){
