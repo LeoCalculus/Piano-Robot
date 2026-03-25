@@ -35,6 +35,10 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
         }
+        case 'j':
+            HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_4);
+            HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_5);
+            return 0;
         case 'w': /* :w — menu move up */
             menu_move_up = 1;
             return 0;
