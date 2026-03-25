@@ -1,17 +1,24 @@
+// driver source: https://github.com/Nkawu/TFT_22_ILI9225/blob/master/src/TFT_22_ILI9225.cpp
+// font lib from web
+
 #include <gpio.h>
 #include <spi.h>
 #include <ILI9225.h>
 #include <string.h>
+#include <stdint.h>
 
 LCD_Config lcd_config = {
-    .hspi = &hspi2,
-    .cs_port = GPIOD,
-    .cs_pin = GPIO_PIN_11,
-    .rs_port = GPIOD,
-    .rs_pin = GPIO_PIN_13,
-    .rst_port = GPIOD,
-    .rst_pin = GPIO_PIN_12,
+    .hspi = &hspi3,
+    .cs_port = LCD_CS_GPIO_Port,
+    .cs_pin = LCD_CS_Pin,
+    .rs_port = LCD_RST_GPIO_Port, // here RS and RST are reversed (misconfigured naming in schematic)
+    .rs_pin = LCD_RST_Pin,
+    .rst_port = LCD_RS_GPIO_Port,
+    .rst_pin = LCD_RS_Pin,
 };
+
+// LCD buffer render in RAM (row-major, matches LCD scan order)
+uint16_t plot_buffer[LCD_HEIGHT][LCD_WIDTH];
 
 // 5x7 font for ASCII 32-126
 static const uint8_t font5x7[][5] = {
@@ -116,204 +123,173 @@ static const uint8_t font5x7[][5] = {
 static uint16_t cursor_x = 0;
 static uint16_t cursor_y = 0;
 
-// CS pin - indicate whether the device is selected
-void LCD_select() {
+// CS control
+void LCD_select(void) {
     HAL_GPIO_WritePin(lcd_config.cs_port, lcd_config.cs_pin, GPIO_PIN_RESET);
 }
 
-void LCD_unselect() {
+void LCD_unselect(void) {
     HAL_GPIO_WritePin(lcd_config.cs_port, lcd_config.cs_pin, GPIO_PIN_SET);
 }
 
-// DC pin - indicate command mode or data mode
-void LCD_data_mode() {
-    HAL_GPIO_WritePin(lcd_config.rs_port, lcd_config.rs_pin, GPIO_PIN_SET);
-}
-
-void LCD_cmd_mode() {
+// RS pin: LOW = register/command index, HIGH = register data
+static void LCD_rs_low(void) {
     HAL_GPIO_WritePin(lcd_config.rs_port, lcd_config.rs_pin, GPIO_PIN_RESET);
 }
 
-// RST pin - used to reset the device
-void LCD_do_reset() {
-    HAL_GPIO_WritePin(lcd_config.rst_port, lcd_config.rst_pin, GPIO_PIN_RESET);
+static void LCD_rs_high(void) {
+    HAL_GPIO_WritePin(lcd_config.rs_port, lcd_config.rs_pin, GPIO_PIN_SET);
 }
 
-void LCD_no_reset() {
-    HAL_GPIO_WritePin(lcd_config.rst_port, lcd_config.rst_pin, GPIO_PIN_SET);
+// ILI9225 protocol: write 16-bit register index, then 16-bit data
+// RS=LOW for index, RS=HIGH for data
+void LCD_write_reg(uint16_t reg, uint16_t data) {
+    LCD_select();
+
+    // send register index (RS low)
+    LCD_rs_low();
+    uint8_t reg_bytes[2] = {reg >> 8, reg & 0xFF};
+    HAL_SPI_Transmit(lcd_config.hspi, reg_bytes, 2, HAL_MAX_DELAY);
+
+    // send register data (RS high)
+    LCD_rs_high();
+    uint8_t data_bytes[2] = {data >> 8, data & 0xFF};
+    HAL_SPI_Transmit(lcd_config.hspi, data_bytes, 2, HAL_MAX_DELAY);
+
+    LCD_unselect();
 }
 
-// send command byte - known the device is selected
-void LCD_send_cmd(uint8_t cmd) {
-    LCD_cmd_mode();
-    HAL_SPI_Transmit(lcd_config.hspi, &cmd, 1, 10);
+// write 16-bit data (pixel data after GRAM register is selected)
+void LCD_write_data16(uint16_t data) {
+    uint8_t bytes[2] = {data >> 8, data & 0xFF};
+    HAL_SPI_Transmit(lcd_config.hspi, bytes, 2, HAL_MAX_DELAY);
 }
 
-// send data byte - known the device is selected
-void LCD_send_data(uint8_t data) {
-    LCD_data_mode();
-    HAL_SPI_Transmit(lcd_config.hspi, &data, 1, 10);
-}
+// select the GRAM register for writing pixel data
+void LCD_start_gram_write(void) {
+    LCD_select();
 
-// send multiple data bytes - known the device is selected
-void LCD_send_group_data(uint8_t* data, uint16_t len) {
-    LCD_data_mode();
-    HAL_SPI_Transmit(lcd_config.hspi, data, len, 100);
+    // send GRAM register index (RS low)
+    LCD_rs_low();
+    uint8_t reg_bytes[2] = {0x00, ILI9225_GRAM_DATA_REG};
+    HAL_SPI_Transmit(lcd_config.hspi, reg_bytes, 2, HAL_MAX_DELAY);
+
+    // switch to data mode (RS high) - caller will send pixel data
+    LCD_rs_high();
 }
 
 // hardware reset sequence
-void LCD_reset() {
-    LCD_no_reset();
+void LCD_reset(void) {
+    HAL_GPIO_WritePin(lcd_config.rst_port, lcd_config.rst_pin, GPIO_PIN_SET);
     HAL_Delay(5);
-    LCD_do_reset();
+    HAL_GPIO_WritePin(lcd_config.rst_port, lcd_config.rst_pin, GPIO_PIN_RESET);
     HAL_Delay(20);
-    LCD_no_reset();
+    HAL_GPIO_WritePin(lcd_config.rst_port, lcd_config.rst_pin, GPIO_PIN_SET);
     HAL_Delay(150);
 }
 
-// software reset command
-void LCD_soft_reset() {
-    LCD_select();
-    LCD_send_cmd(0x01);
+void LCD_init(void) {
     LCD_unselect();
-    HAL_Delay(150);
-}
-
-// power control settings
-void LCD_set_power(uint8_t pwr1, uint8_t pwr2, uint8_t vcom1_h, uint8_t vcom1_l, uint8_t vcom2) {
-    LCD_select();
-    // power control 1
-    LCD_send_cmd(0xC0);
-    LCD_send_data(pwr1);
-    // power control 2
-    LCD_send_cmd(0xC1);
-    LCD_send_data(pwr2);
-    // VCOM control 1
-    LCD_send_cmd(0xC5);
-    LCD_send_data(vcom1_h);
-    LCD_send_data(vcom1_l);
-    // VCOM control 2
-    LCD_send_cmd(0xC7);
-    LCD_send_data(vcom2);
-    LCD_unselect();
-}
-
-// display configuration
-void LCD_set_display(uint8_t orientation, uint8_t pixel_format, uint8_t frame_div, uint8_t frame_clk) {
-    LCD_select();
-    // memory access control (orientation)
-    LCD_send_cmd(0x36);
-    LCD_send_data(orientation);
-    // pixel format
-    LCD_send_cmd(0x3A);
-    LCD_send_data(pixel_format);
-    // frame rate control
-    LCD_send_cmd(0xB1);
-    LCD_send_data(frame_div);
-    LCD_send_data(frame_clk);
-    LCD_unselect();
-}
-
-// display function control
-void LCD_set_function(uint8_t bypass, uint8_t scan_mode, uint8_t num_lines) {
-    LCD_select();
-    LCD_send_cmd(0xB6);
-    LCD_send_data(bypass);
-    LCD_send_data(scan_mode);
-    LCD_send_data(num_lines);
-    LCD_unselect();
-}
-
-// sleep control
-void LCD_sleep_out() {
-    LCD_select();
-    LCD_send_cmd(0x11);
-    LCD_unselect();
-    HAL_Delay(120);
-}
-
-void LCD_sleep_in() {
-    LCD_select();
-    LCD_send_cmd(0x10);
-    LCD_unselect();
-    HAL_Delay(5);
-}
-
-// display on/off
-void LCD_display_on() {
-    LCD_select();
-    LCD_send_cmd(0x29);
-    LCD_unselect();
-}
-
-void LCD_display_off() {
-    LCD_select();
-    LCD_send_cmd(0x28);
-    LCD_unselect();
-}
-
-void LCD_init() {
-    // hardware reset
     LCD_reset();
 
-    // software reset
-    LCD_soft_reset();
+    // ---------- Power-on sequence (from ILI9225 datasheet) ----------
 
-    // display off during init
-    LCD_display_off();
+    // Power control 2: set step-up circuit
+    LCD_write_reg(ILI9225_POWER_CTRL2, 0x0018);
+    // Power control 3: set operating frequency
+    LCD_write_reg(ILI9225_POWER_CTRL3, 0x6121);
+    // Power control 4: VREG1OUT voltage
+    LCD_write_reg(ILI9225_POWER_CTRL4, 0x006F);
+    // Power control 5: VCOM amplitude
+    LCD_write_reg(ILI9225_POWER_CTRL5, 0x495F);
+    // Power control 1: start power supply
+    LCD_write_reg(ILI9225_POWER_CTRL1, 0x0800);
+    HAL_Delay(10);
 
-    // power settings (defaults)
-    LCD_set_power(0x23, 0x10, 0x3E, 0x28, 0x86);
-
-    // display settings: orientation (0xA8 for landscape, 0x68 for portrait), pixel format (0x55 for 16-bit color), frame rate control (0x00 for 70Hz, 0x18 for 60Hz)
-    LCD_set_display(0xA8, 0x55, 0x00, 0x18);
-
-    // display function control
-    LCD_set_function(0x08, 0x82, 0x27);
-
-    // exit sleep
-    LCD_sleep_out();
-
-    // turn on display
-    LCD_display_on();
+    // Power control 2: step-up circuit 2
+    LCD_write_reg(ILI9225_POWER_CTRL2, 0x103B);
     HAL_Delay(50);
+
+    // ---------- Display control ----------
+
+    // Driver output control: SS=0, GS=1, NL=28 (220 lines) - landscape
+    LCD_write_reg(ILI9225_DRIVER_OUTPUT_CTRL, 0x011C);
+    // LCD AC driving control: line inversion
+    LCD_write_reg(ILI9225_LCD_AC_DRIVING_CTRL, 0x0100);
+    // Entry mode: BGR, AM=1 (vertical first), ID1=0 ID0=1 - landscape
+    LCD_write_reg(ILI9225_ENTRY_MODE, 0x1028);
+
+    // Blank period control
+    LCD_write_reg(ILI9225_BLANK_PERIOD_CTRL1, 0x0808);
+    // Frame cycle control
+    LCD_write_reg(ILI9225_FRAME_CYCLE_CTRL, 0x1100);
+    // Interface control
+    LCD_write_reg(ILI9225_INTERFACE_CTRL, 0x0000);
+    // Oscillator control: enable oscillator
+    LCD_write_reg(ILI9225_OSC_CTRL, 0x0D01);
+    // VCI recycling
+    LCD_write_reg(ILI9225_VCI_RECYCLING, 0x0020);
+
+    // ---------- RAM address ----------
+    LCD_write_reg(ILI9225_RAM_ADDR_SET1, 0x0000);
+    LCD_write_reg(ILI9225_RAM_ADDR_SET2, 0x0000);
+
+    // ---------- Gate scan control ----------
+    LCD_write_reg(ILI9225_GATE_SCAN_CTRL, 0x0000);
+    LCD_write_reg(ILI9225_VERTICAL_SCROLL_CTRL1, 0x00DB);
+    LCD_write_reg(ILI9225_VERTICAL_SCROLL_CTRL2, 0x0000);
+    LCD_write_reg(ILI9225_VERTICAL_SCROLL_CTRL3, 0x0000);
+    LCD_write_reg(ILI9225_PARTIAL_DRIVING_POS1, 0x00DB);
+    LCD_write_reg(ILI9225_PARTIAL_DRIVING_POS2, 0x0000);
+
+    // ---------- Window address (full screen, landscape) ----------
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR1, 0x00AF); // 175 (physical horizontal)
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR2, 0x0000);
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR1, 0x00DB); // 219 (physical vertical)
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR2, 0x0000);
+
+    // ---------- Gamma control ----------
+    LCD_write_reg(ILI9225_GAMMA_CTRL1, 0x0000);
+    LCD_write_reg(ILI9225_GAMMA_CTRL2, 0x0808);
+    LCD_write_reg(ILI9225_GAMMA_CTRL3, 0x080A);
+    LCD_write_reg(ILI9225_GAMMA_CTRL4, 0x000A);
+    LCD_write_reg(ILI9225_GAMMA_CTRL5, 0x0A08);
+    LCD_write_reg(ILI9225_GAMMA_CTRL6, 0x0808);
+    LCD_write_reg(ILI9225_GAMMA_CTRL7, 0x0000);
+    LCD_write_reg(ILI9225_GAMMA_CTRL8, 0x0A00);
+    LCD_write_reg(ILI9225_GAMMA_CTRL9, 0x0710);
+    LCD_write_reg(ILI9225_GAMMA_CTRL10, 0x0710);
+
+    // ---------- Display ON ----------
+    LCD_write_reg(ILI9225_DISP_CTRL1, 0x0012);
+    HAL_Delay(50);
+    LCD_write_reg(ILI9225_DISP_CTRL1, 0x1017);
 
     // clear screen
     LCD_fill_screen(COLOR_WHITE);
 }
 
-// this LCD render things needs four parameters to set the window size from (x0, y0) to (x1, y1)
-// LCD flow chart: CASET(2A) and PASET(2B) -> RAMWR(2C)
 void LCD_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
-    LCD_select();
+    // landscape: logical x -> physical vertical, logical y -> physical horizontal (inverted)
+    uint16_t py0 = 175 - y1;
+    uint16_t py1 = 175 - y0;
 
-    // column address set
-    LCD_send_cmd(0x2A);
-    // x0 for SC, SC is 16 bit but divided into 2 parameters
-    // x1 for EC, EC is 16 bit but divided into 2 parameters
-    uint8_t col_data[4] = {x0 >> 8, x0 & 0xFF, x1 >> 8, x1 & 0xFF};
-    LCD_send_group_data(col_data, 4);
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR1, py1);
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR2, py0);
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR1, x1);
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR2, x0);
 
-    // row address set
-    LCD_send_cmd(0x2B);
-    uint8_t row_data[4] = {y0 >> 8, y0 & 0xFF, y1 >> 8, y1 & 0xFF};
-    LCD_send_group_data(row_data, 4);
-
-    // memory write command - tells ready to receive pixel data (color)
-    LCD_send_cmd(0x2C);
-    // CS stays LOW, caller sends pixel data then calls LCD_unselect
+    // set RAM address to start of window
+    LCD_write_reg(ILI9225_RAM_ADDR_SET1, py1);
+    LCD_write_reg(ILI9225_RAM_ADDR_SET2, x0);
 }
 
 void LCD_fill_screen(uint16_t color) {
     LCD_set_window(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
-    // CS is already LOW from LCD_set_window
-    // RAMWR here, set pixel data (color)
-    uint8_t data[2] = {color >> 8, color & 0xFF};
 
-    LCD_data_mode();
-    // send pixel by pixel
+    LCD_start_gram_write();
     for (uint32_t i = 0; i < (uint32_t)LCD_WIDTH * LCD_HEIGHT; i++) {
-        HAL_SPI_Transmit(lcd_config.hspi, data, 2, HAL_MAX_DELAY);
+        LCD_write_data16(color);
     }
     LCD_unselect();
 }
@@ -321,42 +297,32 @@ void LCD_fill_screen(uint16_t color) {
 void LCD_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     if (x >= LCD_WIDTH || y >= LCD_HEIGHT) return;
 
-    LCD_set_window(x, y, x, y);
-    // CS is LOW from LCD_set_window, start sending pixel data (color)
-    uint8_t data[2] = {color >> 8, color & 0xFF};
-    LCD_send_group_data(data, 2);
+    // landscape: x -> vertical, y -> horizontal (inverted)
+    LCD_write_reg(ILI9225_RAM_ADDR_SET1, 175 - y);
+    LCD_write_reg(ILI9225_RAM_ADDR_SET2, x);
+
+    LCD_start_gram_write();
+    LCD_write_data16(color);
     LCD_unselect();
 }
 
 void LCD_draw_char(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg) {
-    if (c < 32 || c > 126) c = '?'; // handle invalid characters
+    if (c < 32 || c > 126) c = '?';
 
-    const uint8_t* glyph = font5x7[c - 32]; // match user input character to the glyph
+    const uint8_t* glyph = font5x7[c - 32];
 
-    // draw character using a window for better performance
-    LCD_set_window(x, y, x + 5, y + 6);
-    LCD_data_mode();
-
-    uint8_t color_hi = color >> 8;
-    uint8_t color_lo = color & 0xFF;
-    uint8_t bg_hi = bg >> 8;
-    uint8_t bg_lo = bg & 0xFF;
-
-    // font is 5 cols x 7 rows, plus 1 col spacing = 6x7 total
+    // draw character pixel by pixel (6x7: 5 cols + 1 spacing)
     for (uint8_t row = 0; row < 7; row++) {
         for (uint8_t col = 0; col < 6; col++) {
-            uint8_t pixel[2];
-            if (col < 5 && (glyph[col] & (1 << row))) { // foreground color
-                pixel[0] = color_hi;
-                pixel[1] = color_lo;
-            } else { // background color
-                pixel[0] = bg_hi;
-                pixel[1] = bg_lo;
+            uint16_t px_color;
+            if (col < 5 && (glyph[col] & (1 << row))) {
+                px_color = color;
+            } else {
+                px_color = bg;
             }
-            HAL_SPI_Transmit(lcd_config.hspi, pixel, 2, 10);
+            LCD_draw_pixel(x + col, y + row, px_color);
         }
     }
-    LCD_unselect();
 }
 
 void LCD_draw_string(uint16_t x, uint16_t y, char* str, uint16_t color, uint16_t bg) {
@@ -386,10 +352,81 @@ void LCD_print(const char* str, uint16_t color, uint16_t bg) {
             cursor_y += 8;
         }
         if (cursor_y + 7 > LCD_HEIGHT) {
-            cursor_y = 0;  // wrap to top
+            cursor_y = 0;
         }
         LCD_draw_char(cursor_x, cursor_y, *str, color, bg);
         cursor_x += 6;
         str++;
     }
+}
+
+void LCD_draw_picture(const uint16_t* pixel_data){
+    LCD_set_window(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+
+    LCD_start_gram_write();
+    // HAL_SPI_Transmit size is uint16_t (max 65535), so send in chunks
+    uint32_t total_bytes = (uint32_t)LCD_WIDTH * LCD_HEIGHT * 2;
+    const uint8_t* ptr = (const uint8_t*)pixel_data;
+    while (total_bytes > 0) {
+        uint16_t chunk = (total_bytes > 65534) ? 65534 : (uint16_t)total_bytes;
+        HAL_SPI_Transmit(lcd_config.hspi, (uint8_t*)ptr, chunk, HAL_MAX_DELAY);
+        ptr += chunk;
+        total_bytes -= chunk;
+    }
+    LCD_unselect();
+}
+
+void LCD_draw_region(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, const uint16_t* data) {
+    LCD_set_window(x0, y0, x1, y1);
+
+    LCD_start_gram_write();
+    uint32_t total_bytes = (uint32_t)(x1 - x0 + 1) * (y1 - y0 + 1) * 2;
+    const uint8_t* ptr = (const uint8_t*)data;
+    while (total_bytes > 0) {
+        uint16_t chunk = (total_bytes > 65534) ? 65534 : (uint16_t)total_bytes;
+        HAL_SPI_Transmit(lcd_config.hspi, (uint8_t*)ptr, chunk, HAL_MAX_DELAY);
+        ptr += chunk;
+        total_bytes -= chunk;
+    }
+    LCD_unselect();
+}
+
+void LCD_draw_image(const tImage* img) {
+    LCD_set_window(0, 0, img->width - 1, img->height - 1);
+
+    LCD_start_gram_write();
+    uint32_t total_pixels = (uint32_t)img->width * img->height;
+    const uint8_t* src = img->data;
+    for (uint32_t i = 0; i < total_pixels; i++) {
+        // convert RGB888 to RGB565
+        uint8_t r = src[i * 3];
+        uint8_t g = src[i * 3 + 1];
+        uint8_t b = src[i * 3 + 2];
+        uint16_t color = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3);
+        LCD_write_data16(color);
+    }
+    LCD_unselect();
+}
+
+void LCD_clear_screen(uint16_t color){
+    LCD_select();
+    uint16_t swapped = LCD_SWAP16(color);
+    for (uint16_t y = 0; y < LCD_HEIGHT; y++) {
+        for (uint16_t x = 0; x < LCD_WIDTH; x++) {
+            plot_buffer[y][x] = swapped;
+        }
+    }
+    // set up window and start GRAM write, then send entire buffer
+    LCD_set_window(0, 0, LCD_WIDTH - 1, LCD_HEIGHT - 1);
+    LCD_start_gram_write();
+
+    uint32_t total_bytes = (uint32_t)LCD_WIDTH * LCD_HEIGHT * sizeof(uint16_t);
+    const uint8_t* ptr = (const uint8_t*)plot_buffer;
+    while (total_bytes > 0) {
+        uint16_t chunk = (total_bytes > 65534) ? 65534 : (uint16_t)total_bytes;
+        HAL_SPI_Transmit(lcd_config.hspi, (uint8_t*)ptr, chunk, HAL_MAX_DELAY);
+        ptr += chunk;
+        total_bytes -= chunk;
+    }
+    LCD_unselect();
 }

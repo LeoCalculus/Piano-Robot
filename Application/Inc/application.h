@@ -27,7 +27,7 @@
 #define PWM_MIN_RIGHT 700
 
 // EXTERN VARIABLES
-// =============================== USART1 - HC04 =======================================
+// =============================== USART2 - HC04 =======================================
 extern uint8_t rx_message_buffer[128];
 extern uint8_t rx_message[256]; // accumulation buffer, larger than DMA buffer to handle wraparound
 extern uint16_t rx_message_index; // current write position in rx_message

@@ -135,7 +135,7 @@ int parse_command(uint8_t *cmd)
         }
         }
     }
-    return 0;
+    return 1;
 }
 
 void execute_command(uint8_t *command)

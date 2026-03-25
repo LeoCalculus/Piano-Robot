@@ -142,10 +142,10 @@ void controller_step(const float dt) {
     vofa.val[7] = right_motor.output_pwm;
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, right_motor.output_pwm);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, left_motor.output_pwm);
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, left_motor.output_pwm);
 
-    if (huart1.gState == HAL_UART_STATE_READY) {
-            HAL_UART_Transmit_DMA(&huart1, (uint8_t*)&vofa, sizeof(vofa));
+    if (huart2.gState == HAL_UART_STATE_READY) {
+            HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
     }
 #endif
 }

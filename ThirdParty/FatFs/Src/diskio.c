@@ -12,11 +12,11 @@
 #include "main.h"
 #include <string.h>
 
-// CS pin at PE4, SPI instance: SPI4
+// CS pin at PC4, SPI instance: SPI1
 
 /* SD card CS pin */
-#define SD_CS_PORT  GPIOE
-#define SD_CS_PIN   GPIO_PIN_4
+#define SD_CS_PORT  SD_CS_GPIO_Port
+#define SD_CS_PIN   SD_CS_Pin
 
 #define SD_CS_LOW()   HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_RESET)
 #define SD_CS_HIGH()  HAL_GPIO_WritePin(SD_CS_PORT, SD_CS_PIN, GPIO_PIN_SET)
@@ -54,7 +54,7 @@ volatile uint8_t sd_dbg_cmd8;
 volatile uint8_t sd_dbg_acmd41;
 volatile uint8_t sd_dbg_cardtype;
 
-extern SPI_HandleTypeDef hspi4;
+extern SPI_HandleTypeDef hspi1;
 
 /*-----------------------------------------------------------------------*/
 /* SPI low-level: register-based continuous transfer for STM32H5         */
@@ -68,7 +68,7 @@ extern SPI_HandleTypeDef hspi4;
 /* Start continuous SPI session (call before CS_LOW or after CS changes) */
 static void spi_begin(void)
 {
-	SPI_TypeDef *spi = hspi4.Instance;
+	SPI_TypeDef *spi = hspi1.Instance;
 
 	/* If SPI is already running, nothing to do */
 	if (spi->CR1 & SPI_CR1_SPE) return;
@@ -87,7 +87,7 @@ static void spi_begin(void)
 /* Stop continuous SPI session (call before CS_HIGH) */
 static void spi_end(void)
 {
-	SPI_TypeDef *spi = hspi4.Instance;
+	SPI_TypeDef *spi = hspi1.Instance;
 
 	/* If SPI is not running, nothing to do */
 	if (!(spi->CR1 & SPI_CR1_SPE)) return;
@@ -101,13 +101,13 @@ static void spi_end(void)
 	spi->IFCR = 0xFFFFFFFFU;
 
 	/* Keep HAL state in sync so HAL calls still work for init etc. */
-	hspi4.State = HAL_SPI_STATE_READY;
+	hspi1.State = HAL_SPI_STATE_READY;
 }
 
 /* Exchange one byte - must be called between spi_begin() and spi_end() */
 static BYTE spi_txrx(BYTE data)
 {
-	SPI_TypeDef *spi = hspi4.Instance;
+	SPI_TypeDef *spi = hspi1.Instance;
 
 	while (!(spi->SR & SPI_SR_TXP));
 	*(volatile uint8_t *)&spi->TXDR = data;
@@ -118,7 +118,7 @@ static BYTE spi_txrx(BYTE data)
 /* Transmit multiple bytes (discard received data) */
 static void spi_tx_multi(const BYTE *buf, UINT cnt)
 {
-	SPI_TypeDef *spi = hspi4.Instance;
+	SPI_TypeDef *spi = hspi1.Instance;
 	while (cnt--) {
 		while (!(spi->SR & SPI_SR_TXP));
 		*(volatile uint8_t *)&spi->TXDR = *buf++;
@@ -130,7 +130,7 @@ static void spi_tx_multi(const BYTE *buf, UINT cnt)
 /* Receive multiple bytes (transmit 0xFF) */
 static void spi_rx_multi(BYTE *buf, UINT cnt)
 {
-	SPI_TypeDef *spi = hspi4.Instance;
+	SPI_TypeDef *spi = hspi1.Instance;
 	while (cnt--) {
 		while (!(spi->SR & SPI_SR_TXP));
 		*(volatile uint8_t *)&spi->TXDR = 0xFF;
@@ -301,10 +301,10 @@ DSTATUS disk_initialize(BYTE pdrv)
 	if (pdrv != 0) return STA_NOINIT;
 
 	/* Disable NSSP mode, ensure 8-bit, and re-init SPI (one-time setup) */
-	HAL_SPI_DeInit(&hspi4);
-	hspi4.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
-	hspi4.Init.DataSize = SPI_DATASIZE_8BIT;
-	HAL_SPI_Init(&hspi4);
+	HAL_SPI_DeInit(&hspi1);
+	hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+	HAL_SPI_Init(&hspi1);
 
 	/* Power-up delay */
 	HAL_Delay(50);

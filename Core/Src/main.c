@@ -20,7 +20,6 @@
 #include "main.h"
 #include "adc.h"
 #include "gpdma.h"
-#include "i2c.h"
 #include "icache.h"
 #include "spi.h"
 #include "tim.h"
@@ -116,29 +115,27 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_GPDMA1_Init();
-  MX_USART6_UART_Init();
-  MX_ADC1_Init();
-  MX_USART1_UART_Init();
-  MX_SPI2_Init();
-  MX_SPI4_Init();
-  MX_TIM1_Init();
-  MX_I2C2_SMBUS_Init();
-  MX_SPI3_Init();
-  MX_TIM3_Init();
+  MX_ADC2_Init();
   MX_ICACHE_Init();
+  MX_SPI1_Init();
+  MX_SPI3_Init();
+  MX_TIM1_Init();
+  MX_TIM3_Init();
   MX_TIM4_Init();
-  MX_TIM5_Init();
+  MX_USART2_UART_Init();
+  MX_USART1_UART_Init();
   MX_TIM2_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   // init HC-04 UART receive to idle mode with DMA
-  hc04_receive_to_idle_init(&huart1, rx_message_buffer, sizeof(rx_message_buffer));
+  hc04_receive_to_idle_init(&huart2, rx_message_buffer, sizeof(rx_message_buffer));
   // init LCD
   LCD_init();
   LCD_draw_string(0, 1, "Loading...       ", COLOR_BLACK, COLOR_WHITE);
   // calib the ADC
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
   // start ADC with DMA (also enables conversion complete interrupt)
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)ADC_dma_buffer, 3);
+  HAL_ADC_Start_DMA(&hadc2, (uint32_t*)ADC_dma_buffer, 1);
 
 #ifndef DEBUGMODE // debug mode do not use SD card or menu
   // SD card init
@@ -175,14 +172,14 @@ int main(void)
   encoder_start(&htim4); 
 
   // enable pwm:
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_3);
 
   // initially not moving, so set compare to 500 (0% duty cycle)
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500); 
-  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, 500);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+  __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
 
   // // test for current
   // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
@@ -223,27 +220,33 @@ int main(void)
     }
 
     // update menu display
-    if(menu_update_flag == 1){
-      menu_update();
-      menu_update_flag = 0; 
-    }
+    // if(menu_update_flag == 1){
+    //   menu_update();
+    //   menu_update_flag = 0; 
+    // }
+    menu_update();
 #else 
     // in debug mode just display the current position from encoder
     // disable the DEBUG on LCD rn
-    char pos_buf[32];
-    int32_t temp;
-    encoder_read_value(&htim4, &temp);
-    current_distance_mm = encoder_parse_distance_mm(temp);
-    snprintf(pos_buf, sizeof(pos_buf), "Position cnt: %d mm", temp);
-    LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
+    // char pos_buf[32];
+    // int16_t temp;
+    // temp = encoder_read_value(&htim4);
+    // current_distance_mm = encoder_parse_distance_mm(temp);
+    // snprintf(pos_buf, sizeof(pos_buf), "Position cnt: %d mm", temp);
+    // LCD_draw_string(0, 1, pos_buf, COLOR_BLACK, COLOR_WHITE);
     
 
-    // also read the ADC value:
-    ADC_voltage = (float)(ADC_dma_buffer[0] + ADC_dma_buffer[1] + ADC_dma_buffer[2]) * 3.3f / (4095.0f * 50.0f); // convert ADC value to voltage
-    const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
-    char adc_buf[32];
-    snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.4f A", ADC_current);
-    LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
+    // // also read the ADC value:
+    // ADC_voltage = (float)(ADC_dma_buffer[0]) * 3.3f / 4095.0f; // convert ADC value to voltage
+    // const float ADC_current = ADC_voltage / 0.005f; // convert voltage to current (assuming 0.1 ohm shunt resistor)
+    // char adc_buf[32];
+    // snprintf(adc_buf, sizeof(adc_buf), "ADC current: %.4f A", ADC_current);
+    // LCD_draw_string(0, 2, adc_buf, COLOR_BLACK, COLOR_WHITE);
+
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 750); // set 50% duty cycle for testing
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 750);
+    HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"test\n", 5);
+    HAL_Delay(1000);
 #endif
   }
   
@@ -276,7 +279,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV1;
+  RCC_OscInitStruct.HSIDiv = RCC_HSI_DIV2;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLL1_SOURCE_HSE;

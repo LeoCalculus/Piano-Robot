@@ -1,15 +1,15 @@
 #include <hc04.h>
 
 void hc04_send_char(uint8_t c){
-    HAL_UART_Transmit_DMA(&huart1, &c, 1);
+    HAL_UART_Transmit_DMA(&huart2, &c, 1);
 }
 
 void hc04_send_string(uint8_t *str){
-    HAL_UART_Transmit_DMA(&huart1, str, strlen((char*)str));
+    HAL_UART_Transmit_DMA(&huart2, str, strlen((char*)str));
 }
 
 void hc04_send_bytes(uint8_t *data, uint16_t len){
-    HAL_UART_Transmit_DMA(&huart1, data, len);
+    HAL_UART_Transmit_DMA(&huart2, data, len);
 }
 
 void hc04_receive_to_idle_init(UART_HandleTypeDef *huart, uint8_t *buffer, uint16_t buffer_size){
@@ -18,7 +18,7 @@ void hc04_receive_to_idle_init(UART_HandleTypeDef *huart, uint8_t *buffer, uint1
 }
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t size){
-    if(huart == &huart1){
+    if(huart == &huart2){
         if (size == old_buffer_index) {
             return;
         }

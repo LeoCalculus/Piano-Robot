@@ -78,7 +78,7 @@ void FT_SendResponse(uint8_t responseCode, uint8_t *data, uint8_t dataLen)
     response[idx] = FT_CalculateChecksum(response, idx);
     idx++;
 
-    HAL_UART_Transmit(&huart1, response, idx, 50);
+    HAL_UART_Transmit(&huart2, response, idx, 50);
 }
 
 /* Handle FILE_START packet */

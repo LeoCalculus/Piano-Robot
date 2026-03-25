@@ -23,7 +23,7 @@ void user_timer2_ISR(){
     }
 
     if(timer2_tick_test >= 500){
-        HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_10);
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
         timer2_tick_test = 0;
     }
 }
