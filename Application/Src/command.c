@@ -7,6 +7,7 @@
 #include <sd.h>
 #include <hc04.h>
 #include <menu.h>
+#include <user_timer.h>
 
 extern PID_t left_motor;
 extern PID_t right_motor;
@@ -67,6 +68,11 @@ int parse_command(uint8_t *cmd)
             return 0;
         case 'l':
             // list_files_over_bt();
+            return 0;
+
+        case 'z':
+            // here begin test traversal:
+            traversal();
             return 0;
 
         default:
@@ -198,4 +204,28 @@ void list_files_over_bt(void)
     // }
 
     hc04_send_string((uint8_t*)"END\n");
+}
+
+void traversal(void){
+    left_motor.target_pos = 500.0f; // target position in mm
+    right_motor.target_pos = 500.0f;
+    wait_ms(3000);
+
+
+    left_motor.target_pos = -500.0f; // target position in mm
+    right_motor.target_pos = -500.0f;
+    wait_ms(3000);
+
+
+    left_motor.target_pos = 500.0f; // target position in mm
+    right_motor.target_pos = 500.0f;
+    wait_ms(3000);
+
+
+    left_motor.target_pos = -500.0f; // target position in mm
+    right_motor.target_pos = -500.0f;
+    wait_ms(3000);
+
+
+
 }

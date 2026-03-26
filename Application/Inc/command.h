@@ -23,4 +23,6 @@ void reset_pos(TIM_HandleTypeDef *htim);
 // list TXT files on SD card over Bluetooth
 void list_files_over_bt(void);
 
+void traversal(void);
+
 #endif

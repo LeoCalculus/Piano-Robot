@@ -410,7 +410,7 @@ void menu_init(void)
 void menu_update(void)
 {
 
-    char line_buf[32];
+    // char line_buf[32];
     /* ---- Handle BACK in any sub-page ---- */
     if (menu_back)
     {

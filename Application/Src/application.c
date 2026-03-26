@@ -126,12 +126,12 @@ void controller_step(const float dt) {
 #ifdef USECONTROLLER
     // read the encoder 
 
-    left_motor.encoder_cnt += encoder_read_value(&htim4);
+    left_motor.encoder_cnt += encoder_read_value(&htim3);
     left_motor.current_pos = encoder_parse_distance_mm(left_motor.encoder_cnt);
     vofa.val[0] = left_motor.current_pos;
     vofa.val[1] = left_motor.target_pos;
 
-    right_motor.encoder_cnt += encoder_read_value(&htim3);
+    right_motor.encoder_cnt += encoder_read_value(&htim4);
     right_motor.current_pos = encoder_parse_distance_mm(right_motor.encoder_cnt);
     vofa.val[5] = right_motor.current_pos;
     vofa.val[6] = right_motor.target_pos;

@@ -5,6 +5,7 @@
 #include "config.h"
 #include "menu.h"
 
+void wait_ms(uint16_t ms);
 void user_timer_tick_init(void);
 void user_timer2_ISR(void);
 void user_timer5_ISR(void);
