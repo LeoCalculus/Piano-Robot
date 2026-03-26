@@ -245,8 +245,8 @@ int main(void)
 
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 750); // set 50% duty cycle for testing
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 750);
-    HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"test\n", 5);
-    HAL_Delay(1000);
+    // HAL_UART_Transmit_DMA(&huart2, (uint8_t*)"test\n", 5);
+    // HAL_Delay(1000);
 #endif
   }
   

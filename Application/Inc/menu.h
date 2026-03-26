@@ -11,7 +11,8 @@ typedef enum
     MENU_STATE_MAIN,     /* Main menu with 4 items */
     MENU_STATE_TRANSMIT, /* Transmit Song (SD) page - receives files via BT */
     MENU_STATE_TRANSMIT_RAM, /* Transmit Song (RAM) */
-    MENU_STATE_SELECT    /* Select Song page - list files on SD card */
+    MENU_STATE_SELECT,   /* Select Song page - list files on SD card */
+    MENU_STATE_DEBUG     /* Debug info page */
 } MenuState_t;
 
 /* Navigation flags (set by command parser, consumed by menu_update) */

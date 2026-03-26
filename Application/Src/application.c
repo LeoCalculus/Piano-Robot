@@ -144,7 +144,10 @@ void controller_step(const float dt) {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, right_motor.output_pwm);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, left_motor.output_pwm);
 
-    if (huart2.gState == HAL_UART_STATE_READY) {
+    if (!uart_binary_mode
+        && menu_get_state() != MENU_STATE_TRANSMIT
+        && menu_get_state() != MENU_STATE_TRANSMIT_RAM
+        && huart2.gState == HAL_UART_STATE_READY) {
             HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
     }
 #endif

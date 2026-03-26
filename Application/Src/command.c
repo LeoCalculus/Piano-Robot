@@ -52,7 +52,7 @@ int parse_command(uint8_t *cmd)
             menu_enter = 1;
             return 0;
         case 'a': /* :a — back to main menu */
-            menu_enter = 0;
+            menu_back = 1;
             return 0;
         case 't': // set text in LCD
             char *arg = (char *)cmd + 2;

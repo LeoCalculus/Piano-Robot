@@ -460,12 +460,13 @@ void menu_update(void)
         {
             menu_index--;
             if (menu_index < 0)
-                menu_index = 4;
+                menu_index = 5;
         }
 
         /* Enter */
         if (menu_enter)
         {
+            menu_enter = 0;
             switch (menu_index)
             {
                 case 0: /* Play Song */
@@ -505,17 +506,8 @@ void menu_update(void)
                     LCD_draw_string(0, 9, "Homing done!            ", COLOR_BLACK, COLOR_WHITE);
                     break;
                 case 5: /* Debug */
-                    LCD_draw_string(0, 7,  "System Debug Page       ", COLOR_BLACK, COLOR_WHITE);
-                    snprintf(line_buf, sizeof(line_buf), "Enc1: %ld    Enc2: %ld      ", left_motor.encoder_cnt, right_motor.encoder_cnt);
-                    LCD_draw_string(0, 8, line_buf, COLOR_BLACK, COLOR_WHITE);
-                    snprintf(line_buf, sizeof(line_buf), "Tar1: %.2f Tar2: %.2f       ", left_motor.target_pos, right_motor.target_pos);
-                    LCD_draw_string(0, 9, line_buf, COLOR_BLACK, COLOR_WHITE);
-                    snprintf(line_buf, sizeof(line_buf), "Pos1: %.2f Pos2: %.2f       ", left_motor.current_pos, right_motor.current_pos);
-                    LCD_draw_string(0, 10, line_buf, COLOR_BLACK, COLOR_WHITE);
-                    snprintf(line_buf, sizeof(line_buf), "%.3f %.3f %.3f              ", left_motor.Kp, left_motor.Ki, left_motor.Kd);
-                    LCD_draw_string(0, 11, line_buf, COLOR_BLACK, COLOR_WHITE);
-                    snprintf(line_buf, sizeof(line_buf), "%.3f %.3f %.3f              ", right_motor.Kp, right_motor.Ki, right_motor.Kd);
-                    LCD_draw_string(0, 11, line_buf, COLOR_BLACK, COLOR_WHITE);
+                    menu_state = MENU_STATE_DEBUG;
+                    page_dirty = 1;
                     break;
             }
         }
@@ -588,6 +580,28 @@ void menu_update(void)
 
         menu_draw_select();
         break;
+
+    /* ===== DEBUG PAGE ===== */
+    case MENU_STATE_DEBUG:
+    {
+        if (page_dirty) {
+            clear_menu_area();
+            LCD_draw_string(0, 1, "[Debug] :a to go back   ", COLOR_BLACK, COLOR_WHITE);
+            page_dirty = 0;
+        }
+        char dbg[25];
+        snprintf(dbg, sizeof(dbg), "Enc1: %ld  Enc2: %ld      ", left_motor.encoder_cnt, right_motor.encoder_cnt);
+        LCD_draw_string(0, 2, dbg, COLOR_BLACK, COLOR_WHITE);
+        snprintf(dbg, sizeof(dbg), "Tar1: %.2f Tar2: %.2f  ", left_motor.target_pos, right_motor.target_pos);
+        LCD_draw_string(0, 3, dbg, COLOR_BLACK, COLOR_WHITE);
+        snprintf(dbg, sizeof(dbg), "Pos1: %.2f Pos2: %.2f  ", left_motor.current_pos, right_motor.current_pos);
+        LCD_draw_string(0, 4, dbg, COLOR_BLACK, COLOR_WHITE);
+        snprintf(dbg, sizeof(dbg), "L: %.3f %.3f %.3f  ", left_motor.Kp, left_motor.Ki, left_motor.Kd);
+        LCD_draw_string(0, 5, dbg, COLOR_BLACK, COLOR_WHITE);
+        snprintf(dbg, sizeof(dbg), "R: %.3f %.3f %.3f  ", right_motor.Kp, right_motor.Ki, right_motor.Kd);
+        LCD_draw_string(0, 6, dbg, COLOR_BLACK, COLOR_WHITE);
+        break;
+    }
     }
 
     /* Reset navigation flags */
