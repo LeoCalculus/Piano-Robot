@@ -2,6 +2,7 @@
 #define __PROTECTION_H
 
 #include <adc.h>
+#include <stdint.h>
 #include <stm32h5xx_it.h>
 #include <stm32h5xx_hal_adc.h>
 

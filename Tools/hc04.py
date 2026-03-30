@@ -1721,10 +1721,10 @@ class HC04SerialGUI:
                         continue
                     parts = line.replace(',', ' ').split()
                     parts = [p.rstrip('fF') for p in parts]
-                    if len(parts) != 14:
+                    if len(parts) != 13:
                         self.root.after(0, lambda ln=line_num, n=len(parts):
                             self.upload_log_message(
-                                f"WARN: line {ln} has {n} values (expected 14), skipping"))
+                                f"WARN: line {ln} has {n} values (expected 13), skipping"))
                         continue
                     if len(rows) >= 365:
                         self.root.after(0, lambda: self.upload_log_message(
@@ -1781,11 +1781,17 @@ class HC04SerialGUI:
                     self.root.after(0, self._ram_upload_done)
                     return
 
-                # Build packet: cmd(1) + row_index(2) + data(56) + checksum(1) = 60 bytes
+                # Build packet: cmd(1) + row_index(2) + data(20) + checksum(1) = 24 bytes
+                # Payload matches ChordEvent_t layout: float[2](8) + bool[10](10) + uint16_t(2) = 20 bytes
+                row = rows[row_idx]
+                pressed_bytes = bytes([1 if row[2 + j] != 0.0 else 0 for j in range(10)])
+                chord_data = (struct.pack('<2f', row[0], row[1])
+                              + pressed_bytes
+                              + struct.pack('<H', int(row[12])))
                 packet = bytearray([FT_CMD_RAM_DATA])
                 packet.extend(struct.pack('<H', row_idx))
-                packet.extend(struct.pack('<14f', *rows[row_idx]))
-                packet.append(self.calculate_checksum(packet))  # XOR of first 59 bytes
+                packet.extend(chord_data)
+                packet.append(self.calculate_checksum(packet))  # XOR of first 27 bytes
 
                 max_retries = 10
                 success = False

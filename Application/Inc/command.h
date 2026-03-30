@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <ILI9225.h>
+#include <application.h>
 
 /* parse command */
 int parse_command(uint8_t *cmd);
@@ -23,6 +24,9 @@ void reset_pos(TIM_HandleTypeDef *htim);
 // list TXT files on SD card over Bluetooth
 void list_files_over_bt(void);
 
+// this is a public function can be used any place
 void traversal(void);
+
+void toggle_solenoid(uint16_t traversal_index);
 
 #endif

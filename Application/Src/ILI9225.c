@@ -212,12 +212,12 @@ void LCD_init(void) {
 
     // ---------- Display control ----------
 
-    // Driver output control: SS=0, GS=1, NL=28 (220 lines) - landscape
+    // Driver output control: SS=0, GS=1, NL=28 (220 lines) - landscape 0°
     LCD_write_reg(ILI9225_DRIVER_OUTPUT_CTRL, 0x011C);
     // LCD AC driving control: line inversion
     LCD_write_reg(ILI9225_LCD_AC_DRIVING_CTRL, 0x0100);
-    // Entry mode: BGR, AM=1 (vertical first), ID1=0 ID0=1 - landscape
-    LCD_write_reg(ILI9225_ENTRY_MODE, 0x1028);
+    // Entry mode: BGR, AM=1 (vertical first), ID1=0 ID0=1
+    LCD_write_reg(ILI9225_ENTRY_MODE, 0x1018);
 
     // Blank period control
     LCD_write_reg(ILI9225_BLANK_PERIOD_CTRL1, 0x0808);
@@ -270,18 +270,15 @@ void LCD_init(void) {
 }
 
 void LCD_set_window(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1) {
-    // landscape: logical x -> physical vertical, logical y -> physical horizontal (inverted)
-    uint16_t py0 = 175 - y1;
-    uint16_t py1 = 175 - y0;
+    // landscape 180°: logical x -> physical vertical (inverted), logical y -> physical horizontal
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR1, y1);
+    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR2, y0);
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR1, 219 - x0);
+    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR2, 219 - x1);
 
-    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR1, py1);
-    LCD_write_reg(ILI9225_HORIZONTAL_WINDOW_ADDR2, py0);
-    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR1, x1);
-    LCD_write_reg(ILI9225_VERTICAL_WINDOW_ADDR2, x0);
-
-    // set RAM address to start of window
-    LCD_write_reg(ILI9225_RAM_ADDR_SET1, py1);
-    LCD_write_reg(ILI9225_RAM_ADDR_SET2, x0);
+    // set RAM address to start of window (H=y0 increments, V=219-x0 decrements)
+    LCD_write_reg(ILI9225_RAM_ADDR_SET1, y0);
+    LCD_write_reg(ILI9225_RAM_ADDR_SET2, 219 - x0);
 }
 
 void LCD_fill_screen(uint16_t color) {
@@ -297,9 +294,9 @@ void LCD_fill_screen(uint16_t color) {
 void LCD_draw_pixel(uint16_t x, uint16_t y, uint16_t color) {
     if (x >= LCD_WIDTH || y >= LCD_HEIGHT) return;
 
-    // landscape: x -> vertical, y -> horizontal (inverted)
-    LCD_write_reg(ILI9225_RAM_ADDR_SET1, 175 - y);
-    LCD_write_reg(ILI9225_RAM_ADDR_SET2, x);
+    // landscape 180°: x -> vertical (inverted), y -> horizontal
+    LCD_write_reg(ILI9225_RAM_ADDR_SET1, y);
+    LCD_write_reg(ILI9225_RAM_ADDR_SET2, 219 - x);
 
     LCD_start_gram_write();
     LCD_write_data16(color);

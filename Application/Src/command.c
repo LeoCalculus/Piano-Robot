@@ -8,6 +8,7 @@
 #include <hc04.h>
 #include <menu.h>
 #include <user_timer.h>
+#include <tim.h>
 
 extern PID_t left_motor;
 extern PID_t right_motor;
@@ -206,26 +207,69 @@ void list_files_over_bt(void)
     hc04_send_string((uint8_t*)"END\n");
 }
 
+void toggle_solenoid(uint16_t traversal_index){
+    for (int i = 0; i < 10; i++) {
+        HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    }
+    // wait for the duration of the chord:
+    wait_ms(chord_events[traversal_index].duration_ms);
+    // reset all solenoids after pressing:
+    for (int i = 0; i < 10; i++) {
+        HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+    }
+}
+
 void traversal(void){
-    left_motor.target_pos = 500.0f; // target position in mm
-    right_motor.target_pos = 500.0f;
-    wait_ms(3000);
+    // while (right_motor.target_pos < 300.0f) {
+    //     right_motor.target_pos += 21.0f;
+    //     wait_ms(10); // small delay so controller gets updated
+    //     while(!right_motor_arrived);
 
+    //     // stop the motor when pressing
+    //     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+    //     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
 
-    left_motor.target_pos = -500.0f; // target position in mm
-    right_motor.target_pos = -500.0f;
-    wait_ms(3000);
+    //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
+    //     wait_ms(300);
+    //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_RESET);
+    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);
+    //     wait_ms(300);
+    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
+    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
+    //     wait_ms(300);
+    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
+    //     wait_ms(200);
+        
+    //     wait_ms(1000);
+    // }
+    uint16_t traversal_index = 0;
+    while (1){
+        if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
+            LCD_draw_string(0, 9, "No song in RAM!       ", COLOR_BLACK, COLOR_WHITE);
+            break;
+        }
 
+        // otherwise set the target position:
+        left_motor.target_pos = chord_events[traversal_index].positions[0];
+        right_motor.target_pos = chord_events[traversal_index].positions[1];
 
-    left_motor.target_pos = 500.0f; // target position in mm
-    right_motor.target_pos = 500.0f;
-    wait_ms(3000);
+        // wait for both to arrive - disable to check traversal
+        // while(!left_motor_arrived || !right_motor_arrived);
+        // // exit reset two flag:
+        // left_motor_arrived = 0;
+        // right_motor_arrived = 0;
 
+        // stop the motor when pressing
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
 
-    left_motor.target_pos = -500.0f; // target position in mm
-    right_motor.target_pos = -500.0f;
-    wait_ms(3000);
+        // here just wait for pressing:
+        toggle_solenoid(traversal_index);
 
+        wait_ms(chord_events[traversal_index].duration_ms);
 
+        // in the end will just increment the index:
+        traversal_index++;
+    }
 
 }

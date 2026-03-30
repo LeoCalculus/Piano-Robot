@@ -13,9 +13,8 @@ volatile int uart_binary_mode = 0; // 1 = skip \n detection (binary file transfe
 volatile int redirect_to_ram = 0; // flag to indicate whether the incoming song data should be written to RAM
 volatile int ram_rx_started = 0;  // 1 = start sentinel received, accumulating
 volatile int ram_rx_complete = 0; // 1 = end sentinel received, ready to parse
-volatile uint32_t ram_rx_offset = 0; // byte offset into song_ram during accumulation
+volatile uint32_t ram_rx_offset = 0; // row count received during accumulation
 __ALIGN_BEGIN float rx_data[5500] __ALIGN_END;
-__ALIGN_BEGIN float song_ram[365][14] __ALIGN_END; // receive buffer for RAM song transfer (20440 bytes)
 VOFA_REPORT vofa; // transmit via usb
 
 // song struct
@@ -32,6 +31,10 @@ volatile float target_position_mm = 0.0f;
 
 // other variables
 volatile int32_t counter = 0;
+
+// motor motion control parameters
+int left_motor_arrived = 0; // flag when enter the motor deadband 
+int right_motor_arrived = 0; // flag when enter the motor deadband
 
 // PID parameters
 PID_t left_motor = {
@@ -80,6 +83,17 @@ void pid_cycle(PID_t* target_system){
     if (target_system->current_error > -ERROR_DEADBAND && target_system->current_error < ERROR_DEADBAND) {
         pwm_temp = 500;
         target_system->integral *= 0.95f;  // reset integral to prevent windup
+        if (target_system == &left_motor) {
+            left_motor_arrived = 1;
+        } else if (target_system == &right_motor) {
+            right_motor_arrived = 1;
+        }
+    } else {
+        if (target_system == &left_motor) {
+            left_motor_arrived = 0;
+        } else if (target_system == &right_motor) {
+            right_motor_arrived = 0;
+        }
     }
 
     if (pwm_temp > 1000) pwm_temp = 1000;
@@ -92,18 +106,6 @@ void pid_cycle(PID_t* target_system){
     return;
 }
 
-
-void parsing_song_buffer_to_struct(float src[][14], ChordEvent_t *dst) {
-    for (int i = 0; i < MAX_CHORD_EVENTS; i++) {
-        dst[i].positions[0] = src[i][0];
-        dst[i].positions[1] = src[i][1];
-        for (int j = 0; j < MAX_CHORD_NOTES; j++) {
-            dst[i].pressed[j] = (src[i][2 + j] != 0.0f);
-        }
-        dst[i].duration_ms = (uint16_t)src[i][12];
-        dst[i].delay_to_next_ms = (uint16_t)src[i][13];
-    }
-}
 
 void homing_procedure(void) {
     // TODO: implement homing procedure

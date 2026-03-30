@@ -112,7 +112,7 @@ void sd_parse_array(const char *filename){
 
     // parse and store chord events in the file, format example:
     while (f_gets(sd_buf, sizeof(sd_buf), &file) != NULL) {
-        // 1.5 3.2 1 0 1 0 0 1 0 0 1 0 500 200 as example, using strtok to parse the line
+        // 1.5 3.2 row_high row_low 1 0 1 0 0 1 0 0 1 0 500 as example, using strtok to parse the line
         char *token = strtok(sd_buf, " ");
         while (token != NULL) {
             // parse the token and store in chord_events[index]
@@ -127,8 +127,6 @@ void sd_parse_array(const char *filename){
                     chord_events[index].pressed[token_index - 2] = atoi(token) != 0;
                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
                     chord_events[index].duration_ms = atoi(token);
-                } else if (token_index == 3 + MAX_CHORD_NOTES) {
-                    chord_events[index].delay_to_next_ms = atoi(token);
                 }
                 token = strtok(NULL, " ");
                 token_index++;

@@ -188,6 +188,14 @@ int main(void)
   // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
 
   controller_init(); // initialize controller state
+  LCD_draw_string(0, 1, "Setting Complete       ", COLOR_BLACK, COLOR_WHITE);
+  
+  wait_ms(1000);
+  LCD_draw_string(0, 1, "Start Loading Song     ", COLOR_BLACK, COLOR_WHITE);
+  // load the debug song in RAM:
+  load_debug_song();
+  LCD_draw_string(0, 1, "Song Loaded            ", COLOR_BLACK, COLOR_WHITE);
+  wait_ms(1000); // wait for everything ready!
 
 #ifndef DEBUGMODE
   menu_init();

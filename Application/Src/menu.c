@@ -243,7 +243,7 @@ int menu_try_dispatch_binary(uint8_t *data, uint16_t len)
         uint16_t need = 0;
         switch (data[0]) {
           case FT_CMD_RAM_START: need = 2; break;   // [0xE0] [sentinel]
-          case FT_CMD_RAM_DATA:  need = 60; break;   // [0xE1] [row_lo] [row_hi] [56 data] [checksum]
+          case FT_CMD_RAM_DATA:  need = 24; break;   // [0xE1] [row_lo] [row_hi] [20 data] [checksum]
           case FT_CMD_RAM_END:   need = 2; break;   // [0xE2] [sentinel]
         }
         if (need == 0 || len < need)
@@ -276,23 +276,17 @@ void menu_draw_transmit_ram(void){
 
     /* Show live accumulation status */
     if (ram_rx_started && !ram_rx_complete){
-        uint32_t total = RAM_SONG_MAX_BYTES;
-        uint8_t pct = (uint8_t)((ram_rx_offset * 100) / total);
-        snprintf(buf, sizeof(buf), "RX: %lu/%lu  %3d%%   ",
-                 (unsigned long)ram_rx_offset, (unsigned long)total, pct);
+        uint8_t pct = (uint8_t)((ram_rx_offset * 100) / MAX_CHORD_EVENTS);
+        snprintf(buf, sizeof(buf), "RX: %lu/%d rows %3d%%  ",
+                 (unsigned long)ram_rx_offset, MAX_CHORD_EVENTS, pct);
         LCD_draw_string(0, 4, buf, COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 2, "Receiving data...       ", COLOR_BLACK, COLOR_WHITE);
     }
 
     if (ram_rx_complete){
-        uint32_t num_floats = ram_rx_offset / 4;
-        uint32_t num_chords = num_floats / 14;
+        uint32_t num_chords = ram_rx_offset;
         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
-        LCD_draw_string(0, 4, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
-
-        /* Parse the flat float buffer into chord_events struct */
-        parsing_song_buffer_to_struct(song_ram, chord_events);
 
         LCD_draw_string(0, 4, "Song loaded to RAM!     ", COLOR_BLACK, COLOR_WHITE);
 
@@ -470,16 +464,7 @@ void menu_update(void)
             switch (menu_index)
             {
                 case 0: /* Play Song */
-                    /* Only play if a song is selected */
-                    if (active_song_index >= 0 && active_song_index < fileCount)
-                    {
-                        LCD_draw_string(0, 9, "Playing song...         ", COLOR_BLACK, COLOR_WHITE);
-                        /* TODO: hook into traversal_song with the selected file */
-                    }
-                    else
-                    {
-                        LCD_draw_string(0, 9, "No song selected!       ", COLOR_BLACK, COLOR_WHITE);
-                    }
+                    traversal(); // just play the song, select and pull song from SD card in handle in other place
                     break;
                 case 1: /* Transmit Song to SD card */
                     menu_state = MENU_STATE_TRANSMIT;
@@ -575,6 +560,10 @@ void menu_update(void)
                 char buf[25];
                 snprintf(buf, sizeof(buf), "Selected: %-12s  ", fileList[active_song_index].name);
                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
+                // block and parse:
+                LCD_draw_string(0, 10, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
+                sd_parse_array(fileList[active_song_index].name);
+                LCD_draw_string(0, 10, "Song ready to play!    ", COLOR_BLACK, COLOR_WHITE);
             }
         }
 

@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "stm32h5xx_hal.h"
+#include <application.h>
 
 /* Global transfer context */
 static FT_Context_t ftContext;
@@ -264,12 +265,12 @@ static int FT_HandleFileData(uint8_t *packet, uint16_t length)
 }
 
 /* Handle RAM packet data
-   Packet: [0xE1] [row_lo] [row_hi] [56 bytes = 14 floats] [checksum]
-   Total = 60 bytes
+   Packet: [0xE1] [row_lo] [row_hi] [20 bytes = ChordEvent_t] [checksum]
+   Total = 24 bytes
 */
 static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
-    // Packet must be exactly 60 bytes: cmd(1) + row(2) + data(56) + checksum(1)
-    if (length != 60)
+    // Packet must be exactly 24 bytes: cmd(1) + row(2) + data(20) + checksum(1)
+    if (length != 24)
     {
         uint8_t nakData[] = {0, 0, FT_ERR_OVERFLOW};
         FT_SendResponse(FT_RSP_NAK, nakData, 3);
@@ -279,7 +280,7 @@ static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
     // Extract row index early so NAK responses can include it
     uint16_t rowIndex = packet[1] | (packet[2] << 8);
 
-    // Verify checksum: XOR of bytes [0..58], compare with byte [59]
+    // Verify checksum: XOR of bytes [0..22], compare with byte [23]
     if (RAM_CalculateChecksum(packet, length - 1) != packet[length - 1])
     {
         uint8_t nakData[] = {rowIndex & 0xFF, rowIndex >> 8, FT_ERR_CHECKSUM};
@@ -295,9 +296,9 @@ static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
         return -1;
     }
 
-    // Copy 14 floats (56 bytes) into song_ram[rowIndex]
-    memcpy(song_ram[rowIndex], &packet[3], 56);
-    ram_rx_offset += 56;
+    // Parse directly into chord_events[rowIndex] (no intermediate buffer)
+    memcpy(&chord_events[rowIndex], &packet[3], sizeof(ChordEvent_t));
+    ram_rx_offset++; // row count
     // Tell PC this row is OK
     uint8_t ackData[] = {rowIndex & 0xFF, rowIndex >> 8};
     FT_SendResponse(FT_RSP_ACK, ackData, 2);
@@ -444,7 +445,7 @@ void RAM_ProcessPacket(uint8_t *packet, uint16_t length)
     {
         case FT_CMD_RAM_START: // [0xE0] [Start Signal]
             if (packet[1] == RAM_SENTINEL_START){
-                memset(song_ram, 0, RAM_SONG_MAX_BYTES);
+                memset(chord_events, 0, sizeof(chord_events));
                 ram_rx_started = 1;
                 ram_rx_complete = 0;
                 ram_rx_offset = 0;
