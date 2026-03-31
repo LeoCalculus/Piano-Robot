@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -37,191 +37,147 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 1
   31              		.cfi_startproc
   32              		@ args = 0, pretend = 0, frame = 0
   33              		@ frame_needed = 0, uses_anonymous_args = 0
-  34 0000 30B5     		push	{r4, r5, lr}
-  35              	.LCFI0:
-  36              		.cfi_def_cfa_offset 12
-  37              		.cfi_offset 4, -12
-  38              		.cfi_offset 5, -8
-  39              		.cfi_offset 14, -4
+  34              		@ link register save eliminated.
    5:./Application/Src/debug_song.c ****     // DO
    6:./Application/Src/debug_song.c ****     chord_events[0] = (ChordEvent_t){
-  40              		.loc 1 6 5 view .LVU1
-  41              		.loc 1 6 21 is_stmt 0 view .LVU2
-  42 0002 DFF85CC0 		ldr	ip, .L3
-  43 0006 DFF85CE0 		ldr	lr, .L3+4
-  44 000a 6446     		mov	r4, ip
-  45 000c 7546     		mov	r5, lr
-  46 000e 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
-  47 0010 0FC4     		stmia	r4!, {r0, r1, r2, r3}
-  48 0012 2B68     		ldr	r3, [r5]
-  49 0014 2360     		str	r3, [r4]
+  35              		.loc 1 6 5 view .LVU1
+  36              		.loc 1 6 21 is_stmt 0 view .LVU2
+  37 0000 294B     		ldr	r3, .L2
+  38 0002 0022     		movs	r2, #0
+  39 0004 1A60     		str	r2, [r3]
+  40 0006 5A60     		str	r2, [r3, #4]
+  41 0008 9A60     		str	r2, [r3, #8]
+  42 000a DA60     		str	r2, [r3, #12]
+  43 000c 1A61     		str	r2, [r3, #16]
+  44 000e 5A61     		str	r2, [r3, #20]
+  45 0010 2649     		ldr	r1, .L2+4
+  46 0012 5960     		str	r1, [r3, #4]	@ float
+  47 0014 0120     		movs	r0, #1
+  48 0016 1872     		strb	r0, [r3, #8]
+  49 0018 4FF4FA71 		mov	r1, #500
+  50 001c 9982     		strh	r1, [r3, #20]	@ movhi
    7:./Application/Src/debug_song.c ****         .positions   = {DO_1, DO_2},
    8:./Application/Src/debug_song.c ****         .pressed     = {true, false, false, false, false, false, false, false, false, false},
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s 			page 2
+
+
    9:./Application/Src/debug_song.c ****         .duration_ms = 500
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 2
-
-
   10:./Application/Src/debug_song.c ****     };
   11:./Application/Src/debug_song.c ****     // RE
   12:./Application/Src/debug_song.c ****     chord_events[1] = (ChordEvent_t){
-  50              		.loc 1 12 5 is_stmt 1 view .LVU3
-  51              		.loc 1 12 21 is_stmt 0 view .LVU4
-  52 0016 0CF11404 		add	r4, ip, #20
-  53 001a 0EF11405 		add	r5, lr, #20
-  54 001e 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
-  55 0020 0FC4     		stmia	r4!, {r0, r1, r2, r3}
-  56 0022 2B68     		ldr	r3, [r5]
-  57 0024 2360     		str	r3, [r4]
+  51              		.loc 1 12 5 is_stmt 1 view .LVU3
+  52              		.loc 1 12 21 is_stmt 0 view .LVU4
+  53 001e 9A61     		str	r2, [r3, #24]
+  54 0020 DA61     		str	r2, [r3, #28]
+  55 0022 1A62     		str	r2, [r3, #32]
+  56 0024 5A62     		str	r2, [r3, #36]
+  57 0026 9A62     		str	r2, [r3, #40]
+  58 0028 DA62     		str	r2, [r3, #44]
+  59 002a DFF88CC0 		ldr	ip, .L2+16
+  60 002e C3F818C0 		str	ip, [r3, #24]	@ float
+  61 0032 DFF888C0 		ldr	ip, .L2+20
+  62 0036 C3F81CC0 		str	ip, [r3, #28]	@ float
+  63 003a 83F82100 		strb	r0, [r3, #33]
+  64 003e 9985     		strh	r1, [r3, #44]	@ movhi
   13:./Application/Src/debug_song.c ****         .positions   = {RE_1, RE_2},
   14:./Application/Src/debug_song.c ****         .pressed     = {false, true, false, false, false, false, false, false, false, false},
   15:./Application/Src/debug_song.c ****         .duration_ms = 500
   16:./Application/Src/debug_song.c ****     };
   17:./Application/Src/debug_song.c ****     // MI
   18:./Application/Src/debug_song.c ****     chord_events[2] = (ChordEvent_t){
-  58              		.loc 1 18 5 is_stmt 1 view .LVU5
-  59              		.loc 1 18 21 is_stmt 0 view .LVU6
-  60 0026 0CF12804 		add	r4, ip, #40
-  61 002a 0EF12805 		add	r5, lr, #40
-  62 002e 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
-  63 0030 0FC4     		stmia	r4!, {r0, r1, r2, r3}
-  64 0032 2B68     		ldr	r3, [r5]
-  65 0034 2360     		str	r3, [r4]
+  65              		.loc 1 18 5 is_stmt 1 view .LVU5
+  66              		.loc 1 18 21 is_stmt 0 view .LVU6
+  67 0040 1A63     		str	r2, [r3, #48]
+  68 0042 5A63     		str	r2, [r3, #52]
+  69 0044 9A63     		str	r2, [r3, #56]
+  70 0046 DA63     		str	r2, [r3, #60]
+  71 0048 1A64     		str	r2, [r3, #64]
+  72 004a 5A64     		str	r2, [r3, #68]
+  73 004c DFF870C0 		ldr	ip, .L2+24
+  74 0050 C3F830C0 		str	ip, [r3, #48]	@ float
+  75 0054 DFF86CC0 		ldr	ip, .L2+28
+  76 0058 C3F834C0 		str	ip, [r3, #52]	@ float
+  77 005c 83F83A00 		strb	r0, [r3, #58]
+  78 0060 A3F84410 		strh	r1, [r3, #68]	@ movhi
   19:./Application/Src/debug_song.c ****         .positions   = {MI_1, MI_2},
   20:./Application/Src/debug_song.c ****         .pressed     = {false, false, true, false, false, false, false, false, false, false},
   21:./Application/Src/debug_song.c ****         .duration_ms = 500
   22:./Application/Src/debug_song.c ****     };
   23:./Application/Src/debug_song.c ****     // FA
   24:./Application/Src/debug_song.c ****     chord_events[3] = (ChordEvent_t){
-  66              		.loc 1 24 5 is_stmt 1 view .LVU7
-  67              		.loc 1 24 21 is_stmt 0 view .LVU8
-  68 0036 0CF13C04 		add	r4, ip, #60
-  69 003a 0EF13C05 		add	r5, lr, #60
-  70 003e 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
-  71 0040 0FC4     		stmia	r4!, {r0, r1, r2, r3}
-  72 0042 2B68     		ldr	r3, [r5]
-  73 0044 2360     		str	r3, [r4]
+  79              		.loc 1 24 5 is_stmt 1 view .LVU7
+  80              		.loc 1 24 21 is_stmt 0 view .LVU8
+  81 0064 9A64     		str	r2, [r3, #72]
+  82 0066 DA64     		str	r2, [r3, #76]
+  83 0068 1A65     		str	r2, [r3, #80]
+  84 006a 5A65     		str	r2, [r3, #84]
+  85 006c 9A65     		str	r2, [r3, #88]
+  86 006e DA65     		str	r2, [r3, #92]
+  87 0070 DFF854C0 		ldr	ip, .L2+32
+  88 0074 C3F848C0 		str	ip, [r3, #72]	@ float
+  89 0078 DFF850C0 		ldr	ip, .L2+36
+  90 007c C3F84CC0 		str	ip, [r3, #76]	@ float
+  91 0080 83F85300 		strb	r0, [r3, #83]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s 			page 3
+
+
+  92 0084 A3F85C10 		strh	r1, [r3, #92]	@ movhi
   25:./Application/Src/debug_song.c ****         .positions   = {FA_1, FA_2},
   26:./Application/Src/debug_song.c ****         .pressed     = {false, false, false, true, false, false, false, false, false, false},
   27:./Application/Src/debug_song.c ****         .duration_ms = 500
   28:./Application/Src/debug_song.c ****     };
   29:./Application/Src/debug_song.c ****     // SO
   30:./Application/Src/debug_song.c ****     chord_events[4] = (ChordEvent_t){
-  74              		.loc 1 30 5 is_stmt 1 view .LVU9
-  75              		.loc 1 30 21 is_stmt 0 view .LVU10
-  76 0046 0CF1500C 		add	ip, ip, #80
-  77 004a 0EF1500E 		add	lr, lr, #80
-  78 004e BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
-  79 0052 ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
-  80 0056 DEF80030 		ldr	r3, [lr]
-  81 005a CCF80030 		str	r3, [ip]
+  93              		.loc 1 30 5 is_stmt 1 view .LVU9
+  94              		.loc 1 30 21 is_stmt 0 view .LVU10
+  95 0088 1A66     		str	r2, [r3, #96]
+  96 008a 5A66     		str	r2, [r3, #100]
+  97 008c 9A66     		str	r2, [r3, #104]
+  98 008e DA66     		str	r2, [r3, #108]
+  99 0090 1A67     		str	r2, [r3, #112]
+ 100 0092 5A67     		str	r2, [r3, #116]
+ 101 0094 064A     		ldr	r2, .L2+8
+ 102 0096 1A66     		str	r2, [r3, #96]	@ float
+ 103 0098 064A     		ldr	r2, .L2+12
+ 104 009a 5A66     		str	r2, [r3, #100]	@ float
+ 105 009c 83F86C00 		strb	r0, [r3, #108]
+ 106 00a0 A3F87410 		strh	r1, [r3, #116]	@ movhi
   31:./Application/Src/debug_song.c ****         .positions   = {SO_1, SO_2},
   32:./Application/Src/debug_song.c ****         .pressed     = {false, false, false, false, true, false, false, false, false, false},
   33:./Application/Src/debug_song.c ****         .duration_ms = 500
   34:./Application/Src/debug_song.c ****     };
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 3
-
-
   35:./Application/Src/debug_song.c **** }...
-  82              		.loc 1 35 1 view .LVU11
-  83 005e 30BD     		pop	{r4, r5, pc}
-  84              	.L4:
-  85              		.align	2
-  86              	.L3:
-  87 0060 00000000 		.word	chord_events
-  88 0064 00000000 		.word	.LANCHOR0
-  89              		.cfi_endproc
-  90              	.LFE359:
-  92              		.section	.rodata
-  93              		.align	2
-  94              		.set	.LANCHOR0,. + 0
-  95              	.LC0:
-  96 0000 00000000 		.word	0
-  97 0004 000013C3 		.word	-1022164992
-  98 0008 01       		.byte	1
-  99 0009 00       		.byte	0
- 100 000a 00       		.byte	0
- 101 000b 00       		.byte	0
- 102 000c 00       		.byte	0
- 103 000d 00       		.byte	0
- 104 000e 00       		.byte	0
- 105 000f 00       		.byte	0
- 106 0010 00       		.byte	0
- 107 0011 00       		.byte	0
- 108 0012 F401     		.short	500
- 109              	.LC1:
- 110 0014 0000A8C1 		.word	-1045954560
- 111 0018 000028C3 		.word	-1020788736
- 112 001c 00       		.byte	0
- 113 001d 01       		.byte	1
- 114 001e 00       		.byte	0
- 115 001f 00       		.byte	0
- 116 0020 00       		.byte	0
- 117 0021 00       		.byte	0
- 118 0022 00       		.byte	0
- 119 0023 00       		.byte	0
- 120 0024 00       		.byte	0
- 121 0025 00       		.byte	0
- 122 0026 F401     		.short	500
- 123              	.LC2:
- 124 0028 000028C2 		.word	-1037565952
- 125 002c 00003DC3 		.word	-1019412480
- 126 0030 00       		.byte	0
- 127 0031 00       		.byte	0
- 128 0032 01       		.byte	1
- 129 0033 00       		.byte	0
- 130 0034 00       		.byte	0
- 131 0035 00       		.byte	0
- 132 0036 00       		.byte	0
- 133 0037 00       		.byte	0
- 134 0038 00       		.byte	0
- 135 0039 00       		.byte	0
- 136 003a F401     		.short	500
- 137              	.LC3:
- 138 003c 00007CC2 		.word	-1032060928
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 4
-
-
- 139 0040 000052C3 		.word	-1018036224
- 140 0044 00       		.byte	0
- 141 0045 00       		.byte	0
- 142 0046 00       		.byte	0
- 143 0047 01       		.byte	1
- 144 0048 00       		.byte	0
- 145 0049 00       		.byte	0
- 146 004a 00       		.byte	0
- 147 004b 00       		.byte	0
- 148 004c 00       		.byte	0
- 149 004d 00       		.byte	0
- 150 004e F401     		.short	500
- 151              	.LC4:
- 152 0050 0000A8C2 		.word	-1029177344
- 153 0054 000067C3 		.word	-1016659968
- 154 0058 00       		.byte	0
- 155 0059 00       		.byte	0
- 156 005a 00       		.byte	0
- 157 005b 00       		.byte	0
- 158 005c 01       		.byte	1
- 159 005d 00       		.byte	0
- 160 005e 00       		.byte	0
- 161 005f 00       		.byte	0
- 162 0060 00       		.byte	0
- 163 0061 00       		.byte	0
- 164 0062 F401     		.short	500
- 165              		.text
- 166              	.Letext0:
- 167              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 168              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 169              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
- 170              		.file 5 "Application/Inc/application.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s 			page 5
+ 107              		.loc 1 35 1 view .LVU11
+ 108 00a4 7047     		bx	lr
+ 109              	.L3:
+ 110 00a6 00BF     		.align	2
+ 111              	.L2:
+ 112 00a8 00000000 		.word	chord_events
+ 113 00ac 000013C3 		.word	-1022164992
+ 114 00b0 0000A8C2 		.word	-1029177344
+ 115 00b4 000067C3 		.word	-1016659968
+ 116 00b8 0000A8C1 		.word	-1045954560
+ 117 00bc 000028C3 		.word	-1020788736
+ 118 00c0 000028C2 		.word	-1037565952
+ 119 00c4 00003DC3 		.word	-1019412480
+ 120 00c8 00007CC2 		.word	-1032060928
+ 121 00cc 000052C3 		.word	-1018036224
+ 122              		.cfi_endproc
+ 123              	.LFE359:
+ 125              		.text
+ 126              	.Letext0:
+ 127              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 128              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 129              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 130              		.file 5 "Application/Inc/application.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s 			page 4
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 debug_song.c
-C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s:22     .text.load_debug_song:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s:28     .text.load_debug_song:00000000 load_debug_song
-C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s:87     .text.load_debug_song:00000060 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccOulGCK.s:93     .rodata:00000000 $d
+C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s:22     .text.load_debug_song:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s:28     .text.load_debug_song:00000000 load_debug_song
+C:\Users\Xuleo\AppData\Local\Temp\cc4OVFma.s:112    .text.load_debug_song:000000a8 $d
 
 UNDEFINED SYMBOLS
 chord_events

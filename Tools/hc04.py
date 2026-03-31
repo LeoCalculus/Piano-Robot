@@ -1,5 +1,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext, filedialog
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+from matplotlib.ticker import FuncFormatter
 import threading
 import time
 import serial
@@ -102,6 +106,7 @@ class HC04SerialGUI:
         self.file_upload_tab = ttk.Frame(self.notebook)
         self.control_tab = ttk.Frame(self.notebook)
         self.command_tab = ttk.Frame(self.notebook)
+        self.VOFA_tab = ttk.Frame(self.notebook)  
 
         # Add tabs to notebook
         self.notebook.add(self.connection_tab, text="Connection")
@@ -109,6 +114,7 @@ class HC04SerialGUI:
         self.notebook.add(self.file_upload_tab, text="File Upload")
         self.notebook.add(self.control_tab, text="Control")
         self.notebook.add(self.command_tab, text="Command")
+        self.notebook.add(self.VOFA_tab, text="VOFA")
 
         # Set up each tab
         self.setup_connection_tab()
@@ -116,6 +122,7 @@ class HC04SerialGUI:
         self.setup_file_upload_tab()
         self.setup_control_tab()
         self.setup_command_tab()
+        self.setup_VOFA_tab()
 
         # Disable tabs until connected
         self.notebook.tab(1, state="disabled")
@@ -607,6 +614,275 @@ class HC04SerialGUI:
         self.mouse_draw_counter = 0
 
         # No canvas-only bindings — mouse is tracked globally in _mouse_poll_tick
+        
+    def setup_VOFA_tab(self):
+        """Setup the VOFA tab - JustFloat oscilloscope (10 channels, 1ms MCU DMA)"""
+        import threading as _threading
+
+        VOFA_CH = 10
+        VOFA_TAIL = b'\x00\x00\x80\x7f'
+        VOFA_FRAME_BYTES = VOFA_CH * 4  # float data before tail
+        VOFA_WINDOW_DEFAULT = 500       # ms
+        VOFA_MAX_POINTS = 20000
+
+        self._vofa_colors = [
+            '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7',
+            '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#82E0AA',
+        ]
+        # State
+        self.vofa_raw_buf  = bytearray()
+        self.vofa_raw_lock = _threading.Lock()
+        self._vofa_carry   = bytearray()
+        self.vofa_time     = []
+        self.vofa_data     = [[] for _ in range(VOFA_CH)]
+        self.vofa_t_ms     = 0
+        self.vofa_paused   = False
+        self.vofa_window_ms = VOFA_WINDOW_DEFAULT
+        self.vofa_frame_count = 0
+        self._vofa_fps_t   = time.time()
+        self._vofa_fps_cnt = 0
+        self.vofa_ch_count  = VOFA_CH
+        self.vofa_frame_bytes = VOFA_FRAME_BYTES
+        self.vofa_tail      = VOFA_TAIL
+        self.vofa_max_points = VOFA_MAX_POINTS
+        self.vofa_ch_visible = [tk.BooleanVar(value=True) for _ in range(VOFA_CH)]
+
+        BG  = '#1e1e2e'
+        BG2 = '#181825'
+        FG  = '#cdd6f4'
+        DIM = '#6c7086'
+        BTN = '#45475a'
+
+        # ── Top controls ──────────────────────────────────────────────
+        ctrl = tk.Frame(self.VOFA_tab, bg=BG, pady=5)
+        ctrl.pack(fill=tk.X, side=tk.TOP)
+
+        tk.Label(ctrl, text="Window:", bg=BG, fg=FG,
+                 font=('Consolas', 9)).pack(side=tk.LEFT, padx=(10, 2))
+
+        self.vofa_window_var = tk.StringVar(value=str(VOFA_WINDOW_DEFAULT))
+        win_box = tk.Spinbox(ctrl, from_=50, to=20000, increment=50, width=6,
+                             textvariable=self.vofa_window_var,
+                             bg='#313244', fg=FG, buttonbackground=BTN,
+                             font=('Consolas', 9),
+                             command=self._vofa_apply_window)
+        win_box.pack(side=tk.LEFT, padx=2)
+        win_box.bind('<Return>', lambda e: self._vofa_apply_window())
+        win_box.bind('<FocusOut>', lambda e: self._vofa_apply_window())
+
+        tk.Label(ctrl, text="ms", bg=BG, fg=DIM,
+                 font=('Consolas', 9)).pack(side=tk.LEFT, padx=(0, 12))
+
+        self.vofa_pause_btn = tk.Button(
+            ctrl, text='\u23f8 Pause', bg=BTN, fg=FG,
+            font=('Consolas', 9, 'bold'), relief=tk.FLAT, padx=8,
+            activebackground='#585b70', activeforeground=FG,
+            command=self._vofa_toggle_pause)
+        self.vofa_pause_btn.pack(side=tk.LEFT, padx=4)
+
+        tk.Button(ctrl, text='\u27f3 Clear', bg=BTN, fg=FG,
+                  font=('Consolas', 9, 'bold'), relief=tk.FLAT, padx=8,
+                  activebackground='#585b70', activeforeground=FG,
+                  command=self._vofa_clear).pack(side=tk.LEFT, padx=4)
+
+        self.vofa_status_var = tk.StringVar(value='Waiting for data…')
+        tk.Label(ctrl, textvariable=self.vofa_status_var, bg=BG, fg='#a6e3a1',
+                 font=('Consolas', 9)).pack(side=tk.RIGHT, padx=12)
+
+        # ── Main area: plot + channel panel ──────────────────────────
+        area = tk.Frame(self.VOFA_tab, bg=BG)
+        area.pack(fill=tk.BOTH, expand=True)
+
+        # ── Channel panel (right) ──────────────────────────────────
+        ch_panel = tk.Frame(area, bg=BG2, width=148)
+        ch_panel.pack(side=tk.RIGHT, fill=tk.Y)
+        ch_panel.pack_propagate(False)
+
+        tk.Label(ch_panel, text='CHANNELS', bg=BG2, fg=DIM,
+                 font=('Consolas', 8, 'bold')).pack(pady=(10, 4))
+
+        self.vofa_val_labels = []
+        for i in range(VOFA_CH):
+            row = tk.Frame(ch_panel, bg=BG2)
+            row.pack(fill=tk.X, padx=6, pady=2)
+
+            cb = tk.Checkbutton(
+                row, variable=self.vofa_ch_visible[i],
+                bg=BG2, activebackground=BG2, selectcolor=BG2,
+                fg=self._vofa_colors[i],
+                text=f'CH{i}', font=('Consolas', 9, 'bold'),
+                command=self._vofa_apply_visibility)
+            cb.pack(side=tk.LEFT)
+
+            lbl = tk.Label(row, text='  -.---', bg=BG2, fg=FG,
+                           font=('Consolas', 9), anchor='e', width=8)
+            lbl.pack(side=tk.RIGHT)
+            self.vofa_val_labels.append(lbl)
+
+        # ── Matplotlib plot ────────────────────────────────────────
+        self.vofa_fig = Figure(dpi=96)
+        self.vofa_fig.patch.set_facecolor(BG)
+        self.vofa_ax = self.vofa_fig.add_subplot(111)
+        ax = self.vofa_ax
+        ax.set_facecolor(BG)
+        ax.tick_params(colors=DIM, labelsize=7)
+        ax.set_xlabel('Time (ms)', color=DIM, fontsize=8)
+        ax.set_ylabel('Value',     color=DIM, fontsize=8)
+        ax.grid(True, color='#313244', linewidth=0.5, alpha=0.8)
+        for sp in ax.spines.values():
+            sp.set_edgecolor('#313244')
+        self.vofa_fig.subplots_adjust(left=0.08, right=0.99, top=0.97, bottom=0.10)
+
+        self.vofa_lines = []
+        for i in range(VOFA_CH):
+            ln, = ax.plot([], [], color=self._vofa_colors[i],
+                          linewidth=1.2, label=f'CH{i}')
+            self.vofa_lines.append(ln)
+
+        self.vofa_canvas = FigureCanvasTkAgg(self.vofa_fig, master=area)
+        self.vofa_canvas.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.vofa_canvas.draw()
+
+        # Start render loop
+        self._vofa_schedule_update()
+
+    # ── VOFA helpers ──────────────────────────────────────────────────
+
+    def _vofa_schedule_update(self):
+        self.root.after(33, self._vofa_tick)   # ~30 fps
+
+    def _vofa_tick(self):
+        self._vofa_parse()
+        if not self.vofa_paused and self.vofa_time:
+            t_arr = np.asarray(self.vofa_time, dtype=np.float64)
+            t_end   = t_arr[-1]
+            t_start = t_end - self.vofa_window_ms
+            mask    = t_arr >= t_start
+            t_vis   = t_arr[mask]
+
+            for i, ln in enumerate(self.vofa_lines):
+                if self.vofa_ch_visible[i].get():
+                    d = np.asarray(self.vofa_data[i], dtype=np.float64)
+                    ln.set_xdata(t_vis)
+                    ln.set_ydata(d[mask])
+                    ln.set_visible(True)
+                else:
+                    ln.set_visible(False)
+
+            self.vofa_ax.set_xlim(t_start, t_end)
+
+            # Auto y-scale across visible channels
+            vis_vals = []
+            for i in range(self.vofa_ch_count):
+                if self.vofa_ch_visible[i].get() and self.vofa_data[i]:
+                    d = np.asarray(self.vofa_data[i])[mask]
+                    if len(d):
+                        vis_vals.append((float(d.min()), float(d.max())))
+            if vis_vals:
+                ylo = min(v[0] for v in vis_vals)
+                yhi = max(v[1] for v in vis_vals)
+                margin = (yhi - ylo) * 0.08 if yhi != ylo else 1.0
+                self.vofa_ax.set_ylim(ylo - margin, yhi + margin)
+
+            # Value labels
+            for i in range(self.vofa_ch_count):
+                if self.vofa_data[i]:
+                    self.vofa_val_labels[i].config(
+                        text=f'{self.vofa_data[i][-1]:>8.3f}')
+
+            self.vofa_canvas.draw_idle()
+
+        # FPS / frame-rate display
+        self._vofa_fps_cnt += 1
+        now = time.time()
+        if now - self._vofa_fps_t >= 1.0:
+            elapsed = now - self._vofa_fps_t
+            data_fps = self.vofa_frame_count / elapsed
+            self.vofa_status_var.set(
+                f'{self.vofa_frame_count} frames  '
+                f'data {data_fps:.0f} fps  '
+                f'total {len(self.vofa_time)} pts')
+            self.vofa_frame_count = 0
+            self._vofa_fps_cnt = 0
+            self._vofa_fps_t   = now
+
+        self._vofa_schedule_update()
+
+    def _vofa_parse(self):
+        """Drain vofa_raw_buf, extract JustFloat frames, append to channels."""
+        with self.vofa_raw_lock:
+            chunk = bytes(self.vofa_raw_buf)
+            self.vofa_raw_buf.clear()
+        if not chunk:
+            return
+
+        self._vofa_carry.extend(chunk)
+        tail = self.vofa_tail
+        fbytes = self.vofa_frame_bytes
+        n = self.vofa_ch_count
+
+        while True:
+            idx = self._vofa_carry.find(tail)
+            if idx < 0:
+                # Keep a tail-length suffix in case tail spans packets
+                if len(self._vofa_carry) > fbytes + 4:
+                    self._vofa_carry = self._vofa_carry[-(fbytes + 3):]
+                break
+            if idx >= fbytes:
+                frame = self._vofa_carry[idx - fbytes: idx]
+                try:
+                    floats = struct.unpack(f'<{n}f', frame)
+                except struct.error:
+                    self._vofa_carry = self._vofa_carry[idx + 4:]
+                    continue
+
+                self.vofa_t_ms += 1
+                self.vofa_time.append(self.vofa_t_ms)
+                for i, v in enumerate(floats):
+                    self.vofa_data[i].append(v)
+
+                # Trim to max history
+                excess = len(self.vofa_time) - self.vofa_max_points
+                if excess > 0:
+                    self.vofa_time = self.vofa_time[excess:]
+                    for i in range(n):
+                        self.vofa_data[i] = self.vofa_data[i][excess:]
+
+                self.vofa_frame_count += 1
+
+            # Consume past the tail and keep scanning
+            self._vofa_carry = self._vofa_carry[idx + 4:]
+
+    def _vofa_toggle_pause(self):
+        self.vofa_paused = not self.vofa_paused
+        self.vofa_pause_btn.config(
+            text='\u25b6 Resume' if self.vofa_paused else '\u23f8 Pause')
+
+    def _vofa_clear(self):
+        self.vofa_time.clear()
+        for d in self.vofa_data:
+            d.clear()
+        self._vofa_carry.clear()
+        self.vofa_t_ms = 0
+        self.vofa_frame_count = 0
+        for ln in self.vofa_lines:
+            ln.set_xdata([])
+            ln.set_ydata([])
+        self.vofa_canvas.draw_idle()
+        self.vofa_status_var.set('Cleared')
+        for lbl in self.vofa_val_labels:
+            lbl.config(text='  -.---')
+
+    def _vofa_apply_window(self):
+        try:
+            self.vofa_window_ms = max(50, int(self.vofa_window_var.get()))
+        except ValueError:
+            pass
+
+    def _vofa_apply_visibility(self):
+        for i, ln in enumerate(self.vofa_lines):
+            ln.set_visible(self.vofa_ch_visible[i].get())
+        self.vofa_canvas.draw_idle()
 
     def cmd_send_raw(self):
         """Send raw command from entry"""
@@ -1111,6 +1387,10 @@ class HC04SerialGUI:
                     # Read data
                     data = self.ser.read(self.ser.in_waiting)
                     receive_buffer.extend(data)
+                    # Feed VOFA parser buffer (thread-safe)
+                    if hasattr(self, 'vofa_raw_buf') and hasattr(self, 'vofa_raw_lock'):
+                        with self.vofa_raw_lock:
+                            self.vofa_raw_buf.extend(data)
 
                 now = time.time()
                 if receive_buffer and (now - last_display_time) >= DISPLAY_INTERVAL:
@@ -1712,8 +1992,9 @@ class HC04SerialGUI:
             self.root.after(0, lambda: self.upload_log_message(
                 f"RAM upload: parsing {os.path.basename(filepath)}"))
 
-            # Parse TXT file: each line = 14 space/comma-separated floats
-            rows = []  # list of 14-float tuples
+            # Parse TXT file: each line = 15 space/comma-separated values
+            # Format: pos[0] pos[1] pressed[0..9] duration_ms long_pressed[0] long_pressed[1]
+            rows = []  # list of 15-value tuples
             with open(filepath, 'r') as f:
                 for line_num, line in enumerate(f, 1):
                     line = line.strip()
@@ -1721,10 +2002,10 @@ class HC04SerialGUI:
                         continue
                     parts = line.replace(',', ' ').split()
                     parts = [p.rstrip('fF') for p in parts]
-                    if len(parts) != 13:
+                    if len(parts) != 15:
                         self.root.after(0, lambda ln=line_num, n=len(parts):
                             self.upload_log_message(
-                                f"WARN: line {ln} has {n} values (expected 13), skipping"))
+                                f"WARN: line {ln} has {n} values (expected 15), skipping"))
                         continue
                     if len(rows) >= 365:
                         self.root.after(0, lambda: self.upload_log_message(
@@ -1781,13 +2062,15 @@ class HC04SerialGUI:
                     self.root.after(0, self._ram_upload_done)
                     return
 
-                # Build packet: cmd(1) + row_index(2) + data(20) + checksum(1) = 24 bytes
-                # Payload matches ChordEvent_t layout: float[2](8) + bool[10](10) + uint16_t(2) = 20 bytes
+                # Build packet: cmd(1) + row_index(2) + data(24) + checksum(1) = 28 bytes
+                # Payload matches ChordEvent_t layout: float[2](8) + bool[10](10) + uint16_t(2) + bool[2](2) + pad(2) = 24 bytes
                 row = rows[row_idx]
                 pressed_bytes = bytes([1 if row[2 + j] != 0.0 else 0 for j in range(10)])
                 chord_data = (struct.pack('<2f', row[0], row[1])
                               + pressed_bytes
-                              + struct.pack('<H', int(row[12])))
+                              + struct.pack('<H', int(row[12]))
+                              + bytes([1 if row[13] != 0.0 else 0, 1 if row[14] != 0.0 else 0])
+                              + bytes(2))  # 2 bytes padding to match struct alignment
                 packet = bytearray([FT_CMD_RAM_DATA])
                 packet.extend(struct.pack('<H', row_idx))
                 packet.extend(chord_data)

@@ -73,7 +73,8 @@ int parse_command(uint8_t *cmd)
 
         case 'z':
             // here begin test traversal:
-            traversal();
+            // traversal();
+            debug_traversal();
             return 0;
 
         default:
@@ -213,10 +214,28 @@ void toggle_solenoid(uint16_t traversal_index){
     }
     // wait for the duration of the chord:
     wait_ms(chord_events[traversal_index].duration_ms);
-    // reset all solenoids after pressing:
-    for (int i = 0; i < 10; i++) {
-        HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+    // reset solenoids based on which hand changes position next
+    if (chord_events[traversal_index].long_pressed[0]){ // left hand long press, keep it pressed
+        for (int i = 0; i < 7; i++) {
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        }
+    } else { // reset all left hand solenoids, since short click
+        for (int i = 0; i < 7; i++) {
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+        }
+
     }
+    
+    if (chord_events[traversal_index].long_pressed[1]){ // right hand long press, reset left hand solenoids
+        for (int i = 7; i < 10; i++) {
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        }
+    } else { // short click for right
+        for (int i = 7; i < 10; i++) {
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+        }
+    }
+
 }
 
 void traversal(void){
@@ -272,4 +291,26 @@ void traversal(void){
         traversal_index++;
     }
 
+}
+
+void debug_traversal(void){
+    while (right_motor.target_pos < 138.0f || left_motor.target_pos < 138.0f) {
+        right_motor.target_pos += 21.0f;
+        left_motor.target_pos += 21.0f;
+        wait_ms(10); // small delay so controller gets updated
+        while(!right_motor_arrived & !left_motor_arrived);
+
+        // stop the motor when pressing
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+
+        for (int i = 0; i < 11; i++) {
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_SET);
+            wait_ms(300);
+            HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+            wait_ms(300);
+        }
+        
+        wait_ms(1000);
+    }
 }

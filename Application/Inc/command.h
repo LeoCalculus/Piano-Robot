@@ -27,6 +27,8 @@ void list_files_over_bt(void);
 // this is a public function can be used any place
 void traversal(void);
 
+void debug_traversal(void);
+
 void toggle_solenoid(uint16_t traversal_index);
 
 #endif

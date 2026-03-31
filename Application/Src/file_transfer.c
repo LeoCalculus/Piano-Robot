@@ -265,12 +265,11 @@ static int FT_HandleFileData(uint8_t *packet, uint16_t length)
 }
 
 /* Handle RAM packet data
-   Packet: [0xE1] [row_lo] [row_hi] [20 bytes = ChordEvent_t] [checksum]
-   Total = 24 bytes
+   Packet: [0xE1] [row_lo] [row_hi] [sizeof(ChordEvent_t) bytes] [checksum]
+   Total = 4 + sizeof(ChordEvent_t) bytes
 */
 static int FT_HandleRAMData(uint8_t *packet, uint16_t length){
-    // Packet must be exactly 24 bytes: cmd(1) + row(2) + data(20) + checksum(1)
-    if (length != 24)
+    if (length != 4 + sizeof(ChordEvent_t))
     {
         uint8_t nakData[] = {0, 0, FT_ERR_OVERFLOW};
         FT_SendResponse(FT_RSP_NAK, nakData, 3);

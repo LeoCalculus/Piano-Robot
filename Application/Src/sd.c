@@ -127,6 +127,10 @@ void sd_parse_array(const char *filename){
                     chord_events[index].pressed[token_index - 2] = atoi(token) != 0;
                 } else if (token_index == 2 + MAX_CHORD_NOTES) {
                     chord_events[index].duration_ms = atoi(token);
+                } else if (token_index == 3 + MAX_CHORD_NOTES) {
+                    chord_events[index].long_pressed[0] = atoi(token) != 0;
+                } else if (token_index == 4 + MAX_CHORD_NOTES) {
+                    chord_events[index].long_pressed[1] = atoi(token) != 0;
                 }
                 token = strtok(NULL, " ");
                 token_index++;
