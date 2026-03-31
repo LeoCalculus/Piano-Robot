@@ -32,7 +32,7 @@ HAND_H   = 52
 
 # Home display positions (cm, absolute piano coords for F0 anchor)
 LPOS_HOME = 1.15       # left  F0 → C2 centre
-RPOS_HOME = 72.15      # right: rpos − F2_offset(0.3) = 72.45 = F6 centre
+RPOS_HOME = 72.45      # right: rpos − F2_offset(0.3) = 72.45 = F6 centre
 
 # ── Physics constants ─────────────────────────────────────────────────────────
 # Stability requirement for semi-implicit Euler:
@@ -58,17 +58,17 @@ def note_freq(name: str) -> int:
 # ── Hand finger definitions ───────────────────────────────────────────────────
 # (type, centre-offset-cm from F0 anchor)
 LEFT_FINGERS: List = [
-    ('W', 0.0),   # F0 → C2 at home
-    ('B', 3.6),   # F1 → D#2 approx
-    ('W', 4.8),   # F2 → E2
-    ('W', 6.9),   # F3 → F2-key
-    ('W', 9.0),   # F4 → G2
-    ('B', 10.3),   # F5 → G#2 approx
-    ('W', 11.4),  # F6 → A2
+    ('W', 0.0),   # F0 → C (Anchor)
+    ('B', 3.7),   # F1 → D# (Exact center based on your SP2 math)
+    ('W', 4.6),   # F2 → E  (2 * 2.3)
+    ('W', 6.9),   # F3 → F  (3 * 2.3)
+    ('W', 9.2),   # F4 → G  (4 * 2.3)
+    ('B', 10.35), # F5 → G# (Exact center based on your SP3 math)
+    ('W', 11.5),  # F6 → A  (5 * 2.3)
 ]
 RIGHT_FINGERS: List = [
-    ('W', 4.8),   # F0 → D6 at home  (rpos − 4.8 cm)
-    ('B', 3.2),   # F1 → D#6 at home (rpos − 3.5 cm)
+    ('W', 4.6),   # F0 → D6 at home  (rpos − 4.8 cm)
+    ('B', 1.2),   # F1 → D#6 at home (rpos − 3.5 cm)
     ('W', 0.0),   # F2 anchor → F6 at home  (rpos = F2 position)
 ]
 FWIDTH = {'W': 0.7, 'B': 1.0}   # finger width, cm
@@ -721,20 +721,21 @@ class PianoApp:
         type_warn = self._type_warnings(s)
         overlaps  = self._overlap_warnings(s)
 
-        # Press keys under active solenoid fingers
+        # 1. Update Left Fingers Loop
         for idx, (ft, off) in enumerate(LEFT_FINGERS):
             if s.solenoids[idx]:
                 k = self._key_at_cm(s.lpos + off)
                 if k:
-                    mismatch = (ft == 'W') == ('#' in k)
-                    self._sol_press(k, silent=mismatch)
+                    # Change this to False to ensure sound always plays
+                    self._sol_press(k, silent=False) 
 
+        # 2. Update Right Fingers Loop
         for idx, (ft, off) in enumerate(RIGHT_FINGERS):
             if s.solenoids[7+idx]:
                 k = self._key_at_cm(s.rpos - off)
                 if k:
-                    mismatch = (ft == 'W') == ('#' in k)
-                    self._sol_press(k, silent=mismatch)
+                    # Change this to False to ensure sound always plays
+                    self._sol_press(k, silent=False)
 
         all_warn_tags = list(dict.fromkeys(warnings + type_warn))   # unique, order-preserved
         self._render_hands(s.lpos, s.rpos, s.solenoids,
