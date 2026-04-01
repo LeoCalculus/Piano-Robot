@@ -10,7 +10,7 @@ void load_debug_song(void) {
     // long press --> hold to next instance
     // left hand structure: white (space) flat white white white flat white
     static const ChordEvent_t debug_data[128] = {
-
+        // ================== PAGE 1 ==================
         // ================== Line 1 ==================
         { .positions = {L_C1, R_G3}, .pressed = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
 
@@ -72,9 +72,9 @@ void load_debug_song(void) {
         { .positions = {L_G1, R_D2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
         { .positions = {L_G1, R_E2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
         { .positions = {L_G2, R_F2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
-        { .positions = {L_A1, R_A2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
-        { .positions = {L_A1, R_G2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
-        { .positions = {L_A1, R_F2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
+        { .positions = {L_G2, R_A2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
+        { .positions = {L_G2, R_G2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
+        { .positions = {L_G2, R_F2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
     
         // ================== Line 3 ==================
         { .positions = {L_C2, R_E2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
@@ -98,8 +98,8 @@ void load_debug_song(void) {
         { .positions = {L_G2, R_D1}, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
         { .positions = {L_G2, R_A2}, .pressed = {1, 0, 1, 0, 1, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
 
-        { .positions = {L_C2, R_G2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {1, 0} },
-        { .positions = {L_G2, R_G2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {1, 0} },
+        { .positions = {L_C2, R_G2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 1} },
+        { .positions = {L_G2, R_G2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 1} },
         { .positions = {L_G2, R_G2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
 
         { .positions = {L_E1, R_G2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
@@ -138,7 +138,7 @@ void load_debug_song(void) {
         { .positions = {L_E2, R_A2}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0}, .duration_ms = SIXTEENTH, .long_pressed = {0, 0} },
         { .positions = {L_G2, R_B2}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = SIXTEENTH, .long_pressed = {1, 1} },
         { .positions = {L_G2, R_B2}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = SIXTEENTH, .long_pressed = {1, 1} },
-        { .positions = {L_G2, R_B2}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = SIXTEENTH, .long_pressed = {1, 1} },
+        { .positions = {L_G2, R_B2}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = SIXTEENTH, .long_pressed = {1, 0} },
         { .positions = {L_G2, R_C1}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = SIXTEENTH, .long_pressed = {0, 0} },
         
         { .positions = {L_A1, R_B2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
@@ -154,8 +154,8 @@ void load_debug_song(void) {
         { .positions = {L_E2, R_E1}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
         { .positions = {L_E2, R_E1}, .pressed = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
 
-        { .positions = {L_A1, R_C1}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 1} },
-        { .positions = {L_E2, R_C2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+        { .positions = {L_A1, R_C2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 1} },
+        { .positions = {L_E2, R_C2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
         { .positions = {L_E2, R_C2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
     
         { .positions = {L_A1, R_C2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
@@ -179,6 +179,21 @@ void load_debug_song(void) {
         { .positions = {L_C2, R_E2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 1, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} }, 
         { .positions = {L_G2, R_E2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1}, .duration_ms = QUARTER, .long_pressed = {0, 1} },    
         { .positions = {L_G2, R_E2}, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1}, .duration_ms = QUARTER, .long_pressed = {0, 0} },  
+    
+        // ================== PAGE 2 ==================
+        { .positions = {L_A1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
+        { .positions = {L_A1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
+        { .positions = {L_A2, }, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+        { .positions = {L_A2, }, .pressed = {1, 0, 1, 0, 1, 0, 0, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+    
+        { .positions = {L_D1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
+        { .positions = {L_D1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
+        { .positions = {L_A2, }, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+        { .positions = {L_A2, }, .pressed = {1, 0, 0, 1, 0, 0, 1, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+    
+        { .positions = {L_B1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
+        { .positions = {L_B1, }, .pressed = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
+        
     }; 
     }; 
 
@@ -186,3 +201,6 @@ void load_debug_song(void) {
         chord_events[i] = debug_data[i];
     }
 }
+
+
+{ .positions = {, }, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
