@@ -1,4 +1,4 @@
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 1
 
 
    1              		.cpu cortex-m33
@@ -30,7 +30,7 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
   28              	user_timer_tick_init:
   29              	.LFB359:
    1:./Application/Src/user_timer.c **** #include <user_timer.h>
-   2:./Application/Src/user_timer.c **** 
+   2:./Application/Src/user_timer.c **** #include <application.h>
    3:./Application/Src/user_timer.c **** uint8_t timer2_tick_MENU;
    4:./Application/Src/user_timer.c **** uint16_t timer2_tick_test;
    5:./Application/Src/user_timer.c **** uint8_t timer5_tick;
@@ -38,38 +38,40 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
    7:./Application/Src/user_timer.c **** 
    8:./Application/Src/user_timer.c **** volatile uint16_t wait_timer = 0;
    9:./Application/Src/user_timer.c **** 
-  10:./Application/Src/user_timer.c **** void user_timer_tick_init(){
-  30              		.loc 1 10 28 view -0
+  10:./Application/Src/user_timer.c **** extern uint8_t motor_off;
+  11:./Application/Src/user_timer.c **** 
+  12:./Application/Src/user_timer.c **** void user_timer_tick_init(){
+  30              		.loc 1 12 28 view -0
   31              		.cfi_startproc
   32              		@ args = 0, pretend = 0, frame = 0
   33              		@ frame_needed = 0, uses_anonymous_args = 0
   34              		@ link register save eliminated.
-  11:./Application/Src/user_timer.c ****     timer2_tick_MENU = 0;
-  35              		.loc 1 11 5 view .LVU1
-  36              		.loc 1 11 22 is_stmt 0 view .LVU2
+  13:./Application/Src/user_timer.c ****     timer2_tick_MENU = 0;
+  35              		.loc 1 13 5 view .LVU1
+  36              		.loc 1 13 22 is_stmt 0 view .LVU2
   37 0000 0023     		movs	r3, #0
   38 0002 044A     		ldr	r2, .L2
   39 0004 1370     		strb	r3, [r2]
-  12:./Application/Src/user_timer.c ****     timer2_tick_test = 0;
-  40              		.loc 1 12 5 is_stmt 1 view .LVU3
-  41              		.loc 1 12 22 is_stmt 0 view .LVU4
+  14:./Application/Src/user_timer.c ****     timer2_tick_test = 0;
+  40              		.loc 1 14 5 is_stmt 1 view .LVU3
+  41              		.loc 1 14 22 is_stmt 0 view .LVU4
   42 0006 044A     		ldr	r2, .L2+4
   43 0008 1380     		strh	r3, [r2]	@ movhi
-  13:./Application/Src/user_timer.c ****     timer5_tick = 0;
-  44              		.loc 1 13 5 is_stmt 1 view .LVU5
-  45              		.loc 1 13 17 is_stmt 0 view .LVU6
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 2
+  15:./Application/Src/user_timer.c ****     timer5_tick = 0;
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 2
 
 
+  44              		.loc 1 15 5 is_stmt 1 view .LVU5
+  45              		.loc 1 15 17 is_stmt 0 view .LVU6
   46 000a 044A     		ldr	r2, .L2+8
   47 000c 1370     		strb	r3, [r2]
-  14:./Application/Src/user_timer.c ****     menu_update_flag = 0;
-  48              		.loc 1 14 5 is_stmt 1 view .LVU7
-  49              		.loc 1 14 22 is_stmt 0 view .LVU8
+  16:./Application/Src/user_timer.c ****     menu_update_flag = 0;
+  48              		.loc 1 16 5 is_stmt 1 view .LVU7
+  49              		.loc 1 16 22 is_stmt 0 view .LVU8
   50 000e 044A     		ldr	r2, .L2+12
   51 0010 1370     		strb	r3, [r2]
-  15:./Application/Src/user_timer.c **** }
-  52              		.loc 1 15 1 view .LVU9
+  17:./Application/Src/user_timer.c **** }
+  52              		.loc 1 17 1 view .LVU9
   53 0012 7047     		bx	lr
   54              	.L3:
   55              		.align	2
@@ -88,9 +90,9 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
   69              		.thumb_func
   71              	user_timer2_ISR:
   72              	.LFB360:
-  16:./Application/Src/user_timer.c **** 
-  17:./Application/Src/user_timer.c **** void user_timer2_ISR(){
-  73              		.loc 1 17 23 is_stmt 1 view -0
+  18:./Application/Src/user_timer.c **** 
+  19:./Application/Src/user_timer.c **** void user_timer2_ISR(){
+  73              		.loc 1 19 23 is_stmt 1 view -0
   74              		.cfi_startproc
   75              		@ args = 0, pretend = 0, frame = 0
   76              		@ frame_needed = 0, uses_anonymous_args = 0
@@ -99,88 +101,88 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
   79              		.cfi_def_cfa_offset 8
   80              		.cfi_offset 3, -8
   81              		.cfi_offset 14, -4
-  18:./Application/Src/user_timer.c ****     
-  19:./Application/Src/user_timer.c ****     timer2_tick_MENU++;
-  82              		.loc 1 19 5 view .LVU11
-  83              		.loc 1 19 21 is_stmt 0 view .LVU12
+  20:./Application/Src/user_timer.c ****     
+  21:./Application/Src/user_timer.c ****     timer2_tick_MENU++;
+  82              		.loc 1 21 5 view .LVU11
+  83              		.loc 1 21 21 is_stmt 0 view .LVU12
   84 0002 124B     		ldr	r3, .L9
   85 0004 1978     		ldrb	r1, [r3]	@ zero_extendqisi2
   86 0006 0131     		adds	r1, r1, #1
   87 0008 C9B2     		uxtb	r1, r1
   88 000a 1970     		strb	r1, [r3]
-  20:./Application/Src/user_timer.c ****     timer2_tick_test++;
-  89              		.loc 1 20 5 is_stmt 1 view .LVU13
-  90              		.loc 1 20 21 is_stmt 0 view .LVU14
+  22:./Application/Src/user_timer.c ****     timer2_tick_test++;
+  89              		.loc 1 22 5 is_stmt 1 view .LVU13
+  90              		.loc 1 22 21 is_stmt 0 view .LVU14
   91 000c 104B     		ldr	r3, .L9+4
   92 000e 1A88     		ldrh	r2, [r3]
   93 0010 0132     		adds	r2, r2, #1
   94 0012 92B2     		uxth	r2, r2
   95 0014 1A80     		strh	r2, [r3]	@ movhi
-  21:./Application/Src/user_timer.c ****     wait_timer++;
-  96              		.loc 1 21 5 is_stmt 1 view .LVU15
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 3
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 3
 
 
-  97              		.loc 1 21 15 is_stmt 0 view .LVU16
+  23:./Application/Src/user_timer.c ****     wait_timer++;
+  96              		.loc 1 23 5 is_stmt 1 view .LVU15
+  97              		.loc 1 23 15 is_stmt 0 view .LVU16
   98 0016 0F48     		ldr	r0, .L9+8
   99 0018 0388     		ldrh	r3, [r0]
  100 001a 9BB2     		uxth	r3, r3
  101 001c 0133     		adds	r3, r3, #1
  102 001e 9BB2     		uxth	r3, r3
  103 0020 0380     		strh	r3, [r0]	@ movhi
-  22:./Application/Src/user_timer.c **** 
-  23:./Application/Src/user_timer.c ****     if(timer2_tick_MENU >= MENU_FRAME_RATE){
- 104              		.loc 1 23 5 is_stmt 1 view .LVU17
- 105              		.loc 1 23 7 is_stmt 0 view .LVU18
+  24:./Application/Src/user_timer.c **** 
+  25:./Application/Src/user_timer.c ****     if(timer2_tick_MENU >= MENU_FRAME_RATE){
+ 104              		.loc 1 25 5 is_stmt 1 view .LVU17
+ 105              		.loc 1 25 7 is_stmt 0 view .LVU18
  106 0022 3129     		cmp	r1, #49
  107 0024 05D9     		bls	.L5
-  24:./Application/Src/user_timer.c ****         menu_update_flag = 1;
- 108              		.loc 1 24 9 is_stmt 1 view .LVU19
- 109              		.loc 1 24 26 is_stmt 0 view .LVU20
+  26:./Application/Src/user_timer.c ****         menu_update_flag = 1;
+ 108              		.loc 1 26 9 is_stmt 1 view .LVU19
+ 109              		.loc 1 26 26 is_stmt 0 view .LVU20
  110 0026 0C4B     		ldr	r3, .L9+12
  111 0028 0121     		movs	r1, #1
  112 002a 1970     		strb	r1, [r3]
-  25:./Application/Src/user_timer.c ****         timer2_tick_MENU = 0;
- 113              		.loc 1 25 9 is_stmt 1 view .LVU21
- 114              		.loc 1 25 26 is_stmt 0 view .LVU22
+  27:./Application/Src/user_timer.c ****         timer2_tick_MENU = 0;
+ 113              		.loc 1 27 9 is_stmt 1 view .LVU21
+ 114              		.loc 1 27 26 is_stmt 0 view .LVU22
  115 002c 074B     		ldr	r3, .L9
  116 002e 0021     		movs	r1, #0
  117 0030 1970     		strb	r1, [r3]
  118              	.L5:
-  26:./Application/Src/user_timer.c ****     }
-  27:./Application/Src/user_timer.c **** 
-  28:./Application/Src/user_timer.c ****     if(timer2_tick_test >= 500){
- 119              		.loc 1 28 5 is_stmt 1 view .LVU23
- 120              		.loc 1 28 7 is_stmt 0 view .LVU24
+  28:./Application/Src/user_timer.c ****     }
+  29:./Application/Src/user_timer.c **** 
+  30:./Application/Src/user_timer.c ****     if(timer2_tick_test >= 500){
+ 119              		.loc 1 30 5 is_stmt 1 view .LVU23
+ 120              		.loc 1 30 7 is_stmt 0 view .LVU24
  121 0032 B2F5FA7F 		cmp	r2, #500
  122 0036 00D2     		bcs	.L8
  123              	.L4:
-  29:./Application/Src/user_timer.c ****         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-  30:./Application/Src/user_timer.c ****         timer2_tick_test = 0;
-  31:./Application/Src/user_timer.c ****     }
-  32:./Application/Src/user_timer.c **** }
- 124              		.loc 1 32 1 view .LVU25
+  31:./Application/Src/user_timer.c ****         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  32:./Application/Src/user_timer.c ****         timer2_tick_test = 0;
+  33:./Application/Src/user_timer.c ****     }
+  34:./Application/Src/user_timer.c **** }
+ 124              		.loc 1 34 1 view .LVU25
  125 0038 08BD     		pop	{r3, pc}
  126              	.L8:
-  29:./Application/Src/user_timer.c ****         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
- 127              		.loc 1 29 9 is_stmt 1 view .LVU26
+  31:./Application/Src/user_timer.c ****         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+ 127              		.loc 1 31 9 is_stmt 1 view .LVU26
  128 003a 4FF40061 		mov	r1, #2048
  129 003e 0748     		ldr	r0, .L9+16
  130 0040 FFF7FEFF 		bl	HAL_GPIO_TogglePin
  131              	.LVL0:
-  30:./Application/Src/user_timer.c ****     }
- 132              		.loc 1 30 9 view .LVU27
-  30:./Application/Src/user_timer.c ****     }
- 133              		.loc 1 30 26 is_stmt 0 view .LVU28
+  32:./Application/Src/user_timer.c ****     }
+ 132              		.loc 1 32 9 view .LVU27
+  32:./Application/Src/user_timer.c ****     }
+ 133              		.loc 1 32 26 is_stmt 0 view .LVU28
  134 0044 024B     		ldr	r3, .L9+4
  135 0046 0022     		movs	r2, #0
  136 0048 1A80     		strh	r2, [r3]	@ movhi
- 137              		.loc 1 32 1 view .LVU29
+ 137              		.loc 1 34 1 view .LVU29
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 4
+
+
  138 004a F5E7     		b	.L4
  139              	.L10:
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 4
-
-
  140              		.align	2
  141              	.L9:
  142 004c 00000000 		.word	timer2_tick_MENU
@@ -198,174 +200,187 @@ ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 1
  155              		.thumb_func
  157              	user_timer5_ISR:
  158              	.LFB361:
-  33:./Application/Src/user_timer.c **** 
-  34:./Application/Src/user_timer.c **** void user_timer5_ISR(){
- 159              		.loc 1 34 23 is_stmt 1 view -0
+  35:./Application/Src/user_timer.c **** 
+  36:./Application/Src/user_timer.c **** void user_timer5_ISR(){
+ 159              		.loc 1 36 23 is_stmt 1 view -0
  160              		.cfi_startproc
  161              		@ args = 0, pretend = 0, frame = 0
  162              		@ frame_needed = 0, uses_anonymous_args = 0
- 163 0000 38B5     		push	{r3, r4, r5, lr}
+ 163 0000 08B5     		push	{r3, lr}
  164              	.LCFI1:
- 165              		.cfi_def_cfa_offset 16
- 166              		.cfi_offset 3, -16
- 167              		.cfi_offset 4, -12
- 168              		.cfi_offset 5, -8
- 169              		.cfi_offset 14, -4
-  35:./Application/Src/user_timer.c **** 
-  36:./Application/Src/user_timer.c ****     timer5_tick++;
- 170              		.loc 1 36 5 view .LVU31
- 171              		.loc 1 36 16 is_stmt 0 view .LVU32
- 172 0002 0C4C     		ldr	r4, .L13
- 173 0004 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
- 174 0006 0133     		adds	r3, r3, #1
- 175 0008 2370     		strb	r3, [r4]
-  37:./Application/Src/user_timer.c ****     
-  38:./Application/Src/user_timer.c ****     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, SET);
- 176              		.loc 1 38 5 is_stmt 1 view .LVU33
- 177 000a 0B4D     		ldr	r5, .L13+4
- 178 000c 0122     		movs	r2, #1
- 179 000e 4FF48051 		mov	r1, #4096
- 180 0012 2846     		mov	r0, r5
- 181 0014 FFF7FEFF 		bl	HAL_GPIO_WritePin
- 182              	.LVL1:
-  39:./Application/Src/user_timer.c ****     controller_step(0.001f);
- 183              		.loc 1 39 5 view .LVU34
- 184 0018 9FED080A 		vldr.32	s0, .L13+8
- 185 001c FFF7FEFF 		bl	controller_step
- 186              	.LVL2:
-  40:./Application/Src/user_timer.c ****     HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, RESET);
- 187              		.loc 1 40 5 view .LVU35
- 188 0020 0022     		movs	r2, #0
- 189 0022 4FF48051 		mov	r1, #4096
- 190 0026 2846     		mov	r0, r5
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 5
+ 165              		.cfi_def_cfa_offset 8
+ 166              		.cfi_offset 3, -8
+ 167              		.cfi_offset 14, -4
+  37:./Application/Src/user_timer.c **** 
+  38:./Application/Src/user_timer.c ****     timer5_tick++;
+ 168              		.loc 1 38 5 view .LVU31
+ 169              		.loc 1 38 16 is_stmt 0 view .LVU32
+ 170 0002 0B4A     		ldr	r2, .L15
+ 171 0004 1378     		ldrb	r3, [r2]	@ zero_extendqisi2
+ 172 0006 0133     		adds	r3, r3, #1
+ 173 0008 1370     		strb	r3, [r2]
+  39:./Application/Src/user_timer.c ****     
+  40:./Application/Src/user_timer.c ****     if(motor_off){
+ 174              		.loc 1 40 5 is_stmt 1 view .LVU33
+ 175              		.loc 1 40 8 is_stmt 0 view .LVU34
+ 176 000a 0A4B     		ldr	r3, .L15+4
+ 177 000c 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 178              		.loc 1 40 7 view .LVU35
+ 179 000e 4BB1     		cbz	r3, .L12
+  41:./Application/Src/user_timer.c ****         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+ 180              		.loc 1 41 9 is_stmt 1 view .LVU36
+ 181 0010 094B     		ldr	r3, .L15+8
+ 182 0012 1B68     		ldr	r3, [r3]
+ 183 0014 4FF4FA72 		mov	r2, #500
+ 184 0018 9A63     		str	r2, [r3, #56]
+  42:./Application/Src/user_timer.c ****         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+ 185              		.loc 1 42 9 view .LVU37
+ 186 001a 5A63     		str	r2, [r3, #52]
+ 187              	.L13:
+  43:./Application/Src/user_timer.c ****     }
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 5
 
 
- 191 0028 FFF7FEFF 		bl	HAL_GPIO_WritePin
- 192              	.LVL3:
-  41:./Application/Src/user_timer.c ****     timer5_tick = 0;
- 193              		.loc 1 41 5 view .LVU36
- 194              		.loc 1 41 17 is_stmt 0 view .LVU37
- 195 002c 0023     		movs	r3, #0
- 196 002e 2370     		strb	r3, [r4]
-  42:./Application/Src/user_timer.c **** }
- 197              		.loc 1 42 1 view .LVU38
- 198 0030 38BD     		pop	{r3, r4, r5, pc}
- 199              	.L14:
- 200 0032 00BF     		.align	2
- 201              	.L13:
- 202 0034 00000000 		.word	timer5_tick
- 203 0038 00080242 		.word	1107429376
- 204 003c 6F12833A 		.word	981668463
- 205              		.cfi_endproc
- 206              	.LFE361:
- 208              		.section	.text.wait_ms,"ax",%progbits
- 209              		.align	1
- 210              		.global	wait_ms
- 211              		.syntax unified
- 212              		.thumb
- 213              		.thumb_func
- 215              	wait_ms:
- 216              	.LVL4:
- 217              	.LFB362:
-  43:./Application/Src/user_timer.c **** 
-  44:./Application/Src/user_timer.c **** void wait_ms(uint16_t ms){
- 218              		.loc 1 44 26 is_stmt 1 view -0
- 219              		.cfi_startproc
- 220              		@ args = 0, pretend = 0, frame = 0
- 221              		@ frame_needed = 0, uses_anonymous_args = 0
- 222              		@ link register save eliminated.
-  45:./Application/Src/user_timer.c ****     // reset the wait counter first:
-  46:./Application/Src/user_timer.c ****     wait_timer = 0;
- 223              		.loc 1 46 5 view .LVU40
- 224              		.loc 1 46 16 is_stmt 0 view .LVU41
- 225 0000 044B     		ldr	r3, .L17
- 226 0002 0022     		movs	r2, #0
- 227 0004 1A80     		strh	r2, [r3]	@ movhi
-  47:./Application/Src/user_timer.c ****     while(wait_timer < ms){
- 228              		.loc 1 47 5 is_stmt 1 view .LVU42
- 229              	.L16:
-  48:./Application/Src/user_timer.c ****         // busy wait
-  49:./Application/Src/user_timer.c ****     }
- 230              		.loc 1 49 5 view .LVU43
-  47:./Application/Src/user_timer.c ****     while(wait_timer < ms){
- 231              		.loc 1 47 22 discriminator 1 view .LVU44
- 232 0006 034B     		ldr	r3, .L17
- 233 0008 1B88     		ldrh	r3, [r3]
- 234 000a 9BB2     		uxth	r3, r3
- 235 000c 8342     		cmp	r3, r0
- 236 000e FAD3     		bcc	.L16
-  50:./Application/Src/user_timer.c **** }...
- 237              		.loc 1 50 1 is_stmt 0 view .LVU45
- 238 0010 7047     		bx	lr
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 6
+  44:./Application/Src/user_timer.c ****     else{
+  45:./Application/Src/user_timer.c ****         controller_step(0.001f);
+  46:./Application/Src/user_timer.c ****     }
+  47:./Application/Src/user_timer.c ****     timer5_tick = 0;
+ 188              		.loc 1 47 5 view .LVU38
+ 189              		.loc 1 47 17 is_stmt 0 view .LVU39
+ 190 001c 044B     		ldr	r3, .L15
+ 191 001e 0022     		movs	r2, #0
+ 192 0020 1A70     		strb	r2, [r3]
+  48:./Application/Src/user_timer.c **** }
+ 193              		.loc 1 48 1 view .LVU40
+ 194 0022 08BD     		pop	{r3, pc}
+ 195              	.L12:
+  45:./Application/Src/user_timer.c ****     }
+ 196              		.loc 1 45 9 is_stmt 1 view .LVU41
+ 197 0024 9FED050A 		vldr.32	s0, .L15+12
+ 198 0028 FFF7FEFF 		bl	controller_step
+ 199              	.LVL1:
+ 200 002c F6E7     		b	.L13
+ 201              	.L16:
+ 202 002e 00BF     		.align	2
+ 203              	.L15:
+ 204 0030 00000000 		.word	timer5_tick
+ 205 0034 00000000 		.word	motor_off
+ 206 0038 00000000 		.word	htim1
+ 207 003c 6F12833A 		.word	981668463
+ 208              		.cfi_endproc
+ 209              	.LFE361:
+ 211              		.section	.text.wait_ms,"ax",%progbits
+ 212              		.align	1
+ 213              		.global	wait_ms
+ 214              		.syntax unified
+ 215              		.thumb
+ 216              		.thumb_func
+ 218              	wait_ms:
+ 219              	.LVL2:
+ 220              	.LFB362:
+  49:./Application/Src/user_timer.c **** 
+  50:./Application/Src/user_timer.c **** void wait_ms(uint16_t ms){
+ 221              		.loc 1 50 26 view -0
+ 222              		.cfi_startproc
+ 223              		@ args = 0, pretend = 0, frame = 0
+ 224              		@ frame_needed = 0, uses_anonymous_args = 0
+ 225              		@ link register save eliminated.
+  51:./Application/Src/user_timer.c ****     // reset the wait counter first:
+  52:./Application/Src/user_timer.c ****     wait_timer = 0;
+ 226              		.loc 1 52 5 view .LVU43
+ 227              		.loc 1 52 16 is_stmt 0 view .LVU44
+ 228 0000 044B     		ldr	r3, .L19
+ 229 0002 0022     		movs	r2, #0
+ 230 0004 1A80     		strh	r2, [r3]	@ movhi
+  53:./Application/Src/user_timer.c ****     while(wait_timer < ms){
+ 231              		.loc 1 53 5 is_stmt 1 view .LVU45
+ 232              	.L18:
+  54:./Application/Src/user_timer.c ****         // busy wait
+  55:./Application/Src/user_timer.c ****     }
+ 233              		.loc 1 55 5 view .LVU46
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 6
 
 
- 239              	.L18:
- 240 0012 00BF     		.align	2
- 241              	.L17:
- 242 0014 00000000 		.word	wait_timer
- 243              		.cfi_endproc
- 244              	.LFE362:
- 246              		.global	wait_timer
- 247              		.section	.bss.wait_timer,"aw",%nobits
- 248              		.align	1
- 251              	wait_timer:
- 252 0000 0000     		.space	2
- 253              		.global	menu_update_flag
- 254              		.section	.bss.menu_update_flag,"aw",%nobits
- 257              	menu_update_flag:
- 258 0000 00       		.space	1
- 259              		.global	timer5_tick
- 260              		.section	.bss.timer5_tick,"aw",%nobits
- 263              	timer5_tick:
- 264 0000 00       		.space	1
- 265              		.global	timer2_tick_test
- 266              		.section	.bss.timer2_tick_test,"aw",%nobits
- 267              		.align	1
- 270              	timer2_tick_test:
- 271 0000 0000     		.space	2
- 272              		.global	timer2_tick_MENU
- 273              		.section	.bss.timer2_tick_MENU,"aw",%nobits
- 276              	timer2_tick_MENU:
- 277 0000 00       		.space	1
- 278              		.text
- 279              	.Letext0:
- 280              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
- 281              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
- 282              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
- 283              		.file 5 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h5xx.h"
- 284              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
- 285              		.file 7 "Application/Inc/application.h"
-ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s 			page 7
+  53:./Application/Src/user_timer.c ****     while(wait_timer < ms){
+ 234              		.loc 1 53 22 discriminator 1 view .LVU47
+ 235 0006 034B     		ldr	r3, .L19
+ 236 0008 1B88     		ldrh	r3, [r3]
+ 237 000a 9BB2     		uxth	r3, r3
+ 238 000c 8342     		cmp	r3, r0
+ 239 000e FAD3     		bcc	.L18
+  56:./Application/Src/user_timer.c **** }...
+ 240              		.loc 1 56 1 is_stmt 0 view .LVU48
+ 241 0010 7047     		bx	lr
+ 242              	.L20:
+ 243 0012 00BF     		.align	2
+ 244              	.L19:
+ 245 0014 00000000 		.word	wait_timer
+ 246              		.cfi_endproc
+ 247              	.LFE362:
+ 249              		.global	wait_timer
+ 250              		.section	.bss.wait_timer,"aw",%nobits
+ 251              		.align	1
+ 254              	wait_timer:
+ 255 0000 0000     		.space	2
+ 256              		.global	menu_update_flag
+ 257              		.section	.bss.menu_update_flag,"aw",%nobits
+ 260              	menu_update_flag:
+ 261 0000 00       		.space	1
+ 262              		.global	timer5_tick
+ 263              		.section	.bss.timer5_tick,"aw",%nobits
+ 266              	timer5_tick:
+ 267 0000 00       		.space	1
+ 268              		.global	timer2_tick_test
+ 269              		.section	.bss.timer2_tick_test,"aw",%nobits
+ 270              		.align	1
+ 273              	timer2_tick_test:
+ 274 0000 0000     		.space	2
+ 275              		.global	timer2_tick_MENU
+ 276              		.section	.bss.timer2_tick_MENU,"aw",%nobits
+ 279              	timer2_tick_MENU:
+ 280 0000 00       		.space	1
+ 281              		.text
+ 282              	.Letext0:
+ 283              		.file 2 "C:/arm-bare-metal/arm-none-eabi/include/machine/_default_types.h"
+ 284              		.file 3 "C:/arm-bare-metal/arm-none-eabi/include/sys/_stdint.h"
+ 285              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 286              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 287              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 288              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 289              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_tim.h"
+ 290              		.file 9 "Application/Inc/application.h"
+ 291              		.file 10 "Core/Inc/tim.h"
+ 292              		.file 11 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_gpio.h"
+ARM GAS  C:\Users\admin\AppData\Local\Temp\cchhJB7h.s 			page 7
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 user_timer.c
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:22     .text.user_timer_tick_init:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:28     .text.user_timer_tick_init:00000000 user_timer_tick_init
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:57     .text.user_timer_tick_init:00000014 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:276    .bss.timer2_tick_MENU:00000000 timer2_tick_MENU
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:270    .bss.timer2_tick_test:00000000 timer2_tick_test
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:263    .bss.timer5_tick:00000000 timer5_tick
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:257    .bss.menu_update_flag:00000000 menu_update_flag
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:65     .text.user_timer2_ISR:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:71     .text.user_timer2_ISR:00000000 user_timer2_ISR
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:142    .text.user_timer2_ISR:0000004c $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:251    .bss.wait_timer:00000000 wait_timer
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:151    .text.user_timer5_ISR:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:157    .text.user_timer5_ISR:00000000 user_timer5_ISR
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:202    .text.user_timer5_ISR:00000034 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:209    .text.wait_ms:00000000 $t
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:215    .text.wait_ms:00000000 wait_ms
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:242    .text.wait_ms:00000014 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:248    .bss.wait_timer:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:258    .bss.menu_update_flag:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:264    .bss.timer5_tick:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:267    .bss.timer2_tick_test:00000000 $d
-C:\Users\Xuleo\AppData\Local\Temp\ccbQxAOb.s:277    .bss.timer2_tick_MENU:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:22     .text.user_timer_tick_init:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:28     .text.user_timer_tick_init:00000000 user_timer_tick_init
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:57     .text.user_timer_tick_init:00000014 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:279    .bss.timer2_tick_MENU:00000000 timer2_tick_MENU
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:273    .bss.timer2_tick_test:00000000 timer2_tick_test
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:266    .bss.timer5_tick:00000000 timer5_tick
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:260    .bss.menu_update_flag:00000000 menu_update_flag
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:65     .text.user_timer2_ISR:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:71     .text.user_timer2_ISR:00000000 user_timer2_ISR
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:142    .text.user_timer2_ISR:0000004c $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:254    .bss.wait_timer:00000000 wait_timer
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:151    .text.user_timer5_ISR:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:157    .text.user_timer5_ISR:00000000 user_timer5_ISR
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:204    .text.user_timer5_ISR:00000030 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:212    .text.wait_ms:00000000 $t
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:218    .text.wait_ms:00000000 wait_ms
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:245    .text.wait_ms:00000014 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:251    .bss.wait_timer:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:261    .bss.menu_update_flag:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:267    .bss.timer5_tick:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:270    .bss.timer2_tick_test:00000000 $d
+C:\Users\admin\AppData\Local\Temp\cchhJB7h.s:280    .bss.timer2_tick_MENU:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_GPIO_TogglePin
-HAL_GPIO_WritePin
 controller_step
+motor_off
+htim1

@@ -13,6 +13,8 @@
 extern PID_t left_motor;
 extern PID_t right_motor;
 
+uint8_t motor_off;
+
 int parse_command(uint8_t *cmd)
 {
     /* ---- Colon commands (:p, :w, :s, :r, :d, :a) ---- */
@@ -37,10 +39,6 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
         }
-        case 'j':
-            HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_4);
-            HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_5);
-            return 0;
         case 'w': /* :w — menu move up */
             menu_move_up = 1;
             return 0;
@@ -73,8 +71,14 @@ int parse_command(uint8_t *cmd)
 
         case 'z':
             // here begin test traversal:
-            // traversal();
+            traversal();
+            // debug_traversal();
+            return 0;
+        
+        case 'x':
+            // here begin test traversal:
             debug_traversal();
+            // debug_traversal();
             return 0;
 
         default:
@@ -209,6 +213,7 @@ void list_files_over_bt(void)
 }
 
 void toggle_solenoid(uint16_t traversal_index){
+    motor_off = 1;
     for (int i = 0; i < 10; i++) {
         HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
     }
@@ -235,35 +240,14 @@ void toggle_solenoid(uint16_t traversal_index){
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
         }
     }
-
+    motor_off = 0;
 }
 
 void traversal(void){
-    // while (right_motor.target_pos < 300.0f) {
-    //     right_motor.target_pos += 21.0f;
-    //     wait_ms(10); // small delay so controller gets updated
-    //     while(!right_motor_arrived);
-
-    //     // stop the motor when pressing
-    //     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-    //     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
-
-    //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_SET);
-    //     wait_ms(300);
-    //     HAL_GPIO_WritePin(GPIOE, GPIO_PIN_6, GPIO_PIN_RESET);
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_SET);
-    //     wait_ms(300);
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_14, GPIO_PIN_RESET);
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_SET);
-    //     wait_ms(300);
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_15, GPIO_PIN_RESET);
-    //     wait_ms(200);
-        
-    //     wait_ms(1000);
-    // }
+    
     uint16_t traversal_index = 0;
     while (1){
-        if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
+        if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
             LCD_draw_string(0, 9, "No song in RAM!       ", COLOR_BLACK, COLOR_WHITE);
             break;
         }
@@ -272,22 +256,14 @@ void traversal(void){
         left_motor.target_pos = chord_events[traversal_index].positions[0];
         right_motor.target_pos = chord_events[traversal_index].positions[1];
 
-        // wait for both to arrive - disable to check traversal
-        // while(!left_motor_arrived || !right_motor_arrived);
-        // // exit reset two flag:
-        // left_motor_arrived = 0;
-        // right_motor_arrived = 0;
-
         // stop the motor when pressing
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+        wait_ms(10);
+        while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
         // here just wait for pressing:
+        wait_ms(100);
         toggle_solenoid(traversal_index);
 
-        wait_ms(chord_events[traversal_index].duration_ms);
-
-        // in the end will just increment the index:
         traversal_index++;
     }
 

@@ -43,7 +43,7 @@ extern LCD_Config lcd_config;
 // =============================== FILE TRANSFER =======================================
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
 #define MAX_CHORD_NOTES   11 // number of notes to play at one time, fixed value, 5 for left hand and 5 for right hand -> Should be 10 but used for testing rn
-#define MAX_CHORD_EVENTS  365 // max chords in a song
+#define MAX_CHORD_EVENTS  1024 // max chords in a song
 #define PIANO_THRESHOLD   54.0f // define where the boundary of left hand and right hand is
 #define LEFT_HAND_SIZE    10.0f // size of left hand
 #define RIGHT_HAND_SIZE   10.0f // size of right hand
@@ -153,7 +153,6 @@ static const Solenoid_t solenoids[MAX_CHORD_NOTES] = {
     {GPIO_SOL_6_PORT, GPIO_SOL_6_PIN}, // Index 5
     {GPIO_SOL_7_PORT, GPIO_SOL_7_PIN}, // Index 6: left hand 7 
     {GPIO_SOL_9_PORT, GPIO_SOL_9_PIN}, // Index 7: right hand 1, skipped SOL 8
-    {GPIO_SOL_10_PORT, GPIO_SOL_10_PIN},// Index 8
     {GPIO_SOL_11_PORT, GPIO_SOL_11_PIN}, // Index 9: right hand 3
     {GPIO_SOL_12_PORT, GPIO_SOL_12_PIN}  // Index 10: right hand 4 -> this is temporary added for testing
 };

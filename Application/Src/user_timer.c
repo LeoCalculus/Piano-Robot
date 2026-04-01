@@ -1,11 +1,13 @@
 #include <user_timer.h>
-
+#include <application.h>
 uint8_t timer2_tick_MENU;
 uint16_t timer2_tick_test;
 uint8_t timer5_tick;
 uint8_t menu_update_flag;
 
 volatile uint16_t wait_timer = 0;
+
+extern uint8_t motor_off;
 
 void user_timer_tick_init(){
     timer2_tick_MENU = 0;
@@ -35,9 +37,13 @@ void user_timer5_ISR(){
 
     timer5_tick++;
     
-    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, SET);
-    controller_step(0.001f);
-    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_12, RESET);
+    if(motor_off){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+    }
+    else{
+        controller_step(0.001f);
+    }
     timer5_tick = 0;
 }
 
