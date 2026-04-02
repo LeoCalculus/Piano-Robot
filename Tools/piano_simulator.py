@@ -268,9 +268,16 @@ class PianoApp:
         bcfg = dict(font=('Courier', 10), bg='#1e293b', fg='#94a3b8',
                     activebackground='#334155', activeforeground='#e2e8f0',
                     relief='flat', padx=12, pady=4, cursor='hand2')
+        
+        self._pause_btn_text = tk.StringVar(value='⏸ Pause')
+        
         tk.Button(ctrl, text='Load File', command=self._load_file, **bcfg).pack(side='left', padx=4)
         tk.Button(ctrl, text='▶ Play',    command=self._play,      **bcfg).pack(side='left', padx=4)
+        tk.Button(ctrl, textvariable=self._pause_btn_text, command=self._toggle_pause, **bcfg).pack(side='left', padx=4)
         tk.Button(ctrl, text='■ Stop',    command=self._stop,      **bcfg).pack(side='left', padx=4)
+        tk.Button(ctrl, text='⏪ -5',     command=self._skip_back,  **bcfg).pack(side='left', padx=4)
+        tk.Button(ctrl, text='⏩ +5',     command=self._skip_forward, **bcfg).pack(side='left', padx=4)
+        
         self._song_label = tk.StringVar(value="No file loaded")
         tk.Label(ctrl, textvariable=self._song_label, font=('Courier', 9),
                  bg='#0f172a', fg='#475569').pack(side='left', padx=8)
@@ -296,6 +303,7 @@ class PianoApp:
         self._hold_job  = None    # solenoid hold timer
         self._pending_i = -1      # step index waiting to be activated
         self._keep_anim_sol: List[int] = [0]*10   # solenoids kept during move
+        self._paused = False      # track pause state
 
         self._draw_keys(whites, blacks, WW)
         self._draw_ruler(PX, WW)
@@ -629,6 +637,57 @@ class PianoApp:
         self._render_hands(LPOS_HOME, RPOS_HOME, [0]*10)
         self._lpos = LPOS_HOME
         self._rpos = RPOS_HOME
+        
+        self._paused = False
+        self._pause_btn_text.set('⏸ Pause')
+        self._pending_i = -1
+
+    def _toggle_pause(self):
+        if not self._song or self._pending_i < 0:
+            return
+
+        self._paused = not self._paused
+        if self._paused:
+            self._pause_btn_text.set('▶ Resume')
+            if self._anim_job:
+                self.cv.after_cancel(self._anim_job)
+                self._anim_job = None
+            if self._hold_job:
+                self.cv.after_cancel(self._hold_job)
+                self._hold_job = None
+            self._sol_release_all()
+            self.info.set(f"Paused at step {self._pending_i + 1}")
+        else:
+            self._pause_btn_text.set('⏸ Pause')
+            self._step(self._pending_i)
+
+    def _skip_back(self):
+        if not self._song or self._pending_i < 0:
+            return
+        target = max(0, self._pending_i - 5)
+        self._jump_to(target)
+
+    def _skip_forward(self):
+        if not self._song or self._pending_i < 0:
+            return
+        target = min(len(self._song) - 1, self._pending_i + 5)
+        self._jump_to(target)
+
+    def _jump_to(self, target_idx: int):
+        if self._anim_job:
+            self.cv.after_cancel(self._anim_job)
+            self._anim_job = None
+        if self._hold_job:
+            self.cv.after_cancel(self._hold_job)
+            self._hold_job = None
+            
+        self._sol_release_all()
+        
+        if self._paused:
+            self._paused = False
+            self._pause_btn_text.set('⏸ Pause')
+            
+        self._step(target_idx)
 
     # ── Step sequencer ────────────────────────────────────────────────────────
     def _step(self, i: int):
