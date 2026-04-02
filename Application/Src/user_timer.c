@@ -36,14 +36,9 @@ void user_timer2_ISR(){
 void user_timer5_ISR(){
 
     timer5_tick++;
-    
-    if(motor_off){
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
-        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
-    }
-    else{
-        controller_step(0.001f);
-    }
+
+    controller_step(0.001f);
+
     timer5_tick = 0;
 }
 

@@ -257,11 +257,11 @@ void traversal(void){
         right_motor.target_pos = chord_events[traversal_index].positions[1];
 
         // stop the motor when pressing
-        wait_ms(10);
+        wait_ms(5);
         while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
         // here just wait for pressing:
-        wait_ms(100);
+        wait_ms(20);
         toggle_solenoid(traversal_index);
 
         traversal_index++;
@@ -274,13 +274,13 @@ void debug_traversal(void){
         right_motor.target_pos += 21.0f;
         left_motor.target_pos += 21.0f;
         wait_ms(10); // small delay so controller gets updated
-        while(!right_motor_arrived & !left_motor_arrived);
+        while(!right_motor_arrived || !left_motor_arrived);
 
         // stop the motor when pressing
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
 
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 10; i++) {
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_SET);
             wait_ms(300);
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);

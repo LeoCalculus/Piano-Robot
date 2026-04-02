@@ -42,7 +42,7 @@ extern LCD_Config lcd_config;
 
 // =============================== FILE TRANSFER =======================================
 #define VOFA_TAIL {0x00, 0x00, 0x80, 0x7f}
-#define MAX_CHORD_NOTES   11 // number of notes to play at one time, fixed value, 5 for left hand and 5 for right hand -> Should be 10 but used for testing rn
+#define MAX_CHORD_NOTES   10 // number of notes to play at one time, fixed value, 5 for left hand and 5 for right hand -> Should be 10 but used for testing rn
 #define MAX_CHORD_EVENTS  1024 // max chords in a song
 #define PIANO_THRESHOLD   54.0f // define where the boundary of left hand and right hand is
 #define LEFT_HAND_SIZE    10.0f // size of left hand
