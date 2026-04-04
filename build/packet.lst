@@ -1,0 +1,638 @@
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"packet.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "./Application/Src/packet.c"
+  21              		.section	.text.xor_checksum,"ax",%progbits
+  22              		.align	1
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	xor_checksum:
+  28              	.LVL0:
+  29              	.LFB356:
+   1:./Application/Src/packet.c **** #include <packet.h>
+   2:./Application/Src/packet.c **** #include <usart.h>
+   3:./Application/Src/packet.c **** #include <string.h>
+   4:./Application/Src/packet.c **** #include "stm32h5xx_hal.h"
+   5:./Application/Src/packet.c **** #include "stm32h5xx_hal_uart.h"
+   6:./Application/Src/packet.c **** 
+   7:./Application/Src/packet.c **** static uint8_t pkt_tx_buf[PKT_MAX_PAYLOAD + 5]; /* sync1 + sync2 + type + len + payload + xor */
+   8:./Application/Src/packet.c **** 
+   9:./Application/Src/packet.c **** static uint8_t xor_checksum(const uint8_t *data, uint16_t len)
+  10:./Application/Src/packet.c **** {
+  30              		.loc 1 10 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  35              		.loc 1 10 1 is_stmt 0 view .LVU1
+  36 0000 8446     		mov	ip, r0
+  11:./Application/Src/packet.c ****     uint8_t x = 0;
+  37              		.loc 1 11 5 is_stmt 1 view .LVU2
+  38              	.LVL1:
+  12:./Application/Src/packet.c ****     for (uint16_t i = 0; i < len; i++)
+  39              		.loc 1 12 5 view .LVU3
+  40              	.LBB2:
+  41              		.loc 1 12 10 view .LVU4
+  42              		.loc 1 12 19 is_stmt 0 view .LVU5
+  43 0002 0023     		movs	r3, #0
+  44              	.LBE2:
+  11:./Application/Src/packet.c ****     uint8_t x = 0;
+  45              		.loc 1 11 13 view .LVU6
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 2
+
+
+  46 0004 1846     		mov	r0, r3
+  47              	.LVL2:
+  48              	.LBB3:
+  49              		.loc 1 12 5 view .LVU7
+  50 0006 04E0     		b	.L2
+  51              	.LVL3:
+  52              	.L3:
+  13:./Application/Src/packet.c ****         x ^= data[i];
+  53              		.loc 1 13 9 is_stmt 1 view .LVU8
+  54              		.loc 1 13 18 is_stmt 0 view .LVU9
+  55 0008 1CF80320 		ldrb	r2, [ip, r3]	@ zero_extendqisi2
+  56              		.loc 1 13 11 view .LVU10
+  57 000c 5040     		eors	r0, r0, r2
+  58              	.LVL4:
+  12:./Application/Src/packet.c ****     for (uint16_t i = 0; i < len; i++)
+  59              		.loc 1 12 36 is_stmt 1 discriminator 3 view .LVU11
+  60 000e 0133     		adds	r3, r3, #1
+  61              	.LVL5:
+  12:./Application/Src/packet.c ****     for (uint16_t i = 0; i < len; i++)
+  62              		.loc 1 12 36 is_stmt 0 discriminator 3 view .LVU12
+  63 0010 9BB2     		uxth	r3, r3
+  64              	.LVL6:
+  65              	.L2:
+  12:./Application/Src/packet.c ****     for (uint16_t i = 0; i < len; i++)
+  66              		.loc 1 12 28 is_stmt 1 discriminator 1 view .LVU13
+  67 0012 8B42     		cmp	r3, r1
+  68 0014 F8D3     		bcc	.L3
+  69              	.LBE3:
+  14:./Application/Src/packet.c ****     return x;
+  70              		.loc 1 14 5 view .LVU14
+  15:./Application/Src/packet.c **** }
+  71              		.loc 1 15 1 is_stmt 0 view .LVU15
+  72 0016 7047     		bx	lr
+  73              		.cfi_endproc
+  74              	.LFE356:
+  76              		.section	.text.pkt_send,"ax",%progbits
+  77              		.align	1
+  78              		.global	pkt_send
+  79              		.syntax unified
+  80              		.thumb
+  81              		.thumb_func
+  83              	pkt_send:
+  84              	.LVL7:
+  85              	.LFB357:
+  16:./Application/Src/packet.c **** 
+  17:./Application/Src/packet.c **** int pkt_send(uint8_t type, const uint8_t *payload, uint8_t len)
+  18:./Application/Src/packet.c **** {
+  86              		.loc 1 18 1 is_stmt 1 view -0
+  87              		.cfi_startproc
+  88              		@ args = 0, pretend = 0, frame = 0
+  89              		@ frame_needed = 0, uses_anonymous_args = 0
+  19:./Application/Src/packet.c ****     uint32_t t0;
+  90              		.loc 1 19 5 view .LVU17
+  20:./Application/Src/packet.c ****     if (len > PKT_MAX_PAYLOAD) return -1;
+  91              		.loc 1 20 5 view .LVU18
+  92              		.loc 1 20 8 is_stmt 0 view .LVU19
+  93 0000 302A     		cmp	r2, #48
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 3
+
+
+  94 0002 30D8     		bhi	.L9
+  18:./Application/Src/packet.c ****     uint32_t t0;
+  95              		.loc 1 18 1 view .LVU20
+  96 0004 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  97              	.LCFI0:
+  98              		.cfi_def_cfa_offset 24
+  99              		.cfi_offset 3, -24
+ 100              		.cfi_offset 4, -20
+ 101              		.cfi_offset 5, -16
+ 102              		.cfi_offset 6, -12
+ 103              		.cfi_offset 7, -8
+ 104              		.cfi_offset 14, -4
+ 105 0006 0646     		mov	r6, r0
+ 106 0008 0F46     		mov	r7, r1
+ 107 000a 1546     		mov	r5, r2
+  21:./Application/Src/packet.c **** 
+  22:./Application/Src/packet.c ****     /* Wait for any ongoing DMA transmit to finish before polling TX */
+  23:./Application/Src/packet.c ****     t0 = HAL_GetTick();
+ 108              		.loc 1 23 5 is_stmt 1 view .LVU21
+ 109              		.loc 1 23 10 is_stmt 0 view .LVU22
+ 110 000c FFF7FEFF 		bl	HAL_GetTick
+ 111              	.LVL8:
+ 112              		.loc 1 23 10 view .LVU23
+ 113 0010 0446     		mov	r4, r0
+ 114              	.LVL9:
+  24:./Application/Src/packet.c ****     while (huart2.gState != HAL_UART_STATE_READY) {
+ 115              		.loc 1 24 5 is_stmt 1 view .LVU24
+ 116              	.L6:
+ 117              		.loc 1 24 26 view .LVU25
+ 118              		.loc 1 24 18 is_stmt 0 view .LVU26
+ 119 0012 164B     		ldr	r3, .L16
+ 120 0014 D3F88830 		ldr	r3, [r3, #136]
+ 121              		.loc 1 24 26 view .LVU27
+ 122 0018 202B     		cmp	r3, #32
+ 123 001a 07D0     		beq	.L15
+  25:./Application/Src/packet.c ****         if (HAL_GetTick() - t0 > 50) return -1; /* timeout safety */
+ 124              		.loc 1 25 9 is_stmt 1 view .LVU28
+ 125              		.loc 1 25 13 is_stmt 0 view .LVU29
+ 126 001c FFF7FEFF 		bl	HAL_GetTick
+ 127              	.LVL10:
+ 128              		.loc 1 25 27 discriminator 1 view .LVU30
+ 129 0020 001B     		subs	r0, r0, r4
+ 130              		.loc 1 25 12 discriminator 1 view .LVU31
+ 131 0022 3228     		cmp	r0, #50
+ 132 0024 F5D9     		bls	.L6
+ 133              		.loc 1 25 45 discriminator 2 view .LVU32
+ 134 0026 4FF0FF30 		mov	r0, #-1
+ 135 002a 1BE0     		b	.L4
+ 136              	.L15:
+  26:./Application/Src/packet.c ****     }
+  27:./Application/Src/packet.c **** 
+  28:./Application/Src/packet.c ****     pkt_tx_buf[0] = PKT_SYNC1;
+ 137              		.loc 1 28 5 is_stmt 1 view .LVU33
+ 138              		.loc 1 28 19 is_stmt 0 view .LVU34
+ 139 002c 104B     		ldr	r3, .L16+4
+ 140 002e AA22     		movs	r2, #170
+ 141 0030 1A70     		strb	r2, [r3]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 4
+
+
+  29:./Application/Src/packet.c ****     pkt_tx_buf[1] = PKT_SYNC2;
+ 142              		.loc 1 29 5 is_stmt 1 view .LVU35
+ 143              		.loc 1 29 19 is_stmt 0 view .LVU36
+ 144 0032 5522     		movs	r2, #85
+ 145 0034 5A70     		strb	r2, [r3, #1]
+  30:./Application/Src/packet.c ****     pkt_tx_buf[2] = type;
+ 146              		.loc 1 30 5 is_stmt 1 view .LVU37
+ 147              		.loc 1 30 19 is_stmt 0 view .LVU38
+ 148 0036 9E70     		strb	r6, [r3, #2]
+  31:./Application/Src/packet.c ****     pkt_tx_buf[3] = len;
+ 149              		.loc 1 31 5 is_stmt 1 view .LVU39
+ 150              		.loc 1 31 19 is_stmt 0 view .LVU40
+ 151 0038 DD70     		strb	r5, [r3, #3]
+  32:./Application/Src/packet.c ****     if (len > 0 && payload != NULL)
+ 152              		.loc 1 32 5 is_stmt 1 view .LVU41
+ 153              		.loc 1 32 8 is_stmt 0 view .LVU42
+ 154 003a 2DB1     		cbz	r5, .L8
+ 155              		.loc 1 32 17 discriminator 1 view .LVU43
+ 156 003c 27B1     		cbz	r7, .L8
+  33:./Application/Src/packet.c ****         memcpy(&pkt_tx_buf[4], payload, len);
+ 157              		.loc 1 33 9 is_stmt 1 view .LVU44
+ 158 003e 2A46     		mov	r2, r5
+ 159 0040 3946     		mov	r1, r7
+ 160 0042 0C48     		ldr	r0, .L16+8
+ 161 0044 FFF7FEFF 		bl	memcpy
+ 162              	.LVL11:
+ 163              	.L8:
+  34:./Application/Src/packet.c ****     pkt_tx_buf[4 + len] = xor_checksum(&pkt_tx_buf[2], 2 + len);
+ 164              		.loc 1 34 5 view .LVU45
+ 165              		.loc 1 34 18 is_stmt 0 view .LVU46
+ 166 0048 2E1D     		adds	r6, r5, #4
+ 167              	.LVL12:
+ 168              		.loc 1 34 27 view .LVU47
+ 169 004a 0B4C     		ldr	r4, .L16+12
+ 170              	.LVL13:
+ 171              		.loc 1 34 27 view .LVU48
+ 172 004c A91C     		adds	r1, r5, #2
+ 173 004e 2046     		mov	r0, r4
+ 174 0050 FFF7FEFF 		bl	xor_checksum
+ 175              	.LVL14:
+ 176              		.loc 1 34 25 discriminator 1 view .LVU49
+ 177 0054 A11E     		subs	r1, r4, #2
+ 178 0056 8855     		strb	r0, [r1, r6]
+  35:./Application/Src/packet.c **** 
+  36:./Application/Src/packet.c ****     HAL_UART_Transmit(&huart2, pkt_tx_buf, 5 + len, 20);
+ 179              		.loc 1 36 5 is_stmt 1 view .LVU50
+ 180 0058 1423     		movs	r3, #20
+ 181 005a 6A1D     		adds	r2, r5, #5
+ 182 005c 0348     		ldr	r0, .L16
+ 183 005e FFF7FEFF 		bl	HAL_UART_Transmit
+ 184              	.LVL15:
+  37:./Application/Src/packet.c ****     return 0;
+ 185              		.loc 1 37 5 view .LVU51
+ 186              		.loc 1 37 12 is_stmt 0 view .LVU52
+ 187 0062 0020     		movs	r0, #0
+ 188              	.L4:
+  38:./Application/Src/packet.c **** }
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 5
+
+
+ 189              		.loc 1 38 1 view .LVU53
+ 190 0064 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 191              	.LVL16:
+ 192              	.L9:
+ 193              	.LCFI1:
+ 194              		.cfi_def_cfa_offset 0
+ 195              		.cfi_restore 3
+ 196              		.cfi_restore 4
+ 197              		.cfi_restore 5
+ 198              		.cfi_restore 6
+ 199              		.cfi_restore 7
+ 200              		.cfi_restore 14
+  20:./Application/Src/packet.c **** 
+ 201              		.loc 1 20 39 discriminator 1 view .LVU54
+ 202 0066 4FF0FF30 		mov	r0, #-1
+ 203              	.LVL17:
+ 204              		.loc 1 38 1 view .LVU55
+ 205 006a 7047     		bx	lr
+ 206              	.L17:
+ 207              		.align	2
+ 208              	.L16:
+ 209 006c 00000000 		.word	huart2
+ 210 0070 00000000 		.word	pkt_tx_buf
+ 211 0074 04000000 		.word	pkt_tx_buf+4
+ 212 0078 02000000 		.word	pkt_tx_buf+2
+ 213              		.cfi_endproc
+ 214              	.LFE357:
+ 216              		.section	.text.pkt_send_ui_state,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	pkt_send_ui_state
+ 219              		.syntax unified
+ 220              		.thumb
+ 221              		.thumb_func
+ 223              	pkt_send_ui_state:
+ 224              	.LVL18:
+ 225              	.LFB358:
+  39:./Application/Src/packet.c **** 
+  40:./Application/Src/packet.c **** void pkt_send_ui_state(uint8_t state, uint8_t index, uint8_t extra1, uint8_t extra2)
+  41:./Application/Src/packet.c **** {
+ 226              		.loc 1 41 1 is_stmt 1 view -0
+ 227              		.cfi_startproc
+ 228              		@ args = 0, pretend = 0, frame = 8
+ 229              		@ frame_needed = 0, uses_anonymous_args = 0
+ 230              		.loc 1 41 1 is_stmt 0 view .LVU57
+ 231 0000 00B5     		push	{lr}
+ 232              	.LCFI2:
+ 233              		.cfi_def_cfa_offset 4
+ 234              		.cfi_offset 14, -4
+ 235 0002 83B0     		sub	sp, sp, #12
+ 236              	.LCFI3:
+ 237              		.cfi_def_cfa_offset 16
+  42:./Application/Src/packet.c ****     uint8_t payload[4] = {state, index, extra1, extra2};
+ 238              		.loc 1 42 5 is_stmt 1 view .LVU58
+ 239              		.loc 1 42 13 is_stmt 0 view .LVU59
+ 240 0004 8DF80400 		strb	r0, [sp, #4]
+ 241 0008 8DF80510 		strb	r1, [sp, #5]
+ 242 000c 8DF80620 		strb	r2, [sp, #6]
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 6
+
+
+ 243 0010 8DF80730 		strb	r3, [sp, #7]
+  43:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_UI_STATE, payload, 4);
+ 244              		.loc 1 43 5 is_stmt 1 view .LVU60
+ 245 0014 0422     		movs	r2, #4
+ 246              	.LVL19:
+ 247              		.loc 1 43 5 is_stmt 0 view .LVU61
+ 248 0016 0DEB0201 		add	r1, sp, r2
+ 249              	.LVL20:
+ 250              		.loc 1 43 5 view .LVU62
+ 251 001a 1020     		movs	r0, #16
+ 252              	.LVL21:
+ 253              		.loc 1 43 5 view .LVU63
+ 254 001c FFF7FEFF 		bl	pkt_send
+ 255              	.LVL22:
+  44:./Application/Src/packet.c **** }
+ 256              		.loc 1 44 1 view .LVU64
+ 257 0020 03B0     		add	sp, sp, #12
+ 258              	.LCFI4:
+ 259              		.cfi_def_cfa_offset 4
+ 260              		@ sp needed
+ 261 0022 00BD     		pop	{pc}
+ 262              		.cfi_endproc
+ 263              	.LFE358:
+ 265              		.section	.text.pkt_send_heartbeat,"ax",%progbits
+ 266              		.align	1
+ 267              		.global	pkt_send_heartbeat
+ 268              		.syntax unified
+ 269              		.thumb
+ 270              		.thumb_func
+ 272              	pkt_send_heartbeat:
+ 273              	.LFB359:
+  45:./Application/Src/packet.c **** 
+  46:./Application/Src/packet.c **** void pkt_send_heartbeat(void)
+  47:./Application/Src/packet.c **** {
+ 274              		.loc 1 47 1 is_stmt 1 view -0
+ 275              		.cfi_startproc
+ 276              		@ args = 0, pretend = 0, frame = 0
+ 277              		@ frame_needed = 0, uses_anonymous_args = 0
+ 278 0000 08B5     		push	{r3, lr}
+ 279              	.LCFI5:
+ 280              		.cfi_def_cfa_offset 8
+ 281              		.cfi_offset 3, -8
+ 282              		.cfi_offset 14, -4
+  48:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_HEARTBEAT, NULL, 0);
+ 283              		.loc 1 48 5 view .LVU66
+ 284 0002 0022     		movs	r2, #0
+ 285 0004 1146     		mov	r1, r2
+ 286 0006 1120     		movs	r0, #17
+ 287 0008 FFF7FEFF 		bl	pkt_send
+ 288              	.LVL23:
+  49:./Application/Src/packet.c **** }
+ 289              		.loc 1 49 1 is_stmt 0 view .LVU67
+ 290 000c 08BD     		pop	{r3, pc}
+ 291              		.cfi_endproc
+ 292              	.LFE359:
+ 294              		.section	.text.pkt_send_file_entry,"ax",%progbits
+ 295              		.align	1
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 7
+
+
+ 296              		.global	pkt_send_file_entry
+ 297              		.syntax unified
+ 298              		.thumb
+ 299              		.thumb_func
+ 301              	pkt_send_file_entry:
+ 302              	.LVL24:
+ 303              	.LFB360:
+  50:./Application/Src/packet.c **** 
+  51:./Application/Src/packet.c **** void pkt_send_file_entry(const char *name, uint32_t size)
+  52:./Application/Src/packet.c **** {
+ 304              		.loc 1 52 1 is_stmt 1 view -0
+ 305              		.cfi_startproc
+ 306              		@ args = 0, pretend = 0, frame = 24
+ 307              		@ frame_needed = 0, uses_anonymous_args = 0
+ 308              		.loc 1 52 1 is_stmt 0 view .LVU69
+ 309 0000 30B5     		push	{r4, r5, lr}
+ 310              	.LCFI6:
+ 311              		.cfi_def_cfa_offset 12
+ 312              		.cfi_offset 4, -12
+ 313              		.cfi_offset 5, -8
+ 314              		.cfi_offset 14, -4
+ 315 0002 87B0     		sub	sp, sp, #28
+ 316              	.LCFI7:
+ 317              		.cfi_def_cfa_offset 40
+ 318 0004 0D46     		mov	r5, r1
+  53:./Application/Src/packet.c ****     uint8_t payload[17];
+ 319              		.loc 1 53 5 is_stmt 1 view .LVU70
+  54:./Application/Src/packet.c ****     memset(payload, 0, sizeof(payload));
+ 320              		.loc 1 54 5 view .LVU71
+ 321 0006 01AC     		add	r4, sp, #4
+ 322 0008 0023     		movs	r3, #0
+ 323 000a 0193     		str	r3, [sp, #4]
+ 324 000c 0293     		str	r3, [sp, #8]
+ 325 000e 0393     		str	r3, [sp, #12]
+ 326 0010 0493     		str	r3, [sp, #16]
+ 327 0012 8DF81430 		strb	r3, [sp, #20]
+  55:./Application/Src/packet.c ****     strncpy((char *)payload, name, 12);
+ 328              		.loc 1 55 5 view .LVU72
+ 329 0016 0C22     		movs	r2, #12
+ 330 0018 0146     		mov	r1, r0
+ 331              	.LVL25:
+ 332              		.loc 1 55 5 is_stmt 0 view .LVU73
+ 333 001a 2046     		mov	r0, r4
+ 334              	.LVL26:
+ 335              		.loc 1 55 5 view .LVU74
+ 336 001c FFF7FEFF 		bl	strncpy
+ 337              	.LVL27:
+  56:./Application/Src/packet.c ****     memcpy(&payload[13], &size, 4);
+ 338              		.loc 1 56 5 is_stmt 1 view .LVU75
+ 339 0020 CDF81150 		str	r5, [sp, #17]	@ unaligned
+  57:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_FILE_ENTRY, payload, 17);
+ 340              		.loc 1 57 5 view .LVU76
+ 341 0024 1122     		movs	r2, #17
+ 342 0026 2146     		mov	r1, r4
+ 343 0028 1220     		movs	r0, #18
+ 344 002a FFF7FEFF 		bl	pkt_send
+ 345              	.LVL28:
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 8
+
+
+  58:./Application/Src/packet.c **** }
+ 346              		.loc 1 58 1 is_stmt 0 view .LVU77
+ 347 002e 07B0     		add	sp, sp, #28
+ 348              	.LCFI8:
+ 349              		.cfi_def_cfa_offset 12
+ 350              		@ sp needed
+ 351 0030 30BD     		pop	{r4, r5, pc}
+ 352              		.loc 1 58 1 view .LVU78
+ 353              		.cfi_endproc
+ 354              	.LFE360:
+ 356              		.section	.text.pkt_send_file_list_end,"ax",%progbits
+ 357              		.align	1
+ 358              		.global	pkt_send_file_list_end
+ 359              		.syntax unified
+ 360              		.thumb
+ 361              		.thumb_func
+ 363              	pkt_send_file_list_end:
+ 364              	.LVL29:
+ 365              	.LFB361:
+  59:./Application/Src/packet.c **** 
+  60:./Application/Src/packet.c **** void pkt_send_file_list_end(uint8_t count)
+  61:./Application/Src/packet.c **** {
+ 366              		.loc 1 61 1 is_stmt 1 view -0
+ 367              		.cfi_startproc
+ 368              		@ args = 0, pretend = 0, frame = 8
+ 369              		@ frame_needed = 0, uses_anonymous_args = 0
+ 370              		.loc 1 61 1 is_stmt 0 view .LVU80
+ 371 0000 00B5     		push	{lr}
+ 372              	.LCFI9:
+ 373              		.cfi_def_cfa_offset 4
+ 374              		.cfi_offset 14, -4
+ 375 0002 83B0     		sub	sp, sp, #12
+ 376              	.LCFI10:
+ 377              		.cfi_def_cfa_offset 16
+ 378 0004 8DF80700 		strb	r0, [sp, #7]
+  62:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_FILE_LIST_END, &count, 1);
+ 379              		.loc 1 62 5 is_stmt 1 view .LVU81
+ 380 0008 0122     		movs	r2, #1
+ 381 000a 0DF10701 		add	r1, sp, #7
+ 382 000e 1320     		movs	r0, #19
+ 383              	.LVL30:
+ 384              		.loc 1 62 5 is_stmt 0 view .LVU82
+ 385 0010 FFF7FEFF 		bl	pkt_send
+ 386              	.LVL31:
+  63:./Application/Src/packet.c **** }
+ 387              		.loc 1 63 1 view .LVU83
+ 388 0014 03B0     		add	sp, sp, #12
+ 389              	.LCFI11:
+ 390              		.cfi_def_cfa_offset 4
+ 391              		@ sp needed
+ 392 0016 00BD     		pop	{pc}
+ 393              		.cfi_endproc
+ 394              	.LFE361:
+ 396              		.section	.text.pkt_send_play_status,"ax",%progbits
+ 397              		.align	1
+ 398              		.global	pkt_send_play_status
+ 399              		.syntax unified
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 9
+
+
+ 400              		.thumb
+ 401              		.thumb_func
+ 403              	pkt_send_play_status:
+ 404              	.LVL32:
+ 405              	.LFB362:
+  64:./Application/Src/packet.c **** 
+  65:./Application/Src/packet.c **** void pkt_send_play_status(uint8_t state, uint16_t current, uint16_t total)
+  66:./Application/Src/packet.c **** {
+ 406              		.loc 1 66 1 is_stmt 1 view -0
+ 407              		.cfi_startproc
+ 408              		@ args = 0, pretend = 0, frame = 8
+ 409              		@ frame_needed = 0, uses_anonymous_args = 0
+ 410              		.loc 1 66 1 is_stmt 0 view .LVU85
+ 411 0000 00B5     		push	{lr}
+ 412              	.LCFI12:
+ 413              		.cfi_def_cfa_offset 4
+ 414              		.cfi_offset 14, -4
+ 415 0002 83B0     		sub	sp, sp, #12
+ 416              	.LCFI13:
+ 417              		.cfi_def_cfa_offset 16
+  67:./Application/Src/packet.c ****     uint8_t payload[5];
+ 418              		.loc 1 67 5 is_stmt 1 view .LVU86
+  68:./Application/Src/packet.c ****     payload[0] = state;
+ 419              		.loc 1 68 5 view .LVU87
+ 420              		.loc 1 68 16 is_stmt 0 view .LVU88
+ 421 0004 8DF80000 		strb	r0, [sp]
+  69:./Application/Src/packet.c ****     memcpy(&payload[1], &current, 2);
+ 422              		.loc 1 69 5 is_stmt 1 view .LVU89
+ 423 0008 ADF80110 		strh	r1, [sp, #1]	@ unaligned
+  70:./Application/Src/packet.c ****     memcpy(&payload[3], &total, 2);
+ 424              		.loc 1 70 5 view .LVU90
+ 425 000c ADF80320 		strh	r2, [sp, #3]	@ unaligned
+  71:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_PLAY_STATUS, payload, 5);
+ 426              		.loc 1 71 5 view .LVU91
+ 427 0010 0522     		movs	r2, #5
+ 428              	.LVL33:
+ 429              		.loc 1 71 5 is_stmt 0 view .LVU92
+ 430 0012 6946     		mov	r1, sp
+ 431              	.LVL34:
+ 432              		.loc 1 71 5 view .LVU93
+ 433 0014 1420     		movs	r0, #20
+ 434              	.LVL35:
+ 435              		.loc 1 71 5 view .LVU94
+ 436 0016 FFF7FEFF 		bl	pkt_send
+ 437              	.LVL36:
+  72:./Application/Src/packet.c **** }
+ 438              		.loc 1 72 1 view .LVU95
+ 439 001a 03B0     		add	sp, sp, #12
+ 440              	.LCFI14:
+ 441              		.cfi_def_cfa_offset 4
+ 442              		@ sp needed
+ 443 001c 00BD     		pop	{pc}
+ 444              		.cfi_endproc
+ 445              	.LFE362:
+ 447              		.section	.text.pkt_send_transfer_status,"ax",%progbits
+ 448              		.align	1
+ 449              		.global	pkt_send_transfer_status
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 10
+
+
+ 450              		.syntax unified
+ 451              		.thumb
+ 452              		.thumb_func
+ 454              	pkt_send_transfer_status:
+ 455              	.LVL37:
+ 456              	.LFB363:
+  73:./Application/Src/packet.c **** 
+  74:./Application/Src/packet.c **** void pkt_send_transfer_status(uint8_t status)
+  75:./Application/Src/packet.c **** {
+ 457              		.loc 1 75 1 is_stmt 1 view -0
+ 458              		.cfi_startproc
+ 459              		@ args = 0, pretend = 0, frame = 8
+ 460              		@ frame_needed = 0, uses_anonymous_args = 0
+ 461              		.loc 1 75 1 is_stmt 0 view .LVU97
+ 462 0000 00B5     		push	{lr}
+ 463              	.LCFI15:
+ 464              		.cfi_def_cfa_offset 4
+ 465              		.cfi_offset 14, -4
+ 466 0002 83B0     		sub	sp, sp, #12
+ 467              	.LCFI16:
+ 468              		.cfi_def_cfa_offset 16
+ 469 0004 8DF80700 		strb	r0, [sp, #7]
+  76:./Application/Src/packet.c ****     pkt_send(PKT_TYPE_TRANSFER_STATUS, &status, 1);
+ 470              		.loc 1 76 5 is_stmt 1 view .LVU98
+ 471 0008 0122     		movs	r2, #1
+ 472 000a 0DF10701 		add	r1, sp, #7
+ 473 000e 1520     		movs	r0, #21
+ 474              	.LVL38:
+ 475              		.loc 1 76 5 is_stmt 0 view .LVU99
+ 476 0010 FFF7FEFF 		bl	pkt_send
+ 477              	.LVL39:
+  77:./Application/Src/packet.c **** }
+ 478              		.loc 1 77 1 view .LVU100
+ 479 0014 03B0     		add	sp, sp, #12
+ 480              	.LCFI17:
+ 481              		.cfi_def_cfa_offset 4
+ 482              		@ sp needed
+ 483 0016 00BD     		pop	{pc}
+ 484              		.cfi_endproc
+ 485              	.LFE363:
+ 487              		.section	.bss.pkt_tx_buf,"aw",%nobits
+ 488              		.align	2
+ 491              	pkt_tx_buf:
+ 492 0000 00000000 		.space	53
+ 492      00000000 
+ 492      00000000 
+ 492      00000000 
+ 492      00000000 
+ 493              		.text
+ 494              	.Letext0:
+ 495              		.file 2 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/machine/_default_types.h"
+ 496              		.file 3 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/sys/_stdint.h"
+ 497              		.file 4 "Drivers/CMSIS/Device/ST/STM32H5xx/Include/stm32h523xx.h"
+ 498              		.file 5 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_def.h"
+ 499              		.file 6 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma.h"
+ 500              		.file 7 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_dma_ex.h"
+ 501              		.file 8 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal_uart.h"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 11
+
+
+ 502              		.file 9 "C:/thirdpartyLibs/arm-gnu-toolchain-15.2/arm-none-eabi/include/string.h"
+ 503              		.file 10 "Core/Inc/usart.h"
+ 504              		.file 11 "Drivers/STM32H5xx_HAL_Driver/Inc/stm32h5xx_hal.h"
+ 505              		.file 12 "<built-in>"
+ARM GAS  C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s 			page 12
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 packet.c
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:22     .text.xor_checksum:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:27     .text.xor_checksum:00000000 xor_checksum
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:77     .text.pkt_send:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:83     .text.pkt_send:00000000 pkt_send
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:209    .text.pkt_send:0000006c $d
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:491    .bss.pkt_tx_buf:00000000 pkt_tx_buf
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:217    .text.pkt_send_ui_state:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:223    .text.pkt_send_ui_state:00000000 pkt_send_ui_state
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:266    .text.pkt_send_heartbeat:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:272    .text.pkt_send_heartbeat:00000000 pkt_send_heartbeat
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:295    .text.pkt_send_file_entry:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:301    .text.pkt_send_file_entry:00000000 pkt_send_file_entry
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:357    .text.pkt_send_file_list_end:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:363    .text.pkt_send_file_list_end:00000000 pkt_send_file_list_end
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:397    .text.pkt_send_play_status:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:403    .text.pkt_send_play_status:00000000 pkt_send_play_status
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:448    .text.pkt_send_transfer_status:00000000 $t
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:454    .text.pkt_send_transfer_status:00000000 pkt_send_transfer_status
+C:\Users\Xuleo\AppData\Local\Temp\ccwKdgV3.s:488    .bss.pkt_tx_buf:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_GetTick
+memcpy
+HAL_UART_Transmit
+huart2
+strncpy

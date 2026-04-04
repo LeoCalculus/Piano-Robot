@@ -26,16 +26,51 @@ int active_song_index = -1;
 /* Track if page needs full redraw */
 static int page_dirty = 1;
 
+/* Heartbeat timer (main page only) */
+static uint32_t last_heartbeat_tick = 0;
+#define HEARTBEAT_INTERVAL_MS 500
+
+/* UI state sync — send on every state/index change */
+static uint8_t last_sent_state = 0xFF;
+static uint8_t last_sent_index = 0xFF;
+
+/* File list send state: 0=not started, 1..N=sending entry N-1, N+1=done */
+static int file_list_send_idx = 0;
+static int file_list_sent = 0;
+
+/* Transfer status tracking */
+static uint8_t last_ft_state = 0xFF;
+static uint8_t last_ram_sent_status = 0xFF;
+
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
 static void clear_menu_area(void)
 {
-    /* Clear rows 1-9 (leave row 0 = title, rows 10+ = debug info) */
     for (int r = 1; r <= 9; r++)
     {
         LCD_draw_string(0, r, "                        ", COLOR_BLACK, COLOR_WHITE);
+    }
+}
+
+/* Send UI state packet if changed */
+static void sync_ui_state(void)
+{
+    uint8_t st = (uint8_t)menu_state;
+    uint8_t idx = (uint8_t)menu_index;
+    uint8_t ex1 = 0, ex2 = 0;
+
+    if (menu_state == MENU_STATE_SELECT) {
+        idx = (uint8_t)select_song_index;
+        ex1 = (uint8_t)fileCount;
+        ex2 = (uint8_t)(active_song_index + 1); /* 0 = none */
+    }
+
+    if (st != last_sent_state || idx != last_sent_index) {
+        pkt_send_ui_state(st, idx, ex1, ex2);
+        last_sent_state = st;
+        last_sent_index = idx;
     }
 }
 
@@ -56,7 +91,6 @@ void menu_draw_main(void)
     for (int i = 0; i < 6; i++)
     {
         snprintf(line, sizeof(line), "%s %s", (i == menu_index) ? ">" : " ", items[i]);
-        /* Pad to clear old text */
         int len = strlen(line);
         while (len < 23)
             line[len++] = ' ';
@@ -77,10 +111,11 @@ void menu_draw_transmit(void)
         LCD_draw_string(0, 1, "[Transmit Song]         ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 2, "Waiting for file...     ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+        pkt_send_transfer_status(0); /* begin */
+        last_ft_state = 0xFF;
         page_dirty = 0;
     }
 
-    /* Show live transfer status */
     FT_State_t ft = FT_GetState();
     char buf[25];
 
@@ -95,10 +130,8 @@ void menu_draw_transmit(void)
         uint8_t pct = FT_GetProgress();
         snprintf(buf, sizeof(buf), "Status: RX  %3d%%        ", pct);
         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
-
-        /* Simple progress bar */
         char bar[21];
-        int filled = pct / 5; /* 0-20 */
+        int filled = pct / 5;
         for (int i = 0; i < 20; i++)
             bar[i] = (i < filled) ? '#' : '-';
         bar[20] = '\0';
@@ -108,154 +141,19 @@ void menu_draw_transmit(void)
     case FT_STATE_COMPLETE:
         LCD_draw_string(0, 3, "Status: COMPLETE!       ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 4, "File saved to SD card.  ", COLOR_BLACK, COLOR_WHITE);
+        if (last_ft_state != (uint8_t)FT_STATE_COMPLETE) {
+            pkt_send_transfer_status(1); /* complete */
+        }
         break;
     case FT_STATE_ERROR:
         LCD_draw_string(0, 3, "Status: ERROR           ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 4, "Transfer failed.        ", COLOR_BLACK, COLOR_WHITE);
+        if (last_ft_state != (uint8_t)FT_STATE_ERROR) {
+            pkt_send_transfer_status(2); /* error */
+        }
         break;
     }
-}
-
-/* ------------------------------------------------------------------ */
-/*  RAM accumulation helper (depreciated)                             */
-/* ------------------------------------------------------------------ */
-
-// static void RAM_AccumulateData(uint8_t *data, uint16_t len)
-// {
-//     if (!ram_rx_started)
-//     {
-//         const float start_sentinel = RAM_SENTINEL_START;
-//         for (int i = 0; i <= (int)len - 4; i++)
-//         {
-//             if (memcmp(&data[i], &start_sentinel, 4) == 0)
-//             {
-//                 ram_rx_started = 1;
-//                 ram_rx_offset = 0;
-//                 int remaining = len - (i + 4);
-//                 if (remaining > 0)
-//                 {
-//                     uint32_t copy_len = ((uint32_t)remaining < RAM_SONG_MAX_BYTES)
-//                                         ? (uint32_t)remaining : RAM_SONG_MAX_BYTES;
-//                     // find check sum
-//                     uint8_t checksum = RAM_CalculateChecksum(&data[i + 4], copy_len-1); // last byte is checksum for verification
-//                     if (checksum != data[i + 4 + copy_len - 1]) {
-//                         // checksum mismatch, discard data and reset state
-//                         // send NAK
-//                         HAL_UART_Transmit(&huart1, (uint8_t[]){0xFF}, 1, 50);
-//                         return;
-//                     }
-//                     // send ACK
-//                     HAL_UART_Transmit(&huart1, (uint8_t[]){0xAA}, 1, 50);
-                    
-//                     memcpy((uint8_t *)song_ram, &data[i + 4], copy_len);
-//                     ram_rx_offset = copy_len;
-//                 }
-//                 return;
-//             }
-//         }
-//         /* Not song data — treat as text command (e.g. :a to go back) */
-//         data[len] = '\0';
-//         if (len > 0 && data[len - 1] == '\n') data[len - 1] = '\0';
-//         execute_command(data);
-//     }
-//     else
-//     {
-//         uint32_t space = RAM_SONG_MAX_BYTES - ram_rx_offset;
-//         uint32_t copy_len = (len < space) ? len : space;
-//         memcpy(&((uint8_t *)song_ram)[ram_rx_offset], data, copy_len);
-//         ram_rx_offset += copy_len;
-
-//         const float end_sentinel = RAM_SENTINEL_END;
-//         if (ram_rx_offset >= 4)
-//         {
-//             float last_float;
-//             memcpy(&last_float, &((uint8_t *)song_ram)[ram_rx_offset - 4], 4);
-//             if (last_float == end_sentinel)
-//             {
-//                 ram_rx_offset -= 4;
-//                 ram_rx_complete = 1;
-//             }
-//         }
-//         if (ram_rx_offset >= RAM_SONG_MAX_BYTES)
-//             ram_rx_complete = 1;
-//     }
-// }
-
-/* ------------------------------------------------------------------ */
-/*  Dispatch incoming UART data to the right handler                  */
-/* ------------------------------------------------------------------ */
-
-void menu_process_message(uint8_t *data, uint16_t len)
-{
-    if (len == 0) return;
-
-    MenuState_t state = menu_get_state();
-
-    if (state == MENU_STATE_TRANSMIT &&
-        data[0] >= 0xF0 && data[0] <= 0xF3)
-    {
-        /* File transfer packet → SD card */
-        FT_ProcessPacket(data, len);
-    }
-    else if (state == MENU_STATE_TRANSMIT_RAM && data[0] >= 0xE0 && data[0] <= 0xE2)
-    {
-        /* Raw binary → RAM accumulation */
-        // RAM_AccumulateData(data, len);
-        RAM_ProcessPacket(data, len);
-    }
-    else
-    {
-        /* Text command */
-        data[len] = '\0';
-        if (len > 0 && data[len - 1] == '\n') data[len - 1] = '\0';
-        execute_command(data);
-    }
-}
-
-/* Try to dispatch accumulated binary bytes (called from main loop).
-   Returns 1 if data was consumed, 0 if still waiting for more bytes. */
-int menu_try_dispatch_binary(uint8_t *data, uint16_t len)
-{
-    if (len == 0) return 0;
-
-    // check for MENU in transmit state and waiting for file data packets (0xF0-0xF3)
-    if (menu_get_state() == MENU_STATE_TRANSMIT &&
-        data[0] >= 0xF0 && data[0] <= 0xF3)
-    {
-        uint16_t need = 0;
-        switch (data[0]) {
-          case FT_CMD_FILE_START: need = FT_FILE_START_SIZE; break;
-          case FT_CMD_FILE_DATA:  need = (len >= 4) ? (uint16_t)(5 + data[3]) : 0xFFFF; break;
-          case FT_CMD_FILE_END:   need = FT_FILE_END_SIZE; break;
-          case FT_CMD_FILE_ABORT: need = FT_FILE_ABORT_SIZE; break;
-        }
-        if (need == 0 || len < need)
-            return 0; /* not enough bytes yet */
-
-        menu_process_message(data, len);
-        return 1;
-    }
-
-    // check for MENU in transmit RAM state and waiting for RAM packets (0xE0-0xE2)
-    if (menu_get_state() == MENU_STATE_TRANSMIT_RAM &&
-        data[0] >= 0xE0 && data[0] <= 0xE2)
-    {
-        uint16_t need = 0;
-        switch (data[0]) {
-          case FT_CMD_RAM_START: need = 2; break;   // [0xE0] [sentinel]
-          case FT_CMD_RAM_DATA:  need = 4 + sizeof(ChordEvent_t); break;   // [0xE1] [row_lo] [row_hi] [sizeof(ChordEvent_t) data] [checksum]
-          case FT_CMD_RAM_END:   need = 2; break;   // [0xE2] [sentinel]
-        }
-        if (need == 0 || len < need)
-            return 0; /* not enough bytes yet */
-
-        menu_process_message(data, len);
-        return 1;
-    }
-
-    /* Everything else (text commands) — dispatch immediately */
-    menu_process_message(data, len);
-    return 1;
+    last_ft_state = (uint8_t)ft;
 }
 
 /* ------------------------------------------------------------------ */
@@ -271,10 +169,11 @@ void menu_draw_transmit_ram(void){
         LCD_draw_string(0, 2, "Waiting for start...    ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 3, "Max 365x14 floats       ", COLOR_BLACK, COLOR_WHITE);
         LCD_draw_string(0, 8, "Send :a to go back      ", COLOR_BLACK, COLOR_WHITE);
+        pkt_send_transfer_status(0); /* begin */
+        last_ram_sent_status = 0;
         page_dirty = 0;
     }
 
-    /* Show live accumulation status */
     if (ram_rx_started && !ram_rx_complete){
         uint8_t pct = (uint8_t)((ram_rx_offset * 100) / MAX_CHORD_EVENTS);
         snprintf(buf, sizeof(buf), "RX: %lu/%d rows %3d%%  ",
@@ -287,10 +186,13 @@ void menu_draw_transmit_ram(void){
         uint32_t num_chords = ram_rx_offset;
         snprintf(buf, sizeof(buf), "Got %lu chords!     ", (unsigned long)num_chords);
         LCD_draw_string(0, 3, buf, COLOR_BLACK, COLOR_WHITE);
-
         LCD_draw_string(0, 4, "Song loaded to RAM!     ", COLOR_BLACK, COLOR_WHITE);
 
-        /* Reset state so we don't re-parse every loop */
+        if (last_ram_sent_status != 1) {
+            pkt_send_transfer_status(1); /* complete */
+            last_ram_sent_status = 1;
+        }
+
         ram_rx_complete = 0;
         ram_rx_started = 0;
         ram_rx_offset = 0;
@@ -309,16 +211,28 @@ void menu_draw_select(void)
     if (page_dirty)
     {
         clear_menu_area();
-        /* Scan SD card for TXT files */
         sd_list_txt_files();
         select_song_index = 0;
         select_scroll_offset = 0;
+        file_list_sent = 0;
+        file_list_send_idx = 0;
         page_dirty = 0;
+    }
+
+    /* Send file list to PC one entry per main-loop iteration (non-blocking) */
+    if (!file_list_sent) {
+        if (file_list_send_idx < fileCount) {
+            pkt_send_file_entry(fileList[file_list_send_idx].name,
+                                fileList[file_list_send_idx].size);
+            file_list_send_idx++;
+        } else {
+            pkt_send_file_list_end((uint8_t)fileCount);
+            file_list_sent = 1;
+        }
     }
 
     /* Header */
     snprintf(line, sizeof(line), "[Select] %d songs", (int)fileCount);
-    /* Pad to 24 chars */
     int hlen = strlen(line);
     while (hlen < 24)
         line[hlen++] = ' ';
@@ -332,7 +246,6 @@ void menu_draw_select(void)
         return;
     }
 
-    /* Show up to 5 files with scroll */
     for (int i = 0; i < 5; i++)
     {
         int fileIdx = select_scroll_offset + i;
@@ -343,7 +256,6 @@ void menu_draw_select(void)
             char marker = ' ';
             if (fileIdx == select_song_index)
                 marker = '>';
-            /* Show active song indicator */
             if (fileIdx == active_song_index)
             {
                 snprintf(line, sizeof(line), "%c*%-12s %5luB", marker,
@@ -354,7 +266,6 @@ void menu_draw_select(void)
                 snprintf(line, sizeof(line), "%c %-12s %5luB", marker,
                          fileList[fileIdx].name, (unsigned long)fileList[fileIdx].size);
             }
-            /* Pad to clear */
             int len = strlen(line);
             while (len < 23)
                 line[len++] = ' ';
@@ -367,7 +278,6 @@ void menu_draw_select(void)
         }
     }
 
-    /* Scroll indicator */
     if (fileCount > 5)
     {
         int lo = select_scroll_offset + 1;
@@ -384,12 +294,87 @@ void menu_draw_select(void)
 }
 
 /* ------------------------------------------------------------------ */
+/*  Dispatch incoming UART data to the right handler                  */
+/* ------------------------------------------------------------------ */
+
+void menu_process_message(uint8_t *data, uint16_t len)
+{
+    if (len == 0) return;
+
+    MenuState_t state = menu_get_state();
+
+    if (state == MENU_STATE_TRANSMIT &&
+        data[0] >= 0xF0 && data[0] <= 0xF3)
+    {
+        FT_ProcessPacket(data, len);
+    }
+    else if (state == MENU_STATE_TRANSMIT_RAM && data[0] >= 0xE0 && data[0] <= 0xE2)
+    {
+        RAM_ProcessPacket(data, len);
+    }
+    else
+    {
+        data[len] = '\0';
+        if (len > 0 && data[len - 1] == '\n') data[len - 1] = '\0';
+        execute_command(data);
+    }
+}
+
+int menu_try_dispatch_binary(uint8_t *data, uint16_t len)
+{
+    if (len == 0) return 0;
+
+    if (menu_get_state() == MENU_STATE_TRANSMIT &&
+        data[0] >= 0xF0 && data[0] <= 0xF3)
+    {
+        uint16_t need = 0;
+        switch (data[0]) {
+          case FT_CMD_FILE_START: need = FT_FILE_START_SIZE; break;
+          case FT_CMD_FILE_DATA:  need = (len >= 4) ? (uint16_t)(5 + data[3]) : 0xFFFF; break;
+          case FT_CMD_FILE_END:   need = FT_FILE_END_SIZE; break;
+          case FT_CMD_FILE_ABORT: need = FT_FILE_ABORT_SIZE; break;
+        }
+        if (need == 0 || len < need)
+            return 0;
+
+        menu_process_message(data, len);
+        return 1;
+    }
+
+    if (menu_get_state() == MENU_STATE_TRANSMIT_RAM &&
+        data[0] >= 0xE0 && data[0] <= 0xE2)
+    {
+        uint16_t need = 0;
+        switch (data[0]) {
+          case FT_CMD_RAM_START: need = 2; break;
+          case FT_CMD_RAM_DATA:  need = 4 + sizeof(ChordEvent_t); break;
+          case FT_CMD_RAM_END:   need = 2; break;
+        }
+        if (need == 0 || len < need)
+            return 0;
+
+        menu_process_message(data, len);
+        return 1;
+    }
+
+    menu_process_message(data, len);
+    return 1;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Public API                                                        */
 /* ------------------------------------------------------------------ */
 
 MenuState_t menu_get_state(void)
 {
     return menu_state;
+}
+
+void menu_set_state(MenuState_t s)
+{
+    menu_state = s;
+    page_dirty = 1;
+    last_sent_state = 0xFF; /* force re-sync */
 }
 
 void menu_init(void)
@@ -403,15 +388,12 @@ void menu_init(void)
 
 void menu_update(void)
 {
-
-    // char line_buf[32];
     /* ---- Handle BACK in any sub-page ---- */
     if (menu_back)
     {
         menu_back = 0;
         if (menu_state != MENU_STATE_MAIN)
         {
-            /* If a transfer is in progress, abort it before leaving */
             if (menu_state == MENU_STATE_TRANSMIT && FT_GetState() == FT_STATE_RECEIVING)
             {
                 FT_Abort();
@@ -429,10 +411,11 @@ void menu_update(void)
             page_dirty = 1;
             clear_menu_area();
             menu_draw_main();
-            /* Consume stale nav flags */
             menu_move_down = 0;
             menu_move_up = 0;
             menu_enter = 0;
+            last_sent_state = 0xFF;
+            sync_ui_state();
             return;
         }
     }
@@ -443,6 +426,7 @@ void menu_update(void)
 
     /* ===== MAIN MENU ===== */
     case MENU_STATE_MAIN:
+    {
         /* Navigation */
         if (menu_move_down)
         {
@@ -464,13 +448,20 @@ void menu_update(void)
             switch (menu_index)
             {
                 case 0: /* Play Song */
-                    traversal(); // just play the song, select and pull song from SD card in handle in other place
+                    menu_state = MENU_STATE_PLAYING;
+                    last_sent_state = 0xFF;
+                    sync_ui_state();
+                    traversal();
+                    menu_state = MENU_STATE_MAIN;
+                    page_dirty = 1;
+                    last_sent_state = 0xFF;
+                    clear_menu_area();
                     break;
                 case 1: /* Transmit Song to SD card */
                     menu_state = MENU_STATE_TRANSMIT;
                     page_dirty = 1;
                     uart_binary_mode = 1;
-                    FT_Init(); /* Reset transfer state */
+                    FT_Init();
                     break;
                 case 2: /* Transmit Song to RAM */
                     menu_state = MENU_STATE_TRANSMIT_RAM;
@@ -496,7 +487,6 @@ void menu_update(void)
                     break;
             }
         }
-
         else{
             for(int i = 9; i<14; i++)
                 LCD_draw_string(0, i,  "                         ", COLOR_BLACK, COLOR_WHITE);
@@ -504,34 +494,34 @@ void menu_update(void)
 
         menu_draw_main();
         break;
+    }
+
+    /* ===== PLAYING (handled by traversal in command.c) ===== */
+    case MENU_STATE_PLAYING:
+        /* traversal() is blocking, so we won't normally reach here */
+        break;
 
     /* ===== TRANSMIT SONG PAGE ===== */
     case MENU_STATE_TRANSMIT:
-        /* No navigation needed; just show transfer status */
         menu_draw_transmit();
-        /* Check transfer timeout */
         FT_TimeoutCheck();
         break;
 
     case MENU_STATE_TRANSMIT_RAM:
-        /* No navigation needed; just show transfer status */
         menu_draw_transmit_ram();
         break;
 
     /* ===== SELECT SONG PAGE ===== */
     case MENU_STATE_SELECT:
-        /* Navigation through file list */
         if (menu_move_down)
         {
             select_song_index++;
             if (select_song_index >= fileCount)
                 select_song_index = 0;
-            /* Adjust scroll window */
             if (select_song_index >= select_scroll_offset + 5)
                 select_scroll_offset = select_song_index - 4;
             if (select_song_index < select_scroll_offset)
                 select_scroll_offset = select_song_index;
-            /* Handle wrap-around */
             if (select_song_index == 0)
                 select_scroll_offset = 0;
         }
@@ -540,17 +530,14 @@ void menu_update(void)
             select_song_index--;
             if (select_song_index < 0)
                 select_song_index = fileCount - 1;
-            /* Adjust scroll window */
             if (select_song_index < select_scroll_offset)
                 select_scroll_offset = select_song_index;
             if (select_song_index >= select_scroll_offset + 5)
                 select_scroll_offset = select_song_index - 4;
-            /* Handle wrap-around */
             if (select_song_index == fileCount - 1)
                 select_scroll_offset = (fileCount > 5) ? fileCount - 5 : 0;
         }
 
-        /* Select a song */
         if (menu_enter)
         {
             menu_enter = 0;
@@ -560,7 +547,6 @@ void menu_update(void)
                 char buf[25];
                 snprintf(buf, sizeof(buf), "Selected: %-12s  ", fileList[active_song_index].name);
                 LCD_draw_string(0, 9, buf, COLOR_BLACK, COLOR_WHITE);
-                // block and parse:
                 LCD_draw_string(0, 10, "Parsing song...         ", COLOR_BLACK, COLOR_WHITE);
                 sd_parse_array(fileList[active_song_index].name);
                 LCD_draw_string(0, 10, "Song ready to play!    ", COLOR_BLACK, COLOR_WHITE);
@@ -592,6 +578,18 @@ void menu_update(void)
         break;
     }
     }
+
+    /* Heartbeat on every page (keeps PC BT-alive indicator green) */
+    {
+        uint32_t now = HAL_GetTick();
+        if (now - last_heartbeat_tick >= HEARTBEAT_INTERVAL_MS) {
+            pkt_send_heartbeat();
+            last_heartbeat_tick = now;
+        }
+    }
+
+    /* Sync UI state to PC */
+    sync_ui_state();
 
     /* Reset navigation flags */
     menu_move_down = 0;

@@ -48,7 +48,6 @@ int parse_command(uint8_t *cmd)
             menu_move_down = 1;
             return 0;
         case 'r': /* :r — reset encoder position */
-            // reset_pos(&htim2);
             return 0;
         case 'd': /* :d — enter / select current menu item */
             menu_enter = 1;
@@ -65,41 +64,57 @@ int parse_command(uint8_t *cmd)
             set_text((uint8_t *)arg);
             return 0;
         case 'o': // reset position
-            // reset_pos(&htim2);
             return 0;
-        case 'l':
-            // list_files_over_bt();
+        case 'l': // list files on SD card via XOR packets
+            list_files_over_bt();
             return 0;
 
         case 'z':
-            // here begin test traversal:
             traversal();
-            // debug_traversal();
             return 0;
-        
+
         case 'x':
-            // here begin test traversal:
             debug_traversal();
-            // debug_traversal();
             return 0;
 
         case 'q': // stop playing current song:
             stop_playing = 1;
             return 0;
 
-        case 'v': // quick song 1 for testing:
-            load_debug_song(); // load corresponding song
-            traversal();
-            return 0;
-        
-        case 'b': // quick song 2 for testing:
-            load_debug_song(); // load corresponding song
-            traversal();
+        case 'v': // quick song 1
+            load_debug_song();
+            if (menu_get_state() == MENU_STATE_DEBUG) {
+                traversal_debug_mode();
+            } else {
+                menu_set_state(MENU_STATE_PLAYING);
+                pkt_send_ui_state((uint8_t)MENU_STATE_PLAYING, 0, 0, 0);
+                traversal();
+                menu_set_state(MENU_STATE_MAIN);
+            }
             return 0;
 
-        case 'n': // quick song 3 for testing:
-            load_debug_song(); // load corresponding song
-            traversal();
+        case 'b': // quick song 2
+            load_debug_song2();
+            if (menu_get_state() == MENU_STATE_DEBUG) {
+                traversal_debug_mode();
+            } else {
+                menu_set_state(MENU_STATE_PLAYING);
+                pkt_send_ui_state((uint8_t)MENU_STATE_PLAYING, 0, 0, 0);
+                traversal();
+                menu_set_state(MENU_STATE_MAIN);
+            }
+            return 0;
+
+        case 'n': // quick song 3
+            load_debug_song();
+            if (menu_get_state() == MENU_STATE_DEBUG) {
+                traversal_debug_mode();
+            } else {
+                menu_set_state(MENU_STATE_PLAYING);
+                pkt_send_ui_state((uint8_t)MENU_STATE_PLAYING, 0, 0, 0);
+                traversal();
+                menu_set_state(MENU_STATE_MAIN);
+            }
             return 0;
 
 
@@ -110,14 +125,13 @@ int parse_command(uint8_t *cmd)
 
     else if (cmd[0] == ';'){
         switch (cmd[1]){
-        case 'p':{ /* :p <value> — set position in mm */
+        case 'p':{ /* ;p <value> — set Kp */
             char *arg = (char *)cmd + 3;
             while (*arg == ' ')
                 arg++;
             if (*arg == '\0')
                 return 3; /* incomplete */
 
-            // separate left and right
             if (cmd[2] == 'l'){
                 left_motor.Kp = strtof(arg, NULL);
             }
@@ -129,14 +143,13 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
         }
-        case 'i':{ /* :p <value> — set position in mm */
+        case 'i':{ /* ;i <value> — set Ki */
             char *arg = (char *)cmd + 3;
             while (*arg == ' ')
                 arg++;
             if (*arg == '\0')
                 return 3; /* incomplete */
 
-            // separate left and right
             if (cmd[2] == 'l'){
                 left_motor.Ki = strtof(arg, NULL);
             }
@@ -148,14 +161,13 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
         }
-        case 'd':{ /* :p <value> — set position in mm */
+        case 'd':{ /* ;d <value> — set Kd */
             char *arg = (char *)cmd + 3;
             while (*arg == ' ')
                 arg++;
             if (*arg == '\0')
                 return 3; /* incomplete */
 
-            // separate left and right
             if (cmd[2] == 'l'){
                 left_motor.Kd = strtof(arg, NULL);
             }
@@ -203,35 +215,22 @@ void set_text(uint8_t *displayedText)
 
 void reset_pos(TIM_HandleTypeDef *htim)
 {
-    // encoder_old_position_mm = 0.0f;
     __HAL_TIM_SET_COUNTER(htim, 0);
 }
 
 /*
- * Send the TXT file list over Bluetooth in the format expected by hc04.py:
- *   FILES:<count>\n
- *   <filename>,<size>\n
- *   ...
- *   END\n
+ * Send the TXT file list over Bluetooth using XOR packets.
  */
 void list_files_over_bt(void)
 {
-    // char buf[40];
-
-    // /* Refresh file list from SD card */
-    // int count = sd_list_txt_files();
-
-    // snprintf(buf, sizeof(buf), "FILES:%d\n", count);
-    // HC04_SendString(buf);
-
-    // for (int i = 0; i < count; i++)
-    // {
-    //     snprintf(buf, sizeof(buf), "%s,%lu\n",
-    //              fileList[i].name, (unsigned long)fileList[i].size);
-    //     HC04_SendString(buf);
-    // }
-
-    hc04_send_string((uint8_t*)"END\n");
+    sd_list_txt_files();
+    for (int i = 0; i < fileCount; i++) {
+        /* Wait until UART TX is idle before sending next entry */
+        while (huart2.gState != HAL_UART_STATE_READY) { /* spin */ }
+        pkt_send_file_entry(fileList[i].name, fileList[i].size);
+    }
+    while (huart2.gState != HAL_UART_STATE_READY) { /* spin */ }
+    pkt_send_file_list_end((uint8_t)fileCount);
 }
 
 void toggle_solenoid(uint16_t traversal_index){
@@ -252,8 +251,8 @@ void toggle_solenoid(uint16_t traversal_index){
         }
 
     }
-    
-    if (chord_events[traversal_index].long_pressed[1]){ // right hand long press, reset left hand solenoids
+
+    if (chord_events[traversal_index].long_pressed[1]){ // right hand long press
         for (int i = 7; i < 10; i++) {
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
         }
@@ -265,26 +264,48 @@ void toggle_solenoid(uint16_t traversal_index){
     motor_off = 0;
 }
 
+/* Count total chords in the loaded song (looks for end sentinel 1000,1000) */
+static uint16_t count_total_chords(void)
+{
+    for (uint16_t i = 0; i < MAX_CHORD_EVENTS; i++) {
+        if (chord_events[i].positions[0] == 1000.0f &&
+            chord_events[i].positions[1] == 1000.0f)
+            return i;
+    }
+    return MAX_CHORD_EVENTS;
+}
+
 void traversal(void){
-    
+
     uint16_t traversal_index = 0;
     if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
         LCD_draw_string(0, 9, "No Song loaded!     ", COLOR_BLACK, COLOR_WHITE);
+        pkt_send_play_status(2, 0, 0); /* 2 = error/no song */
         return;
     }
+
+    uint16_t total_chords = count_total_chords();
+
+    /* Clear LCD for playing UI */
+    for (int r = 1; r <= 9; r++)
+        LCD_draw_string(0, r, "                        ", COLOR_BLACK, COLOR_WHITE);
+    LCD_draw_string(0, 1, "[Playing Song]          ", COLOR_BLACK, COLOR_WHITE);
+    LCD_draw_string(0, 8, ":q to stop              ", COLOR_BLACK, COLOR_WHITE);
+
+    pkt_send_play_status(1, 0, total_chords); /* 1 = playing */
 
     while (1){
         if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
             LCD_draw_string(0, 9, "Song ends     ", COLOR_BLACK, COLOR_WHITE);
+            pkt_send_play_status(0, traversal_index, total_chords); /* 0 = done */
             break;
         }
 
         // listen to incoming commands only, check for :q only
         if (rx_complete) {
-            // copy message locally so ISR can safely start receiving next one
             uint16_t cmd_len = rx_valid;
-            memcpy(cmd_listen, rx_message, cmd_len + 1); // +1 for '\0'
-            rx_complete = 0; // clear AFTER copy, INSIDE the if block
+            memcpy(cmd_listen, rx_message, cmd_len + 1);
+            rx_complete = 0;
             cmd_listen[cmd_len] = '\0';
             if (cmd_len > 0 && cmd_listen[cmd_len - 1] == '\n') {
                 cmd_listen[cmd_len - 1] = '\0';
@@ -294,32 +315,88 @@ void traversal(void){
             execute_command(cmd_listen);
         }
 
-        // in while loop, check if stop_playing flag is set by :q command, if so break the loop and stop playing the song
         if (stop_playing) {
             LCD_draw_string(0, 9, "Stopped by user     ", COLOR_BLACK, COLOR_WHITE);
-            stop_playing = 0; // reset the flag for future use
-            // reset the position for both motors to avoid unexpected behavior when start playing next time
+            pkt_send_play_status(2, traversal_index, total_chords); /* 2 = stopped */
+            stop_playing = 0;
             left_motor.target_pos = 0.0f;
             right_motor.target_pos = 0.0f;
-            wait_ms(500); // wait for the motors to move back to initial position
+            wait_ms(500);
             break;
         }
 
-        // otherwise set the target position:
+        // set the target position:
         left_motor.target_pos = chord_events[traversal_index].positions[0];
         right_motor.target_pos = chord_events[traversal_index].positions[1];
 
-        // stop the motor when pressing
         wait_ms(5);
-        // while(left_motor_arrived == 0 || right_motor_arrived == 0); // waiting for motor to arrive, comment out: non-blocking mode
+        // while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
-        // here just wait for pressing:
+        /* Send play status + heartbeat to PC via packet (no LCD update to avoid blocking) */
+        pkt_send_play_status(1, traversal_index, total_chords);
+        pkt_send_heartbeat();
+
         wait_ms(20);
         toggle_solenoid(traversal_index);
 
         traversal_index++;
     }
 
+}
+
+void traversal_debug_mode(void){
+
+    uint16_t traversal_index = 0;
+    if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
+        LCD_draw_string(0, 9, "No Song loaded!     ", COLOR_BLACK, COLOR_WHITE);
+        return;
+    }
+
+    /* Stay in DEBUG state so VOFA keeps flowing from controller_step() */
+    LCD_draw_string(0, 1, "[Debug Play] :q stop    ", COLOR_BLACK, COLOR_WHITE);
+
+    while (1){
+        if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
+            LCD_draw_string(0, 9, "Song ends     ", COLOR_BLACK, COLOR_WHITE);
+            break;
+        }
+
+        // listen for :q
+        if (rx_complete) {
+            uint16_t cmd_len = rx_valid;
+            memcpy(cmd_listen, rx_message, cmd_len + 1);
+            rx_complete = 0;
+            cmd_listen[cmd_len] = '\0';
+            if (cmd_len > 0 && cmd_listen[cmd_len - 1] == '\n') {
+                cmd_listen[cmd_len - 1] = '\0';
+                cmd_len--;
+            }
+            execute_command(cmd_listen);
+        }
+
+        if (stop_playing) {
+            LCD_draw_string(0, 9, "Stopped by user     ", COLOR_BLACK, COLOR_WHITE);
+            stop_playing = 0;
+            left_motor.target_pos = 0.0f;
+            right_motor.target_pos = 0.0f;
+            wait_ms(500);
+            break;
+        }
+
+        // set the target position:
+        left_motor.target_pos = chord_events[traversal_index].positions[0];
+        right_motor.target_pos = chord_events[traversal_index].positions[1];
+
+        wait_ms(5);
+        // while(left_motor_arrived == 0 || right_motor_arrived == 0);
+
+        /* No packets here — VOFA is sent by controller_step() at 1kHz */
+
+        wait_ms(20);
+        toggle_solenoid(traversal_index);
+
+        traversal_index++;
+    }
 }
 
 void debug_traversal(void){
@@ -339,7 +416,7 @@ void debug_traversal(void){
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
             wait_ms(300);
         }
-        
+
         wait_ms(1000);
     }
 }

@@ -11,6 +11,9 @@
 #include <constants.h>
 #include <encoder.h>
 #include <protection.h>
+#include <packet.h>
+#include <stm32h5xx_hal_dma.h>
+#include <usart.h>
 
 #include <stdbool.h>
 #include <stdint.h>

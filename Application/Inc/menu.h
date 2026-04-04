@@ -12,6 +12,7 @@ typedef enum
     MENU_STATE_TRANSMIT, /* Transmit Song (SD) page - receives files via BT */
     MENU_STATE_TRANSMIT_RAM, /* Transmit Song (RAM) */
     MENU_STATE_SELECT,   /* Select Song page - list files on SD card */
+    MENU_STATE_PLAYING,  /* Currently playing a song */
     MENU_STATE_DEBUG     /* Debug info page */
 } MenuState_t;
 
@@ -31,6 +32,7 @@ extern int active_song_index;    /* Currently selected song for playback (-1 = n
 void menu_init(void);
 void menu_update(void);
 MenuState_t menu_get_state(void);
+void menu_set_state(MenuState_t s);
 void menu_process_message(uint8_t *data, uint16_t len);
 int menu_try_dispatch_binary(uint8_t *data, uint16_t len);
 

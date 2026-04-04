@@ -29,6 +29,9 @@ void traversal(void);
 
 void debug_traversal(void);
 
+// traversal in debug mode: no packets, keeps VOFA flowing for oscilloscope
+void traversal_debug_mode(void);
+
 void toggle_solenoid(uint16_t traversal_index);
 
 #endif

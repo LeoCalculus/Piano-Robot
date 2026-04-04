@@ -64,8 +64,6 @@
 #define R_D4 ((spacing * 23.0f))
 #define R_C4 ((spacing * 24.0f))
 
-
-
 // Tempo 
 #define bpm 70.0f
 #define HALF ((60000.0f / bpm * 2.0f))
@@ -73,8 +71,35 @@
 #define EIGHTH ((QUARTER / 2.0f) )
 #define SIXTEENTH ((EIGHTH / 2.0f) )
 
+// Ji's definition:
+#define CHORD_1 3 * 21.0f 
+#define CHORD_2 4 * 21.0f 
+#define CHORD_3 3 * 21.0f
+#define CHORD_4 3 * 21.0f
+
+#define DO_3    15 * 21.0f
+#define REb_3   16 * 21.0f 
+#define SIb_2   18 * 21.0f
+#define LAb_2   19 * 21.0f
+#define MIb_2   22 * 21.0f
+#define FA_2    19 * 21.0f
+#define SO_2    18 * 21.0f
+#define FA_3    12 * 21.0f
+#define LA_3    11 * 21.0f
+#define MIb_3   15 * 21.0f
+
+#define MIb_4   8 *  21.0f
+#define LA_4    4 *  21.0f
+#define FA_4    5 *  21.0f
+#define SIb_3   11 * 21.0f
+#define DO_4    8 *  21.0f
+#define SO_3    11 * 21.0f
+#define LAb_3   12 * 21.0f
+#define REb_4   9 *  21.0f 
+#define SO_4    4 *  21.0f
 
 // Function to load a hardcoded song into chord_events for testing
-void load_debug_song(void);
+void load_debug_song(void); // Jamie
+void load_debug_song2(void); // Ji
 
 #endif

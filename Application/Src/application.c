@@ -1,5 +1,6 @@
 #include <application.h>
 
+
 // uart - buffer
 uint8_t rx_message_buffer[128] = {0}; // DMA circular buffer
 uint8_t rx_message[256] = {0}; // accumulation buffer for complete messages
@@ -119,10 +120,10 @@ void controller_init(void) {
     vofa.vofaTail[2] = 0x80;
     vofa.vofaTail[3] = 0x7f;
 
-    // // disable idle interrupt half and full interrupt
-    // extern DMA_HandleTypeDef handle_GPDMA1_Channel1;
-    // __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_HT);
-    // __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_TC); 
+    // disable idle interrupt half and full interrupt
+    extern DMA_HandleTypeDef handle_GPDMA1_Channel1;
+    __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_HT);
+    __HAL_DMA_DISABLE_IT(&handle_GPDMA1_Channel1, DMA_IT_TC); 
 }
 
 void controller_step(const float dt) {
@@ -147,9 +148,9 @@ void controller_step(const float dt) {
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, right_motor.output_pwm);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, left_motor.output_pwm);
 
+    /* VOFA only on debug page — all other pages use UART for packets */
     if (!uart_binary_mode
-        && menu_get_state() != MENU_STATE_TRANSMIT
-        && menu_get_state() != MENU_STATE_TRANSMIT_RAM
+        && menu_get_state() == MENU_STATE_DEBUG
         && huart2.gState == HAL_UART_STATE_READY) {
             HAL_UART_Transmit_DMA(&huart2, (uint8_t*)&vofa, sizeof(vofa));
     }

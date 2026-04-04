@@ -1,6 +1,6 @@
 """
 HC-04 Bluetooth Serial Tool - Qt6 Edition
-Rewritten from tkinter to PySide6 with pyqtgraph for high-performance plotting.
+XOR packet protocol for MCU <-> PC sync.
 """
 
 import sys
@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import (
     Qt, QTimer, Signal, QObject, Slot,
 )
-from PySide6.QtGui import QColor, QKeyEvent
+from PySide6.QtGui import QColor, QKeyEvent, QFont
 
 import serial
 import serial.tools.list_ports
@@ -47,6 +47,43 @@ FT_CMD_RAM_DATA  = 0xE1
 FT_CMD_RAM_END   = 0xE2
 RAM_SENTINEL_START_BYTE = 0x78
 RAM_SENTINEL_END_BYTE   = 0x91
+
+# ── XOR Packet Protocol Constants ──────────────────────────────────────
+PKT_SYNC1 = 0xAA
+PKT_SYNC2 = 0x55
+
+PKT_TYPE_UI_STATE        = 0x10
+PKT_TYPE_HEARTBEAT       = 0x11
+PKT_TYPE_FILE_ENTRY      = 0x12
+PKT_TYPE_FILE_LIST_END   = 0x13
+PKT_TYPE_PLAY_STATUS     = 0x14
+PKT_TYPE_TRANSFER_STATUS = 0x15
+
+# Menu states (must match MCU enum)
+MENU_STATE_MAIN         = 0
+MENU_STATE_TRANSMIT     = 1
+MENU_STATE_TRANSMIT_RAM = 2
+MENU_STATE_SELECT       = 3
+MENU_STATE_PLAYING      = 4
+MENU_STATE_DEBUG        = 5
+
+MENU_STATE_NAMES = {
+    MENU_STATE_MAIN: "Main Menu",
+    MENU_STATE_TRANSMIT: "Transmit (SD)",
+    MENU_STATE_TRANSMIT_RAM: "Transmit (RAM)",
+    MENU_STATE_SELECT: "Select Song",
+    MENU_STATE_PLAYING: "Playing",
+    MENU_STATE_DEBUG: "Debug",
+}
+
+MAIN_MENU_ITEMS = [
+    "1. Play Song",
+    "2. Transmit Song(SD)",
+    "3. Transmit Song(RAM)",
+    "4. Select Song",
+    "5. Homing",
+    "6. Debug",
+]
 
 # ── Dark Theme Stylesheet ──────────────────────────────────────────────
 DARK_STYLE = """
@@ -317,6 +354,13 @@ class SerialSignals(QObject):
     upload_log      = Signal(str)
     upload_done     = Signal(bool)         # success?
     ram_done        = Signal()
+    # XOR packet signals
+    pkt_ui_state        = Signal(int, int, int, int)   # state, index, ex1, ex2
+    pkt_heartbeat       = Signal()
+    pkt_file_entry      = Signal(str, int)              # name, size
+    pkt_file_list_end   = Signal(int)                   # count
+    pkt_play_status     = Signal(int, int, int)         # state, current, total
+    pkt_transfer_status = Signal(int)                   # status
 
 
 # ── Capped log helper ───────────────────────────────────────────────────
@@ -329,7 +373,7 @@ def append_log(widget: QPlainTextEdit, text: str):
         cursor.movePosition(cursor.MoveOperation.Down, cursor.MoveMode.KeepAnchor,
                             widget.blockCount() - MAX_LOG_LINES)
         cursor.removeSelectedText()
-        cursor.deleteChar()  # remove trailing newline
+        cursor.deleteChar()
 
 
 # ════════════════════════════════════════════════════════════════════════
@@ -338,7 +382,7 @@ def append_log(widget: QPlainTextEdit, text: str):
 class HC04MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("HC-04 Bluetooth Serial Tool")
+        self.setWindowTitle("ELEC 391 Piano Bot")
         self.resize(1050, 720)
         self.setMinimumSize(800, 550)
 
@@ -364,6 +408,13 @@ class HC04MainWindow(QMainWindow):
         self.sig.upload_log.connect(self._on_upload_log)
         self.sig.upload_done.connect(self._on_upload_done)
         self.sig.ram_done.connect(self._on_ram_done)
+        # XOR packet signal connections
+        self.sig.pkt_ui_state.connect(self._on_pkt_ui_state)
+        self.sig.pkt_heartbeat.connect(self._on_pkt_heartbeat)
+        self.sig.pkt_file_entry.connect(self._on_pkt_file_entry)
+        self.sig.pkt_file_list_end.connect(self._on_pkt_file_list_end)
+        self.sig.pkt_play_status.connect(self._on_pkt_play_status)
+        self.sig.pkt_transfer_status.connect(self._on_pkt_transfer_status)
 
         # Upload state
         self.selected_file_path = None
@@ -387,6 +438,21 @@ class HC04MainWindow(QMainWindow):
         self.vofa_frame_count = 0
         self._vofa_fps_t = time.time()
 
+        # MCU UI state (synced via packets)
+        self.mcu_menu_state = MENU_STATE_MAIN
+        self.mcu_menu_index = 0
+        self.mcu_extra1 = 0
+        self.mcu_extra2 = 0
+        self.mcu_file_list = []        # list of (name, size)
+        self.mcu_play_state = 0        # 0=done, 1=playing, 2=stopped
+        self.mcu_play_current = 0
+        self.mcu_play_total = 0
+        self.mcu_transfer_status = -1  # -1=none, 0=begin, 1=complete, 2=error
+        self.last_heartbeat_time = 0.0
+
+        # Packet carry buffer (used in reader thread)
+        self._pkt_carry = bytearray()
+
         self._build_ui()
         self.refresh_ports()
 
@@ -400,7 +466,7 @@ class HC04MainWindow(QMainWindow):
 
         # Header
         header = QHBoxLayout()
-        title = QLabel("HC-04 Bluetooth Serial Tool")
+        title = QLabel("Piano Bot UI")
         title.setStyleSheet("font-size: 15pt; font-weight: bold; color: #89b4fa;")
         header.addWidget(title)
         header.addStretch()
@@ -432,7 +498,6 @@ class HC04MainWindow(QMainWindow):
         layout = QVBoxLayout(tab)
         layout.setSpacing(8)
 
-        # Port list
         grp = QGroupBox("Available COM Ports (Bluetooth Classic)")
         gl = QVBoxLayout(grp)
         self.port_tree = QTreeWidget()
@@ -447,41 +512,34 @@ class HC04MainWindow(QMainWindow):
         gl.addWidget(self.port_tree)
         layout.addWidget(grp)
 
-        # Buttons row
         btn_row = QHBoxLayout()
         self.connect_btn = QPushButton("Connect")
         self.connect_btn.setObjectName("primary")
         self.connect_btn.setEnabled(False)
         self.connect_btn.clicked.connect(self.connect_port)
         btn_row.addWidget(self.connect_btn)
-
         refresh_btn = QPushButton("Refresh Ports")
         refresh_btn.clicked.connect(self.refresh_ports)
         btn_row.addWidget(refresh_btn)
-
         self.disconnect_btn = QPushButton("Disconnect")
         self.disconnect_btn.setObjectName("danger")
         self.disconnect_btn.setEnabled(False)
         self.disconnect_btn.clicked.connect(self.disconnect_port)
         btn_row.addWidget(self.disconnect_btn)
-
         btn_row.addStretch()
         quit_btn = QPushButton("Quit")
         quit_btn.clicked.connect(self.close)
         btn_row.addWidget(quit_btn)
         layout.addLayout(btn_row)
 
-        # Settings
         settings_grp = QGroupBox("Connection Settings")
         sl = QHBoxLayout(settings_grp)
-
         sl.addWidget(QLabel("Baud Rate:"))
         self.baud_combo = QComboBox()
         self.baud_combo.addItems(["9600", "38400", "57600", "115200", "460800", "921600"])
         self.baud_combo.setCurrentText("921600")
         self.baud_combo.setFixedWidth(110)
         sl.addWidget(self.baud_combo)
-
         sl.addSpacing(20)
         sl.addWidget(QLabel("Timeout (s):"))
         self.timeout_spin = QSpinBox()
@@ -489,7 +547,6 @@ class HC04MainWindow(QMainWindow):
         self.timeout_spin.setValue(3)
         self.timeout_spin.setFixedWidth(60)
         sl.addWidget(self.timeout_spin)
-
         sl.addSpacing(20)
         sl.addWidget(QLabel("Line Ending:"))
         self.le_group = QButtonGroup(self)
@@ -502,7 +559,6 @@ class HC04MainWindow(QMainWindow):
         sl.addStretch()
         layout.addWidget(settings_grp)
 
-        # Connection info
         info_grp = QGroupBox("Connection Info")
         il = QHBoxLayout(info_grp)
         il.addWidget(QLabel("Port:"))
@@ -517,7 +573,6 @@ class HC04MainWindow(QMainWindow):
         il.addStretch()
         layout.addWidget(info_grp)
 
-        # Log
         log_grp = QGroupBox("Status Log")
         ll = QVBoxLayout(log_grp)
         self.log_text = QPlainTextEdit()
@@ -539,10 +594,8 @@ class HC04MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
-        # Send
         send_grp = QGroupBox("Send Data")
         sl = QVBoxLayout(send_grp)
-
         row1 = QHBoxLayout()
         self.data_entry = QLineEdit()
         self.data_entry.setPlaceholderText("Type data to send...")
@@ -554,7 +607,6 @@ class HC04MainWindow(QMainWindow):
         row1.addWidget(send_btn)
         sl.addLayout(row1)
 
-        # Quick send
         qrow = QHBoxLayout()
         qrow.addWidget(QLabel("Quick:"))
         for msg in ["Hello", "Test", "OK", "1234", "ABCD"]:
@@ -565,7 +617,6 @@ class HC04MainWindow(QMainWindow):
         qrow.addStretch()
         sl.addLayout(qrow)
 
-        # Hex send
         hrow = QHBoxLayout()
         hrow.addWidget(QLabel("Hex:"))
         self.hex_entry = QLineEdit("48 65 6C 6C 6F")
@@ -577,10 +628,8 @@ class HC04MainWindow(QMainWindow):
         sl.addLayout(hrow)
         layout.addWidget(send_grp)
 
-        # Receive
         recv_grp = QGroupBox("Received Data")
         rl = QVBoxLayout(recv_grp)
-
         drow = QHBoxLayout()
         drow.addWidget(QLabel("Display:"))
         self.display_group = QButtonGroup(self)
@@ -601,7 +650,6 @@ class HC04MainWindow(QMainWindow):
         clear_btn.clicked.connect(lambda: self.receive_text.clear())
         drow.addWidget(clear_btn)
         rl.addLayout(drow)
-
         self.receive_text = QPlainTextEdit()
         self.receive_text.setReadOnly(True)
         self.receive_text.setMaximumBlockCount(MAX_LOG_LINES)
@@ -617,7 +665,6 @@ class HC04MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
-        # File selection
         file_grp = QGroupBox("Select TXT File")
         fl = QHBoxLayout(file_grp)
         self.file_path_label = QLabel("No file selected")
@@ -628,7 +675,6 @@ class HC04MainWindow(QMainWindow):
         fl.addWidget(browse_btn)
         layout.addWidget(file_grp)
 
-        # File info
         info_grp = QGroupBox("File Information")
         il = QVBoxLayout(info_grp)
         self.file_info_label = QLabel("Select a TXT file to see details")
@@ -636,7 +682,6 @@ class HC04MainWindow(QMainWindow):
         il.addWidget(self.file_info_label)
         layout.addWidget(info_grp)
 
-        # Upload controls
         ctrl_grp = QGroupBox("Upload Control")
         cl = QHBoxLayout(ctrl_grp)
         self.upload_btn = QPushButton("Upload to SD")
@@ -644,26 +689,22 @@ class HC04MainWindow(QMainWindow):
         self.upload_btn.setEnabled(False)
         self.upload_btn.clicked.connect(self.start_upload)
         cl.addWidget(self.upload_btn)
-
         self.ram_upload_btn = QPushButton("Upload to RAM")
         self.ram_upload_btn.setObjectName("success")
         self.ram_upload_btn.setEnabled(False)
         self.ram_upload_btn.clicked.connect(self.start_ram_upload)
         cl.addWidget(self.ram_upload_btn)
-
         self.abort_btn = QPushButton("Abort")
         self.abort_btn.setObjectName("danger")
         self.abort_btn.setEnabled(False)
         self.abort_btn.clicked.connect(self.abort_upload)
         cl.addWidget(self.abort_btn)
-
         refresh_files_btn = QPushButton("Refresh File List")
         refresh_files_btn.clicked.connect(self.refresh_device_files)
         cl.addWidget(refresh_files_btn)
         cl.addStretch()
         layout.addWidget(ctrl_grp)
 
-        # Progress
         prog_grp = QGroupBox("Upload Progress")
         pl = QVBoxLayout(prog_grp)
         self.progress_bar = QProgressBar()
@@ -674,7 +715,6 @@ class HC04MainWindow(QMainWindow):
         pl.addWidget(self.progress_label)
         layout.addWidget(prog_grp)
 
-        # Device files
         dev_grp = QGroupBox("Files on Device")
         dl = QVBoxLayout(dev_grp)
         self.device_files_tree = QTreeWidget()
@@ -684,7 +724,6 @@ class HC04MainWindow(QMainWindow):
         dl.addWidget(self.device_files_tree)
         layout.addWidget(dev_grp)
 
-        # Upload log
         ulog_grp = QGroupBox("Upload Log")
         ul = QVBoxLayout(ulog_grp)
         self.upload_log_text = QPlainTextEdit()
@@ -696,32 +735,29 @@ class HC04MainWindow(QMainWindow):
         self.tabs.addTab(tab, "File Upload")
 
     # ────────────────────────────────────────────────────────────────────
-    #  TAB 3 : Control
+    #  TAB 3 : Control  (MCU mirror + quick switch)
     # ────────────────────────────────────────────────────────────────────
     def _build_control_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
-        info_grp = QGroupBox("Menu Control")
-        il = QVBoxLayout(info_grp)
-
+        # ── Top: navigation keys ──
+        nav_grp = QGroupBox("Menu Control")
+        nav_l = QVBoxLayout(nav_grp)
         keys_label = QLabel("W = Up    S = Down    D = Enter/Select    A = Back")
         keys_label.setStyleSheet("font-size: 13pt; font-weight: bold; color: #f9e2af;")
         keys_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        il.addWidget(keys_label)
-
-        hint = QLabel("Click this area first to capture keyboard input.")
+        nav_l.addWidget(keys_label)
+        hint = QLabel("Click this tab first to capture keyboard input.")
         hint.setStyleSheet("color: #6c7086;")
         hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        il.addWidget(hint)
-
+        nav_l.addWidget(hint)
         self.control_status = QLabel("Waiting for input...")
         self.control_status.setStyleSheet(
             "font-size: 16pt; font-weight: bold; color: #89b4fa;")
         self.control_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        il.addWidget(self.control_status)
+        nav_l.addWidget(self.control_status)
 
-        # Clickable buttons
         brow = QHBoxLayout()
         brow.addStretch()
         for label, cmd, direction in [
@@ -733,18 +769,69 @@ class HC04MainWindow(QMainWindow):
             b.clicked.connect(lambda _, c=cmd, d=direction: self.control_send(c, d))
             brow.addWidget(b)
         brow.addStretch()
-        il.addLayout(brow)
-        layout.addWidget(info_grp)
+        nav_l.addLayout(brow)
+        layout.addWidget(nav_grp)
 
-        log_grp = QGroupBox("Control Log")
-        ll = QVBoxLayout(log_grp)
-        self.control_log_text = QPlainTextEdit()
-        self.control_log_text.setReadOnly(True)
-        self.control_log_text.setMaximumBlockCount(MAX_LOG_LINES)
-        ll.addWidget(self.control_log_text)
-        layout.addWidget(log_grp)
+        # ── Middle: MCU Display Mirror + Quick Switch side by side ──
+        mid_layout = QHBoxLayout()
 
+        # Left: MCU display mirror
+        mirror_grp = QGroupBox("MCU Display")
+        mirror_l = QVBoxLayout(mirror_grp)
+
+        hb_row = QHBoxLayout()
+        self.hb_indicator = QLabel("BT: --")
+        self.hb_indicator.setStyleSheet("color: #6c7086; font-weight: bold;")
+        hb_row.addWidget(self.hb_indicator)
+        self.mcu_state_label = QLabel("State: Main Menu")
+        self.mcu_state_label.setStyleSheet("color: #89b4fa; font-weight: bold;")
+        hb_row.addWidget(self.mcu_state_label)
+        hb_row.addStretch()
+        mirror_l.addLayout(hb_row)
+
+        self.lcd_display = QLabel()
+        self.lcd_display.setFont(QFont("Cascadia Code", 11))
+        self.lcd_display.setStyleSheet(
+            "background-color: #11111b; color: #a6e3a1; "
+            "border: 2px solid #313244; border-radius: 8px; "
+            "padding: 12px; min-height: 180px;")
+        self.lcd_display.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.lcd_display.setWordWrap(True)
+        mirror_l.addWidget(self.lcd_display)
+        mid_layout.addWidget(mirror_grp, stretch=2)
+
+        # Right: Quick switch
+        quick_grp = QGroupBox("Quick Switch")
+        quick_l = QVBoxLayout(quick_grp)
+        quick_l.addStretch()
+        for label, cmd, tip in [
+            ("Song 1  (V)", ":v", "Quick play song 1"),
+            ("Song 2  (B)", ":b", "Quick play song 2"),
+            ("Song 3  (N)", ":n", "Quick play song 3"),
+        ]:
+            b = QPushButton(label)
+            b.setObjectName("primary")
+            b.setToolTip(tip)
+            b.setFixedHeight(40)
+            b.clicked.connect(lambda _, c=cmd: self.control_send(c, c))
+            quick_l.addWidget(b)
+        quick_l.addSpacing(10)
+        stop_btn = QPushButton("Stop  (Q)")
+        stop_btn.setObjectName("danger")
+        stop_btn.setToolTip("Stop currently playing song")
+        stop_btn.setFixedHeight(40)
+        stop_btn.clicked.connect(lambda: self.control_send(":q", "Stop"))
+        quick_l.addWidget(stop_btn)
+        quick_l.addStretch()
+        mid_layout.addWidget(quick_grp, stretch=1)
+
+        layout.addLayout(mid_layout)
         self.tabs.addTab(tab, "Control")
+
+        # Timer for heartbeat check + display refresh
+        self._control_timer = QTimer()
+        self._control_timer.timeout.connect(self._control_tick)
+        self._control_timer.start(250)
 
     # ────────────────────────────────────────────────────────────────────
     #  TAB 4 : Command
@@ -753,10 +840,8 @@ class HC04MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
 
-        # Commands
         cmd_grp = QGroupBox("Commands")
         cl = QVBoxLayout(cmd_grp)
-
         row1 = QHBoxLayout()
         self.cmd_entry = QLineEdit()
         self.cmd_entry.setPlaceholderText("Type command...")
@@ -787,7 +872,6 @@ class HC04MainWindow(QMainWindow):
         cl.addLayout(qrow)
         layout.addWidget(cmd_grp)
 
-        # Command log
         clog_grp = QGroupBox("Command Output")
         cll = QVBoxLayout(clog_grp)
         self.cmd_log_text = QPlainTextEdit()
@@ -818,7 +902,6 @@ class HC04MainWindow(QMainWindow):
         ]
         self._vofa_colors = COLORS
 
-        # Top controls
         ctrl = QHBoxLayout()
         ctrl.addWidget(QLabel("Window:"))
         self.vofa_window_spin = QSpinBox()
@@ -830,26 +913,21 @@ class HC04MainWindow(QMainWindow):
         self.vofa_window_spin.valueChanged.connect(
             lambda v: setattr(self, 'vofa_window_ms', v))
         ctrl.addWidget(self.vofa_window_spin)
-
         ctrl.addSpacing(12)
         self.vofa_pause_btn = QPushButton("\u23f8 Pause")
         self.vofa_pause_btn.clicked.connect(self._vofa_toggle_pause)
         ctrl.addWidget(self.vofa_pause_btn)
-
         clear_btn = QPushButton("\u27f3 Clear")
         clear_btn.clicked.connect(self._vofa_clear)
         ctrl.addWidget(clear_btn)
-
         ctrl.addStretch()
         self.vofa_status_label = QLabel("Waiting for data...")
         self.vofa_status_label.setStyleSheet("color: #a6e3a1; font-family: 'Consolas';")
         ctrl.addWidget(self.vofa_status_label)
         layout.addLayout(ctrl)
 
-        # Main area: plot + channel panel
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # pyqtgraph plot
         pg.setConfigOptions(antialias=True, useOpenGL=False)
         self.vofa_plot = pg.PlotWidget()
         self.vofa_plot.setBackground('#11111b')
@@ -864,16 +942,13 @@ class HC04MainWindow(QMainWindow):
             curve = self.vofa_plot.plot(
                 pen=pg.mkPen(COLORS[i], width=1.5), name=f'CH{i}')
             self.vofa_curves.append(curve)
-
         splitter.addWidget(self.vofa_plot)
 
-        # Channel panel
         ch_panel = QWidget()
         ch_panel.setFixedWidth(155)
         ch_panel.setStyleSheet("background-color: #181825;")
         ch_layout = QVBoxLayout(ch_panel)
         ch_layout.setContentsMargins(6, 10, 6, 6)
-
         ch_title = QLabel("CHANNELS")
         ch_title.setStyleSheet("color: #6c7086; font-size: 8pt; font-weight: bold;")
         ch_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -888,24 +963,20 @@ class HC04MainWindow(QMainWindow):
             cb.setStyleSheet(f"color: {COLORS[i]}; font-weight: bold; font-family: 'Consolas';")
             self.vofa_ch_checks.append(cb)
             row.addWidget(cb)
-
             val = QLabel("  -.---")
             val.setStyleSheet("color: #cdd6f4; font-family: 'Consolas'; font-size: 9pt;")
             val.setAlignment(Qt.AlignmentFlag.AlignRight)
             self.vofa_val_labels.append(val)
             row.addWidget(val)
             ch_layout.addLayout(row)
-
         ch_layout.addStretch()
         splitter.addWidget(ch_panel)
-
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 0)
         layout.addWidget(splitter)
 
         self.tabs.addTab(tab, "VOFA")
 
-        # VOFA render timer ~30fps
         self.vofa_timer = QTimer()
         self.vofa_timer.timeout.connect(self._vofa_tick)
         self.vofa_timer.start(33)
@@ -923,17 +994,14 @@ class HC04MainWindow(QMainWindow):
         if not ports:
             self.log("No COM ports found.")
             return
-
         bt_count = 0
         for port in ports:
             desc = port.description.lower()
             hwid = port.hwid.lower()
-
             if any(x in desc for x in ['ble', 'low energy', 'le ']):
                 continue
             if any(x in hwid for x in ['ble', 'low energy']):
                 continue
-
             device_type = "Serial"
             is_bt = False
             if any(x in desc for x in ['bluetooth', 'bt', 'hc-04', 'hc04', 'serial port', 'standard serial']):
@@ -944,18 +1012,15 @@ class HC04MainWindow(QMainWindow):
                 is_bt = True
                 device_type = "Bluetooth"
                 bt_count += 1
-
             self.ports[port.device] = {
                 'name': port.device, 'description': port.description,
                 'hwid': port.hwid, 'is_bluetooth': is_bt, 'device_type': device_type,
             }
-
             item = QTreeWidgetItem([port.device, port.description, port.hwid, device_type])
             if is_bt:
                 for col in range(4):
                     item.setForeground(col, QColor("#a6e3a1"))
             self.port_tree.addTopLevelItem(item)
-
         self.log(f"Found {len(self.ports)} COM port(s), {bt_count} Bluetooth Classic")
 
     def _on_port_select(self):
@@ -976,7 +1041,6 @@ class HC04MainWindow(QMainWindow):
         self.log(f"Connecting to {self.selected_port} at {baud} baud...")
         self.status_label.setText("Connecting...")
         self.connect_btn.setEnabled(False)
-
         t = threading.Thread(target=self._connect_thread,
                              args=(self.selected_port, baud), daemon=True)
         t.start()
@@ -1062,7 +1126,7 @@ class HC04MainWindow(QMainWindow):
             self.connect_btn.setEnabled(True)
 
     # ════════════════════════════════════════════════════════════════════
-    #  Serial Reading Thread
+    #  Serial Reading Thread  (with XOR packet extraction)
     # ════════════════════════════════════════════════════════════════════
     def _read_serial(self):
         receive_buffer = bytearray()
@@ -1075,9 +1139,14 @@ class HC04MainWindow(QMainWindow):
                     break
                 if self.ser.in_waiting > 0:
                     data = self.ser.read(self.ser.in_waiting)
-                    receive_buffer.extend(data)
-                    with self.vofa_raw_lock:
-                        self.vofa_raw_buf.extend(data)
+                    # Separate XOR packets from raw data stream
+                    clean_data, pkts = self._extract_xor_packets(data)
+                    for pkt_type, payload in pkts:
+                        self._dispatch_packet(pkt_type, payload)
+                    if clean_data:
+                        receive_buffer.extend(clean_data)
+                        with self.vofa_raw_lock:
+                            self.vofa_raw_buf.extend(clean_data)
 
                 now = time.time()
                 if receive_buffer and (now - last_display) >= INTERVAL:
@@ -1093,6 +1162,192 @@ class HC04MainWindow(QMainWindow):
                 if self.connected:
                     self.sig.log_message.emit(f"Read error: {e}")
                 break
+
+    def _extract_xor_packets(self, new_data: bytes):
+        """Extract XOR packets [0xAA 0x55 TYPE LEN PAYLOAD... XOR] from stream.
+        Returns (remaining_bytes_for_vofa, list_of_(type, payload) tuples)."""
+        carry = self._pkt_carry
+        carry.extend(new_data)
+        packets = []
+        clean = bytearray()
+        i = 0
+        while i < len(carry):
+            if (i + 1 < len(carry) and
+                    carry[i] == PKT_SYNC1 and carry[i + 1] == PKT_SYNC2):
+                if i + 4 > len(carry):
+                    break  # not enough data yet
+                pkt_type = carry[i + 2]
+                pkt_len = carry[i + 3]
+                total = 5 + pkt_len  # sync1+sync2+type+len+payload+xor
+                if i + total > len(carry):
+                    break  # incomplete packet
+                # Verify XOR checksum
+                xor = 0
+                for j in range(i + 2, i + 4 + pkt_len):
+                    xor ^= carry[j]
+                if xor == carry[i + 4 + pkt_len]:
+                    payload = bytes(carry[i + 4: i + 4 + pkt_len])
+                    packets.append((pkt_type, payload))
+                    i += total
+                    continue
+                else:
+                    clean.append(carry[i])
+                    i += 1
+            else:
+                clean.append(carry[i])
+                i += 1
+        # Keep unconsumed bytes in carry
+        remaining = carry[i:]
+        carry.clear()
+        carry.extend(remaining)
+        return bytes(clean), packets
+
+    def _dispatch_packet(self, pkt_type, payload):
+        """Called from reader thread - emit signals for thread-safe UI update."""
+        if pkt_type == PKT_TYPE_UI_STATE and len(payload) >= 4:
+            self.sig.pkt_ui_state.emit(payload[0], payload[1], payload[2], payload[3])
+        elif pkt_type == PKT_TYPE_HEARTBEAT:
+            self.sig.pkt_heartbeat.emit()
+        elif pkt_type == PKT_TYPE_FILE_ENTRY and len(payload) >= 17:
+            name = payload[:13].split(b'\x00')[0].decode('ascii', errors='replace')
+            size = struct.unpack('<I', payload[13:17])[0]
+            self.sig.pkt_file_entry.emit(name, size)
+        elif pkt_type == PKT_TYPE_FILE_LIST_END and len(payload) >= 1:
+            self.sig.pkt_file_list_end.emit(payload[0])
+        elif pkt_type == PKT_TYPE_PLAY_STATUS and len(payload) >= 5:
+            state = payload[0]
+            current = struct.unpack('<H', payload[1:3])[0]
+            total = struct.unpack('<H', payload[3:5])[0]
+            self.sig.pkt_play_status.emit(state, current, total)
+        elif pkt_type == PKT_TYPE_TRANSFER_STATUS and len(payload) >= 1:
+            self.sig.pkt_transfer_status.emit(payload[0])
+
+    # ════════════════════════════════════════════════════════════════════
+    #  XOR Packet UI Handlers
+    # ════════════════════════════════════════════════════════════════════
+    @Slot(int, int, int, int)
+    def _on_pkt_ui_state(self, state, index, ex1, ex2):
+        # Clear stale file list when entering SELECT page
+        if state == MENU_STATE_SELECT and self.mcu_menu_state != MENU_STATE_SELECT:
+            self.mcu_file_list.clear()
+            self.device_files_tree.clear()
+        self.mcu_menu_state = state
+        self.mcu_menu_index = index
+        self.mcu_extra1 = ex1
+        self.mcu_extra2 = ex2
+        self._refresh_lcd_display()
+
+    @Slot()
+    def _on_pkt_heartbeat(self):
+        self.last_heartbeat_time = time.time()
+
+    @Slot(str, int)
+    def _on_pkt_file_entry(self, name, size):
+        self.mcu_file_list.append((name, size))
+        self.device_files_tree.addTopLevelItem(QTreeWidgetItem([name, str(size)]))
+        self._refresh_lcd_display()
+
+    @Slot(int)
+    def _on_pkt_file_list_end(self, count):
+        self._refresh_lcd_display()
+
+    @Slot(int, int, int)
+    def _on_pkt_play_status(self, state, current, total):
+        self.mcu_play_state = state
+        self.mcu_play_current = current
+        self.mcu_play_total = total
+        self._refresh_lcd_display()
+
+    @Slot(int)
+    def _on_pkt_transfer_status(self, status):
+        self.mcu_transfer_status = status
+        self._refresh_lcd_display()
+
+    # ════════════════════════════════════════════════════════════════════
+    #  Control Tab - LCD Mirror Rendering
+    # ════════════════════════════════════════════════════════════════════
+    def _refresh_lcd_display(self):
+        """Render the MCU display mirror based on current state."""
+        st = self.mcu_menu_state
+        self.mcu_state_label.setText(f"State: {MENU_STATE_NAMES.get(st, f'Unknown({st})')}")
+        lines = []
+
+        if st == MENU_STATE_MAIN:
+            lines.append("ELEC391 Piano Bot")
+            lines.append("")
+            for i, item in enumerate(MAIN_MENU_ITEMS):
+                cursor = ">" if i == self.mcu_menu_index else " "
+                lines.append(f"  {cursor} {item}")
+
+        elif st == MENU_STATE_SELECT:
+            lines.append("[Select Song]")
+            lines.append(f"  {self.mcu_extra1} songs on SD card")
+            lines.append("")
+            if self.mcu_file_list:
+                for i, (name, size) in enumerate(self.mcu_file_list):
+                    cursor = ">" if i == self.mcu_menu_index else " "
+                    active = "*" if (i + 1) == self.mcu_extra2 else " "
+                    lines.append(f"  {cursor}{active}{name:<13s} {size}B")
+            else:
+                lines.append("  No files received yet.")
+
+        elif st == MENU_STATE_PLAYING:
+            lines.append("[Playing Song]")
+            lines.append("")
+            if self.mcu_play_total > 0:
+                pct = int(self.mcu_play_current / self.mcu_play_total * 100)
+                bar_len = 20
+                filled = int(bar_len * pct / 100)
+                bar = "#" * filled + "-" * (bar_len - filled)
+                state_txt = {0: "Done", 1: "Playing", 2: "Stopped"}.get(self.mcu_play_state, "?")
+                lines.append(f"  Status: {state_txt}")
+                lines.append(f"  Chord {self.mcu_play_current + 1} / {self.mcu_play_total}")
+                lines.append(f"  [{bar}] {pct}%")
+            else:
+                lines.append("  No song loaded")
+            lines.append("")
+            lines.append("  :q to stop")
+
+        elif st == MENU_STATE_TRANSMIT:
+            lines.append("[Transmit Song - SD]")
+            lines.append("")
+            status_map = {-1: "Waiting...", 0: "Transmitting...", 1: "Complete!", 2: "Error"}
+            lines.append(f"  Status: {status_map.get(self.mcu_transfer_status, '?')}")
+            lines.append("")
+            lines.append("  :a to go back")
+
+        elif st == MENU_STATE_TRANSMIT_RAM:
+            lines.append("[Transmit Song - RAM]")
+            lines.append("")
+            status_map = {-1: "Waiting...", 0: "Transmitting...", 1: "Complete!", 2: "Error"}
+            lines.append(f"  Status: {status_map.get(self.mcu_transfer_status, '?')}")
+            lines.append("")
+            lines.append("  :a to go back")
+
+        elif st == MENU_STATE_DEBUG:
+            lines.append("[Debug Mode]")
+            lines.append("  Live data on VOFA tab")
+            lines.append("")
+            lines.append("  :a to go back")
+
+        self.lcd_display.setText("\n".join(lines))
+
+    def _control_tick(self):
+        """Periodic update for heartbeat indicator."""
+        if self.connected:
+            elapsed = time.time() - self.last_heartbeat_time
+            if self.last_heartbeat_time == 0:
+                self.hb_indicator.setText("BT: waiting...")
+                self.hb_indicator.setStyleSheet("color: #f9e2af; font-weight: bold;")
+            elif elapsed < 2.0:
+                self.hb_indicator.setText("BT: alive")
+                self.hb_indicator.setStyleSheet("color: #a6e3a1; font-weight: bold;")
+            else:
+                self.hb_indicator.setText(f"BT: lost ({elapsed:.0f}s)")
+                self.hb_indicator.setStyleSheet("color: #f38ba8; font-weight: bold;")
+        else:
+            self.hb_indicator.setText("BT: --")
+            self.hb_indicator.setStyleSheet("color: #6c7086; font-weight: bold;")
 
     @Slot(bytes)
     def _on_data_received(self, data):
@@ -1206,13 +1461,10 @@ class HC04MainWindow(QMainWindow):
         try:
             self.send_raw_data(cmd, silent=True)
             self.control_status.setText(f"Sent: {direction}")
-            ts = time.strftime("%H:%M:%S")
-            append_log(self.control_log_text, f"[{ts}] {direction} ({cmd})")
         except Exception as e:
             self.control_status.setText(f"Error: {e}")
 
     def keyPressEvent(self, event: QKeyEvent):
-        # Control tab key handling
         if self.tabs.currentIndex() == 3 and self.connected:
             key = event.key()
             if key not in self.control_keys_held:
@@ -1222,11 +1474,14 @@ class HC04MainWindow(QMainWindow):
                     Qt.Key.Key_S: (":s", "Down"),
                     Qt.Key.Key_D: (":d", "Enter"),
                     Qt.Key.Key_A: (":a", "Back"),
+                    Qt.Key.Key_V: (":v", "Song 1"),
+                    Qt.Key.Key_B: (":b", "Song 2"),
+                    Qt.Key.Key_N: (":n", "Song 3"),
+                    Qt.Key.Key_Q: (":q", "Stop"),
                 }
                 if key in mapping:
                     self.control_send(*mapping[key])
                     return
-
         super().keyPressEvent(event)
 
     def keyReleaseEvent(self, event: QKeyEvent):
@@ -1279,12 +1534,10 @@ class HC04MainWindow(QMainWindow):
         self.selected_file_path = filepath
         self.file_path_label.setText(filepath)
         self.file_path_label.setStyleSheet("color: #cdd6f4;")
-
         file_size = os.path.getsize(filepath)
         filename = os.path.basename(filepath)
         name, ext = os.path.splitext(filename)
         total_chunks = (file_size + FT_CHUNK_SIZE - 1) // FT_CHUNK_SIZE
-
         if len(name) > 8:
             self.file_info_label.setText(
                 f"WARNING: Filename '{name}' exceeds 8 characters!\n"
@@ -1295,7 +1548,6 @@ class HC04MainWindow(QMainWindow):
             self.file_info_label.setText(
                 f"Filename: {filename}\nSize: {file_size:,} bytes\nChunks: {total_chunks}")
             self.file_info_label.setStyleSheet("color: #a6adc8;")
-
         if file_size > 65535:
             self.upload_btn.setEnabled(False)
             self.ram_upload_btn.setEnabled(False)
@@ -1687,39 +1939,13 @@ class HC04MainWindow(QMainWindow):
             self.sig.ram_done.emit()
 
     def refresh_device_files(self):
+        """Request file list from MCU via :l command (uses XOR packets)."""
         if not self.connected:
             return
         self.device_files_tree.clear()
-        was_reading = self.keep_reading
-        self.keep_reading = False
-        time.sleep(0.1)
-        try:
-            self.ser.reset_input_buffer()
-            self.ser.write(b"/listFiles\n")
-            lines = []
-            timeout_t = time.time() + 3.0
-            while time.time() < timeout_t:
-                if self.ser.in_waiting > 0:
-                    data = self.ser.read(self.ser.in_waiting)
-                    lines.extend(data.decode('utf-8', errors='replace').split('\n'))
-                    if any('END' in line for line in lines):
-                        break
-                time.sleep(0.05)
-
-            for line in lines:
-                line = line.strip()
-                if ',' in line and not line.startswith('FILES:'):
-                    parts = line.split(',')
-                    if len(parts) >= 2:
-                        self.device_files_tree.addTopLevelItem(
-                            QTreeWidgetItem([parts[0], parts[1]]))
-        except Exception as e:
-            self._upload_log(f"Error reading file list: {e}")
-        finally:
-            if was_reading:
-                self.keep_reading = True
-                self.reading_thread = threading.Thread(target=self._read_serial, daemon=True)
-                self.reading_thread.start()
+        self.mcu_file_list.clear()
+        self.send_raw_data(":l", silent=True)
+        self._upload_log("Requested file list from device")
 
     # ════════════════════════════════════════════════════════════════════
     #  VOFA Oscilloscope
@@ -1729,7 +1955,6 @@ class HC04MainWindow(QMainWindow):
         if not self.vofa_paused and len(self.vofa_time) > 0:
             t_end = self.vofa_time[-1]
             t_start = t_end - self.vofa_window_ms
-
             mask = self.vofa_time >= t_start
             t_vis = self.vofa_time[mask]
 
@@ -1743,7 +1968,6 @@ class HC04MainWindow(QMainWindow):
 
             self.vofa_plot.setXRange(t_start, t_end, padding=0)
 
-            # Auto Y-range based on visible window data
             vis_min, vis_max = float('inf'), float('-inf')
             for i in range(self.vofa_ch_count):
                 if self.vofa_ch_checks[i].isChecked() and len(self.vofa_data[i]) > 0:
@@ -1758,13 +1982,10 @@ class HC04MainWindow(QMainWindow):
                     margin = (vis_max - vis_min) * 0.08
                 self.vofa_plot.setYRange(vis_min - margin, vis_max + margin, padding=0)
 
-            # Value labels
             for i in range(self.vofa_ch_count):
                 if len(self.vofa_data[i]) > 0:
                     self.vofa_val_labels[i].setText(f"{self.vofa_data[i][-1]:>8.3f}")
 
-        # FPS display
-        self.vofa_frame_count_display = getattr(self, 'vofa_frame_count_display', 0)
         now = time.time()
         if now - self._vofa_fps_t >= 1.0:
             elapsed = now - self._vofa_fps_t
@@ -1821,7 +2042,6 @@ class HC04MainWindow(QMainWindow):
                 nd = np.array(new_data[i], dtype=np.float64)
                 self.vofa_data[i] = np.concatenate([self.vofa_data[i], nd])
 
-            # Trim
             if len(self.vofa_time) > self.vofa_max_points:
                 excess = len(self.vofa_time) - self.vofa_max_points
                 self.vofa_time = self.vofa_time[excess:]
@@ -1872,7 +2092,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyleSheet(DARK_STYLE)
 
-    # High-DPI
     app.setHighDpiScaleFactorRoundingPolicy(
         Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
 
