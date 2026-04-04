@@ -84,6 +84,7 @@ extern VOFA_REPORT vofa;
 extern volatile float target_position_mm; // for PID control, set by the song, read by the controller step function
 extern int left_motor_arrived; // flag when enter the motor deadband 
 extern int right_motor_arrived; // flag when enter the motor deadband
+extern volatile int stop_playing;
 
 // ============================================= PID struct ===============================================
 typedef struct {

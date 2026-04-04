@@ -31,6 +31,7 @@ volatile float target_position_mm = 0.0f;
 
 // other variables
 volatile int32_t counter = 0;
+volatile int stop_playing = 0; // flag to indicate whether to stop playing the song, set by :q command
 
 // motor motion control parameters
 int left_motor_arrived = 0; // flag when enter the motor deadband 

@@ -243,7 +243,7 @@ int menu_try_dispatch_binary(uint8_t *data, uint16_t len)
         uint16_t need = 0;
         switch (data[0]) {
           case FT_CMD_RAM_START: need = 2; break;   // [0xE0] [sentinel]
-          case FT_CMD_RAM_DATA:  need = 24; break;   // [0xE1] [row_lo] [row_hi] [20 data] [checksum]
+          case FT_CMD_RAM_DATA:  need = 4 + sizeof(ChordEvent_t); break;   // [0xE1] [row_lo] [row_hi] [sizeof(ChordEvent_t) data] [checksum]
           case FT_CMD_RAM_END:   need = 2; break;   // [0xE2] [sentinel]
         }
         if (need == 0 || len < need)

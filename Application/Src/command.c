@@ -10,6 +10,8 @@
 #include <user_timer.h>
 #include <tim.h>
 
+static uint8_t cmd_listen[16];
+
 extern PID_t left_motor;
 extern PID_t right_motor;
 
@@ -80,6 +82,26 @@ int parse_command(uint8_t *cmd)
             debug_traversal();
             // debug_traversal();
             return 0;
+
+        case 'q': // stop playing current song:
+            stop_playing = 1;
+            return 0;
+
+        case 'v': // quick song 1 for testing:
+            load_debug_song(); // load corresponding song
+            traversal();
+            return 0;
+        
+        case 'b': // quick song 2 for testing:
+            load_debug_song(); // load corresponding song
+            traversal();
+            return 0;
+
+        case 'n': // quick song 3 for testing:
+            load_debug_song(); // load corresponding song
+            traversal();
+            return 0;
+
 
         default:
             return 1; /* unknown colon command */
@@ -246,9 +268,40 @@ void toggle_solenoid(uint16_t traversal_index){
 void traversal(void){
     
     uint16_t traversal_index = 0;
+    if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
+        LCD_draw_string(0, 9, "No Song loaded!     ", COLOR_BLACK, COLOR_WHITE);
+        return;
+    }
+
     while (1){
         if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
-            LCD_draw_string(0, 9, "No song in RAM!       ", COLOR_BLACK, COLOR_WHITE);
+            LCD_draw_string(0, 9, "Song ends     ", COLOR_BLACK, COLOR_WHITE);
+            break;
+        }
+
+        // listen to incoming commands only, check for :q only
+        if (rx_complete) {
+            // copy message locally so ISR can safely start receiving next one
+            uint16_t cmd_len = rx_valid;
+            memcpy(cmd_listen, rx_message, cmd_len + 1); // +1 for '\0'
+            rx_complete = 0; // clear AFTER copy, INSIDE the if block
+            cmd_listen[cmd_len] = '\0';
+            if (cmd_len > 0 && cmd_listen[cmd_len - 1] == '\n') {
+                cmd_listen[cmd_len - 1] = '\0';
+                cmd_len--;
+            }
+            menu_process_message(cmd_listen, cmd_len);
+            execute_command(cmd_listen);
+        }
+
+        // in while loop, check if stop_playing flag is set by :q command, if so break the loop and stop playing the song
+        if (stop_playing) {
+            LCD_draw_string(0, 9, "Stopped by user     ", COLOR_BLACK, COLOR_WHITE);
+            stop_playing = 0; // reset the flag for future use
+            // reset the position for both motors to avoid unexpected behavior when start playing next time
+            left_motor.target_pos = 0.0f;
+            right_motor.target_pos = 0.0f;
+            wait_ms(500); // wait for the motors to move back to initial position
             break;
         }
 
@@ -258,7 +311,7 @@ void traversal(void){
 
         // stop the motor when pressing
         wait_ms(5);
-        while(left_motor_arrived == 0 || right_motor_arrived == 0);
+        // while(left_motor_arrived == 0 || right_motor_arrived == 0); // waiting for motor to arrive, comment out: non-blocking mode
 
         // here just wait for pressing:
         wait_ms(20);
