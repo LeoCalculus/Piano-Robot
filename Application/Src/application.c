@@ -101,8 +101,8 @@ void pid_cycle(PID_t* target_system){
     if (pwm_temp > 1000) pwm_temp = 1000;
     if (pwm_temp < 0)   pwm_temp = 0;
 
-    if (pwm_temp < 499 && pwm_temp > 250) pwm_temp = 250;
-    if (pwm_temp > 501 && pwm_temp < 750) pwm_temp = 750;
+    if (pwm_temp < 499 && pwm_temp > 225) pwm_temp = 225;
+    if (pwm_temp > 501 && pwm_temp < 775) pwm_temp = 775;
     target_system->output_pwm = pwm_temp;
     
     return;

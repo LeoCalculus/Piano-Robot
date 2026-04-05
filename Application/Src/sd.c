@@ -112,6 +112,16 @@ void sd_parse_array(const char *filename){
 
     // parse and store chord events in the file, format example:
     while (f_gets(sd_buf, sizeof(sd_buf), &file) != NULL) {
+        // skip empty / whitespace-only lines
+        int blank = 1;
+        for (int i = 0; sd_buf[i]; i++) {
+            if (sd_buf[i] != ' ' && sd_buf[i] != '\t' && sd_buf[i] != '\r' && sd_buf[i] != '\n') {
+                blank = 0;
+                break;
+            }
+        }
+        if (blank) continue;
+
         // 1.5 3.2 row_high row_low 1 0 1 0 0 1 0 0 1 0 500 as example, using strtok to parse the line
         char *token = strtok(sd_buf, " ");
         while (token != NULL) {

@@ -855,21 +855,58 @@ class HC04MainWindow(QMainWindow):
 
         qrow = QHBoxLayout()
         qrow.addWidget(QLabel("Quick:"))
-        for label, cmd in [(";E Halt", ";E"), (";F Toggle PID", ";F")]:
+        for label, cmd in [
+            (":l List SD",   ":l"),
+            (":r Reset Enc", ":r"),
+            (":o Reset Pos", ":o"),
+            (":q Stop",      ":q"),
+            (":z Traversal", ":z"),
+            (":x Solenoid Test", ":x"),
+        ]:
             b = QPushButton(label)
             b.clicked.connect(lambda _, c=cmd: self.cmd_quick(c))
             qrow.addWidget(b)
-        qrow.addSpacing(20)
-        qrow.addWidget(QLabel(";D Distance (cm):"))
-        self.cmd_dist_entry = QLineEdit()
-        self.cmd_dist_entry.setFixedWidth(80)
-        self.cmd_dist_entry.returnPressed.connect(self.cmd_send_dist)
-        qrow.addWidget(self.cmd_dist_entry)
-        dist_btn = QPushButton("Send ;D")
-        dist_btn.clicked.connect(self.cmd_send_dist)
-        qrow.addWidget(dist_btn)
         qrow.addStretch()
         cl.addLayout(qrow)
+
+        qsong = QHBoxLayout()
+        qsong.addWidget(QLabel("Songs:"))
+        for label, cmd in [
+            (":v Song 1", ":v"),
+            (":b Song 2", ":b"),
+            (":n Song 3", ":n"),
+        ]:
+            b = QPushButton(label)
+            b.clicked.connect(lambda _, c=cmd: self.cmd_quick(c))
+            qsong.addWidget(b)
+        qsong.addStretch()
+        cl.addLayout(qsong)
+
+        qrow2 = QHBoxLayout()
+        qrow2.addWidget(QLabel("Menu:"))
+        for label, cmd in [
+            (":w Up",    ":w"),
+            (":s Down",  ":s"),
+            (":d Enter", ":d"),
+            (":a Back",  ":a"),
+        ]:
+            b = QPushButton(label)
+            b.clicked.connect(lambda _, c=cmd: self.cmd_quick(c))
+            qrow2.addWidget(b)
+        qrow2.addSpacing(20)
+        qrow2.addWidget(QLabel(":p Pos (mm):"))
+        self.cmd_pos_entry = QLineEdit()
+        self.cmd_pos_entry.setFixedWidth(80)
+        self.cmd_pos_entry.returnPressed.connect(lambda: self.cmd_send_pos('l'))
+        qrow2.addWidget(self.cmd_pos_entry)
+        pl_btn = QPushButton("Send :pl")
+        pl_btn.clicked.connect(lambda: self.cmd_send_pos('l'))
+        qrow2.addWidget(pl_btn)
+        pr_btn = QPushButton("Send :pr")
+        pr_btn.clicked.connect(lambda: self.cmd_send_pos('r'))
+        qrow2.addWidget(pr_btn)
+        qrow2.addStretch()
+        cl.addLayout(qrow2)
         layout.addWidget(cmd_grp)
 
         clog_grp = QGroupBox("Command Output")
@@ -1507,12 +1544,12 @@ class HC04MainWindow(QMainWindow):
         self.send_raw_data(cmd, silent=True)
         self._cmd_log(cmd)
 
-    def cmd_send_dist(self):
+    def cmd_send_pos(self, side):
         if not self.connected:
             return
         try:
-            dist = float(self.cmd_dist_entry.text())
-            cmd = f";D{dist:.2f}"
+            pos = float(self.cmd_pos_entry.text())
+            cmd = f":p{side} {pos:.2f}"
             self.send_raw_data(cmd, silent=True)
             self._cmd_log(cmd)
         except ValueError:

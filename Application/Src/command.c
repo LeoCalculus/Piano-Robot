@@ -81,8 +81,9 @@ int parse_command(uint8_t *cmd)
             stop_playing = 1;
             return 0;
 
+        // right now redirect all playing to Ji's song
         case 'v': // quick song 1
-            load_debug_song();
+            load_debug_song2();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
             } else {
@@ -106,7 +107,7 @@ int parse_command(uint8_t *cmd)
             return 0;
 
         case 'n': // quick song 3
-            load_debug_song();
+            load_debug_song2();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
             } else {
@@ -318,6 +319,14 @@ void traversal(void){
         if (stop_playing) {
             LCD_draw_string(0, 9, "Stopped by user     ", COLOR_BLACK, COLOR_WHITE);
             pkt_send_play_status(2, traversal_index, total_chords); /* 2 = stopped */
+            
+            // first disable all solenoids:
+            for (int i = 0; i < 10; i++) {
+                HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+            }
+
+            wait_ms(500); // wait for solenoids to reset before resetting the motors
+
             stop_playing = 0;
             left_motor.target_pos = 0.0f;
             right_motor.target_pos = 0.0f;
@@ -330,11 +339,13 @@ void traversal(void){
         right_motor.target_pos = chord_events[traversal_index].positions[1];
 
         wait_ms(5);
-        // while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
-        /* Send play status + heartbeat to PC via packet (no LCD update to avoid blocking) */
+        // blocking: send bt data meanwhile wait controller update a while
+        // these total use 700us blocking
         pkt_send_play_status(1, traversal_index, total_chords);
         pkt_send_heartbeat();
+
+        while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
         wait_ms(20);
         toggle_solenoid(traversal_index);
@@ -376,6 +387,12 @@ void traversal_debug_mode(void){
 
         if (stop_playing) {
             LCD_draw_string(0, 9, "Stopped by user     ", COLOR_BLACK, COLOR_WHITE);
+
+            for (int i = 0; i < 10; i++) {
+                HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
+            }
+            wait_ms(500);
+
             stop_playing = 0;
             left_motor.target_pos = 0.0f;
             right_motor.target_pos = 0.0f;
@@ -388,10 +405,9 @@ void traversal_debug_mode(void){
         right_motor.target_pos = chord_events[traversal_index].positions[1];
 
         wait_ms(5);
-        // while(left_motor_arrived == 0 || right_motor_arrived == 0);
+        while(left_motor_arrived == 0 || right_motor_arrived == 0);
 
         /* No packets here — VOFA is sent by controller_step() at 1kHz */
-
         wait_ms(20);
         toggle_solenoid(traversal_index);
 

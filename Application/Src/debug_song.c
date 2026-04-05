@@ -323,7 +323,7 @@ void load_debug_song(void) {
 
         { .positions = {L_C2, R_E2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
         { .positions = {L_G2, R_E2}, .pressed = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
-        { .positions = {L_A1, R_G3}, .pressed = {0, 0, 0, 0, 0, 0, 0,  0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
+        { .positions = {L_A1, R_G3}, .pressed = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
 
         { .positions = {L_A1, R_C2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {1, 0} },
         { .positions = {L_A1, R_D2}, .pressed = {1, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = EIGHTH, .long_pressed = {0, 0} },
@@ -372,7 +372,8 @@ void load_debug_song(void) {
         { .positions = {L_E2, R_A3}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = QUARTER, .long_pressed = {0, 0} },
         
         // HOMING 
-        { .positions = {L_C1, R_F1}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 2000, .long_pressed = {0, 0} }
+        { .positions = {0.0f, 0.0f}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // home
+        { .positions = {1000.0f, 1000.0f}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }  // end flag
         
     }; 
 
@@ -1096,7 +1097,7 @@ void load_debug_song2() {
         { .positions = {CHORD_4, DO_3}, .pressed = {1, 1, 0, 0, 1, 0, 0, 1, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 31
 
         { .positions = {0.0f, 0.0f}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // home
-        { .positions = {1000.0f, 1000.0f}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} },  // end flag
+        { .positions = {1000.0f, 1000.0f}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }  // end flag
     };
 
     for (int i = 0; i < 1024; i++) {
