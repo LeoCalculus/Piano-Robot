@@ -8,7 +8,7 @@ BPM = 100.0
 SPACING = 23.0
 
 INPUT_FILE = "test_input.txt"
-OUTPUT_FILE = "swan_lake.txt"
+OUTPUT_FILE = "gilligan.txt"
 
 # ==============================================================================
 # 2. MACRO DEFINITIONS (Matches your C header file)

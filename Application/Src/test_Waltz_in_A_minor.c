@@ -1,6 +1,6 @@
 
 #include <application.h>
-#include <Waltz_in_A_minor.h>
+#include <demo_song.h>
 
 
 void load_debug_song(void) {
