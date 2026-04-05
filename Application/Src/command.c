@@ -82,7 +82,7 @@ int parse_command(uint8_t *cmd)
             return 0;
 
         // right now redirect all playing to Ji's song
-        case 'v': // quick song 1
+        case 'v': // Ji's song
             load_debug_song2();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
@@ -94,8 +94,8 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
 
-        case 'b': // quick song 2
-            load_debug_song2();
+        case 'b': // Stucco song
+            load_debug_song3();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
             } else {
@@ -106,8 +106,8 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
 
-        case 'n': // quick song 3
-            load_debug_song2();
+        case 'n': // Jamie song
+            load_debug_song();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
             } else {

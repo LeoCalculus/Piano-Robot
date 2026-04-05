@@ -193,7 +193,7 @@ int main(void)
   wait_ms(1000);
   LCD_draw_string(0, 1, "Start Loading Song     ", COLOR_BLACK, COLOR_WHITE);
   // load the debug song in RAM:
-  load_debug_song();
+  load_debug_song2();
   LCD_draw_string(0, 1, "Song Loaded            ", COLOR_BLACK, COLOR_WHITE);
   wait_ms(1000); // wait for everything ready!
 
