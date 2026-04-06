@@ -15,7 +15,6 @@ static uint8_t cmd_listen[16];
 extern PID_t left_motor;
 extern PID_t right_motor;
 
-uint8_t motor_off;
 
 int parse_command(uint8_t *cmd)
 {
@@ -124,64 +123,64 @@ int parse_command(uint8_t *cmd)
         }
     }
 
-    else if (cmd[0] == ';'){
-        switch (cmd[1]){
-        case 'p':{ /* ;p <value> — set Kp */
-            char *arg = (char *)cmd + 3;
-            while (*arg == ' ')
-                arg++;
-            if (*arg == '\0')
-                return 3; /* incomplete */
+    // else if (cmd[0] == ';'){
+    //     switch (cmd[1]){
+    //     case 'p':{ /* ;p <value> — set Kp */
+    //         char *arg = (char *)cmd + 3;
+    //         while (*arg == ' ')
+    //             arg++;
+    //         if (*arg == '\0')
+    //             return 3; /* incomplete */
 
-            if (cmd[2] == 'l'){
-                left_motor.Kp = strtof(arg, NULL);
-            }
-            else if (cmd[2] == 'r'){
-                left_motor.Kp = strtof(arg, NULL);
-            }
-            else {
-                return 1;
-            }
-            return 0;
-        }
-        case 'i':{ /* ;i <value> — set Ki */
-            char *arg = (char *)cmd + 3;
-            while (*arg == ' ')
-                arg++;
-            if (*arg == '\0')
-                return 3; /* incomplete */
+    //         if (cmd[2] == 'l'){
+    //             left_motor.Kp = strtof(arg, NULL);
+    //         }
+    //         else if (cmd[2] == 'r'){
+    //             left_motor.Kp = strtof(arg, NULL);
+    //         }
+    //         else {
+    //             return 1;
+    //         }
+    //         return 0;
+    //     }
+    //     case 'i':{ /* ;i <value> — set Ki */
+    //         char *arg = (char *)cmd + 3;
+    //         while (*arg == ' ')
+    //             arg++;
+    //         if (*arg == '\0')
+    //             return 3; /* incomplete */
 
-            if (cmd[2] == 'l'){
-                left_motor.Ki = strtof(arg, NULL);
-            }
-            else if (cmd[2] == 'r'){
-                left_motor.Ki = strtof(arg, NULL);
-            }
-            else {
-                return 1;
-            }
-            return 0;
-        }
-        case 'd':{ /* ;d <value> — set Kd */
-            char *arg = (char *)cmd + 3;
-            while (*arg == ' ')
-                arg++;
-            if (*arg == '\0')
-                return 3; /* incomplete */
+    //         if (cmd[2] == 'l'){
+    //             left_motor.Ki = strtof(arg, NULL);
+    //         }
+    //         else if (cmd[2] == 'r'){
+    //             left_motor.Ki = strtof(arg, NULL);
+    //         }
+    //         else {
+    //             return 1;
+    //         }
+    //         return 0;
+    //     }
+    //     case 'd':{ /* ;d <value> — set Kd */
+    //         char *arg = (char *)cmd + 3;
+    //         while (*arg == ' ')
+    //             arg++;
+    //         if (*arg == '\0')
+    //             return 3; /* incomplete */
 
-            if (cmd[2] == 'l'){
-                left_motor.Kd = strtof(arg, NULL);
-            }
-            else if (cmd[2] == 'r'){
-                left_motor.Kd = strtof(arg, NULL);
-            }
-            else {
-                return 1;
-            }
-            return 0;
-        }
-        }
-    }
+    //         if (cmd[2] == 'l'){
+    //             left_motor.Kd = strtof(arg, NULL);
+    //         }
+    //         else if (cmd[2] == 'r'){
+    //             left_motor.Kd = strtof(arg, NULL);
+    //         }
+    //         else {
+    //             return 1;
+    //         }
+    //         return 0;
+    //     }
+    //     }
+    // }
     return 1;
 }
 
@@ -235,7 +234,7 @@ void list_files_over_bt(void)
 }
 
 void toggle_solenoid(uint16_t traversal_index){
-    motor_off = 1;
+    pwm_mode = PWM_STOP;
     for (int i = 0; i < 10; i++) {
         HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, chord_events[traversal_index].pressed[i] ? GPIO_PIN_SET : GPIO_PIN_RESET);
     }
@@ -262,7 +261,7 @@ void toggle_solenoid(uint16_t traversal_index){
             HAL_GPIO_WritePin(solenoids[i].port, solenoids[i].pin, GPIO_PIN_RESET);
         }
     }
-    motor_off = 0;
+    pwm_mode = PWM_PID;
 }
 
 /* Count total chords in the loaded song (looks for end sentinel 1000,1000) */
@@ -278,6 +277,7 @@ static uint16_t count_total_chords(void)
 
 void traversal(void){
 
+    pwm_mode = PWM_PID;
     uint16_t traversal_index = 0;
     if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
         LCD_draw_string(0, 9, "No Song loaded!     ", COLOR_BLACK, COLOR_WHITE);
@@ -299,6 +299,7 @@ void traversal(void){
         if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
             LCD_draw_string(0, 9, "Song ends     ", COLOR_BLACK, COLOR_WHITE);
             pkt_send_play_status(0, traversal_index, total_chords); /* 0 = done */
+            pwm_mode = PWM_STOP;
             break;
         }
 
@@ -331,6 +332,7 @@ void traversal(void){
             left_motor.target_pos = 0.0f;
             right_motor.target_pos = 0.0f;
             wait_ms(500);
+            pwm_mode = PWM_STOP;
             break;
         }
 
@@ -357,6 +359,7 @@ void traversal(void){
 
 void traversal_debug_mode(void){
 
+    pwm_mode = PWM_PID;
     uint16_t traversal_index = 0;
     if (chord_events[traversal_index].positions[0] == 0.0f && chord_events[traversal_index].positions[1] == 0.0f){
         LCD_draw_string(0, 9, "No Song loaded!     ", COLOR_BLACK, COLOR_WHITE);
@@ -369,6 +372,7 @@ void traversal_debug_mode(void){
     while (1){
         if (chord_events[traversal_index].positions[0] == 1000.0f && chord_events[traversal_index].positions[1] == 1000.0f){
             LCD_draw_string(0, 9, "Song ends     ", COLOR_BLACK, COLOR_WHITE);
+            pwm_mode = PWM_STOP;
             break;
         }
 
@@ -397,6 +401,7 @@ void traversal_debug_mode(void){
             left_motor.target_pos = 0.0f;
             right_motor.target_pos = 0.0f;
             wait_ms(500);
+            pwm_mode = PWM_STOP;
             break;
         }
 
@@ -416,6 +421,7 @@ void traversal_debug_mode(void){
 }
 
 void debug_traversal(void){
+    pwm_mode = PWM_PID;
     while (right_motor.target_pos < 138.0f || left_motor.target_pos < 138.0f) {
         right_motor.target_pos += 21.0f;
         left_motor.target_pos += 21.0f;
@@ -435,4 +441,5 @@ void debug_traversal(void){
 
         wait_ms(1000);
     }
+    pwm_mode = PWM_STOP;
 }

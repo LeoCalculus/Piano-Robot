@@ -52,6 +52,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern volatile uint8_t homing;
 
 /* USER CODE END 0 */
 
@@ -206,6 +207,40 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32h5xx.s).                    */
 /******************************************************************************/
+
+/**
+  * @brief This function handles EXTI Line5 interrupt.
+  */
+void EXTI5_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI5_IRQn 0 */
+
+  if(homing == 1){
+    home_flag_left = 1;
+  }
+  /* USER CODE END EXTI5_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_EXTI5_LEFT_Pin);
+  /* USER CODE BEGIN EXTI5_IRQn 1 */
+
+  /* USER CODE END EXTI5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles EXTI Line6 interrupt.
+  */
+void EXTI6_IRQHandler(void)
+{
+  /* USER CODE BEGIN EXTI6_IRQn 0 */
+
+  if(homing == 1){
+    home_flag_right = 1;
+  }
+  /* USER CODE END EXTI6_IRQn 0 */
+  HAL_GPIO_EXTI_IRQHandler(GPIO_EXTI6_RIGHT_Pin);
+  /* USER CODE BEGIN EXTI6_IRQn 1 */
+
+  /* USER CODE END EXTI6_IRQn 1 */
+}
 
 /**
   * @brief This function handles GPDMA1 Channel 0 global interrupt.

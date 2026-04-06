@@ -120,18 +120,32 @@ def midi_to_mm(midi: int) -> Tuple[float, bool]:
         return x0 + wi * WHITE_MM + HALF_WW, False
     return _octave_black_centres(x0)[semi], True
 
-def place_left(midi: int) -> Tuple[float, int]:
-    """Return (lpos_actual_mm, solenoid_index). Uses F0 for whites, F1 for blacks."""
+def place_left_options(midi: int) -> List[Tuple[float, int]]:
+    """Return all valid (lpos_actual_mm, solenoid_index) for each finger that
+    matches the note's colour (white or black)."""
     note_mm, is_black = midi_to_mm(midi)
-    finger = 1 if is_black else 0
-    return note_mm - LEFT_FINGERS[finger][1], finger
+    colour = 'B' if is_black else 'W'
+    opts = []
+    for i, (fc, off) in enumerate(LEFT_FINGERS):
+        if fc == colour:
+            lpos = note_mm - off
+            # anchor must keep all fingers on piano
+            if lpos >= 0 and lpos + LEFT_FINGERS[-1][1] <= PIANO_MM:
+                opts.append((lpos, i))
+    return opts
 
-def place_right(midi: int) -> Tuple[float, int]:
-    """Return (rpos_actual_mm, solenoid_index). Uses F2 (anchor) for whites, F1 for blacks."""
+def place_right_options(midi: int) -> List[Tuple[float, int]]:
+    """Return all valid (rpos_actual_mm, solenoid_index) for each finger that
+    matches the note's colour."""
     note_mm, is_black = midi_to_mm(midi)
-    finger_local = 1 if is_black else 2
-    # Simulator: active position of right finger i is rpos - RIGHT_FINGERS[i][1]
-    return note_mm + RIGHT_FINGERS[finger_local][1], 7 + finger_local
+    colour = 'B' if is_black else 'W'
+    opts = []
+    for i, (fc, off) in enumerate(RIGHT_FINGERS):
+        if fc == colour:
+            rpos = note_mm + off
+            if rpos - RIGHT_FINGERS[0][1] >= 0 and rpos <= PIANO_MM:
+                opts.append((rpos, 7 + i))
+    return opts
 
 # ── Collision rule (mirrors piano_simulator._get_warnings) ───────────────────
 # Simulator flags collision when  lpos + LEFT_FINGERS[-1][1] >= rpos - RIGHT_FINGERS[0][1].
@@ -221,37 +235,50 @@ PREV_LPOS = 1000.0  # "far" sentinel for when left is idle
 PREV_RPOS = 1000.0
 
 def _try_left(pitch: int, last_lpos: float, last_rpos: float):
-    """Try to play `pitch` with the left hand. Returns (lpos, sol, new_rpos)
-    where new_rpos is the right hand's resulting position (shifted right if
-    it was in the way). Returns None if physically impossible."""
+    """Try to play `pitch` with the left hand. Picks the finger that minimises
+    total hand motion (anchor move + any shove of the right hand).
+    Returns (lpos, sol, new_rpos) or None."""
     try:
-        lpos, sol = place_left(pitch)
+        opts = place_left_options(pitch)
     except ValueError:
         return None
-    # F6 (rightmost left finger) must stay on the piano
-    if lpos + LEFT_FINGERS[-1][1] > PIANO_MM or lpos < 0:
+    if not opts:
         return None
-    new_rpos = last_rpos
-    if new_rpos - lpos < MIN_RPOS_MINUS_LPOS:
-        new_rpos = lpos + MIN_RPOS_MINUS_LPOS           # shove right hand clear
-        if new_rpos > PIANO_MM:                          # ran off the right edge
-            return None
-    return lpos, sol, new_rpos
+    best = None
+    best_cost = float('inf')
+    for lpos, sol in opts:
+        new_rpos = last_rpos
+        if new_rpos - lpos < MIN_RPOS_MINUS_LPOS:
+            new_rpos = lpos + MIN_RPOS_MINUS_LPOS
+            if new_rpos > PIANO_MM:
+                continue
+        cost = abs(lpos - last_lpos) + abs(new_rpos - last_rpos)
+        if cost < best_cost:
+            best_cost = cost
+            best = (lpos, sol, new_rpos)
+    return best
 
 def _try_right(pitch: int, last_lpos: float, last_rpos: float):
-    """Mirror: returns (rpos, sol, new_lpos)."""
+    """Mirror of _try_left for right hand. Returns (rpos, sol, new_lpos) or None."""
     try:
-        rpos, sol = place_right(pitch)
+        opts = place_right_options(pitch)
     except ValueError:
         return None
-    if rpos - RIGHT_FINGERS[0][1] < 0 or rpos > PIANO_MM:
+    if not opts:
         return None
-    new_lpos = last_lpos
-    if rpos - new_lpos < MIN_RPOS_MINUS_LPOS:
-        new_lpos = rpos - MIN_RPOS_MINUS_LPOS            # shove left hand clear
-        if new_lpos < 0:                                  # ran off the left edge
-            return None
-    return rpos, sol, new_lpos
+    best = None
+    best_cost = float('inf')
+    for rpos, sol in opts:
+        new_lpos = last_lpos
+        if rpos - new_lpos < MIN_RPOS_MINUS_LPOS:
+            new_lpos = rpos - MIN_RPOS_MINUS_LPOS
+            if new_lpos < 0:
+                continue
+        cost = abs(rpos - last_rpos) + abs(new_lpos - last_lpos)
+        if cost < best_cost:
+            best_cost = cost
+            best = (rpos, sol, new_lpos)
+    return best
 
 def build_events(notes: List[MidiNote],
                  split: Optional[int] = None) -> Tuple[List[Event], List[str]]:

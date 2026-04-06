@@ -181,11 +181,10 @@ int main(void)
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
   __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
 
-  // // test for current
-  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_0, GPIO_PIN_SET);
-  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, GPIO_PIN_SET);
-  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_SET);
-  // HAL_GPIO_WritePin(GPIOD, GPIO_PIN_3, GPIO_PIN_SET);
+  pwm_mode = PWM_STOP;
+  home_flag_left = 0;
+  home_flag_right = 0;
+  homing = 0;
 
   controller_init(); // initialize controller state
   LCD_draw_string(0, 1, "Setting Complete       ", COLOR_BLACK, COLOR_WHITE);
@@ -196,6 +195,7 @@ int main(void)
   load_debug_song2();
   LCD_draw_string(0, 1, "Song Loaded            ", COLOR_BLACK, COLOR_WHITE);
   wait_ms(1000); // wait for everything ready!
+
 
 #ifndef DEBUGMODE
   menu_init();

@@ -1,4 +1,6 @@
 #include <application.h>
+#include <command.h>
+#include <user_timer.h>
 
 
 // uart - buffer
@@ -37,6 +39,13 @@ volatile int stop_playing = 0; // flag to indicate whether to stop playing the s
 // motor motion control parameters
 int left_motor_arrived = 0; // flag when enter the motor deadband 
 int right_motor_arrived = 0; // flag when enter the motor deadband
+
+// homing flags
+volatile uint8_t home_flag_left = 0;
+volatile uint8_t home_flag_right = 0;
+
+volatile uint8_t pwm_mode = PWM_STOP; // 1 = stop, 0 = PID control, 2-5 for homing states
+volatile uint8_t homing = 0;
 
 // PID parameters
 PID_t left_motor = {
@@ -110,7 +119,62 @@ void pid_cycle(PID_t* target_system){
 
 
 void homing_procedure(void) {
-    // TODO: implement homing procedure
+
+    homing = 1;
+
+    // do left hand first
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_5) == 1){
+        home_flag_left = 0;
+        pwm_mode = PWM_HOMING_LEFT_START;
+        wait_ms(200);
+        pwm_mode = PWM_HOMING_LEFT;
+        while(home_flag_left == 0);
+        //
+        pwm_mode = PWM_STOP;
+
+        left_motor.encoder_cnt = 0; 
+        left_motor.current_pos = 0.0f;
+        left_motor.target_pos = 0.0f;
+        __HAL_TIM_SET_COUNTER(&htim3, 0);
+    }
+
+    else{
+        left_motor.encoder_cnt = 0; 
+        left_motor.current_pos = 0.0f;
+        left_motor.target_pos = 0.0f;
+        __HAL_TIM_SET_COUNTER(&htim3, 0);
+    }
+
+    // do right hand later
+    if(HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_6) == 1){
+        home_flag_right = 0;
+        pwm_mode = PWM_HOMING_RIGHT_START;
+        wait_ms(200);
+        pwm_mode = PWM_HOMING_RIGHT;
+        // wait for the flag
+        while(home_flag_right == 0);
+        pwm_mode = PWM_STOP;
+
+        right_motor.encoder_cnt = 0;
+        right_motor.current_pos = 0.0f;
+        right_motor.target_pos = 0.0f;
+        __HAL_TIM_SET_COUNTER(&htim4, 0);
+    }
+
+    else{
+        right_motor.encoder_cnt = 0;
+        right_motor.current_pos = 0.0f;
+        right_motor.target_pos = 0.0f;
+        __HAL_TIM_SET_COUNTER(&htim4, 0);
+    }
+
+    home_flag_left = 0;
+    home_flag_right = 0;
+    homing = 0;
+
+    pwm_mode = PWM_PID; // switch to PID control after homing
+    wait_ms(1000);
+    pwm_mode = PWM_STOP; // stop motors after homing is done
 }
 
 void controller_init(void) {

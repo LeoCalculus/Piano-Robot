@@ -427,6 +427,7 @@ void menu_update(void)
     /* ===== MAIN MENU ===== */
     case MENU_STATE_MAIN:
     {
+        pwm_mode = PWM_STOP;
         /* Navigation */
         if (menu_move_down)
         {
@@ -559,6 +560,7 @@ void menu_update(void)
     /* ===== DEBUG PAGE ===== */
     case MENU_STATE_DEBUG:
     {
+        pwm_mode = PWM_PID;
         if (page_dirty) {
             clear_menu_area();
             LCD_draw_string(0, 1, "[Debug] :a to go back   ", COLOR_BLACK, COLOR_WHITE);

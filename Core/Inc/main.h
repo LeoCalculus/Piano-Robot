@@ -85,6 +85,12 @@ void Error_Handler(void);
 #define LCD_RST_GPIO_Port GPIOE
 #define LED_Pin GPIO_PIN_11
 #define LED_GPIO_Port GPIOD
+#define GPIO_EXTI5_LEFT_Pin GPIO_PIN_5
+#define GPIO_EXTI5_LEFT_GPIO_Port GPIOB
+#define GPIO_EXTI5_LEFT_EXTI_IRQn EXTI5_IRQn
+#define GPIO_EXTI6_RIGHT_Pin GPIO_PIN_6
+#define GPIO_EXTI6_RIGHT_GPIO_Port GPIOB
+#define GPIO_EXTI6_RIGHT_EXTI_IRQn EXTI6_IRQn
 #define Solenoid_1_Pin GPIO_PIN_7
 #define Solenoid_1_GPIO_Port GPIOB
 #define Solenoid_2_Pin GPIO_PIN_8

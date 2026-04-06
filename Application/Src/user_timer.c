@@ -1,13 +1,13 @@
 #include <user_timer.h>
 #include <application.h>
+#include <command.h>
+
 uint8_t timer2_tick_MENU;
 uint16_t timer2_tick_test;
 uint8_t timer5_tick;
 uint8_t menu_update_flag;
 
 volatile uint16_t wait_timer = 0;
-
-extern uint8_t motor_off;
 
 void user_timer_tick_init(){
     timer2_tick_MENU = 0;
@@ -37,7 +37,34 @@ void user_timer5_ISR(){
 
     timer5_tick++;
 
-    controller_step(0.001f);
+    if(pwm_mode == PWM_PID){
+        controller_step(0.001f);
+    }
+
+    else if(pwm_mode == PWM_STOP){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+    }
+
+    else if(pwm_mode == PWM_HOMING_LEFT_START){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 200);
+    }
+
+    else if(pwm_mode == PWM_HOMING_LEFT){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 500);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 270);
+    }
+
+    else if(pwm_mode == PWM_HOMING_RIGHT_START){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 200);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+    }
+
+    else if(pwm_mode == PWM_HOMING_RIGHT){
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, 270);
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, 500);
+    }
 
     timer5_tick = 0;
 }

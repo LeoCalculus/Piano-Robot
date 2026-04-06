@@ -89,6 +89,13 @@ extern int left_motor_arrived; // flag when enter the motor deadband
 extern int right_motor_arrived; // flag when enter the motor deadband
 extern volatile int stop_playing;
 
+// ========================================== Homing =============================================
+extern volatile uint8_t pwm_mode;
+extern volatile uint8_t homing;
+extern volatile uint8_t home_flag_left;
+extern volatile uint8_t home_flag_right;
+
+
 // ============================================= PID struct ===============================================
 typedef struct {
     float Kp;

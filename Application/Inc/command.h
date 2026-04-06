@@ -6,6 +6,13 @@
 #include <ILI9225.h>
 #include <application.h>
 
+#define PWM_PID 0
+#define PWM_STOP 1
+#define PWM_HOMING_LEFT_START 2
+#define PWM_HOMING_LEFT 3
+#define PWM_HOMING_RIGHT_START 4
+#define PWM_HOMING_RIGHT 5
+
 /* parse command */
 int parse_command(uint8_t *cmd);
 void execute_command(uint8_t *command);
