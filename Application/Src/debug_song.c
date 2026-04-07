@@ -668,7 +668,7 @@ void load_debug_song2() {
         { .positions = {CHORD_2, DO_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 1, 0, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 11
         { .positions = {CHORD_2, DO_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 12
         { .positions = {CHORD_2, REb_4}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 13
-        { .positions = {CHORD_2, REb_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 14
+        { .positions = {CHORD_2, REb_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 14
         { .positions = {CHORD_3, DO_4}, .pressed = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 15
 
         { .positions = {CHORD_3, MIb_4}, .pressed = {0, 1, 0, 0, 1, 0, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 16
@@ -930,7 +930,7 @@ void load_debug_song2() {
         { .positions = {CHORD_2, DO_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 1, 0, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 11
         { .positions = {CHORD_2, DO_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 12
         { .positions = {CHORD_2, REb_4}, .pressed = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 13
-        { .positions = {CHORD_2, REb_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 1} }, // 14
+        { .positions = {CHORD_2, REb_4}, .pressed = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 14
         { .positions = {CHORD_3, DO_4}, .pressed = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 15
 
         { .positions = {CHORD_3, MIb_4}, .pressed = {0, 1, 0, 0, 1, 0, 0, 0, 1, 0}, .duration_ms = 250, .long_pressed = {0, 0} }, // 16
