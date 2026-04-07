@@ -93,7 +93,7 @@ int parse_command(uint8_t *cmd)
             }
             return 0;
 
-        case 'b': // Stucco song
+        case 'b': // swan lake
             load_debug_song3();
             if (menu_get_state() == MENU_STATE_DEBUG) {
                 traversal_debug_mode();
