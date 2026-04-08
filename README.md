@@ -1,5 +1,3 @@
-# ELEC-391
-ELEC 391
+# Piano Bot
+A robot controlled by STM32H523VET6 using PID.
 
-Name:
-Shengyao Xu
